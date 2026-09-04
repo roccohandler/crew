@@ -50,10 +50,18 @@ enum SpecConstants {
     static let xpComeback: Int = 50
     /// SPEC: Flow 5; E7; V30; V31 — bonus/second workout same day = +25
     static let xpBonusWorkout: Int = 25
+    /// SPEC: Decision Registry G1 (2026-09-04); V27 — +2 per counted reaction, max 10 XP/day
+    static let xpReaction: Int = 2
     /// SPEC: V27 — 6th+ reaction of day = 0 XP
     static let reactionXpDailyCap: Int = 5
     /// SPEC: Flow 7; V20 — no XP accrues while paused
     static let xpDuringPause: Int = 0
+
+    // MARK: levels
+    /// SPEC: Decision Registry G2 (2026-09-04) — a user starts at level 1 with 0 XP
+    static let startingLevel: Int = 1
+    /// SPEC: Decision Registry G2 (2026-09-04) — level N (N ≥ 2) requires totalXP ≥ levelBaseXp × (N−1) × N / 2; formula, never a table
+    static let levelBaseXp: Int = 500
 
     // MARK: crew
     /// SPEC: Flow 6 — 2–10 people
@@ -78,8 +86,8 @@ enum SpecConstants {
     static let chatMessageMaxChars: Int = 1000
     /// SPEC: Flow 8 — ≤15 exercises/day
     static let planMaxExercisesPerDay: Int = 15
-    /// SPEC: Flow 8 — ≤20 sets (read as per training day; owner to confirm, see progress.md)
-    static let planMaxSetsPerDay: Int = 20
+    /// SPEC: Flow 8; Decision Registry G3 (2026-09-04) — ≤20 sets per exercise; 15 × 20 is the day ceiling
+    static let planMaxSetsPerExercise: Int = 20
 
     // MARK: planGeneration
     /// SPEC: Flow 1 step 3; S04 — Full-Body A/B at ≤2 days
@@ -96,6 +104,14 @@ enum SpecConstants {
     static let beginnerTargetReps: Int = 10
     /// SPEC: Flow 1 step 3 — Experienced = 6 incl. barbell lifts
     static let experiencedExerciseCount: Int = 6
+    /// SPEC: Decision Registry G7 (2026-09-04) — Some experience = 5 exercises per workout
+    static let someExperienceExerciseCount: Int = 5
+    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
+    static let someExperienceTargetSets: Int = 3
+    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
+    static let someExperienceTargetRepsMin: Int = 8
+    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
+    static let someExperienceTargetRepsMax: Int = 10
     /// SPEC: Flow 1 step 3 — 2–3 holds close each workout
     static let mobilityHoldsMin: Int = 2
     /// SPEC: Flow 1 step 3 — 2–3 holds close each workout
@@ -116,8 +132,24 @@ enum SpecConstants {
     static let weightStepLb: Int = 5
     /// SPEC: Flow 3 smart steppers — weight ±2.5 kg
     static let weightStepKg: Double = 2.5
+    /// SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able
+    static let restTimerDefaultSeconds: Int = 90
     /// SPEC: S01 — stale (>day) in-progress session triggers the stale-session prompt
     static let staleInProgressSessionAfterHours: Int = 24
+
+    // MARK: nutrition
+    /// SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)
+    static let mealTagBreakfastFromMinute: Int = 240
+    /// SPEC: Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local
+    static let mealTagLunchFromMinute: Int = 630
+    /// SPEC: Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local
+    static let mealTagDinnerFromMinute: Int = 930
+    /// SPEC: Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack
+    static let mealTagDinnerUntilMinute: Int = 1260
+
+    // MARK: reminders
+    /// SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in
+    static let reminderSuggestedMinuteOfDay: Int = 450
 
     // MARK: onboarding
     /// SPEC: Flow 1; 1B — three questions, the '1 of 3' whisper
@@ -220,6 +252,14 @@ enum SpecConstants {
     // MARK: authAndPolicy
     /// SPEC: Part IV email table; 8.2 Auth — single-use token, 30-min expiry
     static let passwordResetTokenExpiryMinutes: Int = 30
+    /// SPEC: Decision Registry G11 (2026-09-04) — access token 15 min
+    static let jwtAccessTokenMinutes: Int = 15
+    /// SPEC: Decision Registry G11 (2026-09-04) — refresh token 30 days, rotating
+    static let jwtRefreshTokenDays: Int = 30
+    /// SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — auth endpoints 10 req/min/IP
+    static let rateLimitAuthRequestsPerMinutePerIp: Int = 10
+    /// SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — post creation 60/hour/user; everything else unlimited in MVP
+    static let rateLimitPostCreationPerHourPerUser: Int = 60
     /// SPEC: E9; Appendix A — age floor 13+
     static let minimumAgeYears: Int = 13
     /// SPEC: Part IV email table; lib/email.ts — the only three

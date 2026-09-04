@@ -1,6 +1,6 @@
 /* GENERATED FILE — DO NOT EDIT. Source: shared/design-tokens.json · Generator: shared/scripts/generate.mjs */
 /* Re-run `node shared/scripts/generate.mjs`; `node shared/scripts/check-drift.mjs` fails CI when this file drifts. */
-/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. */
+/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. */
 
 :root {
   color-scheme: light dark;
@@ -22,11 +22,11 @@
   --ember-secondary-button-label: #211D19;
   /* 20% Ink — secondary text */
   --ember-secondary-text: #6F6860;
-  /* 20% Ink — missed = warm gray, never red */
+  /* 20% Ink — missed = warm gray, never red; recedes on dark */
   --ember-missed-gray: #A8A29A;
   /* ≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts */
   --ember-ember: #FF6600;
-  /* ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light) */
+  /* ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark) */
   --ember-ember-text: #B84D00;
   /* ≤10% Ember — tints & ring tracks */
   --ember-ember-tint: #FFEFE3;
@@ -34,6 +34,16 @@
   --ember-success: #3E8E5A;
   /* Semantic — danger (berry, never near orange; single value in spec; both modes) */
   --ember-danger: #D64550;
+  /* Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web) */
+  --ember-space-4: 4px;
+  --ember-space-8: 8px;
+  --ember-space-12: 12px;
+  --ember-space-16: 16px;
+  --ember-space-24: 24px;
+  --ember-space-32: 32px;
+  /* 6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04) */
+  --ember-spring-response: 0.35;
+  --ember-spring-damping-fraction: 0.8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,11 +57,9 @@
     --ember-secondary-button-outline: #2E2822;
     --ember-secondary-button-label: #F5F1EB;
     --ember-secondary-text: #A69E94;
-    /* missedGray: SPECIFICATION GAP — dark value undefined in spec; light value used until the owner decides */
-    --ember-missed-gray: #A8A29A;
+    --ember-missed-gray: #5E574F;
     --ember-ember: #FF7A1F;
-    /* emberText: SPECIFICATION GAP — dark value undefined in spec; light value used until the owner decides */
-    --ember-ember-text: #B84D00;
+    --ember-ember-text: #FF7A1F;
     --ember-ember-tint: #33241A;
     --ember-success: #3E8E5A;
     --ember-danger: #D64550;

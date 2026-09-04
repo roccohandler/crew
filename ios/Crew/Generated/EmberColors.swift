@@ -24,12 +24,12 @@ enum EmberColors {
     static let secondaryButtonLabel = emberColor(light: 0x211D19, dark: 0xF5F1EB)
     /// 20% Ink — secondary text · light #6F6860 · dark #A69E94
     static let secondaryText = emberColor(light: 0x6F6860, dark: 0xA69E94)
-    /// 20% Ink — missed = warm gray, never red · light #A8A29A · dark: SPECIFICATION GAP — dark value undefined in spec; light value used until the owner decides
-    static let missedGray = emberColor(light: 0xA8A29A, dark: 0xA8A29A)
+    /// 20% Ink — missed = warm gray, never red; recedes on dark · light #A8A29A · dark #5E574F
+    static let missedGray = emberColor(light: 0xA8A29A, dark: 0x5E574F)
     /// ≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts · light #FF6600 · dark #FF7A1F
     static let ember = emberColor(light: 0xFF6600, dark: 0xFF7A1F)
-    /// ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light) · light #B84D00 · dark: SPECIFICATION GAP — dark value undefined in spec; light value used until the owner decides
-    static let emberText = emberColor(light: 0xB84D00, dark: 0xB84D00)
+    /// ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark) · light #B84D00 · dark #FF7A1F
+    static let emberText = emberColor(light: 0xB84D00, dark: 0xFF7A1F)
     /// ≤10% Ember — tints & ring tracks · light #FFEFE3 · dark #33241A
     static let emberTint = emberColor(light: 0xFFEFE3, dark: 0x33241A)
     /// Semantic — success (single value in spec; both modes) · light #3E8E5A · dark #3E8E5A

@@ -50,10 +50,18 @@ export const SpecConstants = {
   xpComeback: 50,
   /** SPEC: Flow 5; E7; V30; V31 — bonus/second workout same day = +25 */
   xpBonusWorkout: 25,
+  /** SPEC: Decision Registry G1 (2026-09-04); V27 — +2 per counted reaction, max 10 XP/day */
+  xpReaction: 2,
   /** SPEC: V27 — 6th+ reaction of day = 0 XP */
   reactionXpDailyCap: 5,
   /** SPEC: Flow 7; V20 — no XP accrues while paused */
   xpDuringPause: 0,
+
+  // --- levels ---
+  /** SPEC: Decision Registry G2 (2026-09-04) — a user starts at level 1 with 0 XP */
+  startingLevel: 1,
+  /** SPEC: Decision Registry G2 (2026-09-04) — level N (N ≥ 2) requires totalXP ≥ levelBaseXp × (N−1) × N / 2; formula, never a table */
+  levelBaseXp: 500,
 
   // --- crew ---
   /** SPEC: Flow 6 — 2–10 people */
@@ -78,8 +86,8 @@ export const SpecConstants = {
   chatMessageMaxChars: 1000,
   /** SPEC: Flow 8 — ≤15 exercises/day */
   planMaxExercisesPerDay: 15,
-  /** SPEC: Flow 8 — ≤20 sets (read as per training day; owner to confirm, see progress.md) */
-  planMaxSetsPerDay: 20,
+  /** SPEC: Flow 8; Decision Registry G3 (2026-09-04) — ≤20 sets per exercise; 15 × 20 is the day ceiling */
+  planMaxSetsPerExercise: 20,
 
   // --- planGeneration ---
   /** SPEC: Flow 1 step 3; S04 — Full-Body A/B at ≤2 days */
@@ -96,6 +104,14 @@ export const SpecConstants = {
   beginnerTargetReps: 10,
   /** SPEC: Flow 1 step 3 — Experienced = 6 incl. barbell lifts */
   experiencedExerciseCount: 6,
+  /** SPEC: Decision Registry G7 (2026-09-04) — Some experience = 5 exercises per workout */
+  someExperienceExerciseCount: 5,
+  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
+  someExperienceTargetSets: 3,
+  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
+  someExperienceTargetRepsMin: 8,
+  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
+  someExperienceTargetRepsMax: 10,
   /** SPEC: Flow 1 step 3 — 2–3 holds close each workout */
   mobilityHoldsMin: 2,
   /** SPEC: Flow 1 step 3 — 2–3 holds close each workout */
@@ -116,8 +132,24 @@ export const SpecConstants = {
   weightStepLb: 5,
   /** SPEC: Flow 3 smart steppers — weight ±2.5 kg */
   weightStepKg: 2.5,
+  /** SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able */
+  restTimerDefaultSeconds: 90,
   /** SPEC: S01 — stale (>day) in-progress session triggers the stale-session prompt */
   staleInProgressSessionAfterHours: 24,
+
+  // --- nutrition ---
+  /** SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight) */
+  mealTagBreakfastFromMinute: 240,
+  /** SPEC: Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local */
+  mealTagLunchFromMinute: 630,
+  /** SPEC: Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local */
+  mealTagDinnerFromMinute: 930,
+  /** SPEC: Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack */
+  mealTagDinnerUntilMinute: 1260,
+
+  // --- reminders ---
+  /** SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in */
+  reminderSuggestedMinuteOfDay: 450,
 
   // --- onboarding ---
   /** SPEC: Flow 1; 1B — three questions, the '1 of 3' whisper */
@@ -220,6 +252,14 @@ export const SpecConstants = {
   // --- authAndPolicy ---
   /** SPEC: Part IV email table; 8.2 Auth — single-use token, 30-min expiry */
   passwordResetTokenExpiryMinutes: 30,
+  /** SPEC: Decision Registry G11 (2026-09-04) — access token 15 min */
+  jwtAccessTokenMinutes: 15,
+  /** SPEC: Decision Registry G11 (2026-09-04) — refresh token 30 days, rotating */
+  jwtRefreshTokenDays: 30,
+  /** SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — auth endpoints 10 req/min/IP */
+  rateLimitAuthRequestsPerMinutePerIp: 10,
+  /** SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — post creation 60/hour/user; everything else unlimited in MVP */
+  rateLimitPostCreationPerHourPerUser: 60,
   /** SPEC: E9; Appendix A — age floor 13+ */
   minimumAgeYears: 13,
   /** SPEC: Part IV email table; lib/email.ts — the only three */
