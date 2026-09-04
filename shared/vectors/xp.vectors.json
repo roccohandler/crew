@@ -1,0 +1,225 @@
+{
+  "file": "xp.vectors.json",
+  "spec": "Part VIII 8.1 — XP (V24–V31, V41–V42); Part IV table; Flow 4 XP cap; E7; Decision Registry G1/G2",
+  "vectors": [
+    {
+      "id": "V24",
+      "title": "first post of day = 25",
+      "spec": "8.1 V24; Part IV table (25 XP first post)",
+      "kind": "apply",
+      "rule": "The first post of a day earns +25 whatever its kind; a text post (no meal tag, no workout) earns nothing else.",
+      "reviewNote": "Owner confirms at the 🛑: Part IX post type 'text' (a caption-only post without a meal tag) earns only the first-post XP; a text-only MEAL (Flow 4 'protein shake post-gym') is kind 'meal' and earns +15.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "text", "dayKey": "2026-09-04", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "streakTo", "value": 6 } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 525, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V25",
+      "title": "planned workout = +100 (day-one total 125)",
+      "spec": "8.1 V25; Flow 2 (+125 XP counts in); Part IV table",
+      "kind": "apply",
+      "rule": "A brand-new user's first completed planned workout earns 25 (first post) + 100 (planned workout) = 125.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ]
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 1, "totalXP": 125, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V26",
+      "title": "4th+ meal of day = 0 XP",
+      "spec": "8.1 V26; Flow 4 XP cap (first 3 meals earn +15 each)",
+      "kind": "apply",
+      "rule": "Meals 1–3 earn +15 each (the first also +25 as first post); the 4th earns nothing but still posts: 25 + 15 + 15 + 15 + 0 = 70.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 1 } ],
+          [ { "award": "xp", "amount": 15, "reason": "meal" } ],
+          [ { "award": "xp", "amount": 15, "reason": "meal" } ],
+          []
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 1, "totalXP": 70, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V27",
+      "title": "6th+ reaction of day = 0 XP",
+      "spec": "8.1 V27; Decision Registry G1 (2026-09-04): +2 per reaction, max 10/day",
+      "kind": "apply",
+      "rule": "Reactions 1–5 earn +2 each; the 6th earns 0. Reactions are not posts: no first-post XP, no streak change.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "reactionGiven", "dayKey": "2026-09-04" },
+        { "type": "reactionGiven", "dayKey": "2026-09-04" },
+        { "type": "reactionGiven", "dayKey": "2026-09-04" },
+        { "type": "reactionGiven", "dayKey": "2026-09-04" },
+        { "type": "reactionGiven", "dayKey": "2026-09-04" },
+        { "type": "reactionGiven", "dayKey": "2026-09-04" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 2, "reason": "reaction" } ],
+          [ { "award": "xp", "amount": 2, "reason": "reaction" } ],
+          [ { "award": "xp", "amount": 2, "reason": "reaction" } ],
+          [ { "award": "xp", "amount": 2, "reason": "reaction" } ],
+          [ { "award": "xp", "amount": 2, "reason": "reaction" } ],
+          []
+        ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 510, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V28",
+      "title": "perfect week bonus = +150 on final completion",
+      "spec": "8.1 V28; Part IV table (+150 XP + shield); Decision Registry G6",
+      "kind": "apply",
+      "rule": "Planned Mon/Wed/Fri/Sun. Sunday's first post (a meal) posts the day but Sunday's planned workout is still open, so the week is not yet perfect; the Sunday workout completion is the final requirement and carries +150, perfectWeek and the shield.",
+      "initialState": { "currentStreak": 6, "longestStreak": 6, "totalXP": 2000, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-06", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": true },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-13", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 7 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 8 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 9 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 10 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 11 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 12 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 13 } ],
+          [ { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "xp", "amount": 150, "reason": "perfectWeek" }, { "award": "perfectWeek" }, { "award": "shieldEarned" } ]
+        ],
+        "state": { "currentStreak": 13, "longestStreak": 13, "totalXP": 2785, "level": 3, "shields": 1, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V29",
+      "title": "comeback (first post after 3+ missed) = +50",
+      "spec": "8.1 V29; Flow 6 (quiet for 3+ days → COMEBACK 🎉); Flow 7 (return post gets the comeback)",
+      "kind": "apply",
+      "rule": "Three unshielded quiet days (2026-09-02/03/04) reset the streak at the first rollover; the return post on 09-05 starts a new streak at 1 and is a comeback: +25 +15 +50.",
+      "initialState": { "currentStreak": 12, "longestStreak": 12, "totalXP": 1000, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-01", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-02", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-03", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-04", "hadRequirement": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-05", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "streakTo", "value": 0 } ],
+          [],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "xp", "amount": 50, "reason": "comeback" }, { "award": "streakTo", "value": 1 }, { "award": "comeback" } ]
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 12, "totalXP": 1090, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V30",
+      "title": "bonus/unplanned workout = +25",
+      "spec": "8.1 V30; Flow 5 (bonus workout = +25 XP, never expected)",
+      "kind": "apply",
+      "rule": "A completed workout on a rest day is a bonus: +25 (first post) + 25 (bonus workout), and it counts the day like any post.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-05", "isPlannedDay": false, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "streakTo", "value": 6 } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 550, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V31",
+      "title": "second workout same day = +25, not +100",
+      "spec": "8.1 V31; E7 (two-a-days: first counts +100, extras +25)",
+      "kind": "apply",
+      "rule": "On a planned day the first completed workout earns +100; a second completed workout the same day is an extra: +25 and nothing else.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "bonusWorkout" } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 650, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V41",
+      "title": "level 2 at 500 XP: crossing the threshold emits levelUp(2) with the completion",
+      "spec": "Decision Registry G2 (2026-09-04); E8 (level-ups fold into the completion celebration); Part IX GamificationState.level",
+      "kind": "apply",
+      "rule": "level = max N with totalXP ≥ 500 × (N−1) × N / 2. 460 + 125 = 585 crosses 500, so this event ends with levelUp(2).",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 460, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 }, { "award": "levelUp", "value": 2 } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 585, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V42",
+      "title": "level 3 at 1500 XP: the formula, not a table (1400 + 125 = 1525 → levelUp(3))",
+      "spec": "Decision Registry G2 (2026-09-04)",
+      "kind": "apply",
+      "rule": "The third level needs 500 × 2 × 3 / 2 = 1500 XP; 1499 stays level 2, 1525 is level 3.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 1400, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 }, { "award": "levelUp", "value": 3 } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 1525, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}

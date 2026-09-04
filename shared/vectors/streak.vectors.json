@@ -1,0 +1,228 @@
+{
+  "file": "streak.vectors.json",
+  "spec": "Part VIII 8.1 — Streak & day boundary (V01–V12); E8; E20; Flow 5; Flow 7",
+  "vectors": [
+    {
+      "id": "V01",
+      "title": "first-ever post starts streak at 1",
+      "spec": "8.1 V01; Flow 1 step 6 (first flame); Part IV table",
+      "kind": "apply",
+      "rule": "With no counted day yet, any post counts today: streak 1, +25 first-post XP, plus the meal's +15.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 1 } ]
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 1, "totalXP": 40, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V02",
+      "title": "planned-workout day completed → +1",
+      "spec": "8.1 V02; Flow 2; Part IV table",
+      "kind": "apply",
+      "rule": "A completed workout post on a planned day counts the day (+1 streak) and earns 25 + 100.",
+      "initialState": { "currentStreak": 3, "longestStreak": 3, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 4 } ]
+        ],
+        "state": { "currentStreak": 4, "longestStreak": 4, "totalXP": 425, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V03",
+      "title": "rest day + meal post → +1",
+      "spec": "8.1 V03; Flow 5 (streak stays safe if you post something)",
+      "kind": "apply",
+      "rule": "Any post sustains the streak: a meal on a rest day counts the day.",
+      "initialState": { "currentStreak": 4, "longestStreak": 4, "totalXP": 425, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-05", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 5 } ]
+        ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V04",
+      "title": "rest day, silence → streak 0 at 3 AM",
+      "spec": "8.1 V04; Flow 7 unplanned miss; E8",
+      "kind": "apply",
+      "rule": "When 3 AM passes on a required day with no post and no shield, the streak resets to 0; longest streak and XP stand.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "streakTo", "value": 0 } ]
+        ],
+        "state": { "currentStreak": 0, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V05",
+      "title": "post at 2:59 AM counts prior day",
+      "spec": "8.1 V05; E8 (day ends 3 AM local)",
+      "kind": "dayKey",
+      "rule": "Before 03:00 local the day has not ended: the dayKey is the previous calendar date.",
+      "cases": [
+        { "at": "2026-09-05T02:59:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-04", "weekKey": "2026-08-31" },
+        { "at": "2026-09-05T02:59:59-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-04", "weekKey": "2026-08-31" },
+        { "at": "2026-09-05T00:10:00+02:00", "tz": "Europe/Berlin", "dayKey": "2026-09-04", "weekKey": "2026-08-31" }
+      ]
+    },
+    {
+      "id": "V06",
+      "title": "post at 3:01 AM counts new day",
+      "spec": "8.1 V06; E8; E20 (Monday weeks)",
+      "kind": "dayKey",
+      "rule": "From 03:00:00 local the new day has begun; weeks start Monday and weekKey is that Monday's dayKey.",
+      "cases": [
+        { "at": "2026-09-05T03:01:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-05", "weekKey": "2026-08-31" },
+        { "at": "2026-09-05T03:00:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-05", "weekKey": "2026-08-31" },
+        { "at": "2026-09-05T12:00:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-05", "weekKey": "2026-08-31" },
+        { "at": "2026-09-07T01:00:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-06", "weekKey": "2026-08-31" },
+        { "at": "2026-09-07T03:00:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-07", "weekKey": "2026-09-07" },
+        { "at": "2026-09-13T23:30:00+09:00", "tz": "Asia/Tokyo", "dayKey": "2026-09-13", "weekKey": "2026-09-07" }
+      ]
+    },
+    {
+      "id": "V07",
+      "title": "workout started 23:00, completed 01:10 → counts completion day",
+      "spec": "8.1 V07; Part IX Session.date (3 AM-adjusted dayKey)",
+      "kind": "dayKey",
+      "rule": "A session is keyed by the dayKey of its completion instant, never its start; 01:10 is still the previous day under the 3 AM rule.",
+      "cases": [
+        { "note": "started 2026-09-04T23:00-07:00, completed 01:10 next calendar day → still 2026-09-04", "at": "2026-09-05T01:10:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-04", "weekKey": "2026-08-31" },
+        { "note": "started 2026-09-04T23:00-07:00, completed after the boundary → the new day", "at": "2026-09-05T03:30:00-07:00", "tz": "America/Los_Angeles", "dayKey": "2026-09-05", "weekKey": "2026-08-31" }
+      ]
+    },
+    {
+      "id": "V08",
+      "title": "DST spring-forward night resolves in user's favor",
+      "spec": "8.1 V08; E8 (edge cases resolve in the user's favor); 5.6.1 DayKey (DST)",
+      "kind": "dayKey",
+      "rule": "The 3 AM boundary is startOfDay + 3 h in absolute time, so on the spring-forward night (2026-03-08 America/New_York, 02:00 → 03:00) the day keeps its full 24 h and ends at 04:00 EDT; the next night ends at 03:00 again. On the fall-back night (2026-11-01) the rule needs no special case.",
+      "reviewNote": "Owner confirms at the 🛑: 'user's favor' = the late poster on the spring-forward night (03:00–03:59 EDT) still counts for the previous day. The alternative reading (pure 'local time minus 3 h') would key 03:30 EDT to 2026-03-08.",
+      "cases": [
+        { "at": "2026-03-08T01:59:00-05:00", "tz": "America/New_York", "dayKey": "2026-03-07", "weekKey": "2026-03-02" },
+        { "at": "2026-03-08T03:30:00-04:00", "tz": "America/New_York", "dayKey": "2026-03-07", "weekKey": "2026-03-02" },
+        { "at": "2026-03-08T03:59:59-04:00", "tz": "America/New_York", "dayKey": "2026-03-07", "weekKey": "2026-03-02" },
+        { "at": "2026-03-08T04:00:00-04:00", "tz": "America/New_York", "dayKey": "2026-03-08", "weekKey": "2026-03-02" },
+        { "at": "2026-03-09T02:59:00-04:00", "tz": "America/New_York", "dayKey": "2026-03-08", "weekKey": "2026-03-02" },
+        { "at": "2026-03-09T03:00:00-04:00", "tz": "America/New_York", "dayKey": "2026-03-09", "weekKey": "2026-03-09" },
+        { "at": "2026-11-01T01:30:00-05:00", "tz": "America/New_York", "dayKey": "2026-10-31", "weekKey": "2026-10-26" },
+        { "at": "2026-11-01T02:30:00-05:00", "tz": "America/New_York", "dayKey": "2026-11-01", "weekKey": "2026-10-26" },
+        { "at": "2026-11-02T02:59:00-05:00", "tz": "America/New_York", "dayKey": "2026-11-01", "weekKey": "2026-10-26" },
+        { "at": "2026-11-02T03:00:00-05:00", "tz": "America/New_York", "dayKey": "2026-11-02", "weekKey": "2026-11-02" }
+      ]
+    },
+    {
+      "id": "V09",
+      "title": "timezone travel west (27 h day) → one increment, no double-count",
+      "spec": "8.1 V09; E8 (timezones follow the device); V11",
+      "kind": "apply",
+      "rule": "Each post is keyed with the device timezone at that moment; two posts that both land on local 2026-09-04 (Tokyo evening, then Honolulu evening 19 h later) count one day, once.",
+      "initialState": { "currentStreak": 2, "longestStreak": 2, "totalXP": 200, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "at": "2026-09-04T20:00:00+09:00", "tz": "Asia/Tokyo", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "at": "2026-09-04T20:00:00-10:00", "tz": "Pacific/Honolulu", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 3 } ],
+          [ { "award": "xp", "amount": 15, "reason": "meal" } ]
+        ],
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 255, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V10",
+      "title": "timezone travel east (21 h day) → never retro-missed",
+      "spec": "8.1 V10; E8; Part IX Post.dayKey (stored at creation)",
+      "kind": "apply",
+      "rule": "A post keyed 2026-09-04 in Honolulu stays 2026-09-04 after the device moves to Tokyo; the Tokyo post 6 h later is 2026-09-05, so the streak runs 3 → 4 with no missed day in between.",
+      "initialState": { "currentStreak": 2, "longestStreak": 2, "totalXP": 200, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "at": "2026-09-04T20:00:00-10:00", "tz": "Pacific/Honolulu", "isPlannedDay": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-04", "hadRequirement": true },
+        { "type": "postCreated", "kind": "meal", "at": "2026-09-05T21:00:00+09:00", "tz": "Asia/Tokyo", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 3 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 4 } ]
+        ],
+        "state": { "currentStreak": 4, "longestStreak": 4, "totalXP": 280, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V11",
+      "title": "two qualifying posts same day → one increment",
+      "spec": "8.1 V11; Flow 2 (workout then dinner)",
+      "kind": "apply",
+      "rule": "Only the first post of a day counts it; the second post earns only its kind's XP.",
+      "initialState": { "currentStreak": 1, "longestStreak": 1, "totalXP": 40, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 2 } ],
+          [ { "award": "xp", "amount": 15, "reason": "meal" } ]
+        ],
+        "state": { "currentStreak": 2, "longestStreak": 2, "totalXP": 180, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V12",
+      "title": "all-rest plan: meal posts alone sustain indefinitely",
+      "spec": "8.1 V12; E16 (all-rest plans allowed; streak runs on meal posts)",
+      "kind": "apply",
+      "rule": "Seven consecutive days of one meal post each, with zero planned days, run the streak 0 → 7; no shield is ever earned (see V18b).",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-05", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-06", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-07", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-09", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 1 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 2 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 3 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 4 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 5 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 7 } ]
+        ],
+        "state": { "currentStreak": 7, "longestStreak": 7, "totalXP": 280, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-10", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}

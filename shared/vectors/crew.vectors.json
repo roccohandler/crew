@@ -1,0 +1,131 @@
+{
+  "file": "crew.vectors.json",
+  "spec": "Part VIII 8.1 — Crew & pulse (V37–V40); Flow 6; E2; S12",
+  "vectors": [
+    {
+      "id": "V37",
+      "title": "pulse = distinct members posted this (3 AM) day",
+      "spec": "8.1 V37; Flow 6 (CREW PULSE: posted-today counter); S12 (pulse correct vs. distinct members posted, 3 AM day)",
+      "kind": "crewPulse",
+      "rule": "Members of 2026-09-04 with ≥1 post keyed to that day, counted once each: A (two posts) + B + D (posted 01:30 the next calendar day, still 09-04) = 3 of 5; C posted yesterday, E never, F left on 09-03 and is not a member.",
+      "dayKey": "2026-09-04",
+      "members": [
+        { "userId": "A", "joinedDayKey": "2026-08-01" },
+        { "userId": "B", "joinedDayKey": "2026-08-01" },
+        { "userId": "C", "joinedDayKey": "2026-08-01" },
+        { "userId": "D", "joinedDayKey": "2026-08-01" },
+        { "userId": "E", "joinedDayKey": "2026-08-01" },
+        { "userId": "F", "joinedDayKey": "2026-08-01", "leftDayKey": "2026-09-03" }
+      ],
+      "posts": [
+        { "userId": "A", "dayKey": "2026-09-04" },
+        { "userId": "A", "dayKey": "2026-09-04" },
+        { "userId": "B", "dayKey": "2026-09-04" },
+        { "userId": "C", "dayKey": "2026-09-03" },
+        { "userId": "D", "at": "2026-09-05T01:30:00-07:00", "tz": "America/Los_Angeles" },
+        { "userId": "F", "dayKey": "2026-09-04" }
+      ],
+      "expect": { "posted": 3, "total": 5 }
+    },
+    {
+      "id": "V38",
+      "title": "weekly crew ring resets Monday",
+      "spec": "8.1 V38; Flow 6 (weekly crew ring); E20 (Monday week-start); 5.6.2 HomeModel.weeklyRing: [DayRingState]",
+      "kind": "crewWeeklyRing",
+      "rule": "The weekly crew ring is one pulse segment per day from Monday through today. On Monday 2026-09-07 it holds only Monday (1 of 3 posted); the previous week's seven full days (3 of 3 each) belong to the ring that ended Sunday 2026-09-06.",
+      "reviewNote": "Owner confirms at the 🛑: the crew's weekly ring = the week's daily pulses (mirrors HomeModel.weeklyRing being a list of day states). The spec never defines the crew ring's contents beyond 'weekly crew ring' next to the pulse.",
+      "cases": [
+        {
+          "asOfDayKey": "2026-09-07",
+          "members": [ { "userId": "A", "joinedDayKey": "2026-08-01" }, { "userId": "B", "joinedDayKey": "2026-08-01" }, { "userId": "C", "joinedDayKey": "2026-08-01" } ],
+          "posts": [
+            { "userId": "A", "dayKey": "2026-08-31" }, { "userId": "B", "dayKey": "2026-08-31" }, { "userId": "C", "dayKey": "2026-08-31" },
+            { "userId": "A", "dayKey": "2026-09-01" }, { "userId": "B", "dayKey": "2026-09-01" }, { "userId": "C", "dayKey": "2026-09-01" },
+            { "userId": "A", "dayKey": "2026-09-02" }, { "userId": "B", "dayKey": "2026-09-02" }, { "userId": "C", "dayKey": "2026-09-02" },
+            { "userId": "A", "dayKey": "2026-09-03" }, { "userId": "B", "dayKey": "2026-09-03" }, { "userId": "C", "dayKey": "2026-09-03" },
+            { "userId": "A", "dayKey": "2026-09-04" }, { "userId": "B", "dayKey": "2026-09-04" }, { "userId": "C", "dayKey": "2026-09-04" },
+            { "userId": "A", "dayKey": "2026-09-05" }, { "userId": "B", "dayKey": "2026-09-05" }, { "userId": "C", "dayKey": "2026-09-05" },
+            { "userId": "A", "dayKey": "2026-09-06" }, { "userId": "B", "dayKey": "2026-09-06" }, { "userId": "C", "dayKey": "2026-09-06" },
+            { "userId": "A", "dayKey": "2026-09-07" }
+          ],
+          "expect": { "days": [ { "dayKey": "2026-09-07", "posted": 1, "total": 3 } ] }
+        },
+        {
+          "asOfDayKey": "2026-09-06",
+          "members": [ { "userId": "A", "joinedDayKey": "2026-08-01" }, { "userId": "B", "joinedDayKey": "2026-08-01" }, { "userId": "C", "joinedDayKey": "2026-08-01" } ],
+          "posts": [
+            { "userId": "A", "dayKey": "2026-08-31" }, { "userId": "B", "dayKey": "2026-08-31" }, { "userId": "C", "dayKey": "2026-08-31" },
+            { "userId": "A", "dayKey": "2026-09-01" }, { "userId": "B", "dayKey": "2026-09-01" }, { "userId": "C", "dayKey": "2026-09-01" },
+            { "userId": "A", "dayKey": "2026-09-02" }, { "userId": "B", "dayKey": "2026-09-02" }, { "userId": "C", "dayKey": "2026-09-02" },
+            { "userId": "A", "dayKey": "2026-09-03" }, { "userId": "B", "dayKey": "2026-09-03" }, { "userId": "C", "dayKey": "2026-09-03" },
+            { "userId": "A", "dayKey": "2026-09-04" }, { "userId": "B", "dayKey": "2026-09-04" }, { "userId": "C", "dayKey": "2026-09-04" },
+            { "userId": "A", "dayKey": "2026-09-05" }, { "userId": "B", "dayKey": "2026-09-05" }, { "userId": "C", "dayKey": "2026-09-05" },
+            { "userId": "A", "dayKey": "2026-09-06" }, { "userId": "B", "dayKey": "2026-09-06" }, { "userId": "C", "dayKey": "2026-09-06" }
+          ],
+          "expect": { "days": [
+            { "dayKey": "2026-08-31", "posted": 3, "total": 3 }, { "dayKey": "2026-09-01", "posted": 3, "total": 3 }, { "dayKey": "2026-09-02", "posted": 3, "total": 3 },
+            { "dayKey": "2026-09-03", "posted": 3, "total": 3 }, { "dayKey": "2026-09-04", "posted": 3, "total": 3 }, { "dayKey": "2026-09-05", "posted": 3, "total": 3 },
+            { "dayKey": "2026-09-06", "posted": 3, "total": 3 }
+          ] }
+        }
+      ]
+    },
+    {
+      "id": "V39",
+      "title": "comeback banner fires at exactly 3+ missed days, once",
+      "spec": "8.1 V39; Flow 6 (quiet for 3+ days → COMEBACK 🎉 banner); V29 (same rule as the engine's comeback)",
+      "kind": "comebackBanner",
+      "rule": "A post is a comeback when ≥3 non-paused quiet days separate it from the member's previous post: never the first post, not the second post of the return day, not after 2 quiet days, and not after a Plan Pause.",
+      "reviewNote": "Owner confirms at the 🛑: paused days are planned absence (Flow 7), so they are not 'missed' — the return post after a pause gets no comeback banner.",
+      "pauses": [ { "startDay": "2026-09-14", "endDay": "2026-09-24" } ],
+      "posts": [
+        { "dayKey": "2026-09-01" },
+        { "dayKey": "2026-09-05" },
+        { "dayKey": "2026-09-05" },
+        { "dayKey": "2026-09-06" },
+        { "dayKey": "2026-09-09" },
+        { "dayKey": "2026-09-13" },
+        { "dayKey": "2026-09-24" }
+      ],
+      "expect": { "comebackByPost": [ false, true, false, false, false, true, false ] }
+    },
+    {
+      "id": "V40",
+      "title": "mid-week joiner counts in pulse from join day, never breaks prior days",
+      "spec": "8.1 V40; E2 (joiners see the stream from join-forward)",
+      "kind": "crewWeeklyRing",
+      "rule": "E joins Wednesday 2026-09-09: Monday and Tuesday stay 4 of 4; from Wednesday the total is 5, and E counts as posted only on days E actually posted.",
+      "cases": [
+        {
+          "asOfDayKey": "2026-09-11",
+          "members": [ { "userId": "A", "joinedDayKey": "2026-08-01" }, { "userId": "B", "joinedDayKey": "2026-08-01" }, { "userId": "C", "joinedDayKey": "2026-08-01" }, { "userId": "D", "joinedDayKey": "2026-08-01" }, { "userId": "E", "joinedDayKey": "2026-09-09" } ],
+          "posts": [
+            { "userId": "A", "dayKey": "2026-09-07" }, { "userId": "B", "dayKey": "2026-09-07" }, { "userId": "C", "dayKey": "2026-09-07" }, { "userId": "D", "dayKey": "2026-09-07" },
+            { "userId": "A", "dayKey": "2026-09-08" }, { "userId": "B", "dayKey": "2026-09-08" }, { "userId": "C", "dayKey": "2026-09-08" }, { "userId": "D", "dayKey": "2026-09-08" },
+            { "userId": "A", "dayKey": "2026-09-09" }, { "userId": "B", "dayKey": "2026-09-09" }, { "userId": "C", "dayKey": "2026-09-09" }, { "userId": "D", "dayKey": "2026-09-09" }, { "userId": "E", "dayKey": "2026-09-09" },
+            { "userId": "A", "dayKey": "2026-09-10" }, { "userId": "B", "dayKey": "2026-09-10" }, { "userId": "C", "dayKey": "2026-09-10" }, { "userId": "D", "dayKey": "2026-09-10" }, { "userId": "E", "dayKey": "2026-09-10" },
+            { "userId": "A", "dayKey": "2026-09-11" }, { "userId": "B", "dayKey": "2026-09-11" }, { "userId": "C", "dayKey": "2026-09-11" }, { "userId": "D", "dayKey": "2026-09-11" }, { "userId": "E", "dayKey": "2026-09-11" }
+          ],
+          "expect": { "days": [
+            { "dayKey": "2026-09-07", "posted": 4, "total": 4 }, { "dayKey": "2026-09-08", "posted": 4, "total": 4 }, { "dayKey": "2026-09-09", "posted": 5, "total": 5 },
+            { "dayKey": "2026-09-10", "posted": 5, "total": 5 }, { "dayKey": "2026-09-11", "posted": 5, "total": 5 }
+          ] }
+        },
+        {
+          "asOfDayKey": "2026-09-10",
+          "members": [ { "userId": "A", "joinedDayKey": "2026-08-01" }, { "userId": "B", "joinedDayKey": "2026-08-01" }, { "userId": "C", "joinedDayKey": "2026-08-01" }, { "userId": "D", "joinedDayKey": "2026-08-01" }, { "userId": "E", "joinedDayKey": "2026-09-09" } ],
+          "posts": [
+            { "userId": "A", "dayKey": "2026-09-07" }, { "userId": "B", "dayKey": "2026-09-07" }, { "userId": "C", "dayKey": "2026-09-07" }, { "userId": "D", "dayKey": "2026-09-07" },
+            { "userId": "A", "dayKey": "2026-09-08" }, { "userId": "B", "dayKey": "2026-09-08" }, { "userId": "C", "dayKey": "2026-09-08" }, { "userId": "D", "dayKey": "2026-09-08" },
+            { "userId": "A", "dayKey": "2026-09-09" }, { "userId": "B", "dayKey": "2026-09-09" }, { "userId": "C", "dayKey": "2026-09-09" }, { "userId": "D", "dayKey": "2026-09-09" },
+            { "userId": "A", "dayKey": "2026-09-10" }, { "userId": "B", "dayKey": "2026-09-10" }, { "userId": "C", "dayKey": "2026-09-10" }, { "userId": "D", "dayKey": "2026-09-10" }, { "userId": "E", "dayKey": "2026-09-10" }
+          ],
+          "expect": { "days": [
+            { "dayKey": "2026-09-07", "posted": 4, "total": 4 }, { "dayKey": "2026-09-08", "posted": 4, "total": 4 }, { "dayKey": "2026-09-09", "posted": 4, "total": 5 },
+            { "dayKey": "2026-09-10", "posted": 5, "total": 5 }
+          ] }
+        }
+      ]
+    }
+  ]
+}

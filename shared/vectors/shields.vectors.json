@@ -1,0 +1,195 @@
+{
+  "file": "shields.vectors.json",
+  "spec": "Part VIII 8.1 — Shields (V13–V18, V18b); Flow 7; E8; Decision Registry G6 (perfect week)",
+  "vectors": [
+    {
+      "id": "V13",
+      "title": "perfect week → +1 shield",
+      "spec": "8.1 V13; Flow 7 (earned per PERFECT week); Part IV table (+150 + shield); G6",
+      "kind": "apply",
+      "rule": "Mon 2026-09-07 – Sun 2026-09-13, planned Mon/Wed/Fri: every planned day has a completed workout and every day has a post, so the Sunday post completes the week: +150, perfectWeek, shieldEarned (0 → 1).",
+      "initialState": { "currentStreak": 3, "longestStreak": 3, "totalXP": 2000, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-06", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 4 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 5 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 7 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 8 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 9 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "xp", "amount": 150, "reason": "perfectWeek" }, { "award": "streakTo", "value": 10 }, { "award": "perfectWeek" }, { "award": "shieldEarned" } ]
+        ],
+        "state": { "currentStreak": 10, "longestStreak": 10, "totalXP": 2685, "level": 3, "shields": 1, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V14",
+      "title": "cap at 2 (third perfect week → no gain)",
+      "spec": "8.1 V14; Flow 7 (hold max 2); Part IX (shields ≤ 2)",
+      "kind": "apply",
+      "rule": "Holding 2 shields, a perfect week still awards perfectWeek and +150 but no shieldEarned; shields stay at 2.",
+      "reviewNote": "Owner confirms at the 🛑: the +150 perfect-week XP is still paid when shields are capped (V28 states the bonus unconditionally; V14 says only the shield is not gained).",
+      "initialState": { "currentStreak": 20, "longestStreak": 20, "totalXP": 2000, "level": 3, "shields": 2, "lastCountedDayKey": "2026-09-06", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 21 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 22 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 23 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 24 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 25 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 26 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "xp", "amount": 150, "reason": "perfectWeek" }, { "award": "streakTo", "value": 27 }, { "award": "perfectWeek" } ]
+        ],
+        "state": { "currentStreak": 27, "longestStreak": 27, "totalXP": 2685, "level": 3, "shields": 2, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V15",
+      "title": "miss with shield → consumed, streak intact",
+      "spec": "8.1 V15; Flow 7 ('🛡 Shield used — your 23-day streak lives')",
+      "kind": "apply",
+      "rule": "A missed day with a shield in hand consumes it at 3 AM; the streak neither resets nor grows, and the next post continues it (23 → 24).",
+      "initialState": { "currentStreak": 23, "longestStreak": 23, "totalXP": 2000, "level": 3, "shields": 1, "lastCountedDayKey": "2026-09-08", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "shieldConsumed" } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 24 } ]
+        ],
+        "state": { "currentStreak": 24, "longestStreak": 24, "totalXP": 2040, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-10", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V16",
+      "title": "two consecutive misses with 2 shields → both consumed, streak intact",
+      "spec": "8.1 V16; Flow 7",
+      "kind": "apply",
+      "rule": "Each missed day consumes one shield; two misses in a row spend both and the streak continues on the next post.",
+      "initialState": { "currentStreak": 23, "longestStreak": 23, "totalXP": 2000, "level": 3, "shields": 2, "lastCountedDayKey": "2026-09-08", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-10", "hadRequirement": true },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "shieldConsumed" } ],
+          [ { "award": "shieldConsumed" } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 24 } ]
+        ],
+        "state": { "currentStreak": 24, "longestStreak": 24, "totalXP": 2125, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V17",
+      "title": "first partial week → no shield possible, no penalty",
+      "spec": "8.1 V17; E8 (first partial week can't earn a shield); G6",
+      "kind": "apply",
+      "rule": "A user whose first post is Thursday 2026-09-10 posts every remaining day and completes Friday's planned workout; Mon–Wed had no requirement (no penalty) and no posts, so the week is not perfect: no shield, no +150.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 1 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 2 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 3 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 4 } ]
+        ],
+        "state": { "currentStreak": 4, "longestStreak": 4, "totalXP": 245, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V18",
+      "title": "imperfect week (daily posts, one workout missed) → no shield",
+      "spec": "8.1 V18; G6",
+      "kind": "apply",
+      "rule": "Every day has a post but Wednesday (planned) only got a meal, so the week ends with a streak of 10 and no perfectWeek, no +150, no shield.",
+      "initialState": { "currentStreak": 3, "longestStreak": 3, "totalXP": 2000, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-06", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-09", "isPlannedDay": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 4 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 5 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 7 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 8 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 9 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 10 } ]
+        ],
+        "state": { "currentStreak": 10, "longestStreak": 10, "totalXP": 2450, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V18b",
+      "title": "all-rest plan week (zero workout days) → sustains the streak, never earns a shield",
+      "spec": "8.1 V18b; E16; Decision Registry G6 (2026-09-04)",
+      "kind": "apply",
+      "rule": "Seven daily meal posts on a plan with no workout days keep the streak alive (3 → 10) but the week has no planned day, so it can never be perfect: no perfectWeek, no +150, no shield.",
+      "initialState": { "currentStreak": 3, "longestStreak": 3, "totalXP": 2000, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-06", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-07", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-08", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-09", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-10", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-11", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-12", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-13", "isPlannedDay": false }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 4 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 5 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 7 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 8 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 9 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 10 } ]
+        ],
+        "state": { "currentStreak": 10, "longestStreak": 10, "totalXP": 2280, "level": 3, "shields": 0, "lastCountedDayKey": "2026-09-13", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}

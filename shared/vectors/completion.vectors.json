@@ -1,0 +1,177 @@
+{
+  "file": "completion.vectors.json",
+  "spec": "Part VIII 8.1 — Completion, undo, edits (V32–V36, V43); Flow 3 (something > nothing; warm-ups excluded); E3 (post ≠ log); S16",
+  "vectors": [
+    {
+      "id": "V32",
+      "title": "≥1 set done = workout complete",
+      "spec": "8.1 V32; Flow 3 (partial always counts; warm-up rows excluded from targets)",
+      "kind": "completion",
+      "rule": "A workout is complete when at least one non-warm-up set is done; warm-up rows never count toward x/y or completion.",
+      "reviewNote": "Owner confirms at the 🛑: a session where only warm-up rows were checked is NOT complete (warm-ups are excluded from every count, so setsDone = 0).",
+      "cases": [
+        {
+          "sets": [
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false }
+          ],
+          "expect": { "complete": true, "setsDone": 1, "setsPlanned": 3, "setsAsPlanned": 1, "sets": [ { "done": true, "asPlanned": true }, { "done": false, "asPlanned": false }, { "done": false, "asPlanned": false } ] }
+        },
+        {
+          "sets": [
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false }
+          ],
+          "expect": { "complete": false, "setsDone": 0, "setsPlanned": 3, "setsAsPlanned": 0, "sets": [ { "done": false, "asPlanned": false }, { "done": false, "asPlanned": false }, { "done": false, "asPlanned": false } ] }
+        },
+        {
+          "sets": [
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": true },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false }
+          ],
+          "expect": { "complete": false, "setsDone": 0, "setsPlanned": 1, "setsAsPlanned": 0, "sets": [ { "done": true, "asPlanned": true }, { "done": false, "asPlanned": false } ] }
+        },
+        {
+          "sets": [
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": true },
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": true },
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false }
+          ],
+          "expect": { "complete": true, "setsDone": 3, "setsPlanned": 3, "setsAsPlanned": 3, "sets": [ { "done": true, "asPlanned": true }, { "done": true, "asPlanned": true }, { "done": true, "asPlanned": true }, { "done": true, "asPlanned": true }, { "done": true, "asPlanned": true } ] }
+        }
+      ]
+    },
+    {
+      "id": "V33",
+      "title": "below-target reps: done=true, asPlanned=false, still counts",
+      "spec": "8.1 V33; Flow 3 ('done' and 'as planned' recorded separately); Part IX SetLog(done, asPlanned)",
+      "kind": "completion",
+      "rule": "6 of 8 reps is a done set that counts toward completion and setsDone; asPlanned is false because actualReps < targetReps. Weight plays no part in asPlanned.",
+      "cases": [
+        {
+          "sets": [
+            { "targetReps": 8, "actualReps": 6, "done": true, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+            { "targetReps": 8, "actualReps": 0, "done": false, "isWarmup": false }
+          ],
+          "expect": { "complete": true, "setsDone": 2, "setsPlanned": 3, "setsAsPlanned": 1, "sets": [ { "done": true, "asPlanned": false }, { "done": true, "asPlanned": true }, { "done": false, "asPlanned": false } ] }
+        },
+        {
+          "sets": [
+            { "targetReps": 10, "actualReps": 12, "done": true, "isWarmup": false }
+          ],
+          "expect": { "complete": true, "setsDone": 1, "setsPlanned": 1, "setsAsPlanned": 1, "sets": [ { "done": true, "asPlanned": true } ] }
+        }
+      ]
+    },
+    {
+      "id": "V34",
+      "title": "same-day undo reverses XP+streak atomically",
+      "spec": "8.1 V34; Flow 8 (undo always)",
+      "kind": "apply",
+      "rule": "Undoing the only post of the current day gives back its 125 XP and the streak increment together: streak 6 → 5, lastCountedDayKey back to 09-03, longest streak back to 5.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-04", "isPlannedDay": true, "workoutCompleted": true },
+        { "type": "postUndone", "dayKey": "2026-09-04" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "streakTo", "value": 5 } ]
+        ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V35",
+      "title": "earned achievements survive undo",
+      "spec": "8.1 V35",
+      "kind": "apply",
+      "rule": "An undo reverses XP and streak but never removes an earned achievement id.",
+      "reviewNote": "Achievement ids are opaque here ('first-post' is a placeholder); vectors that AWARD achievements are appended after shared/seed/achievements.json is approved (T006).",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [ "first-post" ] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "postUndone", "dayKey": "2026-09-04" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "streakTo", "value": 5 } ]
+        ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [ "first-post" ] }
+      }
+    },
+    {
+      "id": "V36",
+      "title": "editing yesterday's reps changes stats, never XP/streak",
+      "spec": "8.1 V36; S16 (editing a past session never alters XP); 5.6.1 recompute (server truth)",
+      "kind": "recompute",
+      "rule": "recompute() from the same sessions and posts returns the identical GamificationState whether yesterday's sets read 8·8·8 or 5·5·5 — reps are stats, not gamification inputs. Posts carry isPlannedDay stamped at creation (like dayKey) so recompute sees exactly what apply saw.",
+      "reviewNote": "Data-model note for T009/T023: Post gains isPlannedDay (stamped at creation) and GamificationState gains earnedAchievementIds; both are needed for recompute() to equal the folded apply() (5.6.1).",
+      "tz": "America/Los_Angeles",
+      "asOfDayKey": "2026-09-04",
+      "pauses": [],
+      "variants": [
+        {
+          "label": "as logged",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-03", "completed": true, "sets": [
+              { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+              { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false },
+              { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false }
+            ] }
+          ],
+          "posts": [ { "dayKey": "2026-09-03", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" }, { "dayKey": "2026-09-04", "kind": "meal", "isPlannedDay": false } ],
+          "reactions": []
+        },
+        {
+          "label": "reps edited the next day",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-03", "completed": true, "sets": [
+              { "targetReps": 8, "actualReps": 5, "done": true, "isWarmup": false },
+              { "targetReps": 8, "actualReps": 5, "done": true, "isWarmup": false },
+              { "targetReps": 8, "actualReps": 5, "done": true, "isWarmup": false }
+            ] }
+          ],
+          "posts": [ { "dayKey": "2026-09-03", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" }, { "dayKey": "2026-09-04", "kind": "meal", "isPlannedDay": false } ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 2, "longestStreak": 2, "totalXP": 165, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V43",
+      "title": "deleting a post from an already rolled-over day never retro-breaks the streak or XP",
+      "spec": "E3 (post ≠ log; deleting a post never retro-breaks a streak); V34 (same-day is the only reversal)",
+      "kind": "apply",
+      "rule": "Yesterday's meal post is deleted after 3 AM has passed: nothing changes — streak 7, XP 580, lastCountedDayKey 09-05.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-04", "isPlannedDay": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-04", "hadRequirement": true },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-05", "isPlannedDay": false },
+        { "type": "postUndone", "dayKey": "2026-09-04" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 6 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 7 } ],
+          []
+        ],
+        "state": { "currentStreak": 7, "longestStreak": 7, "totalXP": 580, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}

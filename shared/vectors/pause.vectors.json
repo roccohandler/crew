@@ -1,0 +1,113 @@
+{
+  "file": "pause.vectors.json",
+  "spec": "Part VIII 8.1 — Plan Pause (V19–V23, V44); Flow 7 planned absence; Part IX Pause; S17",
+  "vectors": [
+    {
+      "id": "V19",
+      "title": "pause freezes streak across elapsed days",
+      "spec": "8.1 V19; Flow 7 (streak freezes 🧊)",
+      "kind": "apply",
+      "rule": "Seven paused days roll over with no requirement: streak, shields, XP and lastCountedDayKey are untouched.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1000, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-04", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-10", "hadRequirement": false }
+      ],
+      "expect": {
+        "awardsByEvent": [ [], [], [], [], [], [], [] ],
+        "state": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1000, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V20",
+      "title": "posts during pause → 0 XP, no increments",
+      "spec": "8.1 V20; Flow 7 (no XP accrues)",
+      "kind": "apply",
+      "rule": "A meal and a completed planned workout posted inside the pause window earn nothing and count nothing; the posts still exist in the journal.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1000, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ],
+      "events": [
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-06", "isPlannedDay": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-08", "isPlannedDay": true, "workoutCompleted": true }
+      ],
+      "expect": {
+        "awardsByEvent": [ [], [] ],
+        "state": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1000, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V21",
+      "title": "pause ends → next day's requirement resumes",
+      "spec": "8.1 V21; Flow 7 (resumes automatically)",
+      "kind": "apply",
+      "rule": "Pause 2026-09-04 with return day 2026-09-07: the return-day post continues the frozen streak (10 → 11); the day after, silence resets it, because the requirement is back.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1000, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-03", "earnedAchievementIds": [] },
+      "pauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-07" } ],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-04", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false },
+        { "type": "postCreated", "kind": "meal", "dayKey": "2026-09-07", "isPlannedDay": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [],
+          [],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 15, "reason": "meal" }, { "award": "streakTo", "value": 11 } ],
+          [],
+          [ { "award": "streakTo", "value": 0 } ]
+        ],
+        "state": { "currentStreak": 0, "longestStreak": 11, "totalXP": 1040, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-07", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V22",
+      "title": "retroactive pause → rejected",
+      "spec": "8.1 V22; Flow 7 (never retroactive); 5.6.2 SettingsModel.pause (no retro); 8.2 Pause",
+      "kind": "pauseValidation",
+      "rule": "A pause may start today or later, never on a past day.",
+      "cases": [
+        { "today": "2026-09-04", "startDay": "2026-09-02", "endDay": "2026-09-09", "existingPauses": [], "expect": { "accepted": false, "reason": "retroactive" } },
+        { "today": "2026-09-04", "startDay": "2026-09-03", "endDay": "2026-09-04", "existingPauses": [], "expect": { "accepted": false, "reason": "retroactive" } },
+        { "today": "2026-09-04", "startDay": "2026-09-04", "endDay": "2026-09-11", "existingPauses": [], "expect": { "accepted": true } },
+        { "today": "2026-09-04", "startDay": "2026-09-05", "endDay": "2026-09-12", "existingPauses": [], "expect": { "accepted": true } }
+      ]
+    },
+    {
+      "id": "V23",
+      "title": "pause > 21 days → rejected",
+      "spec": "8.1 V23; Flow 7 (max 3 weeks); Part IX (endDay ≤ start+21); S17",
+      "kind": "pauseValidation",
+      "rule": "endDay − startDay may be at most pauseMaxDays (21); 21 is accepted, 22 is rejected.",
+      "cases": [
+        { "today": "2026-09-04", "startDay": "2026-09-04", "endDay": "2026-09-26", "existingPauses": [], "expect": { "accepted": false, "reason": "tooLong" } },
+        { "today": "2026-09-04", "startDay": "2026-09-04", "endDay": "2026-09-25", "existingPauses": [], "expect": { "accepted": true } },
+        { "today": "2026-09-04", "startDay": "2026-09-10", "endDay": "2026-10-02", "existingPauses": [], "expect": { "accepted": false, "reason": "tooLong" } },
+        { "today": "2026-09-04", "startDay": "2026-09-10", "endDay": "2026-10-01", "existingPauses": [], "expect": { "accepted": true } }
+      ]
+    },
+    {
+      "id": "V44",
+      "title": "one active pause at a time → a second pause is rejected until the first has ended",
+      "spec": "Flow 7 (one active pause at a time); Part IX Pause (one active); 8.2 Pause (overlap rejected)",
+      "kind": "pauseValidation",
+      "rule": "While any existing pause has endDay > today, every new pause request is rejected as alreadyPaused — overlapping or not; once the pause has ended a new one may be created.",
+      "reviewNote": "Owner confirms at the 🛑: a future pause cannot be queued behind an active one (the simplest reading of 'one active pause at a time').",
+      "cases": [
+        { "today": "2026-09-06", "startDay": "2026-09-08", "endDay": "2026-09-15", "existingPauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ], "expect": { "accepted": false, "reason": "alreadyPaused" } },
+        { "today": "2026-09-06", "startDay": "2026-09-12", "endDay": "2026-09-19", "existingPauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ], "expect": { "accepted": false, "reason": "alreadyPaused" } },
+        { "today": "2026-09-11", "startDay": "2026-09-11", "endDay": "2026-09-18", "existingPauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ], "expect": { "accepted": true } },
+        { "today": "2026-09-12", "startDay": "2026-09-12", "endDay": "2026-09-19", "existingPauses": [ { "startDay": "2026-09-04", "endDay": "2026-09-11" } ], "expect": { "accepted": true } }
+      ]
+    }
+  ]
+}
