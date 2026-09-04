@@ -5,8 +5,8 @@ Format: `- <date> · <task> · <what was compromised> · <why> · <how it gets r
 
 ## Open
 
-- 2026-09-04 · T002 · EmberColors.swift and ember.css emit the LIGHT value for `missedGray` and `emberText` in dark mode · Part III defines no dark value for either (progress.md gap G4); the generator refuses to invent one and marks both with a `SPECIFICATION GAP` comment · repaid when the owner fills the two `dark: null` entries in shared/design-tokens.json and `node shared/scripts/generate.mjs` is re-run — the comments disappear automatically.
+- 2026-09-04 · T003 · V35 ("earned achievements survive undo") uses the opaque placeholder id `first-post`; no vector yet AWARDS an achievement · shared/seed/achievements.json does not exist until T006 (owner approves the list) · repaid by appending achievement-awarding vectors (V45+) right after T006 is signed, never by editing V35.
 
 ## Repaid
 
-(none)
+- 2026-09-04 · T002 · EmberColors.swift and ember.css emitted the LIGHT value for `missedGray` and `emberText` in dark mode (Part III defined no dark values; gap G4) · repaid the same day: owner set missedGray dark = #5E574F and emberText dark = #FF7A1F (Decision Registry G4), tokens updated, files regenerated, the generator no longer tolerates a missing dark value.
