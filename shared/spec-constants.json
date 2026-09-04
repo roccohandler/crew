@@ -27,8 +27,13 @@
     "xpPerfectWeek": { "value": 150, "spec": "Part IV table; V28 — perfect week bonus = +150" },
     "xpComeback": { "value": 50, "spec": "Part IV table; V29 — first post after 3+ missed = +50" },
     "xpBonusWorkout": { "value": 25, "spec": "Flow 5; E7; V30; V31 — bonus/second workout same day = +25" },
+    "xpReaction": { "value": 2, "spec": "Decision Registry G1 (2026-09-04); V27 — +2 per counted reaction, max 10 XP/day" },
     "reactionXpDailyCap": { "value": 5, "spec": "V27 — 6th+ reaction of day = 0 XP" },
     "xpDuringPause": { "value": 0, "spec": "Flow 7; V20 — no XP accrues while paused" }
+  },
+  "levels": {
+    "startingLevel": { "value": 1, "spec": "Decision Registry G2 (2026-09-04) — a user starts at level 1 with 0 XP" },
+    "levelBaseXp": { "value": 500, "spec": "Decision Registry G2 (2026-09-04) — level N (N ≥ 2) requires totalXP ≥ levelBaseXp × (N−1) × N / 2; formula, never a table" }
   },
   "crew": {
     "crewMinMembers": { "value": 2, "spec": "Flow 6 — 2–10 people" },
@@ -43,7 +48,7 @@
     "exerciseNameMaxChars": { "value": 60, "spec": "E20" },
     "chatMessageMaxChars": { "value": 1000, "spec": "E20; Part IX; 8.2" },
     "planMaxExercisesPerDay": { "value": 15, "spec": "Flow 8 — ≤15 exercises/day" },
-    "planMaxSetsPerDay": { "value": 20, "spec": "Flow 8 — ≤20 sets (read as per training day; owner to confirm, see progress.md)" }
+    "planMaxSetsPerExercise": { "value": 20, "spec": "Flow 8; Decision Registry G3 (2026-09-04) — ≤20 sets per exercise; 15 × 20 is the day ceiling" }
   },
   "planGeneration": {
     "fullBodyMaxTrainingDays": { "value": 2, "spec": "Flow 1 step 3; S04 — Full-Body A/B at ≤2 days" },
@@ -53,6 +58,10 @@
     "beginnerTargetSets": { "value": 3, "spec": "Flow 1 step 3 — at 3×10" },
     "beginnerTargetReps": { "value": 10, "spec": "Flow 1 step 3 — at 3×10" },
     "experiencedExerciseCount": { "value": 6, "spec": "Flow 1 step 3 — Experienced = 6 incl. barbell lifts" },
+    "someExperienceExerciseCount": { "value": 5, "spec": "Decision Registry G7 (2026-09-04) — Some experience = 5 exercises per workout" },
+    "someExperienceTargetSets": { "value": 3, "spec": "Decision Registry G7 (2026-09-04) — at 3×8–10" },
+    "someExperienceTargetRepsMin": { "value": 8, "spec": "Decision Registry G7 (2026-09-04) — at 3×8–10" },
+    "someExperienceTargetRepsMax": { "value": 10, "spec": "Decision Registry G7 (2026-09-04) — at 3×8–10" },
     "mobilityHoldsMin": { "value": 2, "spec": "Flow 1 step 3 — 2–3 holds close each workout" },
     "mobilityHoldsMax": { "value": 3, "spec": "Flow 1 step 3 — 2–3 holds close each workout" },
     "mobilityMinutesMin": { "value": 5, "spec": "Flow 1 step 3 — ~5–10 min" },
@@ -64,7 +73,17 @@
     "repsStep": { "value": 1, "spec": "Flow 3 smart steppers — reps ±1" },
     "weightStepLb": { "value": 5, "spec": "Flow 3 smart steppers — weight ±5 lb" },
     "weightStepKg": { "value": 2.5, "spec": "Flow 3 smart steppers — weight ±2.5 kg" },
+    "restTimerDefaultSeconds": { "value": 90, "spec": "Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able" },
     "staleInProgressSessionAfterHours": { "value": 24, "spec": "S01 — stale (>day) in-progress session triggers the stale-session prompt" }
+  },
+  "nutrition": {
+    "mealTagBreakfastFromMinute": { "value": 240, "spec": "Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)" },
+    "mealTagLunchFromMinute": { "value": 630, "spec": "Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local" },
+    "mealTagDinnerFromMinute": { "value": 930, "spec": "Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local" },
+    "mealTagDinnerUntilMinute": { "value": 1260, "spec": "Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack" }
+  },
+  "reminders": {
+    "reminderSuggestedMinuteOfDay": { "value": 450, "spec": "Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in" }
   },
   "onboarding": {
     "onboardingQuestionCount": { "value": 3, "spec": "Flow 1; 1B — three questions, the '1 of 3' whisper" },
@@ -123,6 +142,10 @@
   },
   "authAndPolicy": {
     "passwordResetTokenExpiryMinutes": { "value": 30, "spec": "Part IV email table; 8.2 Auth — single-use token, 30-min expiry" },
+    "jwtAccessTokenMinutes": { "value": 15, "spec": "Decision Registry G11 (2026-09-04) — access token 15 min" },
+    "jwtRefreshTokenDays": { "value": 30, "spec": "Decision Registry G11 (2026-09-04) — refresh token 30 days, rotating" },
+    "rateLimitAuthRequestsPerMinutePerIp": { "value": 10, "spec": "8.7 rate limits; Decision Registry G11 (2026-09-04) — auth endpoints 10 req/min/IP" },
+    "rateLimitPostCreationPerHourPerUser": { "value": 60, "spec": "8.7 rate limits; Decision Registry G11 (2026-09-04) — post creation 60/hour/user; everything else unlimited in MVP" },
     "minimumAgeYears": { "value": 13, "spec": "E9; Appendix A — age floor 13+" },
     "transactionalEmailKinds": { "value": ["passwordReset", "reportReceived", "accountDeleted"], "spec": "Part IV email table; lib/email.ts — the only three" }
   },
