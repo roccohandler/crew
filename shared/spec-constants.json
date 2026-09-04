@@ -1,0 +1,157 @@
+{
+  "day": {
+    "dayBoundaryHour": { "value": 3, "spec": "E8; Flow 7; V04–V06 — the day ends 3 AM local" },
+    "weekStartWeekday": { "value": 1, "spec": "E20; V38 — Monday week-start worldwide (ISO weekday 1)" },
+    "backfillMaxDaysBack": { "value": 0, "spec": "Flow 4 — same-day backfill only; yesterday is closed" }
+  },
+  "streak": {
+    "streakAfterFirstPost": { "value": 1, "spec": "V01 — first-ever post starts streak at 1" },
+    "streakIncrementPerCountedDay": { "value": 1, "spec": "V02, V03, V11 — one increment per counted day" },
+    "streakAfterUnshieldedMiss": { "value": 0, "spec": "Flow 7; V04 — no shield → streak → 0" },
+    "comebackMissedDaysThreshold": { "value": 3, "spec": "Flow 6; V29; V39 — quiet for 3+ days → comeback" },
+    "lapsedUserQuietDays": { "value": 14, "spec": "E4; S18 — 14+ quiet days → Welcome back screen" }
+  },
+  "shields": {
+    "maxShields": { "value": 2, "spec": "Flow 7; V14; Part IX — hold max 2" },
+    "shieldsEarnedPerPerfectWeek": { "value": 1, "spec": "Flow 7; V13 — earned per PERFECT week, never sold" }
+  },
+  "pause": {
+    "pauseMaxDays": { "value": 21, "spec": "Flow 7; V23; S17; Part IX — max 3 weeks (endDay ≤ start+21)" },
+    "maxActivePauses": { "value": 1, "spec": "Flow 7; Part IX — one active pause at a time" }
+  },
+  "xp": {
+    "xpFirstPostOfDay": { "value": 25, "spec": "Part IV table; V24 — first post of day = 25" },
+    "xpPlannedWorkout": { "value": 100, "spec": "Part IV table; V25; E7 — planned workout = +100" },
+    "xpMealPost": { "value": 15, "spec": "Flow 4; Part IV table; V26 — +15 per meal" },
+    "mealXpDailyCap": { "value": 3, "spec": "Flow 4; V26 — first 3 meals earn XP; 4th+ = 0" },
+    "xpPerfectWeek": { "value": 150, "spec": "Part IV table; V28 — perfect week bonus = +150" },
+    "xpComeback": { "value": 50, "spec": "Part IV table; V29 — first post after 3+ missed = +50" },
+    "xpBonusWorkout": { "value": 25, "spec": "Flow 5; E7; V30; V31 — bonus/second workout same day = +25" },
+    "reactionXpDailyCap": { "value": 5, "spec": "V27 — 6th+ reaction of day = 0 XP" },
+    "xpDuringPause": { "value": 0, "spec": "Flow 7; V20 — no XP accrues while paused" }
+  },
+  "crew": {
+    "crewMinMembers": { "value": 2, "spec": "Flow 6 — 2–10 people" },
+    "crewMaxMembers": { "value": 10, "spec": "Flow 6; E2 — full crew = crew full" },
+    "crewsPerUserMax": { "value": 1, "spec": "Flow 6; Part IX; 8.2 — one crew per user in MVP" },
+    "feedWindowDays": { "value": 7, "spec": "Flow 6; S12 — feed shows 7 days; journal keeps everything" },
+    "reactionEmojis": { "value": ["🔥", "💪", "👏", "😂", "❤️"], "spec": "Flow 6; Part IX — the only five reactions" }
+  },
+  "limits": {
+    "captionMaxChars": { "value": 280, "spec": "E20; Part IX" },
+    "crewNameMaxChars": { "value": 30, "spec": "E20; Part IX" },
+    "exerciseNameMaxChars": { "value": 60, "spec": "E20" },
+    "chatMessageMaxChars": { "value": 1000, "spec": "E20; Part IX; 8.2" },
+    "planMaxExercisesPerDay": { "value": 15, "spec": "Flow 8 — ≤15 exercises/day" },
+    "planMaxSetsPerDay": { "value": 20, "spec": "Flow 8 — ≤20 sets (read as per training day; owner to confirm, see progress.md)" }
+  },
+  "planGeneration": {
+    "fullBodyMaxTrainingDays": { "value": 2, "spec": "Flow 1 step 3; S04 — Full-Body A/B at ≤2 days" },
+    "defaultTrainingWeekdays": { "value": [1, 3, 5], "spec": "1B; S03 — Mon/Wed/Fri pre-selected (ISO weekdays)" },
+    "minTrainingDaysToContinue": { "value": 1, "spec": "1B — Continue requires ≥ 1 day" },
+    "beginnerExerciseCount": { "value": 4, "spec": "Flow 1 step 3 — Brand new = 4 simple exercises" },
+    "beginnerTargetSets": { "value": 3, "spec": "Flow 1 step 3 — at 3×10" },
+    "beginnerTargetReps": { "value": 10, "spec": "Flow 1 step 3 — at 3×10" },
+    "experiencedExerciseCount": { "value": 6, "spec": "Flow 1 step 3 — Experienced = 6 incl. barbell lifts" },
+    "mobilityHoldsMin": { "value": 2, "spec": "Flow 1 step 3 — 2–3 holds close each workout" },
+    "mobilityHoldsMax": { "value": 3, "spec": "Flow 1 step 3 — 2–3 holds close each workout" },
+    "mobilityMinutesMin": { "value": 5, "spec": "Flow 1 step 3 — ~5–10 min" },
+    "mobilityMinutesMax": { "value": 10, "spec": "Flow 1 step 3 — ~5–10 min" },
+    "swapCandidatesMin": { "value": 3, "spec": "Flow 1 step 4 — 3–5 alternatives" },
+    "swapCandidatesMax": { "value": 5, "spec": "Flow 1 step 4; 5.6.1 SwapFinder — ≤5, never incumbent" }
+  },
+  "session": {
+    "repsStep": { "value": 1, "spec": "Flow 3 smart steppers — reps ±1" },
+    "weightStepLb": { "value": 5, "spec": "Flow 3 smart steppers — weight ±5 lb" },
+    "weightStepKg": { "value": 2.5, "spec": "Flow 3 smart steppers — weight ±2.5 kg" },
+    "staleInProgressSessionAfterHours": { "value": 24, "spec": "S01 — stale (>day) in-progress session triggers the stale-session prompt" }
+  },
+  "onboarding": {
+    "onboardingQuestionCount": { "value": 3, "spec": "Flow 1; 1B — three questions, the '1 of 3' whisper" },
+    "autoAdvanceDelayMs": { "value": 250, "spec": "1B — selection haptic → 250 ms beat → next screen" },
+    "dayToggleMinPt": { "value": 56, "spec": "1B; S03 — seven circular toggles ≥ 56 pt" },
+    "planRevealStaggerMs": { "value": 500, "spec": "1C — day cards stagger in over ~0.5 s (instant under Reduce Motion)" },
+    "organicHeroToHomeMedianSeconds": { "value": 90, "spec": "1A; 1C — organic hero→Home median ≤ 90 s" },
+    "invitedHeroToHomeMedianSeconds": { "value": 60, "spec": "1A; 1C — invited ≤ 60 s" },
+    "decisionsBeforeHomeOrganic": { "value": 5, "spec": "1C — hero, days-confirm, experience, equipment, auth" },
+    "decisionsBeforeHomeInvited": { "value": 5, "spec": "1C — invited 5" }
+  },
+  "interactionBudgets": {
+    "swapMaxTaps": { "value": 2, "spec": "Flow 1 step 4; S04 — Swap in 2 taps" },
+    "fastLogMaxTapsFromLaunch": { "value": 3, "spec": "S07 — ≤3 taps launch→fast-logged" },
+    "textOnlyPostMaxTaps": { "value": 3, "spec": "S11 — text-only ≤ 3 taps" },
+    "nutritionPostTargetSeconds": { "value": 15, "spec": "Flow 2; Flow 4 — under 15 seconds" },
+    "inviteJoinMaxTapsApp": { "value": 2, "spec": "S13 — join ≤ 2 taps with app" },
+    "inviteJoinMaxInteractionsWeb": { "value": 3, "spec": "W1 — joining via web ≤ 3 interactions post-auth" }
+  },
+  "performanceBudgets": {
+    "warmLaunchToHomeMs": { "value": 1000, "spec": "6.2; S01 — warm launch → Home interactive < 1.0 s" },
+    "coldLaunchToHomeMs": { "value": 2500, "spec": "6.2 — cold launch → Home < 2.5 s" },
+    "tapFeedbackMaxMs": { "value": 100, "spec": "6.2 — any tap → visible feedback < 100 ms" },
+    "setCheckFeedbackMaxMs": { "value": 50, "spec": "6.2 — set-check → haptic + UI update < 50 ms" },
+    "scrollTargetFps": { "value": 60, "spec": "6.2 — session/history scroll 60 fps" },
+    "hangMaxMs": { "value": 250, "spec": "6.2 — no hangs > 250 ms" },
+    "photoPostOptimisticMaxMs": { "value": 500, "spec": "6.2; S11 — shutter → optimistic posted < 500 ms" },
+    "webLcpMaxMs": { "value": 2500, "spec": "6.2 — web LCP (Home, Crew) < 2.5 s on 4G" },
+    "webInpMaxMs": { "value": 200, "spec": "6.2 — web INP < 200 ms" },
+    "loadingSkeletonWithinMs": { "value": 100, "spec": "6.1 — skeleton/spinner within 100 ms" },
+    "homeTodayStateWarmMaxMs": { "value": 500, "spec": "S07; 5.6.2 HomeModel.refresh — today-state < 500 ms warm" },
+    "generatedPlanRenderMaxMs": { "value": 500, "spec": "S04 — renders < 500 ms" },
+    "cameraOpenMaxMs": { "value": 1000, "spec": "S11 — [+] → live camera < 1 s" },
+    "celebrationMaxSeconds": { "value": 2.5, "spec": "6.4; S10 — celebrations ≤ 2.5 s, skippable on first tap" },
+    "imageUploadMaxKb": { "value": 300, "spec": "8.8 — image pipeline: 12 MP → ≤ ~300 KB upload" }
+  },
+  "touchAndLayout": {
+    "minTouchTargetPt": { "value": 44, "spec": "6.3 — targets ≥ 44×44 pt" },
+    "webMinTouchTargetPx": { "value": 44, "spec": "6.7 — ≥44 px touch targets below 768 px" },
+    "webTouchTargetBreakpointPx": { "value": 768, "spec": "6.7 — below 768 px" },
+    "webAppMaxWidthPx": { "value": 640, "spec": "6.7 — centered single column, max-width ~640 px" },
+    "webProgressMaxWidthPx": { "value": 960, "spec": "6.7 — Progress may widen to ~960 px for charts" },
+    "webMinViewportPx": { "value": 360, "spec": "6.7 — from 360 px up; no horizontal scroll 360–1920" },
+    "webMaxViewportPx": { "value": 1920, "spec": "6.7 — no horizontal scroll 360–1920" }
+  },
+  "accessibility": {
+    "textContrastMin": { "value": 4.5, "spec": "6.5 — text ≥ 4.5:1" },
+    "componentContrastMin": { "value": 3, "type": "double", "spec": "6.5 — components ≥ 3:1" }
+  },
+  "sync": {
+    "syncBackoffSeconds": { "value": [1, 2, 4, 8, 16], "spec": "5.6.3 SyncQueue — backoff 1s·2s·4s·8s·16s then .held" },
+    "syncMaxAttemptsBeforeHeld": { "value": 5, "spec": "5.6.3 SyncQueue — five attempts, then .held" },
+    "failedUploadChoiceAfterHours": { "value": 24, "spec": "E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete" },
+    "chatPollIntervalMinSeconds": { "value": 5, "spec": "Part IV; 5.6.2 CrewModel.poll — polling 5–10s" },
+    "chatPollIntervalMaxSeconds": { "value": 10, "spec": "Part IV; 5.6.2 CrewModel.poll — polling 5–10s" }
+  },
+  "authAndPolicy": {
+    "passwordResetTokenExpiryMinutes": { "value": 30, "spec": "Part IV email table; 8.2 Auth — single-use token, 30-min expiry" },
+    "minimumAgeYears": { "value": 13, "spec": "E9; Appendix A — age floor 13+" },
+    "transactionalEmailKinds": { "value": ["passwordReset", "reportReceived", "accountDeleted"], "spec": "Part IV email table; lib/email.ts — the only three" }
+  },
+  "ember": {
+    "canvasSharePct": { "value": 70, "spec": "Part III — 70 / 20 / 10" },
+    "inkSharePct": { "value": 20, "spec": "Part III — 70 / 20 / 10" },
+    "emberMaxSharePct": { "value": 10, "spec": "Part III — ≤10% Ember, the reward layer only" }
+  },
+  "successTargets": {
+    "targetInstallToFirstPostSameDayPct": { "value": 50, "spec": "Part IV; 1D — ≥50% install→first post same day" },
+    "targetD7RetentionPct": { "value": 30, "spec": "Part IV — ≥30% D7 retention" },
+    "targetPostsPerUserPerWeek": { "value": 4, "spec": "Part IV — ≥4 posts/user/week" },
+    "targetCrewVsSoloRetentionMultiplier": { "value": 1.5, "spec": "Part IV — crew retention ≥1.5× solo" },
+    "targetCrashFreePct": { "value": 99.5, "spec": "Part X Phase 6 — crash-free ≥ 99.5%" }
+  },
+  "testMatrix": {
+    "deviceSmallestPt": { "value": [375, 667], "spec": "6.7; 8.9 — iPhone SE 3rd gen" },
+    "deviceCompactTallPt": { "value": [375, 812], "spec": "6.7 — iPhone 13 mini" },
+    "deviceLargestPt": { "value": [440, 956], "spec": "6.7; 8.9 — Pro Max" },
+    "webViewportsPx": { "value": [375, 768, 1280], "spec": "8.9 — Playwright viewport matrix" },
+    "historyScrollSeedSessions": { "value": 500, "spec": "8.8 — scroll instrumentation on a 500-session History seed" },
+    "pollingLoadUsers": { "value": 10000, "spec": "8.8 — polling load: 10k users at 5–10 s" },
+    "imageSourceMegapixels": { "value": 12, "spec": "8.8 — image pipeline: 12 MP source" }
+  },
+  "build": {
+    "iosMinimumMajorVersion": { "value": 17, "spec": "Part IV; Appendix A — iOS 17+" },
+    "swiftFileMaxLines": { "value": 200, "spec": "C9 — Swift ≤ 200 lines" },
+    "tsFileMaxLines": { "value": 150, "spec": "C9 — TS ≤ 150 lines" },
+    "functionMaxLines": { "value": 40, "spec": "C9 — functions ≤ ~40 lines" },
+    "numericLiteralAllowlist": { "value": [0, 1], "spec": "5.3 lint — no numeric literal outside Generated (allowlist: 0, 1)" }
+  }
+}
