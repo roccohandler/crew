@@ -129,12 +129,15 @@ was built against Firebase.
 
 ## 5. Exact ordered steps to ship
 
-1. **Commit the queue.** `bash docs/commit-queue.sh` from the repo root (git is hook-blocked for the agent; every task's
-   conventional commit with its `[SPEC:]` tag is queued in order and idempotent — 61 blocks as of 2026-09-08). Check
+1. **Commit the queue.** From PowerShell, `& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh`
+   (plain `bash` is WSL on this machine and cannot enter the repo; git is hook-blocked for the agent; every task's
+   conventional commit with its `[SPEC:]` tag is queued in order and idempotent — 63 blocks as of 2026-09-08). Check
    `git log --oneline`.
-2. **Push and watch CI.** `.github/workflows/ci.yml` runs contracts → web (lint, typecheck, test, vectors, build, audit) →
-   web-e2e (Chromium + WebKit) → ios (macOS runner: xcodegen, doctrine lint, xcodebuild test). The ios job is the first
-   compile of the Swift tree; iterate there or on a Mac until green.
+2. **Push and watch CI.** The repo is `github.com/roccohandler/crew` (public). `.github/workflows/ci.yml` runs contracts →
+   web (lint, typecheck, test, vectors, build, audit) → web-e2e (Chromium + WebKit) → ios engine (Linux) → ios (macOS
+   runner: xcodegen, doctrine lint, xcodebuild test). First run 2026-09-08: the four non-Xcode jobs green; the ios job is
+   the first compile of the Swift tree — iterate there (or on a Mac) until green. The account's billing lock of that morning
+   was a past-due charge on an expired card; re-saving the card cleared it.
 3. **Mac pass.** Install Xcode + XcodeGen; `cd ios && xcodegen generate`; `xcodebuild test -scheme Crew`; then the XCUITest
    journeys on a phone. Record results in `docs/progress.md` by flipping `[~]` to `[x]` per task, one commit each.
 4. **Phase gates, in order (owner ratification of the self-reviews).** Phase 1: R-015 (both engines green). Phase 2: R-022
