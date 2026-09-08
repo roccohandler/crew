@@ -52,6 +52,38 @@ commit_task "fix(ui): S03 day circles inscribed in a column-wide 56 pt tap area 
 commit_task "chore(deploy): beta tier — Vercel Hobby runs the notifications cron daily (per-minute needs Pro); the TestFlight key must be Admin for cloud signing and TestFlight push is the production APNs; Stage 2 step list rewritten around the accounts that exist; the queue skips blocks already in git log; debt for M0 + open allowlist, the sandbox sender, the applinks placeholder; R-054 [SPEC: Part IV; XI T045/T046/T008]" \
   web/vercel.json .github/workflows/testflight.yml docs/testing-without-a-mac.md docs/debt.md docs/ratification.md docs/progress.md docs/OWNER-REVIEW.md docs/commit-queue.sh
 
+# --- F08 (cold-start audit, R-055: the Playwright harness never reaches a real vendor; the stray ios/.env; APP_STORE_URL documented) ---
+commit_task "fix(test): the e2e harness pins every vendor variable to empty so a local .env with real keys never mails or uploads; .env.example gains APP_STORE_URL [SPEC: rule 3b; Part IV; 8.7; XI T039/T046]" \
+  web/tests/e2e/dev-server.mjs web/.env.example
+
+# --- F09 (journey ① at phone-375 flaked under three workers: a pre-hydration fill seeds the React value tracker) ---
+commit_task "fix(e2e): fillWhenHydrated waits on the labelled field and clears before every fill [SPEC: 8.4; 8.9; XI T039]" \
+  web/tests/e2e/helpers.ts
+
+# --- F10 (SERVER: the events route api.md promised since R-004, and the web funnel that feeds it) ---
+commit_task "feat(api): POST events — client funnel events with their own timestamps, receivedAt from the server clock; the web queues hero → days → experience → plan built → saved and flushes after sign-up [SPEC: 1C; 1D; Part IV analytics; docs/api.md; 8.2; XI T006/T045]" \
+  web/src/app/api/v1/events/route.ts web/src/lib/events.ts web/src/lib/funnel.ts web/src/lib/api-client.ts web/src/lib/documents-auth.ts web/src/components/FunnelStep.tsx web/src/components/onboarding/OnboardingFlow.tsx web/src/app/page.tsx web/tests/api/events.test.ts web/tests/api/standing-registry.ts docs/api.md
+
+# --- F11 (SERVER: the one route with only standing checks; 8.3 validators; 8.3 DayKey unit tests on both engines) ---
+commit_task "test: crews/[id]/mute round-trips per member and 404s outsiders; every input limit at the limit and one over; DayKey unit tests on both engines (3 AM boundary, DST both ways, date line, Monday weeks) [SPEC: E2; S17; 8.3; E8; E20; XI T016/T029]" \
+  web/tests/api/crews.test.ts web/tests/engine/validators.test.ts web/tests/engine/day-key.test.ts ios/CrewTests/DayKeyTests.swift ios/Package.swift
+
+# --- F12 (tree hygiene: the never-run Codemagic CI goes; C10 one screen per file in Crew/) ---
+commit_task "chore: delete codemagic.yaml (Actions green on every job, Codemagic never ran, the owner's email was in a public file — debt repaid); MessageRow and CreateCrewScreen in their own files [SPEC: 5.2; C10; XI T008/T031]" \
+  codemagic.yaml docs/testing-without-a-mac.md docs/debt.md ios/Crew/Features/Crew/MessageRow.swift ios/Crew/Features/Crew/CreateCrewScreen.swift ios/Crew/Features/Crew/StreamList.swift ios/Crew/Features/Crew/InviteScreen.swift
+
+# --- F13 (8.4 state probes on the simulator; the audit's ledger, ratification and owner review) ---
+commit_task "test(ios-ui): camera-denied → text-first post counts; a checked set survives a kill and Home offers Resume (WRITTEN — UNVERIFIED); docs: progress.md rewritten from the audit, R-055, OWNER-REVIEW four-state matrix [SPEC: 8.4; E5; S07; S09; S11; XI 11.3; T043]" \
+  ios/CrewUITests/CameraDeniedTests.swift ios/CrewUITests/OfflineSessionTests.swift docs/progress.md docs/ratification.md docs/OWNER-REVIEW.md docs/commit-queue.sh
+
+# --- F14 (the server is live at crew-eta-one.vercel.app after the Root Directory fix; the journeys can run against a deployment) ---
+commit_task "test(e2e): BASE_URL runs the Playwright journeys against a deployment (no local server, no warm-up; one journey at one viewport under the G11 limit); the live host, the Root Directory fix and the variables still owed recorded [SPEC: 8.4; 8.7; XI T039/T046; OWNER-REVIEW §5 step 6]" \
+  web/playwright.config.ts docs/progress.md docs/testing-without-a-mac.md docs/commit-queue.sh
+
+# --- F15 (first TestFlight run 34281494452: the archive signed itself in the cloud; App Store Connect refused the upload for want of an icon) ---
+commit_task "feat(ios): app icon — the 1024 px single-size asset catalog and ASSETCATALOG_COMPILER_APPICON_NAME, so App Store Connect accepts the archive (ITMS 90022/90713/90023); first TestFlight run and the live server recorded (R-056) [SPEC: Part IV; XI T045/T046]" \
+  ios/Crew/Assets.xcassets ios/project.yml docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

@@ -842,3 +842,85 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   written around what exists. Next: the owner does the Atlas step and reports the record's bundle id.
 - Look at: whether $20/month for Vercel Pro is worth having reminders in the beta (the agent recommends Hobby until a second
   tester joins); whether to keep the old record's name "Crew — Train. Track. Show up." for the new app.
+
+### R-055 · 2026-09-08 (evening) · Cold-start full audit: every claim re-verified by command, the tree diffed against 5.2, six gaps closed · T001–T047 · checkpoint — proceeding
+- Why: the owner reported the build incomplete, "notably the server", and asked for an audit that trusts no checkmark. A fresh
+  session read the spec in full and re-ran every verify command (the table is at the top of `docs/progress.md`, rewritten from
+  scratch): generate/drift/vectors/seeds/doctrine clean; `npm run typecheck`, `lint`, `test` (28 files, 285 tests), `vectors`
+  (51), `build`, `npm audit` (0) all green; `docker … swift test` 18/18; `gh run view 34252964640` — every one of the five
+  GitHub jobs green at HEAD `e9fe41f`, the macOS job included (compile, 49 unit tests, journeys ①② on an iPhone 17 simulator).
+- The server, specifically: 32 route files, 45 exported methods; every route the spec (5.2, Part IV) and `docs/api.md` name
+  EXISTS with a dedicated integration test in `tests/api/` plus the four standing checks — except `PATCH crews/[id]/mute`
+  (standing checks only) and `POST events` (documented in api.md since R-004, never built, never called). The "unfinished
+  server" impression is not borne out by the suite; the two gaps are closed below.
+- The one red result: `npm run e2e` = 22 passed · 1 skipped (by design) · 1 FAILED — journey ① on phone-375/WebKit, "Post"
+  stayed disabled after the caption was filled under three workers; alone it passed in 8 s. Cause: a `fill` that lands before
+  hydration seeds React's value tracker with the exact text, so the retry's identical `fill` fires no change event.
+  `fillWhenHydrated` now waits on the labelled field itself and clears before every fill. No product code changed.
+- Secrets: only `.env.example` is tracked; `git log --all --full-history -- "*.env"` names only it; `.env`/`.env.*` are
+  ignored. Two local files held real values — `web/.env` and a byte-identical stray `ios/.env` (deleted; nothing under ios/
+  reads it). FINDING, fixed: `next dev` reads `web/.env`, and the Playwright harness pinned only the variables the tests
+  needed, so a local `.env` with the beta's Resend and Blob keys would have reached the harness (no journey mails or uploads,
+  but nothing forbade it). `dev-server.mjs` now pins every vendor variable to "" — each lib stays on its substitute. Also:
+  `.env.example` lacked `APP_STORE_URL` (read by the join page) — added. The owner is rotating the Resend and Blob keys.
+- Gaps closed (verify commands run, all green): Q03 `POST /api/v1/events` (5.6.4 shape; `logClientEvents` keeps the client's
+  `at` and stamps `receivedAt`; 4 tests; the standing-checks generator discovered it — 139 checks) and the web funnel
+  (`lib/funnel.ts` queues `onboarding_hero · days · experience · plan_built · saved` in sessionStorage pre-auth and flushes
+  after sign-up, so the 1C "hero → Home" reading is computable server-side; a member's rebuild records nothing) · Q04 the
+  mute test (per member, visible on `users/me`, outsider 404, bad body 400) · Q05 `tests/engine/validators.test.ts` — every
+  input limit at the limit and one over (8.3) · Q06 DayKey unit tests on BOTH engines (`tests/engine/day-key.test.ts`,
+  `CrewTests/DayKeyTests.swift` in `Package.swift`; docker swift test 25/25) — 8.3 named them and neither engine had them.
+- Tree diff against 5.2 (the owner asked for every extra: keep with a reason, or delete). DELETED: `codemagic.yaml` (never
+  run, a second CI that must not drift, the owner's email in a public repo; debt repaid) · `ios/.env` (stray duplicate).
+  KEPT, with reason: `.github/workflows/testflight.yml` (the only path to TestFlight without a Mac, T045) · `ios/Package.swift`
+  (the engine on the open-source toolchain — the 8.1 "both engines" gate on Linux, R-048) · `ios/project.yml` (XcodeGen makes
+  `Crew.xcodeproj` on the runner; the .xcodeproj is generated, not committed, R-005) · `ios/ExportOptions.plist` (TestFlight
+  export) · `ios/scripts/doctrine-lint.sh` (5.3 CI-blocking doctrine lint, the Swift half) · `docs/commit-queue.sh` (git is
+  hook-blocked for the agent; the owner runs the queue) · `docs/api.md` (T006 deliverable) · `docs/ratification.md`,
+  `docs/OWNER-REVIEW.md`, `docs/testing-without-a-mac.md` (the continuous-build amendment's own artefacts) · `web/vercel.json`
+  (the cron schedule, T033/T046) · `web/scripts/metrics.mjs` (T045 metrics) · `web/.prettierrc` (5.3 formatting machine-owned)
+  · `web/AGENTS.md` + `web/CLAUDE.md` (written by `next dev` itself on every start; committing them keeps the tree clean) ·
+  `web/src/app/api/cron/notifications` + `api/v1/photos/*` + `crews/[id]/{stream,mute}` + `api/v1/events` (api.md tree
+  additions, R-004) · `/journal` and `/onboarding` outside the `(app)` group (S16; onboarding is pre-auth by Flow 1) ·
+  `shared/scripts/{render-*,check-*,vector-*,doctrine-lint}.mjs` (generate.mjs split under the C9 cap) · `ios/Crew/AppError.swift`
+  (C13's one enum), `TimeUnits.swift` (unit arithmetic, not spec numbers) · Api/ and Storage/ per-resource files (C9 cap; names
+  in progress.md "plan notes") · `.gitattributes`. SPEC PATHS ABSENT and why: `ios/Crew.xcodeproj` (generated on CI) ·
+  `Onboarding/SoloOrCrewScreen` (S06 removed v1.9) · `Plan/WorkoutEditorScreen` + `RebuildFlow` (folded into PlanScreen /
+  PlanDayCard / PlanModel — a C10 split is queued as optional) · `CrewTests/DayKeyTests.swift` (ADDED today) ·
+  `CrewUITests/OfflineSessionTests.swift` + `CameraDeniedTests.swift` (ADDED today, see below) · `Crew/MessageRow` +
+  `CreateCrewScreen` were inside StreamList.swift / InviteScreen.swift (C10 "one screen per file") — SPLIT today into their own
+  files, no behaviour change.
+- Dependencies: `web/package.json` holds exactly the allowlist (next react react-dom mongodb zod sharp @vercel/blob jose apns2
+  resend; dev typescript vitest prettier eslint) plus the six dev-only additions the Registry already logs (R-005); nothing else.
+- Scope sweep: no calorie/macro/barcode/leaderboard/follower/superset/cardio/food-recognition code; no `*Manager`/`*Service`/
+  `*Handler`/`Base*` classes; no `protocol` declarations in ios/Crew at all; no comments/DMs.
+- 8.4 state probes ADDED (WRITTEN — UNVERIFIED; the CI ios job runs the whole CrewUITests scheme, so the next push is their
+  first run): `CameraDeniedTests` (a simulator has no camera, exactly like a denied phone: the S11 permission-denied line, no
+  Snap, Library + text still offered, the text post lights the flame) · `OfflineSessionTests` (Resume-after-kill: set 1 checked,
+  `app.terminate()`, relaunch signed-in → the Resume banner, the set still done). Airplane mode stays a device item (8.6).
+- Verdict: the repo is where the ledger said, with the corrections above. Nothing behavioural changed on the server except the
+  new events route; the web gained the funnel calls; iOS gained two files split out, one unit test file and two UI probes.
+- Look at: the funnel event names in api.md (yours to rename before any dashboard reads them); whether the two UI probes pass
+  on the next CI run (their first); the Plan/ C10 split (WorkoutEditorScreen, RebuildFlow) if you want the 5.6 file names
+  literal.
+
+### R-056 · 2026-09-08 (night) · The server is live and the first TestFlight archive signed itself; the upload wanted an icon · T045 / T046 · checkpoint — proceeding
+- What was checked: the deployed server. Vercel project `crew` at `https://crew-eta-one.vercel.app`, built from master `e9fe41f`
+  once the Root Directory was saved as `web` (the first two builds ran at the repo root: "No Next.js version detected"). `/`
+  answers 200, `/api/v1/users/me` 401. The variables the owner could not land in the browser went in through the Vercel CLI
+  (`vercel env add`, the owner typing the secret values; the agent added only the public ones). Journey ① against the
+  deployment reached the save screen and got "Something went wrong on our side": the runtime log says `MongoServerError:
+  bad auth`, so `MONGODB_URI` carries a wrong password — the owner is regenerating it. No test user was created.
+- The TestFlight workflow ran for the first time (run 34281494452) against a NEW App Store Connect record, bundle id
+  `com.maxwellcuenca.crew` (the owner chose not to reuse the rejected earlier record). XcodeGen, the full Release compile
+  and `xcodebuild archive` with cloud signing SUCCEEDED — the Admin-key requirement (R-054) held. `-exportArchive` with
+  `destination: upload` then failed on App Store Connect's validation: ITMS 90022 / 90713 / 90023 — the bundle has no app
+  icon and no CFBundleIconName. The spec names no icon; the project had no asset catalog at all.
+- Fixed: `ios/Crew/Assets.xcassets/AppIcon.appiconset/AppIcon.png` — the owner's own 1024 × 1024, alpha-free PNG from the
+  earlier product (the rugged sloth with the ember stripe; sharp confirmed the dimensions and the missing alpha channel,
+  which App Store Connect insists on) — in the single-size catalog format, plus `ASSETCATALOG_COMPILER_APPICON_NAME` in
+  `project.yml`; Xcode derives every size and injects CFBundleIconName. Nothing else changed in the app.
+- Verdict: cloud signing from a Windows machine through GitHub's macOS runner is proven; the next run should upload. Open
+  behind it: the Atlas password, the Blob connection, the APNs key, the Services ID for web Sign in with Apple.
+- Look at: the icon — it is the earlier product's mark and can be replaced by dropping another 1024 px opaque PNG on the
+  same path; whether "Crew: Train. Track. Show up." is the name you want on TestFlight.
