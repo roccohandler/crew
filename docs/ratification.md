@@ -922,5 +922,21 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   `project.yml`; Xcode derives every size and injects CFBundleIconName. Nothing else changed in the app.
 - Verdict: cloud signing from a Windows machine through GitHub's macOS runner is proven; the next run should upload. Open
   behind it: the Atlas password, the Blob connection, the APNs key, the Services ID for web Sign in with Apple.
+  UPDATE, minutes later: run 34282978517 (build 2, commit 344791a, which also carried the audit's F08–F13) went through
+  every step — archive, export, upload — and App Store Connect accepted the build. T045's "TestFlight" half is done up to
+  the owner's own phone. Then the server: the regenerated Atlas password went in, register still answered 500, and the
+  runtime log had moved on from `bad auth` to `MongoInvalidArgumentError: Database names cannot contain the character
+  '.'` — `MONGODB_DB` no longer held `crew` (edited in the dashboard at some point). Reset through the CLI, redeployed:
+  `POST auth/register` → 201 against Atlas at 22:03Z, and journey ① PASSED against production at 22:08Z (19.6 s, one
+  viewport): the whole stack — Vercel, Atlas, the JWT cookies, the plan generator, the first post, the flame — holds on
+  the real services. Photos remain the one dead path until the Blob store is connected. One finding from cleaning up:
+  `DELETE users/me` on the smoke account answered 500 although the account was gone (`users/me` → 404 right after) — the
+  cascade completed and the "account deleted" email then failed, because Resend's sandbox sender delivers only to the
+  account owner's address; a completed, irreversible cascade must not be reported as a failure → gap-queue Q12.
 - Look at: the icon — it is the earlier product's mark and can be replaced by dropping another 1024 px opaque PNG on the
   same path; whether "Crew: Train. Track. Show up." is the name you want on TestFlight.
+- UPDATE: the owner rejected the earlier product's mark the moment it showed in TestFlight ("an old application that
+  shouldn't be involved"). The icon is now drawn from the Ember system itself: the streak flame in ember `#FF6600` with a
+  bone core on the bone canvas `#FAF8F5` — the same frame the launch screen shows, so the tap and the first frame match.
+  Source: `shared/brand/app-icon.svg`; rendered to the 1024 px opaque PNG with sharp (`.flatten().removeAlpha()`), which is
+  what App Store Connect insists on. Build 1 (the sloth) stays in TestFlight until build 2 replaces it.

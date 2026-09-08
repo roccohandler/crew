@@ -84,6 +84,14 @@ commit_task "test(e2e): BASE_URL runs the Playwright journeys against a deployme
 commit_task "feat(ios): app icon — the 1024 px single-size asset catalog and ASSETCATALOG_COMPILER_APPICON_NAME, so App Store Connect accepts the archive (ITMS 90022/90713/90023); first TestFlight run and the live server recorded (R-056) [SPEC: Part IV; XI T045/T046]" \
   ios/Crew/Assets.xcassets ios/project.yml docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F16 (run 34282978517: build 2 uploaded — the native app reaches App Store Connect from Windows) ---
+commit_task "docs: TestFlight build 2 uploaded (run 34282978517, every step green); journey ① green against the live server once MONGODB_DB was reset to crew; the delete-cascade-then-email finding queued as Q12; progress and R-056 record it, the phone install is the next owner step [SPEC: XI T045/T046; Part X Phase 6; E9]" \
+  docs/progress.md docs/ratification.md docs/commit-queue.sh
+
+# --- F17 (TestFlight showed the earlier product's sloth; the owner wants nothing of that app involved) ---
+commit_task "feat(ios): the app icon is the Ember flame on the bone canvas (shared/brand/app-icon.svg → opaque 1024 px PNG), replacing the earlier product's mark [SPEC: Part III (Ember: flame = streak; bone canvas; launch frame); XI T045]" \
+  ios/Crew/Assets.xcassets/AppIcon.appiconset/AppIcon.png shared/brand/app-icon.svg docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
