@@ -50,6 +50,19 @@ describe("auth/register", () => {
     expect(response.status).toBe(400);
     expect((await readJson(response)).error).toMatchObject({ code: "validation" });
   });
+
+  // A phone names its zone as Foundation does — "GMT" on a device set to UTC, "US/Pacific" on an older one — and the server
+  // must take every zone it can compute day keys with (E8); a made-up zone is still a validation error (R-052).
+  it("accepts every timezone Intl can format with, not only the canonical list", async () => {
+    // each call from its own address so this test never spends the file's shared G11 budget (10/min per IP)
+    for (const [index, timezone] of ["GMT", "UTC", "US/Pacific", "Etc/GMT+5"].entries()) {
+      const response = await register(request("POST", "/auth/register", { ip: `198.51.100.${index + 1}`, body: { ...sam, email: `zone-${index}@example.com`, timezone } }));
+      expect(response.status, timezone).toBe(201);
+    }
+    const madeUp = await register(request("POST", "/auth/register", { ip: "198.51.100.9", body: { ...sam, email: "zone-mars@example.com", timezone: "Mars/Olympus" } }));
+    expect(madeUp.status).toBe(400);
+    expect((await readJson(madeUp)).error).toMatchObject({ code: "validation" });
+  });
 });
 
 describe("auth/login + refresh rotation + logout", () => {

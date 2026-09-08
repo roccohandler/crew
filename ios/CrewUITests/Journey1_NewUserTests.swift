@@ -49,8 +49,8 @@ final class Journey1_NewUserTests: XCTestCase {
         year.tap(); year.typeText("1994")
         app.buttons["Save your plan"].tap()
 
-        // S07 bridge state on Home: unlit flame, one oversized CTA
-        XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 10))
+        // S07 bridge state on Home: unlit flame, one oversized CTA (the wait covers a cold dev server hashing the first password)
+        XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20), "Home never showed the bridge — the save screen says: \(app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))")
         shoot(app, "S07 Home — the bridge")
         let startFirst = app.buttons["Start your first workout"]
         let postMeal = app.buttons["Start your streak — post a meal"]

@@ -4,9 +4,19 @@
 import { z } from "zod";
 import { SpecConstants } from "@/generated/spec-constants";
 
-const supportedTimeZones = new Set(Intl.supportedValuesOf("timeZone"));
+// A phone reports its zone as Foundation names it: "GMT" on a device (or a CI simulator) set to UTC, legacy names such as
+// "US/Pacific" on older devices — none of which Intl.supportedValuesOf lists (it holds canonical zones only, not even "UTC").
+// A zone this runtime can format with is a zone the server can compute day keys with (E8), so that is the test.
+function isResolvableTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-export const timezoneSchema = z.string().refine((value) => supportedTimeZones.has(value) || value === "UTC", "must be an IANA timezone");
+export const timezoneSchema = z.string().min(1).refine(isResolvableTimeZone, "must be an IANA timezone");
 export const dayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD");
 export const clientIdSchema = z.uuid();
 export const objectIdSchema = z.string().regex(/^[0-9a-f]{24}$/, "must be an id");

@@ -31,7 +31,7 @@ struct SeedClient {
         let body: [String: Any] = ["email": email, "password": "journey password 1", "displayName": name, "timezone": TimeZone.current.identifier, "eulaAccepted": true, "birthYear": 1993]
         let (data, status) = try await call("POST", "auth/register", body: body, token: nil)
         guard status == 201, let reply = try JSONSerialization.jsonObject(with: data) as? [String: Any], let token = reply["accessToken"] as? String,
-              let user = reply["user"] as? [String: Any], let id = user["id"] as? String else { throw SeedError.unexpected("register → \(status)") }
+              let user = reply["user"] as? [String: Any], let id = user["id"] as? String else { throw SeedError.unexpected("register → \(status) \(String(decoding: data, as: UTF8.self).prefix(300))") }
         return SeedSession(json: String(decoding: data, as: UTF8.self), accessToken: token, userId: id)
     }
 

@@ -51,7 +51,7 @@ struct SaveAuthScreen: View {
 
     private func submit() {
         validateName(); validateEmail(); validatePassword(); validateBirthYear()
-        guard fieldErrors.values.allSatisfy({ $0 == nil }), let year = Int(birthYear) else { return }
+        guard fieldErrors.isEmpty, let year = Int(birthYear) else { return } // a cleared error is a removed key
         Task { await model.saveWithEmail(email: email, password: password, displayName: displayName.trimmingCharacters(in: .whitespaces), birthYear: year) }
     }
 }

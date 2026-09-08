@@ -18,7 +18,10 @@ struct DaysQuestionScreen: View {
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space24) {
             QuestionHeader(number: OnboardingQuestion.days.rawValue, title: "Which days do you train?")
-            HStack(spacing: EmberTokens.Spacing.space8) {
+            // GAP: S03 asks for seven ≥ 56 pt circles in one row, but 7 × 56 pt plus gaps is wider than every iPhone inside the
+            // 24 pt margins (the first simulator run clipped both edges). Conservative call: the TAP AREA keeps ≥ 56 pt of height
+            // and the full column of width (≥ 44 pt, 6.3); the circle itself draws at the column width. R-052.
+            HStack(spacing: EmberTokens.Spacing.space4) {
                 ForEach(1...TimeUnits.daysPerWeek, id: \.self) { weekday in
                     DayToggle(letter: weekdayLetters[weekday - 1], selected: model.selectedDays.contains(weekday)) {
                         Haptics.selection()
@@ -46,10 +49,13 @@ struct DayToggle: View {
         Button(action: action) {
             Text(letter)
                 .font(.headline)
-                .frame(width: CGFloat(SpecConstants.dayToggleMinPt), height: CGFloat(SpecConstants.dayToggleMinPt))
                 .foregroundStyle(selected ? EmberColors.primaryButtonLabel : EmberColors.inkText)
+                .frame(maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit) // a circle as wide as its column — seven columns always fit the screen
                 .background(selected ? EmberColors.primaryButtonFill : EmberColors.card, in: Circle())
                 .overlay(Circle().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+                .frame(minHeight: CGFloat(SpecConstants.dayToggleMinPt)) // the tap area stays ≥ 56 pt tall (1B)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(letter)
