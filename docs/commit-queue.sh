@@ -7,16 +7,19 @@
 # git skips ("nothing to commit"). Run it whenever you like; the queue is append-only.
 #
 # Ordering rule (learned 2026-09-08, block S38): a block stages every listed path that has changes, so a later
-# EDIT to a file lands in the FIRST block that names it — S38's CI fix was committed under older messages. The
-# history below is fully committed and never re-runs, so from now on every fix block goes in the FIX QUEUE
-# section right under commit_task, newest LAST within that section, ahead of the history.
+# EDIT to a file lands in the FIRST block that names it — S38's CI fix was committed under older messages. Fix
+# blocks go in the FIX QUEUE section right under commit_task, newest LAST, ahead of the history. Since F07 a block
+# whose message is already in `git log` is skipped outright (it stages nothing), so only never-committed blocks
+# can claim a file; among those the first one naming it wins — the shared ledgers (progress, ratification, this
+# file) ride with the oldest uncommitted block.
 set -u
 cd "$(dirname "$0")/.."
 
 commit_task() {
   local message="$1"; shift
+  if [ -n "$(git log --fixed-strings --grep="$message" --format=%H -n 1)" ]; then echo "skip   (in history) $message"; return 0; fi
   git add -- "$@" 2>/dev/null
-  if git diff --cached --quiet; then echo "skip   (already committed) $message"; else git commit -q -m "$message" && echo "commit $message"; fi
+  if git diff --cached --quiet; then echo "skip   (nothing to commit) $message"; else git commit -q -m "$message" && echo "commit $message"; fi
 }
 
 # ===== FIX QUEUE — runs before the history; append new fix blocks at the END of this section =====
@@ -41,7 +44,20 @@ commit_task "test(ios): HomeModelTests — Friday of a Mon/Wed/Fri plan is Leg d
 commit_task "fix: a phone's timezone is whatever Intl can format with (Foundation says GMT on a UTC device — the seed and the app both got 400); S03 day toggles fit the screen (GAP, R-052); CI warms the API routes and keeps the dev-server log [SPEC: E8; S03; 1B; 6.3; 8.4; XI T021/T028/T035/T008]" \
   ios/Crew/Features/Onboarding/PlanQuestionsScreen.swift ios/Crew/Features/Onboarding/SaveAuthScreen.swift ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/SeedClient.swift web/src/lib/validate.ts web/tests/api/auth.test.ts .github/workflows/ci.yml codemagic.yaml docs/ratification.md docs/progress.md docs/commit-queue.sh
 
-# ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
+# --- F06 (run 34246649543: every job green — journeys ①② pass on the simulator; two nits from the nine screenshots) ---
+commit_task "fix(ui): S03 day circles inscribed in a column-wide 56 pt tap area (the F05 sizing collapsed to the letter); Home says '1 exercise' on both platforms; journeys ①② green on a simulator recorded (R-053) [SPEC: S03; 1B; Flow 2; 8.4; XI T021/T024/T028/T035]" \
+  ios/Crew/Features/Home/TodayCard.swift ios/Crew/Features/Onboarding/PlanQuestionsScreen.swift "web/src/app/(app)/home/page.tsx" docs/ratification.md docs/progress.md docs/commit-queue.sh docs/OWNER-REVIEW.md docs/testing-without-a-mac.md
+
+# --- F07 (Stage 2 begins: the accounts exist — a paid Apple program holding a Crew record, an Atlas M0 cluster, Vercel Hobby; three vendor limits checked against their own pages) ---
+commit_task "chore(deploy): beta tier — Vercel Hobby runs the notifications cron daily (per-minute needs Pro); the TestFlight key must be Admin for cloud signing and TestFlight push is the production APNs; Stage 2 step list rewritten around the accounts that exist; the queue skips blocks already in git log; debt for M0 + open allowlist, the sandbox sender, the applinks placeholder; R-054 [SPEC: Part IV; XI T045/T046/T008]" \
+  web/vercel.json .github/workflows/testflight.yml docs/testing-without-a-mac.md docs/debt.md docs/ratification.md docs/progress.md docs/OWNER-REVIEW.md docs/commit-queue.sh
+
+# ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
+# them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
+# earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
+# stage any future edit to a ledger they name, so the queue stops here. =====
+exit 0
+
 
 # --- S03 ---
 commit_task "feat(shared): seed exercises.json (101, swap-covered) + check-seeds; continuous-build amendment + T003 ratification logged [SPEC: Appendix B; Part IX seed; XI T004]" \

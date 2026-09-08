@@ -20,7 +20,7 @@ struct TodayCard: View {
             Card {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
                     Text(name.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(EmberColors.secondaryText)
-                    Text("\(exerciseCount) exercises + mobility").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+                    Text("\(exerciseCount) \(exerciseCount == 1 ? "exercise" : "exercises") + mobility").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
                     PrimaryButton(title: "Start workout", action: onStart)
                 }
             }

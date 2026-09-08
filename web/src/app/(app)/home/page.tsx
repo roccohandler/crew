@@ -22,7 +22,7 @@ function TodayCard({ today, openSessionId }: { today: TodayState; openSessionId:
   if (today.kind === "paused") return <section className="card stack stack--tight"><h2>Plan paused</h2><p className="muted">Your streak is frozen until {today.until}. Reminders are off.</p></section>;
   if (today.kind === "rest") return <section className="card stack stack--tight"><h2>Rest day — recovery is part of the plan.</h2><p className="muted">{today.posted ? "Today's posted. Streak safe." : "Post something today and the streak stays safe."}</p>{!today.posted ? <Link className="button button--secondary" href="/post">Post a meal</Link> : null}</section>;
   if (today.kind === "allDone") return <section className="card stack stack--tight"><h2>Done for today.</h2><p className="muted">Post a plate whenever. Bonus workouts are always welcome.</p></section>;
-  return <section className="card stack stack--tight"><p className="whisper">{today.name.toUpperCase()}</p><h2>{today.exerciseCount} exercises + mobility</h2><Link className="button button--primary" href={openSessionId ? `/session/${openSessionId}` : "/session/new"}>{openSessionId ? "Resume workout" : "Start workout"}</Link></section>;
+  return <section className="card stack stack--tight"><p className="whisper">{today.name.toUpperCase()}</p><h2>{today.exerciseCount} {today.exerciseCount === 1 ? "exercise" : "exercises"} + mobility</h2><Link className="button button--primary" href={openSessionId ? `/session/${openSessionId}` : "/session/new"}>{openSessionId ? "Resume workout" : "Start workout"}</Link></section>;
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ earned?: string }> }) {

@@ -131,25 +131,34 @@ was built against Firebase.
 
 1. **Commit the queue.** From PowerShell, `& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh`
    (plain `bash` is WSL on this machine and cannot enter the repo; git is hook-blocked for the agent; every task's
-   conventional commit with its `[SPEC:]` tag is queued in order and idempotent — 63 blocks as of 2026-09-08). Check
+   conventional commit with its `[SPEC:]` tag is queued in order and idempotent — 69 blocks as of 2026-09-08; since F07 a
+   block whose message is already in `git log` is skipped outright, and the HISTORY section no longer runs at all). Check
    `git log --oneline`.
 2. **Push and watch CI.** The repo is `github.com/roccohandler/crew` (public). `.github/workflows/ci.yml` runs contracts →
    web (lint, typecheck, test, vectors, build, audit) → web-e2e (Chromium + WebKit) → ios engine (Linux) → ios (macOS
-   runner: xcodegen, doctrine lint, xcodebuild test). First run 2026-09-08: the four non-Xcode jobs green; the ios job is
-   the first compile of the Swift tree — iterate there (or on a Mac) until green. The account's billing lock of that morning
-   was a past-due charge on an expired card; re-saving the card cleared it.
-3. **Mac pass.** Install Xcode + XcodeGen; `cd ios && xcodegen generate`; `xcodebuild test -scheme Crew`; then the XCUITest
-   journeys on a phone. Record results in `docs/progress.md` by flipping `[~]` to `[x]` per task, one commit each.
+   runner: xcodegen, doctrine lint, xcodebuild test for both schemes). **Green since 2026-09-08 (run 34246649543):** the
+   Swift tree compiles under Xcode 26.6, 49 unit tests + all 51 vectors pass, and journeys ① and ② pass on an iPhone 17
+   simulator; the screenshots of every key screen are in the `ios-test-results` artifact of each run (R-053). The account's
+   billing lock of that morning was a past-due charge on an expired card; re-saving the card cleared it.
+3. **Device pass (needs an iPhone, via TestFlight — step 7 — or a Mac).** What a simulator cannot prove: gestures, haptics,
+   the camera, push, the 8.6 offline matrix (§6), VoiceOver and Dynamic Type XXL (8.5), the launch signposts (8.8). Record
+   results in `docs/progress.md` by flipping `[~]` to `[x]` per task, one commit each.
 4. **Phase gates, in order (owner ratification of the self-reviews).** Phase 1: R-015 (both engines green). Phase 2: R-022
    (Journey ① on device). Phase 3: R-027 (Journey ② + 8.7). Phase 4: R-032 (Playwright + Lighthouse once approved).
    Phase 5: R-036 (security sweep).
 5. **Production environment (T046).** Create Atlas (M10+, backups on, IP allowlist for Vercel), Vercel (env vars from
    `.env.example`, `vercel.json` cron every minute with `CRON_SECRET`), Resend domain, APNs key, Sign in with Apple
    service id + key. Rotate `JWT_SECRET` procedure: set the new secret, all access tokens expire within 15 min, refresh tokens
-   are server-side records and survive. Enable Vercel log drains/alerts and Atlas alerts.
+   are server-side records and survive. Enable Vercel log drains/alerts and Atlas alerts. **Beta tier, 2026-09-08 evening
+   (R-054):** the paid Apple program was already active (App Store Connect holds a Crew record from the earlier codebase —
+   reused), Atlas is a free M0 (`Crew2`) open to `0.0.0.0/0`, Vercel is Hobby (cron daily — Hobby refuses per-minute),
+   Resend uses the sandbox sender; each in `docs/debt.md` with its repayment. The click-by-click order is
+   `docs/testing-without-a-mac.md` Stage 2.
 6. **Deploy web** (`vercel --prod`), then run the journeys against production once: `BASE_URL=https://… npx playwright test`
    after pointing `playwright.config.ts` `use.baseURL` at the deployment and disabling the local webServer.
-7. **TestFlight (T045).** Bundle id, capabilities (Sign in with Apple, Push), `APNS_ENVIRONMENT=sandbox` first; upload;
+7. **TestFlight (T045).** Bundle id, capabilities (Sign in with Apple, Push), `APNS_ENVIRONMENT=production` (a TestFlight
+   build is App Store-signed; `sandbox` only fits a Debug build from a Mac); the App Store Connect API key must be Admin
+   (cloud signing); upload;
    internal testers; the E10 metrics come from the `events` collection (first-party events are already logged by every
    mutation) — a dashboard is not built; a saved Atlas chart per metric is the smallest thing that works.
 8. **App Store (T047).** Screenshots from the five-state screens, privacy nutrition labels (photos, email, Apple id, usage

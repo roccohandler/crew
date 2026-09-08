@@ -76,11 +76,12 @@ cd C:\Users\princ\CREW_2.0
 git push
 ```
 
-2. Open the repository's **Actions** tab. Five jobs run: contracts, web, web e2e, ios engine (Linux), ios (macOS). The
-   first run (2026-09-08, run 34224403865) had the four non-Xcode jobs green, Playwright included.
-3. The `ios` job will fail the first time. 127 Swift files have never met the Xcode compiler; two desk-check passes and
-   the Linux build removed what could be found without one. Read the log, fix the errors in the repo here, push again.
-   Behaviour must not change — the tests are the contract. The agent reads the log itself:
+2. Open the repository's **Actions** tab. Five jobs run: contracts, web, web e2e, ios engine (Linux), ios (macOS). **All
+   five have been green since 2026-09-08 (run 34246649543):** the app compiles, 49 unit tests and the 51 vectors pass, and
+   journeys ① and ② run end to end on an iPhone 17 simulator. Stage 1 is done; it now guards every push.
+3. When the `ios` job fails, read the log, fix in the repo here, push again. Behaviour must not change — the tests are the
+   contract. (Getting here took four one-line compile fixes, one wrong test expectation, one server rule the simulator's
+   "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) The agent reads the log itself:
    `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
    `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
 4. **Look at the app.** The job uploads `ios-test-results` on every run, pass or fail. Download it, and inside the
@@ -95,29 +96,59 @@ allowance, so a private repo gets roughly a dozen runs a month before it costs m
 
 ## Stage 2 — the app on your own iPhone, still with no Mac
 
-This is TestFlight, and it needs two things Stage 1 does not.
+This is TestFlight. Where things stood on the evening of 2026-09-08: the paid Apple Developer Program is already active
+(App Store Connect holds a "Crew — Train. Track. Show up." record with a rejected iOS 1.0 from the earlier codebase — the
+record and its bundle id are reused; TestFlight does not care about that rejection), an Atlas free cluster `Crew2` exists
+in project `Crew2`, and the Vercel account is on Hobby. Three vendor limits were checked against the vendors' own pages
+before this list was written (R-054):
 
-**The Apple Developer Program, $99 a year.** There is no free path to a phone without a Mac: a free Apple ID can install
-directly from Xcode on a Mac you own, and nothing else. TestFlight requires the paid program.
+- **Vercel Hobby runs a cron at most once a day** and refuses to deploy anything more frequent ("Hobby accounts are limited
+  to daily cron jobs"), so `web/vercel.json` schedules `/api/cron/notifications` at `0 12 * * *` for the beta. The reminder
+  rule is minute-exact, so reminders and streak-risk nudges need Pro ($20/month) and the one-line return to `* * * * *`
+  (`docs/debt.md`). Everything else in the beta is unaffected.
+- **Resend without a verified domain** sends from `onboarding@resend.dev` and delivers only to the Resend account's own
+  address — enough for your own password reset and the moderation inbox, not for other testers.
+- **Xcode's cloud signing needs an App Store Connect API key with the Admin role** to issue the Distribution certificate;
+  an App Manager key fails with "Cloud signing permission error".
 
-**A deployed server.** A TestFlight build cannot reach a dev server on your desk, so the API must be live first: a
-MongoDB Atlas cluster and a Vercel deployment of `web/`, with the variables in `web/.env.example`. Section 5 of
-`docs/OWNER-REVIEW.md` is the step list.
+The order, one step per message from the agent. Real values go straight into the vendor's form — never into the repo or
+the chat.
 
-Then, once per build:
-
-1. In App Store Connect, create the app record with a bundle id you own, for example `com.yourname.crew`.
-2. Under Users and Access → Integrations → App Store Connect API, create a key with the **App Manager** role. Download
-   the `.p8` — it downloads exactly once.
-3. In the GitHub repository, Settings → Secrets and variables → Actions, add four **secrets**:
-   `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_PRIVATE_KEY` (paste the whole `.p8`),
-   `APPLE_TEAM_ID`; and two **variables**: `CREW_BUNDLE_ID` and `CREW_API_HOST` (your deployed host, no scheme —
-   e.g. `crew-yourname.vercel.app`).
-4. Actions → **testflight** → Run workflow, with a build number higher than the last one.
-   `.github/workflows/testflight.yml` archives, signs (the API key lets Xcode issue the certificate and profile itself —
-   no `.p12` to export from a Mac you do not have) and uploads straight to App Store Connect.
-5. On App Store Connect → TestFlight, add yourself as an internal tester. Install the TestFlight app on the iPhone and
-   the build appears there.
+1. **Atlas** — Database & Network Access → Database Users → Add: password authentication, user `crew`, "Autogenerate
+   Secure Password" (copy it), built-in role "Read and write to any database". Network Access → Add IP Address → "Allow
+   access from anywhere" (Vercel's functions have no fixed address on Hobby). Cluster card → Connect → Drivers → copy the
+   `mongodb+srv://crew:<db_password>@crew2….mongodb.net/…` string and put the password in. That is `MONGODB_URI`;
+   `MONGODB_DB` is `crew`.
+2. **Resend** — resend.com → API Keys → Create ("Sending access") → `RESEND_API_KEY`. `RESEND_FROM` is
+   `Crew <onboarding@resend.dev>` until a domain is verified; `MODERATION_INBOX` is the Resend account's own email.
+3. **Vercel** — Add New → Project → Import `roccohandler/crew` (grant the GitHub app access to the repo if it is not
+   listed) → Root Directory `web` → Framework Next.js → Environment Variables: `MONGODB_URI`, `MONGODB_DB`, `JWT_SECRET`
+   (32 random bytes, base64), `CRON_SECRET` (a long random string), `RESEND_API_KEY`, `RESEND_FROM`, `MODERATION_INBOX`,
+   `COOKIE_SECURE=true` → Deploy. Then Settings → Environment Variables → `APP_BASE_URL=https://<the project's domain>` and
+   Redeploy. Storage → Create Database → Blob → connect it to the project: Vercel adds `BLOB_READ_WRITE_TOKEN` itself;
+   redeploy once more. The agent checks the deployment from here (`/api/v1/users/me` answers 401, the home page 200).
+4. **Apple, on developer.apple.com/account** — first accept the updated Program License Agreement (the Account Holder;
+   until then the App Store Connect API answers 403 to everything, cloud signing included). Membership details → the
+   10-character Team ID. Certificates, Identifiers & Profiles → Keys → a key with "Apple Push Notifications service (APNs)"
+   → download the `.p8` (exactly once) → into Vercel: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (the file's whole
+   text; a multi-line value is fine), `APNS_BUNDLE_ID` and `APPLE_BUNDLE_ID` (the record's bundle id), and
+   `APNS_ENVIRONMENT=production` — a TestFlight build is App Store-signed, so its push tokens are production tokens
+   (`sandbox` is only for a Debug build installed from a Mac). Redeploy. The web Sign in with Apple button also needs a
+   Services ID (`APPLE_SERVICES_ID`) whose return URL is `https://<host>/api/v1/auth/apple/callback` — after the phone
+   works; the iOS button needs only the bundle id.
+5. **App Store Connect** — Users and Access → Integrations → App Store Connect API → Team Keys → Generate API Key, role
+   **Admin**. Download the `.p8` (exactly once); note the Key ID and the Issuer ID shown above the table.
+6. **GitHub** — `github.com/roccohandler/crew` → Settings → Secrets and variables → Actions: secrets
+   `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_PRIVATE_KEY` (the whole `.p8`),
+   `APPLE_TEAM_ID`; variables `CREW_BUNDLE_ID` (the record's bundle id) and `CREW_API_HOST` (the Vercel host — no
+   scheme, no trailing slash).
+7. Actions → **testflight** → Run workflow, build number higher than the last upload (1 for this codebase;
+   `manageAppVersionAndBuildNumber` in `ios/ExportOptions.plist` lets Xcode raise it if App Store Connect already holds a
+   higher one). `.github/workflows/testflight.yml` archives, signs (the API key lets Xcode issue the certificate and
+   profile itself — no `.p12` to export from a Mac you do not have; the App ID's capabilities — Sign in with Apple, Push,
+   Associated Domains — are registered the same way) and uploads straight to App Store Connect.
+8. App Store Connect → TestFlight → Internal Testing → a group with yourself in it. Install the TestFlight app on the
+   iPhone; the build appears there once processing finishes (usually minutes).
 
 The build talks to whatever `CREW_API_HOST` names, because `Api.configuredBaseURL()` reads two Info.plist keys that
 `ios/project.yml` fills per configuration: `http` + `localhost:3000` in Debug, `https` + your host in Release.

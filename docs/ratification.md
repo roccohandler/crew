@@ -788,3 +788,57 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   same behaviour.
 - Look at: the S03 circle size on a 375 pt phone is about 45 pt — smaller than the 56 pt the spec pictured; if the owner wants
   56 pt circles the row must wrap or the margins shrink, which is a design decision, not a build one.
+
+### R-053 · 2026-09-08 · Journeys ① and ② green on a simulator — the Phase 2 and Phase 3 gates, as far as a simulator can take them · T028 / T035 · checkpoint — proceeding
+- What was checked: run 34246649543 (the push carrying F05, `ec19295`): every job green for the first time. Unit suite 49/49
+  (all 51 vectors on Swift under Xcode), then `CrewUITests`: LaunchTests (8.5 s), journey ① (69.8 s) and journey ② (49.8 s)
+  all PASSED on the iPhone 17 simulator against the local harness. Journey ① = fresh install → hero → three questions → the
+  built week → save with email → Home's bridge → post → the flame lit. Journey ② = a seeded returning member (plan for every
+  day, one earlier post, a crew with a crew-mate) → Home → session → 3/3 sets → celebration → the crew-mate's 💪 arrives on the
+  workout card. The dev-server log shows the phone's queue delivering through `POST /api/v1/sync` and the reaction landing.
+- The nine screenshots were pulled from the result bundle and looked at, screen by screen: hero; the days question (the row
+  now fits); "Your week, built."; "Save your plan"; Home in the bridge state (grey flame, 0/3 ring, one oversized CTA — the
+  run fell on a Tuesday, so the CTA was "Start your streak — post a meal"); Home after the post ("Rest day — recovery is part
+  of the plan." / "Today's posted. Streak safe.", flame lit, 🔥 1); journey ②'s Home (PUSH DAY card, Start workout, Quick
+  complete, the crew strip with today's dots); the celebration sheet ("3/3 sets · 0 min", "+125 XP", 🔥 2, "Showed up",
+  "Found your crew", Share to crew); the Crew screen ("NIGHT SHIFT 🌙 · 1/2 today", member strip, "Sam joined the crew", the
+  JOURNEY TWO workout card with 💪 1).
+- Defects seen and fixed (F06): the day toggles drew as ~23 pt circles — the F05 sizing (`aspectRatio` on a flexible frame)
+  collapsed to the letter's height; now the circle is inscribed in a column-wide, 56 pt-tall frame, so it is ~48 pt on a
+  402 pt phone and ~43 pt on a 375 pt one, with the full column tappable. Home's card said "1 exercises + mobility" for
+  journey ②'s one-exercise seed plan — pluralised on both platforms. Not changed, for the owner to judge: the Crew stream is
+  bottom-anchored like a chat, so with two items the top two-thirds of the screen is empty canvas under the "Crew" title.
+- Verdict: journeys ① and ② hold on a simulator. What a simulator cannot prove stays open for the phone: gestures, haptics,
+  the camera, push, the offline matrix (8.6), VoiceOver and Dynamic Type (8.5), the launch signposts (8.8). Phase 2 and 3
+  are "green on a simulator", not yet "green on a device".
+- Look at: whether the bottom-anchored Crew stream reads as intended when a crew is new; the celebration's "0 min" for a
+  workout logged in seconds (true, but the copy could hide durations under a minute).
+
+### R-054 · 2026-09-08 · Stage 2 begins: the accounts exist, three vendor limits checked, the beta tier recorded · T045 / T046 / T008 · checkpoint — proceeding
+- What was checked: the owner's three screenshots. App Store Connect → Apps already lists "Crew — Train. Track. Show up."
+  (iOS 1.0 Rejected — the earlier codebase) and a second app, so the paid Apple Developer Program is active and Stage 2's
+  "enrol" step was done before it started; the page also carries the banner that the Program License Agreement was updated
+  and awaits the Account Holder (unaccepted, the App Store Connect API refuses everything, cloud signing included). Atlas:
+  project `Crew2`, cluster `Crew2`, 0 B of 512 MB (the free M0). Vercel: "Max's projects", Hobby, two unrelated projects.
+- Three facts verified against the vendors' own pages rather than assumed: (1) Vercel Hobby cron jobs run at most once a
+  day and a more frequent schedule fails the deployment ("Hobby accounts are limited to daily cron jobs") — so
+  `web/vercel.json` with `* * * * *` would have failed the very first deploy; it now says `0 12 * * *` and the loss (no
+  per-minute reminders in the beta) is in debt with its one-line repayment. (2) Resend delivers from `onboarding@resend.dev`
+  only to the account's own address until a domain is verified. (3) Xcode's cloud signing issues a Distribution certificate
+  only for an App Store Connect API key with the Admin role — the workflow comment and Stage 2 said App Manager, which would
+  have failed the first TestFlight run with "Cloud signing permission error"; both now say Admin. Also corrected: a
+  TestFlight build is App Store-signed, so its push tokens are production tokens — `APNS_ENVIRONMENT=production`, not the
+  `sandbox` the step list had (sandbox is for a Debug build installed from a Mac the owner does not have).
+- Also fixed: `commit_task` now skips any block whose message is already in `git log` — every committed block in the queue
+  (fix or history) used to re-stage whatever had changed in the files it names, which is exactly how S38 was mis-attributed
+  and would have swept this turn's ledger edits into F01. Verified read-only here: F05's message resolves to `ec19295`,
+  F06's to nothing. The same dry check over all 69 blocks found 13 HISTORY blocks with no commit of their own (S38 and
+  twelve docs/test blocks — swept, as S38 was), so the HISTORY section now ends the script with `exit 0`; the working tree
+  holds exactly the eleven files F06 and F07 name, nothing else.
+- Choices made without asking (the owner answers in their next message): the beta stays on the free tiers — Hobby with the
+  daily cron, M0 open to the world, the sandbox sender — each in `docs/debt.md`; the existing App Store Connect record is
+  reused (its bundle id becomes `CREW_BUNDLE_ID`, `APPLE_BUNDLE_ID`, `APNS_BUNDLE_ID`) rather than a new record with a new id.
+- Verdict: nothing behavioural changed; `web/vercel.json` is the only runtime file touched. Stage 2's step list is now
+  written around what exists. Next: the owner does the Atlas step and reports the record's bundle id.
+- Look at: whether $20/month for Vercel Pro is worth having reminders in the beta (the agent recommends Hobby until a second
+  tester joins); whether to keep the old record's name "Crew — Train. Track. Show up." for the new app.

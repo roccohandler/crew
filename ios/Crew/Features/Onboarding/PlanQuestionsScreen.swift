@@ -50,11 +50,9 @@ struct DayToggle: View {
             Text(letter)
                 .font(.headline)
                 .foregroundStyle(selected ? EmberColors.primaryButtonLabel : EmberColors.inkText)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(1, contentMode: .fit) // a circle as wide as its column — seven columns always fit the screen
-                .background(selected ? EmberColors.primaryButtonFill : EmberColors.card, in: Circle())
+                .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt)) // the tap area: the full column, ≥ 56 pt tall (1B)
+                .background(selected ? EmberColors.primaryButtonFill : EmberColors.card, in: Circle()) // inscribed: as wide as the column, never taller than 56
                 .overlay(Circle().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
-                .frame(minHeight: CGFloat(SpecConstants.dayToggleMinPt)) // the tap area stays ≥ 56 pt tall (1B)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
