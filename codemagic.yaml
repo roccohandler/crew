@@ -34,6 +34,12 @@ workflows:
           npm ci
           nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
           npx --yes wait-on http://localhost:3000/login --timeout 180000
+      # `next dev` compiles each API route on its first hit; the journeys' waits assume a warm server (same list as ci.yml).
+      - name: Warm the API routes
+        script: |
+          for route in auth/register auth/login auth/logout auth/refresh auth/reset users/me plans sessions sessions/warm-up posts posts/warm-up posts/warm-up/reactions crews "crews/join?token=warm-up" crews/warm-up/stream crews/warm-up/messages crews/warm-up/members sync pause photos; do
+            curl -s -o /dev/null "http://localhost:3000/api/v1/$route" || true
+          done
       # The image decides which simulators exist (GitHub's first run, 2026-09-08: Xcode 26.6 had no "iPhone 16"), so the
       # device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time. Same rule as ci.yml.
       - name: Pick an iPhone simulator

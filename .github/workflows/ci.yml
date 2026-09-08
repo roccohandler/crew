@@ -86,6 +86,12 @@ jobs:
       - run: cd web && npm ci
       - run: cd web && nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
       - run: npx --yes wait-on http://localhost:3000/login --timeout 180000
+      # `next dev` compiles each API route on its first hit; the journeys' waits assume a warm server (the same list the
+      # Playwright warm-up fetches — web/tests/e2e/warm-up.ts). Any status is fine, the compile is the point.
+      - run: |
+          for route in auth/register auth/login auth/logout auth/refresh auth/reset users/me plans sessions sessions/warm-up posts posts/warm-up posts/warm-up/reactions crews "crews/join?token=warm-up" crews/warm-up/stream crews/warm-up/messages crews/warm-up/members sync pause photos; do
+            curl -s -o /dev/null "http://localhost:3000/api/v1/$route" || true
+          done
       # The runner image decides which simulators exist (first run, 2026-09-08: Xcode 26.6 ships iPhone 16e / 17 / 17 Pro
       # and no "iPhone 16"), so the device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time.
       - run: |
@@ -111,4 +117,8 @@ jobs:
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: ios-test-results, path: "ios/*.xcresult" }
+        with:
+          name: ios-test-results
+          path: |
+            ios/*.xcresult
+            web/dev-server.log
