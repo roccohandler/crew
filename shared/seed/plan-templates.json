@@ -1,0 +1,113 @@
+{
+  "spec": "Appendix B (PPL variants × experience × equipment + Full-Body A/B) · Flow 1 step 3 (Brand new = 4 at 3×10 · Experienced = 6 incl. barbell lifts · mobility block 2–3 holds ~5–10 min) · Decision Registry G7 (Some = 5 at 3×8–10) · T005",
+  "gapNotes": [
+    "GAP: experienced sets×reps are not stated in the spec; the conservative choice continues the stated progression (10 → 8–10 → 8): 3×8.",
+    "GAP: a rep range (Some = 8–10) is stored as targetReps = 8 (the pre-filled floor; asPlanned = actualReps ≥ 8) plus targetRepsMax = 10 for display — a one-field extension of ExerciseTemplate.",
+    "GAP: PPL on 4–7 training days cycles Push → Pull → Legs over the user's sorted days within the week (5 days = P P L P P); the spec only names PPL and the ≤2-day Full-Body fallback."
+  ],
+  "targets": {
+    "brandNew": { "sets": 3, "reps": 10 },
+    "some": { "sets": 3, "reps": 8, "repsMax": 10 },
+    "experienced": { "sets": 3, "reps": 8 }
+  },
+  "split": {
+    "fullBodyMaxTrainingDays": 2,
+    "pplCycle": ["push", "pull", "legs"],
+    "fullBodyCycle": ["fullBodyA", "fullBodyB"]
+  },
+  "workoutNames": { "push": "Push day", "pull": "Pull day", "legs": "Leg day", "fullBodyA": "Full body A", "fullBodyB": "Full body B" },
+  "templates": {
+    "push": {
+      "brandNew": {
+        "fullGym": ["machine-chest-press", "machine-shoulder-press", "dumbbell-lateral-raise", "cable-triceps-pushdown"],
+        "dumbbells": ["dumbbell-floor-press", "dumbbell-shoulder-press", "dumbbell-lateral-raise", "bench-dip"],
+        "bodyweight": ["incline-push-up", "push-up", "close-grip-push-up", "bench-dip"]
+      },
+      "some": {
+        "fullGym": ["dumbbell-bench-press", "dumbbell-shoulder-press", "cable-chest-fly", "cable-lateral-raise", "cable-triceps-pushdown"],
+        "dumbbells": ["dumbbell-bench-press", "dumbbell-shoulder-press", "dumbbell-chest-fly", "dumbbell-lateral-raise", "overhead-dumbbell-triceps-extension"],
+        "bodyweight": ["push-up", "pike-push-up", "decline-push-up", "close-grip-push-up", "bench-dip"]
+      },
+      "experienced": {
+        "fullGym": ["barbell-bench-press", "barbell-overhead-press", "incline-dumbbell-press", "cable-chest-fly", "dumbbell-lateral-raise", "skull-crusher"],
+        "dumbbells": ["dumbbell-bench-press", "dumbbell-shoulder-press", "incline-dumbbell-press", "dumbbell-chest-fly", "dumbbell-lateral-raise", "overhead-dumbbell-triceps-extension"],
+        "bodyweight": ["dip", "push-up", "pike-push-up", "decline-push-up", "close-grip-push-up", "bench-dip"]
+      }
+    },
+    "pull": {
+      "brandNew": {
+        "fullGym": ["lat-pulldown", "seated-cable-row", "cable-face-pull", "dumbbell-curl"],
+        "dumbbells": ["one-arm-dumbbell-row", "dumbbell-rear-delt-fly", "dumbbell-curl", "hammer-curl"],
+        "bodyweight": ["inverted-row", "doorframe-row", "prone-y-raise", "underhand-inverted-row"]
+      },
+      "some": {
+        "fullGym": ["lat-pulldown", "seated-cable-row", "chest-supported-dumbbell-row", "cable-face-pull", "barbell-curl"],
+        "dumbbells": ["one-arm-dumbbell-row", "chest-supported-dumbbell-row", "dumbbell-rear-delt-fly", "dumbbell-curl", "hammer-curl"],
+        "bodyweight": ["inverted-row", "negative-pull-up", "doorframe-row", "prone-y-raise", "underhand-inverted-row"]
+      },
+      "experienced": {
+        "fullGym": ["pull-up", "barbell-row", "seated-cable-row", "lat-pulldown", "cable-face-pull", "barbell-curl"],
+        "dumbbells": ["one-arm-dumbbell-row", "chest-supported-dumbbell-row", "dumbbell-pullover", "dumbbell-rear-delt-fly", "dumbbell-curl", "hammer-curl"],
+        "bodyweight": ["pull-up", "chin-up", "inverted-row", "doorframe-row", "prone-y-raise", "underhand-inverted-row"]
+      }
+    },
+    "legs": {
+      "brandNew": {
+        "fullGym": ["leg-press", "lying-leg-curl", "leg-extension", "machine-standing-calf-raise"],
+        "dumbbells": ["goblet-squat", "dumbbell-romanian-deadlift", "reverse-lunge", "dumbbell-calf-raise"],
+        "bodyweight": ["bodyweight-squat", "glute-bridge", "reverse-lunge", "single-leg-calf-raise"]
+      },
+      "some": {
+        "fullGym": ["leg-press", "dumbbell-romanian-deadlift", "dumbbell-walking-lunge", "lying-leg-curl", "machine-standing-calf-raise"],
+        "dumbbells": ["goblet-squat", "dumbbell-romanian-deadlift", "bulgarian-split-squat", "single-leg-glute-bridge", "dumbbell-calf-raise"],
+        "bodyweight": ["bodyweight-squat", "single-leg-glute-bridge", "reverse-lunge", "step-up", "single-leg-calf-raise"]
+      },
+      "experienced": {
+        "fullGym": ["barbell-back-squat", "barbell-romanian-deadlift", "leg-press", "dumbbell-walking-lunge", "lying-leg-curl", "machine-standing-calf-raise"],
+        "dumbbells": ["dumbbell-squat", "dumbbell-romanian-deadlift", "bulgarian-split-squat", "dumbbell-walking-lunge", "single-leg-glute-bridge", "dumbbell-calf-raise"],
+        "bodyweight": ["jump-squat", "nordic-curl", "step-up", "single-leg-glute-bridge", "reverse-lunge", "single-leg-calf-raise"]
+      }
+    },
+    "fullBodyA": {
+      "brandNew": {
+        "fullGym": ["leg-press", "machine-chest-press", "seated-cable-row", "lying-leg-curl"],
+        "dumbbells": ["goblet-squat", "dumbbell-floor-press", "one-arm-dumbbell-row", "dumbbell-romanian-deadlift"],
+        "bodyweight": ["bodyweight-squat", "incline-push-up", "doorframe-row", "glute-bridge"]
+      },
+      "some": {
+        "fullGym": ["leg-press", "dumbbell-bench-press", "seated-cable-row", "dumbbell-romanian-deadlift", "cable-face-pull"],
+        "dumbbells": ["goblet-squat", "dumbbell-bench-press", "one-arm-dumbbell-row", "dumbbell-romanian-deadlift", "dumbbell-lateral-raise"],
+        "bodyweight": ["bodyweight-squat", "push-up", "inverted-row", "single-leg-glute-bridge", "prone-y-raise"]
+      },
+      "experienced": {
+        "fullGym": ["barbell-back-squat", "barbell-bench-press", "barbell-row", "barbell-romanian-deadlift", "cable-face-pull", "cable-triceps-pushdown"],
+        "dumbbells": ["dumbbell-squat", "dumbbell-bench-press", "chest-supported-dumbbell-row", "dumbbell-romanian-deadlift", "dumbbell-lateral-raise", "dumbbell-curl"],
+        "bodyweight": ["jump-squat", "dip", "pull-up", "nordic-curl", "prone-y-raise", "close-grip-push-up"]
+      }
+    },
+    "fullBodyB": {
+      "brandNew": {
+        "fullGym": ["reverse-lunge", "machine-shoulder-press", "lat-pulldown", "machine-standing-calf-raise"],
+        "dumbbells": ["reverse-lunge", "dumbbell-shoulder-press", "dumbbell-rear-delt-fly", "dumbbell-curl"],
+        "bodyweight": ["reverse-lunge", "bench-dip", "inverted-row", "dead-bug"]
+      },
+      "some": {
+        "fullGym": ["dumbbell-walking-lunge", "dumbbell-shoulder-press", "lat-pulldown", "lying-leg-curl", "cable-crunch"],
+        "dumbbells": ["bulgarian-split-squat", "dumbbell-shoulder-press", "chest-supported-dumbbell-row", "dumbbell-chest-fly", "dead-bug"],
+        "bodyweight": ["step-up", "pike-push-up", "underhand-inverted-row", "single-leg-calf-raise", "dead-bug"]
+      },
+      "experienced": {
+        "fullGym": ["barbell-deadlift", "barbell-overhead-press", "pull-up", "dumbbell-walking-lunge", "lying-leg-curl", "hanging-knee-raise"],
+        "dumbbells": ["bulgarian-split-squat", "dumbbell-shoulder-press", "dumbbell-pullover", "one-arm-dumbbell-row", "dumbbell-calf-raise", "dumbbell-russian-twist"],
+        "bodyweight": ["step-up", "pike-push-up", "chin-up", "single-leg-glute-bridge", "single-leg-calf-raise", "hanging-knee-raise"]
+      }
+    }
+  },
+  "mobilityBlocks": {
+    "push": ["doorway-pec-stretch", "thoracic-opener", "childs-pose"],
+    "pull": ["wall-lat-stretch", "cross-body-shoulder-stretch", "cat-cow"],
+    "legs": ["couch-stretch", "pigeon-stretch", "wall-calf-stretch"],
+    "fullBodyA": ["couch-stretch", "thoracic-opener", "lying-hamstring-stretch"],
+    "fullBodyB": ["kneeling-hip-flexor-stretch", "doorway-pec-stretch", "deep-squat-hold"]
+  }
+}
