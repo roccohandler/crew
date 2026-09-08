@@ -85,16 +85,23 @@ jobs:
       - run: cd web && npm ci
       - run: cd web && nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
       - run: npx --yes wait-on http://localhost:3000/login --timeout 180000
+      # The runner image decides which simulators exist (first run, 2026-09-08: Xcode 26.6 ships iPhone 16e / 17 / 17 Pro
+      # and no "iPhone 16"), so the device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time.
+      - run: |
+          CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
+          test -n "$CREW_SIM"
+          echo "Simulator: $CREW_SIM"
+          echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
       # Simulator builds need no signing identity (the entitlements name a team the runner does not have); raw xcodebuild
       # output, no formatter to install — a formatter in the pipe would hide the real exit status.
       - run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme Crew
-          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+          -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath TestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
       - run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewUITests
-          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+          -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath UITestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
       # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
