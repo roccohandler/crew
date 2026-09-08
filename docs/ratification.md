@@ -732,3 +732,18 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   reaches external testers by accident.
 - Look at: TestFlight needs the paid Apple Developer Program ($99/yr) and a deployed server — there is no free path onto a
   phone without a Mac, and the doc says so plainly rather than implying otherwise.
+
+### R-050 · 2026-09-08 · The first CI run on GitHub, and a second macOS CI as the backup · T008 / T028 / T035 · checkpoint — proceeding
+- What was checked: the repo went to `github.com/roccohandler/crew` (public) and GitHub refused every job with "your
+  account is locked due to a billing issue". `codemagic.yaml` was written as a browser-configured macOS CI with the same
+  two jobs (compile + unit + vectors; journeys ①② against the web harness) and a TestFlight workflow — never run. The lock
+  turned out to be a $14.86 charge declined three times on an expired card; re-saving the card paid it and Actions started
+  within minutes. Run 34224403865 attempt 3: contracts, web, engine-swift (the 51 vectors on Linux) and web-e2e (Playwright
+  journeys ①–④ on three viewports, Chromium + WebKit) GREEN on GitHub's machines — the first time any of it ran off this PC.
+- Verdict: the `ios` job failed before compiling: the image (Xcode 26.6) ships iPhone 16e / 17 / 17 Pro simulators and no
+  "iPhone 16". Both CI files now pick the newest plain "iPhone NN" the image has at run time (`xcrun simctl list devices
+  available`, plain shell, tested against a sample of the runner's list → "iPhone 17"). Nothing in the app changed. The
+  first Xcode compile of the SwiftUI half is the next push; R-042 and R-048 removed what a blind read and the Linux
+  toolchain could find — the remaining errors are the ones only Xcode reports.
+- Look at: two CI descriptions now exist (Actions + Codemagic) and must not drift — `docs/debt.md`; Codemagic is the backup
+  and stays unrun unless GitHub locks again.

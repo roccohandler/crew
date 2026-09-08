@@ -189,3 +189,7 @@ commit_task "docs: testing without a Mac (three stages), ratification R-048–R-
 # --- S37 (a second macOS CI, because GitHub Actions is locked) ---
 commit_task "feat(ci): codemagic.yaml — compile, unit + vectors and journeys ①② on a macOS instance, plus a TestFlight workflow; GitHub Actions is unavailable while the account carries a billing lock [SPEC: 8.1; 8.4; XI T008/T045]" \
   codemagic.yaml docs/testing-without-a-mac.md docs/debt.md docs/ratification.md docs/progress.md docs/commit-queue.sh .gitignore
+
+# --- S38 (first run on GitHub's macOS runner: the image decides the simulator) ---
+commit_task "fix(ci): pick the newest plain iPhone simulator at run time — Xcode 26.6 ships no 'iPhone 16'; Actions unlocked, four jobs green, the first Xcode compile is next [SPEC: 8.1; 8.4; XI T008]" \
+  .github/workflows/ci.yml codemagic.yaml docs/testing-without-a-mac.md docs/debt.md docs/progress.md docs/ratification.md docs/commit-queue.sh docs/OWNER-REVIEW.md
