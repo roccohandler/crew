@@ -3,12 +3,15 @@
 # SPEC: XI T045 (TestFlight + web beta) · Part X Phases 6–7 · docs/testing-without-a-mac.md (the owner's step list).
 #
 # Secrets it needs (Settings → Secrets and variables → Actions), all from App Store Connect:
-#   APP_STORE_CONNECT_KEY_ID          the key's ID, e.g. 7X4KP2W9AB   (Users and Access → Integrations → App Store Connect API)
+#   APP_STORE_CONNECT_KEY_ID          the key's ID, e.g. 7X4KP2W9AB   (Users and Access → Integrations → App Store Connect API →
+#                                     Team Keys, role ADMIN: cloud signing issues the Distribution certificate only for an Admin
+#                                     key — an App Manager key fails with "Cloud signing permission error")
 #   APP_STORE_CONNECT_ISSUER_ID       the issuer UUID on that same page
 #   APP_STORE_CONNECT_PRIVATE_KEY     the whole .p8 file, pasted (it is downloadable exactly once)
 #   APPLE_TEAM_ID                     the 10-character team id (Membership details)
 # Variables (same page, "Variables" tab):
-#   CREW_BUNDLE_ID                    e.g. com.yourname.crew — must already exist as an app in App Store Connect
+#   CREW_BUNDLE_ID                    the bundle id of the app record in App Store Connect (an existing record works — a rejected
+#                                     App Store version does not stop TestFlight uploads)
 #   CREW_API_HOST                     the deployed server, e.g. crew-yourname.vercel.app (no scheme, no trailing slash)
 name: testflight
 
