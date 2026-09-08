@@ -1,0 +1,104 @@
+# SPEC: Part X Phase 1 exit gate (CI green incl. vector harness on both engines; standing API checks; check-drift) ·
+# 5.3 (doctrine lint CI-blocking; formatting machine-owned) · 8.1 (a red vector on either engine blocks every merge) · T008
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  contracts:
+    name: shared contracts (generate · drift · vectors · seeds · doctrine)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: node shared/scripts/generate.mjs
+      - run: node shared/scripts/check-drift.mjs
+      - run: node shared/scripts/check-vectors.mjs
+      - run: node shared/scripts/check-seeds.mjs
+      - run: node shared/scripts/doctrine-lint.mjs
+
+  web:
+    name: web (lint · typecheck · test · vectors)
+    runs-on: ubuntu-latest
+    needs: contracts
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run vectors
+      - run: npm run build
+
+  web-e2e:
+    name: web e2e (Playwright journeys ①–④, 375 / 768 / 1280)
+    runs-on: ubuntu-latest
+    needs: web
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit # phone-375 runs on WebKit (iPhone descriptor)
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: web/playwright-report }
+
+  engine-swift:
+    # The twin engine on the OPEN-SOURCE toolchain: no Xcode, no macOS runner, no minutes multiplier. ios/Package.swift
+    # builds Engine/ + Generated/ and runs the vector runners, so 8.1 ("a red vector on EITHER engine blocks every merge")
+    # is enforced on every push instead of waiting for a Mac. The app half (SwiftUI, SwiftData) is the `ios` job below.
+    name: ios engine (swift build · unit + vectors, Linux)
+    runs-on: ubuntu-latest
+    needs: contracts
+    container: swift:5.10
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd ios && swift build
+      - run: cd ios && swift test
+
+  ios:
+    # Runs on GitHub's macOS runners (Xcode present) — the only place this repo's SwiftUI is verified until the
+    # owner opens it on a Mac. Continuous-build rule 3a: every iOS task is WRITTEN — UNVERIFIED until this job is green.
+    name: ios (xcodegen · build · unit + vectors · journeys ①②)
+    runs-on: macos-latest
+    needs: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: brew install xcodegen
+      - run: cd ios && xcodegen generate
+      - run: bash ios/scripts/doctrine-lint.sh
+      # 8.4: the XCUITest journeys talk to the same local harness Playwright uses (in-memory Mongo + next dev on :3000);
+      # journey ① registers a fresh account and journey ② seeds itself through the API (SeedClient).
+      - run: cd web && npm ci
+      - run: cd web && nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
+      - run: npx --yes wait-on http://localhost:3000/login --timeout 180000
+      # Simulator builds need no signing identity (the entitlements name a team the runner does not have); raw xcodebuild
+      # output, no formatter to install — a formatter in the pipe would hide the real exit status.
+      - run: >
+          cd ios && xcodebuild test -project Crew.xcodeproj -scheme Crew
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+          -resultBundlePath TestResults.xcresult
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      - run: >
+          cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewUITests
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+          -resultBundlePath UITestResults.xcresult
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
+      # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ios-test-results, path: "ios/*.xcresult" }
