@@ -185,3 +185,7 @@ commit_task "feat(ios): the API host is a build setting, not a hard-coded localh
   ios/Crew/Api/Api.swift ios/project.yml ios/ExportOptions.plist .github/workflows/testflight.yml
 commit_task "docs: testing without a Mac (three stages), ratification R-048–R-049, ledger, owner review [SPEC: XI 11.3; T045; Appendix A]" \
   docs/testing-without-a-mac.md docs/ratification.md docs/progress.md docs/debt.md docs/commit-queue.sh docs/OWNER-REVIEW.md
+
+# --- S37 (a second macOS CI, because GitHub Actions is locked) ---
+commit_task "feat(ci): codemagic.yaml — compile, unit + vectors and journeys ①② on a macOS instance, plus a TestFlight workflow; GitHub Actions is unavailable while the account carries a billing lock [SPEC: 8.1; 8.4; XI T008/T045]" \
+  codemagic.yaml docs/testing-without-a-mac.md docs/debt.md docs/ratification.md docs/progress.md docs/commit-queue.sh .gitignore
