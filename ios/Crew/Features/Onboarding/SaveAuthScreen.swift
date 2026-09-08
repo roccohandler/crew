@@ -1,0 +1,88 @@
+// SPEC: S05 "Save your plan" — the native Sign in with Apple button (black — it IS the ink system) sits primary; email path
+// beneath with .textContentType so Keychain autofills; validation fires on field-exit, never per keystroke; errors are one
+// inline line; the plan survives auth failure/abandon (DraftStore). E9: EULA at signup, age floor 13+ (birth year).
+// WRITTEN — UNVERIFIED (needs Mac). T022
+
+import AuthenticationServices
+import SwiftUI
+
+struct SaveAuthScreen: View {
+    @Bindable var model: OnboardingModel
+    @State private var displayName = ""
+    @State private var email = ""
+    @State private var password = ""
+    @State private var birthYear = ""
+    @State private var fieldErrors: [String: String] = [:]
+    @FocusState private var focused: String?
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+                Text("Save your plan").font(.title.weight(.bold)).foregroundStyle(EmberColors.inkText)
+                Text("The plan is yours. An account is how you keep it.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    if case .success(let authorization) = result, let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                        Task { await model.saveWithApple(credential: credential, birthYear: Int(birthYear)) }
+                    }
+                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
+                Text("or with email").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                AuthField(title: "Name", text: $displayName, error: fieldErrors["name"], contentType: .name, focus: $focused, key: "name") { validateName() }
+                AuthField(title: "Email", text: $email, error: fieldErrors["email"], contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress) { validateEmail() }
+                AuthField(title: "Password", text: $password, error: fieldErrors["password"], contentType: .newPassword, focus: $focused, key: "password", secure: true) { validatePassword() }
+                AuthField(title: "Birth year", text: $birthYear, error: fieldErrors["birthYear"], contentType: .birthdateYear, focus: $focused, key: "birthYear", keyboard: .numberPad) { validateBirthYear() }
+                Text("By saving you agree to the terms. Crew is for people \(SpecConstants.minimumAgeYears) and up.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }
+                PrimaryButton(title: "Save your plan", isLoading: model.isSaving) { submit() }
+            }
+            .padding(EmberTokens.Spacing.space24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(EmberColors.canvas.ignoresSafeArea())
+    }
+
+    private func validateName() { fieldErrors["name"] = displayName.trimmingCharacters(in: .whitespaces).isEmpty ? "Add a name your crew will recognize." : nil }
+    private func validateEmail() { fieldErrors["email"] = email.contains("@") && email.contains(".") ? nil : "That doesn't look like an email." }
+    private func validatePassword() { fieldErrors["password"] = password.count < SpecConstants.passwordMinChars ? "At least \(SpecConstants.passwordMinChars) characters." : nil }
+    private func validateBirthYear() { fieldErrors["birthYear"] = Int(birthYear) == nil ? "Four digits, like 1994." : nil }
+
+    private func submit() {
+        validateName(); validateEmail(); validatePassword(); validateBirthYear()
+        guard fieldErrors.values.allSatisfy({ $0 == nil }), let year = Int(birthYear) else { return }
+        Task { await model.saveWithEmail(email: email, password: password, displayName: displayName.trimmingCharacters(in: .whitespaces), birthYear: year) }
+    }
+}
+
+struct AuthField: View {
+    let title: String
+    @Binding var text: String
+    let error: String?
+    let contentType: UITextContentType
+    var focus: FocusState<String?>.Binding
+    let key: String
+    var keyboard: UIKeyboardType = .default
+    var secure = false
+    let onExit: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
+            Group {
+                if secure { SecureField(title, text: $text) } else { TextField(title, text: $text) }
+            }
+            .textContentType(contentType)
+            .keyboardType(keyboard)
+            .textInputAutocapitalization(key == "name" ? .words : .never)
+            .autocorrectionDisabled()
+            .focused(focus, equals: key)
+            .padding(EmberTokens.Spacing.space12)
+            .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+            .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(error == nil ? EmberColors.hairline : EmberColors.danger, lineWidth: EmberTokens.Size.hairline))
+            .onChange(of: focus.wrappedValue) { _, now in if now != key { onExit() } } // validation on field-exit, never per keystroke
+            if let error { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
+        }
+    }
+}

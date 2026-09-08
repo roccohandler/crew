@@ -21,6 +21,14 @@
     "spec": "Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web)",
     "scale": { "space4": 4, "space8": 8, "space12": 12, "space16": 16, "space24": 24, "space32": 32 }
   },
+  "sizes": {
+    "spec": "GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web",
+    "scale": { "avatar": 40, "avatarLarge": 96, "ringDiameter": 64, "ringStartAngleDegrees": -90, "skeletonRow": 64, "skeletonHero": 128, "cornerRadius": 16, "hairline": 1 }
+  },
+  "opacity": {
+    "spec": "GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline",
+    "scale": { "disabled": 0.5 }
+  },
   "motion": {
     "spec": "6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04)",
     "spring": { "response": 0.35, "dampingFraction": 0.8 }

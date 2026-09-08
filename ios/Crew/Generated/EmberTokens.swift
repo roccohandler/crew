@@ -15,6 +15,23 @@ enum EmberTokens {
         static let space32: CGFloat = 32
     }
 
+    /// GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web
+    enum Size {
+        static let avatar: CGFloat = 40
+        static let avatarLarge: CGFloat = 96
+        static let ringDiameter: CGFloat = 64
+        static let ringStartAngleDegrees: CGFloat = -90
+        static let skeletonRow: CGFloat = 64
+        static let skeletonHero: CGFloat = 128
+        static let cornerRadius: CGFloat = 16
+        static let hairline: CGFloat = 1
+    }
+
+    /// GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline
+    enum Opacity {
+        static let disabled: Double = 0.5
+    }
+
     /// 6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04)
     enum Motion {
         static let springResponse: Double = 0.35
