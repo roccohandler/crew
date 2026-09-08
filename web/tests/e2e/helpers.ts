@@ -60,9 +60,18 @@ export async function waitForHydration(page: Page, selector: string): Promise<vo
 }
 
 export async function fillWhenHydrated(page: Page, label: string, text: string, buttonName: string): Promise<void> {
-  await waitForHydration(page, "textarea, input");
+  const field = page.getByLabel(label);
+  // Wait on THE field, not the first input in the document (the photo picker hydrates in the same pass, but asking the
+  // labelled field itself leaves nothing to the DOM order).
   await expect(async () => {
-    await page.getByLabel(label).fill(text);
+    expect(await field.evaluate((element) => Object.keys(element).some((key) => key.startsWith("__reactProps")))).toBe(true);
+  }).toPass({ timeout: 15_000 });
+  await expect(async () => {
+    // A fill that landed before hydration seeded React's value tracker with this exact text, so an identical fill fires no
+    // change event and the button stays disabled (journey ① on WebKit at 375 under three workers, 2026-09-08). Clearing
+    // first makes every retry a real change.
+    await field.fill("");
+    await field.fill(text);
     await expect(page.getByRole("button", { name: buttonName })).toBeEnabled({ timeout: 1_000 });
   }).toPass({ timeout: 15_000 });
 }
