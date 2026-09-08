@@ -1,0 +1,98 @@
+# Codemagic — a second macOS CI, configured from a browser, needed because GitHub Actions is unavailable while the owner's
+# account carries a billing lock (2026-09-08). Same two jobs as the `ios` job in .github/workflows/ci.yml: compile the app,
+# run the unit suite + the 51 vectors, then run journeys ① and ② on a simulator against the local web harness; the journeys'
+# screenshots come back as artifacts (CrewUITests/Screenshots.swift), which is how the app is LOOKED AT without a Mac.
+# SPEC: 8.1 · 8.4 · Part X Phase 1 gate · XI T008 / T028 / T035 / T045 · docs/testing-without-a-mac.md
+# WRITTEN — UNVERIFIED: no run has happened yet.
+
+workflows:
+  ios-test:
+    name: Crew iOS — compile, unit + vectors, journeys ①②
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      node: 22
+    triggering:
+      events: [push]
+      branch_patterns:
+        - pattern: master
+          include: true
+    scripts:
+      - name: XcodeGen
+        script: brew install xcodegen
+      - name: Generate Crew.xcodeproj
+        script: cd ios && xcodegen generate
+      - name: Doctrine lint
+        script: bash ios/scripts/doctrine-lint.sh
+      - name: The Swift engine on the open-source toolchain
+        script: cd ios && swift test
+      # 8.4: the XCUITest journeys talk to the same harness Playwright uses (in-memory Mongo + next dev on :3000).
+      - name: Start the local server
+        script: |
+          cd web
+          npm ci
+          nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
+          npx --yes wait-on http://localhost:3000/login --timeout 180000
+      - name: Unit tests + the 51 vectors
+        script: |
+          cd ios
+          xcodebuild test -project Crew.xcodeproj -scheme Crew \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+      - name: Journeys ① and ② on a simulator
+        script: |
+          cd ios
+          xcodebuild test -project Crew.xcodeproj -scheme CrewUITests \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resultBundlePath UITestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+    artifacts:
+      - ios/*.xcresult
+      - web/dev-server.log
+    publishing:
+      email:
+        recipients: [maxwellacuenca@gmail.com]
+        notify: { success: true, failure: true }
+
+  ios-testflight:
+    # The delivery run: archive, sign and upload to TestFlight. Needs the paid Apple Developer Program and an App Store
+    # Connect API key added to Codemagic (Teams → Integrations → App Store Connect, named "crew-app-store-connect"), plus
+    # CREW_API_HOST pointing at the deployed server — a TestFlight build cannot reach a dev server on your desk.
+    name: Crew iOS — TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: crew-app-store-connect
+    environment:
+      xcode: latest
+      node: 22
+      groups: [crew-release] # define CREW_BUNDLE_ID and CREW_API_HOST in this Codemagic variable group
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: $CREW_BUNDLE_ID
+    scripts:
+      - name: XcodeGen
+        script: brew install xcodegen
+      - name: Point the project at your bundle id
+        script: sed -i '' "s/com.yourteam.crew/$CREW_BUNDLE_ID/g" ios/project.yml
+      - name: Generate Crew.xcodeproj
+        script: cd ios && xcodegen generate
+      - name: Set the build number from Codemagic's counter
+        script: cd ios && agvtool new-version -all $(($BUILD_NUMBER + 1)) || true
+      - name: Archive and export
+        script: |
+          cd ios
+          xcode-project use-profiles
+          xcode-project build-ipa --project Crew.xcodeproj --scheme Crew --config Release \
+            -- CREW_API_HOST=$CREW_API_HOST
+    artifacts:
+      - ios/build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+      email:
+        recipients: [maxwellacuenca@gmail.com]
+        notify: { success: true, failure: true }
