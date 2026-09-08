@@ -5,11 +5,14 @@ const header = `// GENERATED FILE — DO NOT EDIT. Source: shared/spec-constants
 // Re-run \`node shared/scripts/generate.mjs\`; \`node shared/scripts/check-drift.mjs\` fails CI when this file drifts.
 // SPEC: C7 — every tunable in the spec, named for its rule.`;
 
+// An array's element type is read from EVERY element, never the first alone: plateSetLb [45, 35, 25, 10, 5, 2.5] is a
+// [Double], and typing it from element 0 emitted a [Int] the Swift compiler rejected (found by the Docker toolchain,
+// 2026-09-08 — TypeScript accepted the same file, so only Swift could see it).
 function swiftType(entry) {
-  const scalar = Array.isArray(entry.value) ? entry.value[0] : entry.value;
+  const values = Array.isArray(entry.value) ? entry.value : [entry.value];
   let type = "Int";
-  if (typeof scalar === "string") type = "String";
-  else if (entry.type === "double" || !Number.isInteger(scalar)) type = "Double";
+  if (values.some((value) => typeof value === "string")) type = "String";
+  else if (entry.type === "double" || values.some((value) => !Number.isInteger(value))) type = "Double";
   return Array.isArray(entry.value) ? `[${type}]` : type;
 }
 
