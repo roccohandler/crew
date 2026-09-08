@@ -39,6 +39,10 @@ export function renderEmberTokensSwift(tokens) {
   const lines = [swiftHeader, "// SPEC: 6.4 — spacing scale, the one spring curve, the haptic language (Decision Registry G5/G8 2026-09-04).", "", "import SwiftUI", "", "enum EmberTokens {"];
   lines.push(`    /// ${tokens.spacing.spec}`, "    enum Spacing {");
   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
+  lines.push("    }", "", `    /// ${tokens.sizes.spec}`, "    enum Size {");
+  for (const [name, value] of Object.entries(tokens.sizes.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
+  lines.push("    }", "", `    /// ${tokens.opacity.spec}`, "    enum Opacity {");
+  for (const [name, value] of Object.entries(tokens.opacity.scale)) lines.push(`        static let ${name}: Double = ${value}`);
   lines.push("    }", "", `    /// ${tokens.motion.spec}`, "    enum Motion {");
   lines.push(`        static let springResponse: Double = ${tokens.motion.spring.response}`);
   lines.push(`        static let springDampingFraction: Double = ${tokens.motion.spring.dampingFraction}`);
@@ -48,14 +52,23 @@ export function renderEmberTokensSwift(tokens) {
   return lines.join("\n");
 }
 
-export function renderEmberCss(tokens) {
+export function renderEmberCss(tokens, sections) {
   const lines = [cssHeader, "/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. */", "", ":root {", "  color-scheme: light dark;"];
   for (const [name, color] of Object.entries(tokens.colors)) lines.push(`  /* ${color.role} */`, `  ${cssName(name)}: ${color.light};`);
   lines.push(`  /* ${tokens.spacing.spec} */`);
   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`  ${cssName(name)}: ${value}px;`);
+  lines.push(`  /* ${tokens.sizes.spec} */`);
+  for (const [name, value] of Object.entries(tokens.sizes.scale)) lines.push(`  --ember-size-${name.replace(/[A-Z]/g, (upper) => `-${upper.toLowerCase()}`)}: ${value}px;`);
+  lines.push(`  /* ${tokens.opacity.spec} */`);
+  for (const [name, value] of Object.entries(tokens.opacity.scale)) lines.push(`  --ember-opacity-${name}: ${value};`);
   lines.push(`  /* ${tokens.motion.spec} */`);
   lines.push(`  --ember-spring-response: ${tokens.motion.spring.response};`);
   lines.push(`  --ember-spring-damping-fraction: ${tokens.motion.spring.dampingFraction};`);
+  lines.push("  /* layout constants — from shared/spec-constants.json (6.7, 6.3) */");
+  lines.push(`  --crew-app-max-width: ${sections.touchAndLayout.webAppMaxWidthPx.value}px;`);
+  lines.push(`  --crew-progress-max-width: ${sections.touchAndLayout.webProgressMaxWidthPx.value}px;`);
+  lines.push(`  --crew-min-touch-target: ${sections.touchAndLayout.webMinTouchTargetPx.value}px;`);
+  lines.push(`  --crew-touch-target-breakpoint: ${sections.touchAndLayout.webTouchTargetBreakpointPx.value}px;`);
   lines.push("}", "", "@media (prefers-color-scheme: dark) {", "  :root {");
   for (const [name, color] of Object.entries(tokens.colors)) lines.push(`    ${cssName(name)}: ${color.dark};`);
   lines.push("  }", "}", "");

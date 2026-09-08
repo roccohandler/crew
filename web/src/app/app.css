@@ -1,0 +1,426 @@
+/* SPEC: Part III (Ember — ink acts, ember rewards; warm neutrals only) · 6.7 (centered single column, ≥44 px targets, no
+   horizontal scroll) · 6.5 (visible focus rings). Every color is an --ember-* token; every layout number is a --crew-* or
+   --ember-* custom property emitted from shared/. No literals here beyond structure. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ember-canvas);
+  color: var(--ember-ink-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: var(--ember-space-4) solid var(--ember-ink-text);
+  outline-offset: var(--ember-space-4);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-column {
+  width: 100%;
+  max-width: var(--crew-app-max-width);
+  margin: 0 auto;
+  padding: var(--ember-space-16);
+  padding-bottom: calc(var(--ember-space-32) * 3);
+  flex: 1;
+}
+
+.app-column--progress {
+  max-width: var(--crew-progress-max-width);
+}
+
+.tabs {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+  background: var(--ember-card);
+  border-top: var(--ember-size-hairline) solid var(--ember-hairline);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tabs__item {
+  flex: 1;
+  text-align: center;
+  padding: var(--ember-space-12) var(--ember-space-8);
+  min-height: var(--crew-min-touch-target);
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--ember-ink-text);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ember-space-16);
+}
+
+.stack--tight {
+  gap: var(--ember-space-8);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ember-space-12);
+}
+
+.row--between {
+  justify-content: space-between;
+}
+
+.row--wrap {
+  flex-wrap: wrap;
+}
+
+.center {
+  align-items: center;
+  text-align: center;
+}
+
+.muted {
+  color: var(--ember-secondary-text);
+}
+
+.missed {
+  color: var(--ember-missed-gray);
+}
+
+.ember-text {
+  color: var(--ember-ember-text);
+}
+
+.danger {
+  color: var(--ember-danger);
+}
+
+.whisper {
+  font-size: 0.85em;
+  color: var(--ember-secondary-text);
+}
+
+.card {
+  background: var(--ember-card);
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border-radius: var(--ember-size-corner-radius);
+  padding: var(--ember-space-16);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ember-space-8);
+  min-height: var(--crew-min-touch-target);
+  padding: var(--ember-space-12) var(--ember-space-16);
+  border-radius: var(--ember-size-corner-radius);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.button--primary {
+  background: var(--ember-primary-button-fill);
+  color: var(--ember-primary-button-label);
+  border: none;
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--ember-secondary-button-label);
+  border: var(--ember-size-hairline) solid var(--ember-secondary-button-outline);
+}
+
+.button--text {
+  background: transparent;
+  color: var(--ember-ink-text);
+  border: none;
+  width: auto;
+  padding-inline: var(--ember-space-8);
+}
+
+.button:disabled {
+  opacity: var(--ember-opacity-disabled);
+  cursor: default;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ember-space-4);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  color: var(--ember-ink-text);
+  background: var(--ember-card);
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border-radius: var(--ember-space-12);
+  padding: var(--ember-space-12);
+  min-height: var(--crew-min-touch-target);
+}
+
+.field--error input {
+  border-color: var(--ember-danger);
+}
+
+/* 6.7: number fields never push a 375-wide row past the edge */
+.field--short input {
+  width: 6ch;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ember-size-ring-diameter);
+  height: var(--ember-size-ring-diameter);
+  border-radius: 50%;
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  background: var(--ember-card);
+  color: var(--ember-ink-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle[aria-pressed="true"] {
+  background: var(--ember-primary-button-fill);
+  color: var(--ember-primary-button-label);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--crew-min-touch-target);
+  padding: var(--ember-space-4) var(--ember-space-12);
+  border-radius: var(--ember-size-corner-radius);
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  background: var(--ember-card);
+  color: var(--ember-ink-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--ember-primary-button-fill);
+  color: var(--ember-primary-button-label);
+}
+
+.flame {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ember-space-8);
+  font-size: 2em;
+  font-weight: 700;
+}
+
+.flame__icon {
+  filter: grayscale(1);
+  opacity: var(--ember-opacity-disabled);
+}
+
+.flame__icon--lit {
+  filter: none;
+  opacity: 1;
+}
+
+.ring {
+  width: var(--ember-size-ring-diameter);
+  height: var(--ember-size-ring-diameter);
+}
+
+.ring__label {
+  fill: var(--ember-ink-text);
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.photo {
+  width: 100%;
+  max-height: calc(var(--ember-size-skeleton-hero) * 2);
+  object-fit: cover;
+  border-radius: var(--ember-space-12);
+}
+
+.skeleton {
+  background: var(--ember-hairline);
+  border-radius: var(--ember-space-8);
+  min-height: var(--ember-size-skeleton-row);
+}
+
+.banner {
+  background: var(--ember-card);
+  border-bottom: var(--ember-size-hairline) solid var(--ember-hairline);
+  padding: var(--ember-space-8) var(--ember-space-16);
+  font-size: 0.9em;
+  color: var(--ember-secondary-text);
+}
+
+/* 6.7 / 8.9: one line where it fits, the weight stepper wraps under at 375 — never a horizontal scroll */
+.setrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ember-space-8);
+  min-height: var(--crew-min-touch-target);
+}
+
+.setrow > .toggle {
+  margin-left: auto;
+}
+
+.setrow--ghost {
+  opacity: var(--ember-opacity-disabled);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ember-space-4);
+}
+
+.stepper button {
+  width: var(--crew-min-touch-target);
+  height: var(--crew-min-touch-target);
+  border-radius: 50%;
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  background: var(--ember-card);
+  color: var(--ember-ink-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--ember-space-4);
+}
+
+.heatmap__day {
+  aspect-ratio: 1;
+  border-radius: var(--ember-space-4);
+  background: var(--ember-hairline);
+  border: none;
+  cursor: pointer;
+}
+
+.heatmap__day--posted {
+  background: var(--ember-ember-tint);
+}
+
+.heatmap__day--workout {
+  background: var(--ember-ember);
+}
+
+.members {
+  display: flex;
+  gap: var(--ember-space-12);
+  overflow-x: auto;
+  padding-bottom: var(--ember-space-4);
+}
+
+.member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ember-space-4);
+  min-width: var(--ember-size-ring-diameter);
+}
+
+.avatar {
+  width: var(--ember-size-avatar);
+  height: var(--ember-size-avatar);
+  border-radius: 50%;
+  background: var(--ember-hairline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  position: relative;
+}
+
+.avatar__dot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--ember-space-12);
+  height: var(--ember-space-12);
+  border-radius: 50%;
+  background: var(--ember-missed-gray);
+  border: var(--ember-size-hairline) solid var(--ember-canvas);
+}
+
+.avatar__dot--posted {
+  background: var(--ember-ember);
+}
+
+.composer {
+  position: sticky;
+  bottom: calc(var(--crew-min-touch-target) + var(--ember-space-16));
+  display: flex;
+  gap: var(--ember-space-8);
+  background: var(--ember-canvas);
+  padding-top: var(--ember-space-8);
+}
+
+.composer input {
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .tabs {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    order: -1;
+    border-top: none;
+    border-bottom: var(--ember-size-hairline) solid var(--ember-hairline);
+  }
+
+  .app-column {
+    padding-bottom: var(--ember-space-32);
+  }
+
+  .composer {
+    bottom: var(--ember-space-16);
+  }
+}

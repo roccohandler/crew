@@ -41,9 +41,25 @@
   --ember-space-16: 16px;
   --ember-space-24: 24px;
   --ember-space-32: 32px;
+  /* GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web */
+  --ember-size-avatar: 40px;
+  --ember-size-avatar-large: 96px;
+  --ember-size-ring-diameter: 64px;
+  --ember-size-ring-start-angle-degrees: -90px;
+  --ember-size-skeleton-row: 64px;
+  --ember-size-skeleton-hero: 128px;
+  --ember-size-corner-radius: 16px;
+  --ember-size-hairline: 1px;
+  /* GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline */
+  --ember-opacity-disabled: 0.5;
   /* 6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04) */
   --ember-spring-response: 0.35;
   --ember-spring-damping-fraction: 0.8;
+  /* layout constants — from shared/spec-constants.json (6.7, 6.3) */
+  --crew-app-max-width: 640px;
+  --crew-progress-max-width: 960px;
+  --crew-min-touch-target: 44px;
+  --crew-touch-target-breakpoint: 768px;
 }
 
 @media (prefers-color-scheme: dark) {

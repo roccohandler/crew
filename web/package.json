@@ -1,0 +1,50 @@
+{
+  "name": "crew-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Crew — the one Next.js app: /api/v1 backend, the full web app, invite landing pages (spec Part IV)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "vectors": "vitest run tests/vectors.test.ts",
+    "e2e": "playwright test",
+    "metrics": "node scripts/metrics.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "generate": "node ../shared/scripts/generate.mjs",
+    "check-drift": "node ../shared/scripts/check-drift.mjs",
+    "check-vectors": "node ../shared/scripts/check-vectors.mjs",
+    "check-seeds": "node ../shared/scripts/check-seeds.mjs",
+    "format": "prettier --write ."
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.0",
+    "apns2": "^12.2.0",
+    "jose": "^6.2.11",
+    "mongodb": "^7.6.0",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "resend": "^6.26.0",
+    "sharp": "^0.35.4",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.4",
+    "mongodb-memory-server": "^11.2.0",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.0"
+  }
+}

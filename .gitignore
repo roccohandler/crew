@@ -1,0 +1,28 @@
+# node / next
+node_modules/
+web/.next/
+web/out/
+web/coverage/
+web/playwright-report/
+web/test-results/
+web/.blob-dev/
+web/next-env.d.ts
+*.tsbuildinfo
+
+# env — only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# ios
+ios/build/
+ios/DerivedData/
+ios/.build/
+ios/.swiftpm/
+ios/Package.resolved
+ios/**/xcuserdata/
+ios/**/*.xcworkspace/xcshareddata/swiftpm/
+
+# os
+.DS_Store
+Thumbs.db

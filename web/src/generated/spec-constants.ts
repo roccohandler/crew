@@ -34,6 +34,8 @@ export const SpecConstants = {
   pauseMaxDays: 21,
   /** SPEC: Flow 7; Part IX — one active pause at a time */
   maxActivePauses: 1,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 7 / S17 — the pre-filled return day is one week out (never above pauseMaxDays) */
+  pauseDefaultDays: 7,
 
   // --- xp ---
   /** SPEC: Part IV table; V24 — first post of day = 25 */
@@ -62,6 +64,12 @@ export const SpecConstants = {
   startingLevel: 1,
   /** SPEC: Decision Registry G2 (2026-09-04) — level N (N ≥ 2) requires totalXP ≥ levelBaseXp × (N−1) × N / 2; formula, never a table */
   levelBaseXp: 500,
+  /** SPEC: Decision Registry G2 (2026-09-04) — the /2 of the triangular formula levelBaseXp × (N−1) × N / 2 */
+  levelFormulaDivisor: 2,
+
+  // --- identity ---
+  /** SPEC: GAP (agent, 2026-09-04): E1 initials fallback — first letters of up to two names */
+  initialsMaxLetters: 2,
 
   // --- crew ---
   /** SPEC: Flow 6 — 2–10 people */
@@ -74,6 +82,8 @@ export const SpecConstants = {
   feedWindowDays: 7,
   /** SPEC: Flow 6; Part IX — the only five reactions */
   reactionEmojis: ["🔥", "💪", "👏", "😂", "❤️"],
+  /** SPEC: GAP (agent, 2026-09-05): Flow 6 'a name, an emoji' — one emoji, ZWJ sequences included, counted in UTF-16 units */
+  crewEmojiMaxChars: 16,
 
   // --- limits ---
   /** SPEC: E20; Part IX */
@@ -84,10 +94,18 @@ export const SpecConstants = {
   exerciseNameMaxChars: 60,
   /** SPEC: E20; Part IX; 8.2 */
   chatMessageMaxChars: 1000,
+  /** SPEC: GAP (agent, 2026-09-04): E1 names a display name but no limit; conservative default = the crew-name limit */
+  displayNameMaxChars: 30,
+  /** SPEC: GAP (agent, 2026-09-04): E18 standard resets, no password floor stated; conservative common floor */
+  passwordMinChars: 8,
+  /** SPEC: GAP (agent, 2026-09-04): E9 report flow, no length stated; docs/api.md reports */
+  reportReasonMaxChars: 500,
   /** SPEC: Flow 8 — ≤15 exercises/day */
   planMaxExercisesPerDay: 15,
   /** SPEC: Flow 8; Decision Registry G3 (2026-09-04) — ≤20 sets per exercise; 15 × 20 is the day ceiling */
   planMaxSetsPerExercise: 20,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 3 / Flow 8 name no reps ceiling — above 100 reps a set is a typo, not training */
+  planTargetRepsMax: 100,
 
   // --- planGeneration ---
   /** SPEC: Flow 1 step 3; S04 — Full-Body A/B at ≤2 days */
@@ -134,8 +152,34 @@ export const SpecConstants = {
   weightStepKg: 2.5,
   /** SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able */
   restTimerDefaultSeconds: 90,
+  /** SPEC: GAP (agent, 2026-09-05): G9 says per-workout adjustable but names no step — 15 s per tap, the smallest step a resting lifter notices */
+  restTimerAdjustStepSeconds: 15,
+  /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math ('45 + 25 + 2.5 per side') — a standard bar */
+  barbellBarWeightLb: 45,
+  /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — a standard bar */
+  barbellBarWeightKg: 20,
+  /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — the common gym plate set */
+  plateSetLb: [45, 35, 25, 10, 5, 2.5],
+  /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — the common gym plate set */
+  plateSetKg: [25, 20, 15, 10, 5, 2.5, 1.25],
+  /** SPEC: GAP (agent, 2026-09-04): Flow 3 smart steppers — long-press fast-scroll repeat interval */
+  longPressStepIntervalMs: 120,
   /** SPEC: S01 — stale (>day) in-progress session triggers the stale-session prompt */
   staleInProgressSessionAfterHours: 24,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 3 names no weight ceiling — 1000 lb/kg keeps a typo out of the plate math */
+  setWeightMax: 1000,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 3 plate math 'per side' — plates load on both ends of the bar */
+  barbellPlateSides: 2,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 3 mobility '90s each' — a per-side hold runs once per side */
+  perSideHoldRepeats: 2,
+  /** SPEC: GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min */
+  holdSecondsMax: 600,
+
+  // --- progress ---
+  /** SPEC: GAP (agent, 2026-09-04): S15 layer 1 heat map — weeks shown; Flow 9 names no span (12 = a quarter, the smallest span where a weekly pattern reads) */
+  progressHeatMapWeeks: 12,
+  /** SPEC: GAP (agent, 2026-09-04): S15 rings history — weeks of past rings shown; Flow 9 names no span */
+  progressRingHistoryWeeks: 8,
 
   // --- nutrition ---
   /** SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight) */
@@ -150,6 +194,10 @@ export const SpecConstants = {
   // --- reminders ---
   /** SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in */
   reminderSuggestedMinuteOfDay: 450,
+  /** SPEC: GAP (agent, 2026-09-04): Flow 4 rhythm reminder 'at YOUR usual time' — the nudge may fire within this many minutes after the user's usual post time */
+  streakRiskNudgeWindowMinutes: 60,
+  /** SPEC: GAP (agent, 2026-09-04): the user's usual post time = the median of the last N post times */
+  usualPostTimeSampleSize: 14,
 
   // --- onboarding ---
   /** SPEC: Flow 1; 1B — three questions, the '1 of 3' whisper */
@@ -215,6 +263,18 @@ export const SpecConstants = {
   /** SPEC: 8.8 — image pipeline: 12 MP → ≤ ~300 KB upload */
   imageUploadMaxKb: 300,
 
+  // --- photos ---
+  /** SPEC: GAP (agent, 2026-09-04): 8.8 image pipeline 12 MP → ≤ ~300 KB; the long edge after resize (docs/api.md photos) */
+  photoMaxEdgePx: 1600,
+  /** SPEC: GAP (agent, 2026-09-04): first JPEG quality tried by the pipeline */
+  photoJpegQuality: 82,
+  /** SPEC: GAP (agent, 2026-09-04): the pipeline steps quality down toward this floor until the upload fits imageUploadMaxKb */
+  photoJpegQualityFloor: 60,
+  /** SPEC: GAP (agent, 2026-09-04): quality step between attempts */
+  photoJpegQualityStep: 8,
+  /** SPEC: GAP (agent, 2026-09-04): the largest source file the photos route accepts (a 12 MP HEIC/JPEG is well under) */
+  photoMaxSourceMb: 25,
+
   // --- touchAndLayout ---
   /** SPEC: 6.3 — targets ≥ 44×44 pt */
   minTouchTargetPt: 44,
@@ -230,6 +290,12 @@ export const SpecConstants = {
   webMinViewportPx: 360,
   /** SPEC: 6.7 — no horizontal scroll 360–1920 */
   webMaxViewportPx: 1920,
+  /** SPEC: GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton */
+  skeletonPlaceholderRows: 3,
+  /** SPEC: GAP (agent, 2026-09-05): S13 chat composer grows to four lines before it scrolls */
+  chatComposerMaxLines: 4,
+  /** SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars) */
+  captionComposerMaxLines: 3,
 
   // --- accessibility ---
   /** SPEC: 6.5 — text ≥ 4.5:1 */
@@ -244,10 +310,18 @@ export const SpecConstants = {
   syncMaxAttemptsBeforeHeld: 5,
   /** SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete */
   failedUploadChoiceAfterHours: 24,
+  /** SPEC: GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins */
+  syncClientTimestampMaxAgeDays: 7,
+  /** SPEC: GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync) */
+  clientClockSkewToleranceMinutes: 5,
   /** SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s */
   chatPollIntervalMinSeconds: 5,
   /** SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s */
   chatPollIntervalMaxSeconds: 10,
+  /** SPEC: GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops */
+  syncBatchMaxOps: 1000,
+  /** SPEC: GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived */
+  hydrationMaxWaitSeconds: 10,
 
   // --- authAndPolicy ---
   /** SPEC: Part IV email table; 8.2 Auth — single-use token, 30-min expiry */
@@ -256,12 +330,16 @@ export const SpecConstants = {
   jwtAccessTokenMinutes: 15,
   /** SPEC: Decision Registry G11 (2026-09-04) — refresh token 30 days, rotating */
   jwtRefreshTokenDays: 30,
+  /** SPEC: GAP (agent, 2026-09-04): clients refresh the access token this long before it expires so no request ever races the 15-min expiry */
+  tokenRefreshLeadSeconds: 60,
   /** SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — auth endpoints 10 req/min/IP */
   rateLimitAuthRequestsPerMinutePerIp: 10,
   /** SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — post creation 60/hour/user; everything else unlimited in MVP */
   rateLimitPostCreationPerHourPerUser: 60,
   /** SPEC: E9; Appendix A — age floor 13+ */
   minimumAgeYears: 13,
+  /** SPEC: GAP (agent, 2026-09-04): the age gate asks a birth year; validator floor */
+  birthYearMin: 1900,
   /** SPEC: Part IV email table; lib/email.ts — the only three */
   transactionalEmailKinds: ["passwordReset", "reportReceived", "accountDeleted"],
 
@@ -312,4 +390,6 @@ export const SpecConstants = {
   functionMaxLines: 40,
   /** SPEC: 5.3 lint — no numeric literal outside Generated (allowlist: 0, 1) */
   numericLiteralAllowlist: [0, 1],
+  /** SPEC: GAP (agent, 2026-09-04): the percent → fraction scale (photoJpegQuality, success-target percentages) */
+  percentScale: 100,
 } as const;
