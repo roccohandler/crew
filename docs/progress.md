@@ -1,65 +1,70 @@
 # Crew build progress
 
-Updated: 2026-09-04 · Current phase: 0
+Updated: 2026-09-08 · Current phase: 5 (everything runnable here is done, incl. the achievements pass, E7/G9 parity, the web journal, the metrics report, the registry audit, web journey ②, the Swift desk-check, the phone↔server sync-contract fixes, the sync-queue driver, fresh-phone hydration and the journey ② seed; iOS awaits a Mac; T045–T047 await credentials)
 
 ## Ledger
 
+Legend: [x] done and verified by command here · [~] WRITTEN — UNVERIFIED (Swift; needs a Mac or the CI macOS job) · [ ] open
+
+The Swift ENGINE is no longer in the unverified half: `ios/Package.swift` builds it on the open-source toolchain and
+`docker run --rm -v "<repo>:/repo" -w /repo/ios swift:5.10 swift test` runs 18 tests incl. all 51 vectors, green here
+2026-09-08 (R-048). Only the SwiftUI/SwiftData half now waits for Xcode. Testing routes: docs/testing-without-a-mac.md.
+
 - [x] T001 spec-constants ⚙ — done 2026-09-04 (132 constants in 23 sections after the 2026-09-04 gap resolutions G1–G12; every number tagged to its rule)
 - [x] T002 generate pipeline (design-tokens + generate.mjs + check-drift.mjs) ⚙ — done 2026-09-04 (emits SpecConstants.swift · EmberColors.swift · EmberTokens.swift · spec-constants.ts · ember.css; drift check proven to fail on a hand edit)
-- [x] T003 vector fixtures V01–V40 (+V18b, V41–V44 = 45) — written 2026-09-04; `node shared/scripts/check-vectors.mjs` green; independent reference fold reproduced every expected value (0 mismatches) 🛑 OWNER REVIEWS VECTORS — line stopped
-- [ ] T004 seed exercises.json 🛑 owner approves ← NEXT, starts only after the T003 🛑 clears
-- [ ] T005 seed plan-templates.json 🛑 owner approves
-- [ ] T006 seed achievements.json + docs/api.md 🛑 owner signs → Phase 1
-- [ ] T007 monorepo scaffold ⚙
-- [ ] T008 CI + doctrine lint ⚙
-- [ ] T009 lib/db.ts + collections + unique indexes
-- [ ] T010 server auth (register/login/refresh/logout)
-- [ ] T011 lib/email.ts + password reset flow
-- [ ] T012 Sign in with Apple (server + iOS AuthStore + web)
-- [ ] T013 iOS shells + five-state scaffolds ⚙
-- [ ] T014 SyncQueue + in-memory SwiftData tests
-- [ ] T015 standing-checks.gen.test.ts
-- [ ] T016 DayKey twin
-- [ ] T017 GamificationEngine streak + XP core
-- [ ] T018 Shields + Pause in engine
-- [ ] T019 Completion/undo/edit rules (gate: V01–V36 green both)
-- [ ] T020 PlanGenerator + SwapFinder twins + property test
-- [ ] T021 Onboarding screens S02–S04
-- [ ] T022 SaveAuthScreen (S05; S06 removed v1.9)
-- [ ] T023 Plans/Sessions/Sync API routes
-- [ ] T024 Home S07 today-state machine + bridge
-- [ ] T025 Session feature S09
-- [ ] T026 CelebrationScreen + workout post + Posts API (S10)
-- [ ] T027 Nutrition posting S11 + lib/blob.ts
-- [ ] T028 Journey ① green 🛑 Phase 2 gate review
-- [ ] T029 Crews API
-- [ ] T030 Messages + Reactions API
-- [ ] T031 Crew feature S12–S13
-- [ ] T032 Engine crew rules + comeback (V37–V40)
-- [ ] T033 Notifications (push-token route, APNs, eligibility)
-- [ ] T034 Moderation (reports, blocks, EULA gate)
-- [ ] T035 Journey ② + security matrix 🛑 Phase 3 gate review
-- [ ] T036 Web onboarding + plan builder
-- [ ] T037 Web session logging + posting
-- [ ] T038 Web crew stream/chat/progress + invite landing (W1)
-- [ ] T039 Playwright ③④ + Lighthouse + token parity 🛑 Phase 4 gate review
-- [ ] T040 Progress + Journal both platforms (S15–S16)
-- [ ] T041 Settings S17: pause, export, delete cascade
-- [ ] T042 Edge screens: welcome-back, stale-session, failed-upload
-- [ ] T043 A11y pass + offline matrix + perf signposts
-- [ ] T044 Security sweep + zero P0/P1 🛑 Phase 5 gate review
-- [ ] T045 TestFlight + web beta + metrics 🛑 owner reviews metrics weekly
-- [ ] T046 Production env, monitoring, backups, secrets rotation
-- [ ] T047 App Store submission + launch checklist + registry audit 🛑 SHIP
+- [x] T003 vector fixtures V01–V40 (+V18b, V41–V44 = 45) — done 2026-09-04; check-vectors green; reference fold 0 mismatches; 🛑 RATIFIED by owner 2026-09-04 (R-001)
+- [x] T004 seed exercises.json — done 2026-09-04 (101 exercises; `node shared/scripts/check-seeds.mjs` green; soft checkpoint R-002)
+- [x] T005 seed plan-templates.json — done 2026-09-04 (45 lists + 5 mobility blocks; check-seeds green; soft checkpoint R-003)
+- [x] T006 seed achievements.json (15) + docs/api.md (every route) — done 2026-09-04; check-seeds green; generate now emits SeedData.swift + seed.ts, drift green (R-004 → Phase 1 unlocked). Awarding pass + V45–V50 landed 2026-09-04 (R-037): 51 vectors green on TS; achievements API test green; Swift twins WRITTEN — UNVERIFIED
+- [x] T007 monorepo scaffold ⚙ — web done 2026-09-04 (typecheck + lint + empty test green); ios/project.yml + entry files WRITTEN — UNVERIFIED (needs Mac) (R-005)
+- [x] T008 CI + doctrine lint ⚙ — done 2026-09-04 (ci.yml written; lint/typecheck/test/doctrine-lint green locally; pipeline itself + ios job unverified here) (R-006); 2026-09-08 gains an engine-swift job (Linux, verified here) and the ios job runs journeys ①② + keeps screenshots (R-048, R-049)
+- [x] T009 lib/db.ts + collections + unique indexes — done 2026-09-04 (`npm test tests/api/db` 5 green) (R-007)
+- [x] T010 server auth (register/login/refresh/logout) — done 2026-09-04 (`npm test tests/api/auth` 9 green) (R-008)
+- [x] T011 lib/email.ts + password reset flow — done 2026-09-04 (`npm test tests/api/auth-reset` 3 green; Resend behind an outbox substitute) (R-009)
+- [x] T012 Sign in with Apple — server + web callback done 2026-09-04 (`npm test tests/api/auth-apple` 4 green via local JWKS); iOS AuthStore/KeychainStore WRITTEN — UNVERIFIED (R-010)
+- [~] T013 iOS shells + five-state scaffolds ⚙ — WRITTEN — UNVERIFIED (needs Mac) 2026-09-04; doctrine scan clean (R-011)
+- [~] T014 SyncQueue + in-memory SwiftData tests — WRITTEN — UNVERIFIED (needs Mac) 2026-09-04 (R-012); the payload contract fixed 2026-09-05 — ops travel as JSON objects (Api/JSONValue.swift), never base64 strings (R-043); the queue now RUNS — nothing drove processNext before: drain after every enqueue / foreground / network return (Storage/SyncDriver.swift), strict FIFO under backoff, offline and a dead session are not attempts, in-flight ops recovered at launch, six new tests 2026-09-06 (R-045)
+- [x] T015 standing-checks.gen.test.ts — done 2026-09-04 (17 generated checks green; uncovered routes fail the suite) (R-013)
+- [x] T016 DayKey twin — TS done 2026-09-04 (V05–V10 green); Swift twin COMPILED + GREEN 2026-09-08 via ios/Package.swift on the Docker toolchain (R-048)
+- [x] T017 GamificationEngine streak + XP core — TS done 2026-09-04 (V01–V04, V11–V12, V24–V31 green); Swift [~] (R-015)
+- [x] T018 Shields + Pause in engine — TS done 2026-09-04 (V13–V23 green); Swift [~] (R-015)
+- [x] T019 Completion/undo/edit rules — TS done 2026-09-04 (V32–V36, V41–V44 green; ALL 45 vectors green on TS); the "both engines" half of the gate CLOSED 2026-09-08 — all 51 vectors green on the Swift engine too (R-048)
+- [x] T020 PlanGenerator + SwapFinder twins + property test — TS done 2026-09-04 (1143 plans + swap coverage, 15 green); Swift [~] (R-016)
+- [~] T021 Onboarding screens S02–S04 — WRITTEN — UNVERIFIED 2026-09-04 (R-017)
+- [~] T022 SaveAuthScreen + LoginScreen (S05; S06 removed v1.9) — WRITTEN — UNVERIFIED 2026-09-04 (R-017)
+- [x] T023 Plans/Sessions/Sync API routes — done 2026-09-04 (`npm test tests/api/{plans,sessions,sync}` green; 128 total) (R-018); the phone's replay contract (session by clientId, absent nil fields, deletePost by clientId) fixed + tested 2026-09-05 (R-043)
+- [~] T024 Home S07 today-state machine + bridge — WRITTEN — UNVERIFIED 2026-09-04 (R-021); Home re-judges elapsed days on every foreground 2026-09-06 (R-045)
+- [~] T025 Session feature S09 — WRITTEN — UNVERIFIED 2026-09-04 (R-021); E7 mid-workout swap + adjustable rest timer WRITTEN 2026-09-05 (R-038)
+- [~] T026 CelebrationScreen + workout post + Posts API (S10) — web half verified (R-019); iOS half WRITTEN — UNVERIFIED (R-021)
+- [~] T027 Nutrition posting S11 + lib/blob.ts — web half verified (R-020); iOS half WRITTEN — UNVERIFIED (R-021)
+- [~] T028 Journey ① (Phase 2 gate) — XCUITest WRITTEN — UNVERIFIED; the gate itself waits for a phone (R-022)
+- [x] T029 Crews API — done 2026-09-04 (`npm test tests/api/crews` green) (R-023)
+- [x] T030 Messages + Reactions API (+ blocks) — done 2026-09-04 (`npm test tests/api/messages` green) (R-023)
+- [~] T031 Crew feature S12–S13 — WRITTEN — UNVERIFIED 2026-09-04 (R-024)
+- [~] T032 Engine crew rules + comeback (V37–V40) — TS green (crew-rules.ts, stream banners); Swift engine + CrewModel wiring [~] (R-015, R-024)
+- [x] T033 Notifications — web done 2026-09-04 (push-token route, apns2 lib + outbox substitute, eligibility unit tests, cron sender); device push deferred (R-025)
+- [x] T034 Moderation — done 2026-09-04 (reports → email queue, blocks both ways, EULA gate; `npm test tests/api/moderation` green) (R-026)
+- [~] T035 Journey ② + security matrix (Phase 3 gate) — Journey2 XCUITest WRITTEN — UNVERIFIED, its seed WRITTEN 2026-09-06 (CrewUITests/SeedClient through the real API; the app hydrates like a reinstalled phone — R-046); the WEB journey ② (8.4 "the same two") green on the three viewports 2026-09-05 (R-041); the 8.7 matrix items verifiable here are green (R-027)
+- [x] T036 Web onboarding + plan builder — done 2026-09-04 (build green; e2e proof pending T039) (R-028)
+- [x] T037 Web session logging + posting — done 2026-09-04 (R-029); E7 swap + G9 rest timer added 2026-09-05, e2e green (R-038)
+- [x] T038 Web crew stream/chat/progress + invite landing (W1) — done 2026-09-04 (crew, plan editor, progress, settings pages; build green) (R-031)
+- [x] T039 Playwright ①②③④ × 375/768/1280 + token parity — done 2026-09-04 (npm run e2e: 9 journeys green on WebKit + Chromium; four 375-px/WebKit findings fixed; Lighthouse budgets deferred: no @lhci/cli in the approved list) (R-032); journey ② added 2026-09-05 — 12 journey runs + the audit, 23 passed, 1 skipped (R-041); the warm-up opens every page in a browser and the matrix runs three workers 2026-09-06 (R-047)
+- [~] T040 Progress + Journal both platforms (S15–S16) — web half done 2026-09-04 (R-031) + the /journal page 2026-09-05 (R-038); iOS half WRITTEN — UNVERIFIED 2026-09-04 (R-033)
+- [~] T041 Settings S17: pause, export, delete cascade — web routes + settings page done 2026-09-04 (account suite green) (R-030, R-031); iOS screens WRITTEN — UNVERIFIED 2026-09-04 (R-033)
+- [~] T042 Edge screens: welcome-back, stale-session, failed-upload — web halves done 2026-09-04 (lapsed-user unit tests + welcome-back API test green; e2e matrix green); iOS halves WRITTEN — UNVERIFIED (also: PlanLocal writer, iOS S14 plan editor, launch signposts) (R-034); fresh-phone hydration (Storage/ServerHydrate.swift: plan · journal · sessions · gamification · crew before Home judges today; login pulls the same; the journal renders server photos) 2026-09-06 (R-046)
+- [~] T043 A11y pass + offline matrix + perf signposts — web a11y substitute spec + responsiveness sweep + keyboard check green 2026-09-04 (11 passed, 1 skipped on the phone descriptor); offline matrix = manual iPhone checklist (OWNER-REVIEW); launch signposts WRITTEN — UNVERIFIED; Xcode audit / VoiceOver / Dynamic Type / axe / Lighthouse deferred (R-035)
+- [x] T044 Security sweep (8.7) + zero P0/P1 — done 2026-09-04 for everything runnable here (standing checks, Keychain static check, HttpOnly, EXIF + owner-only blobs, cascade crawl, auth + posting rate limits, npm audit 0); Phase 5 gate = owner ratification of R-036 (R-036)
+- [~] T045 TestFlight + web beta + metrics — metrics report + test done 2026-09-05 (npm run metrics; R-039); the TestFlight PIPELINE written 2026-09-08 (.github/workflows/testflight.yml — archive/sign/upload from GitHub's macOS runners, no Mac needed; the API host is a build setting; R-049); running it DEFERRED: the paid Apple Developer Program + a deployed server
+- [ ] T046 Production env, monitoring, backups, secrets rotation — DEFERRED: needs the production accounts (OWNER-REVIEW step list; .env.example is complete)
+- [~] T047 App Store submission + launch checklist + registry audit — audit done 2026-09-05 (nothing rejected exists; doctrine lint clean; R-040) + launch checklist in OWNER-REVIEW §8; submission DEFERRED: a Mac + App Store Connect
 
 ## Blockers
 
-- 🛑 T003 VECTOR REVIEW (S02 exit): the owner reviews shared/vectors/*.vectors.json (45 vectors) + shared/vectors/README.md (the fixture contract). Interpretations flagged with `reviewNote` in the fixtures, each needing a yes/no: V08 (DST "user's favor" = the day keeps a full 24 h, boundary at 04:00 that night) · V14 (+150 still paid when shields are capped) · V24 (Part IX type `text` earns only the first-post XP; a text-only meal is kind `meal`) · V32 (a session with only warm-up rows checked is NOT complete) · V38/V40 (the crew weekly ring = the week's daily pulses, membership as of each day) · V39 (paused days are not "missed" for the comeback rule) · V44 (no second pause may be queued while one is active) · README (postUndone reverses the most recent post of that day; a rollover is the only judge of a missed day). Nothing past T003 starts until this clears.
-- OPEN OWNER DECISION (non-blocking until S06): Firebase Auth ⏳ (Appendix B) is unresolved. Per Part XII 12.5 the approved custom auth proceeds by default — Sign in with Apple + email, jose JWTs + crypto.scrypt hashing, Resend reset emails. Nothing may be built against Firebase until the owner decides.
-- PROCESS: `git init` is blocked by the owner's user-locked hook, so no commit has been made by the agent (S01 + S02). The owner runs `git init` and the commit sequence from the S02 handoff message; after that the loop commits normally.
-- (resolved 2026-09-04) SPECIFICATION GAPs G1–G12 — answered by the owner, logged in Appendix A ("Gamification/Build — gap resolutions 2026-09-04"), applied to spec-constants.json + design-tokens.json, regenerated, drift check green.
+- OPERATING MODE (Appendix A, 2026-09-04): CONTINUOUS BUILD — no 🛑 stops the line; every former checkpoint is a self-review in docs/ratification.md; gaps get the most conservative in-spec call tagged `// GAP:`; iOS tasks are WRITTEN — UNVERIFIED (no Xcode here); no real credentials (local/test substitutes, logged); final act = docs/OWNER-REVIEW.md.
+- OPEN OWNER DECISION (non-blocking): Firebase Auth ⏳ (Appendix B) is unresolved. Per Part XII 12.5 the approved custom auth proceeds by default — Sign in with Apple + email, jose JWTs + crypto.scrypt hashing, Resend reset emails. Nothing may be built against Firebase.
+- (resolved 2026-09-04) SPECIFICATION GAPs G1–G12 answered and logged in Appendix A; T003 vectors ratified (R-001).
 
 ## Notes for next session
 
-- After the 🛑 clears: S03 = T004–T005 (seed exercises ~80 + plan templates incl. "Some" = 5 exercises at 3×8–10 per G7), each ending at its own 🛑. generate.mjs then gains SeedData.swift + seed.ts emission (deliberately not written yet — C5).
-- Plan notes (5.6 map / 5.2 tree additions, all recorded here so no chat history is needed): shared/scripts holds 7 files (generate · check-drift · render-spec-constants · render-ember · check-vectors · vector-shapes · vector-invariants) to honour the C9 150-line cap; Generated/ gains EmberTokens.swift (spacing, spring, haptic names from G5/G8); the vectors imply Post.isPlannedDay (stamped at creation) and GamificationState.earnedAchievementIds (Part IX additions for T009), recompute(…) gains an asOfDayKey parameter, and T032 needs crewPulse / crewWeeklyRing / comebackBanner / validatePauseRequest twins — names to confirm at T020/T032 plan time.
+- NEXT (cold resume): read docs/OWNER-REVIEW.md first, then docs/testing-without-a-mac.md (the owner has no Mac). Owner runs docs/commit-queue.sh (61 blocks), then the Mac pass (xcodegen → xcodebuild test → 51 vectors on Swift → Journey ① and ② on a simulator against `cd web && node tests/e2e/dev-server.mjs` — journey ② seeds itself, R-046; the desk-check of 2026-09-05 (R-042) removed the compile errors a blind read can find — expect the ones it cannot), then credentials (T045–T047).
+- Plan notes (5.6 map / 5.2 tree additions): shared/scripts holds generate · check-drift · render-spec-constants · render-ember · check-vectors · vector-shapes · vector-invariants · check-seeds (C9 150-line cap); Generated/ gains EmberTokens.swift; Api/ gains JSONValue.swift (the sync payload as the JSON object it was queued with, R-043); CrewApp honours the `-resetState` launch argument for CrewUITests (R-042) and `-seededReturningUser` + CREW_SEED_SESSION (R-046); Storage/ gains SyncDriver.swift (the moments the queue runs — R-045) and ServerHydrate.swift (a signed-in phone with an empty Store pulls its account first — R-046); ios/ gains Package.swift + ExportOptions.plist (R-048, R-049); CrewUITests gains SeedClient.swift and Screenshots.swift; CrewTests gains ServerHydrateTests + AchievementsLocalTests; Api gains me() · myPosts() · mySessions(); sync gains hydrationMaxWaitSeconds (GAP); Post gains isPlannedDay (stamped at creation), ExerciseTemplate gains targetRepsMax, GamificationState gains earnedAchievementIds; recompute(…) gains asOfDayKey; T020 SwapFinder follows exercises.json `swapRule`; T032 needs crewPulse / crewWeeklyRing / comebackBanner / validatePauseRequest twins.
