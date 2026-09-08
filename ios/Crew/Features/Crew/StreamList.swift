@@ -26,20 +26,3 @@ struct StreamList: View {
         }
     }
 }
-
-struct MessageRow: View {
-    let authorName: String
-    let text: String // not `body`: a View's body is its own member
-    let deleted: Bool
-    let mine: Bool
-    let at: Date
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-            Text("\(mine ? "You" : authorName) · \(at.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(EmberColors.secondaryText)
-            Text(deleted ? "Message deleted" : text).font(.body).foregroundStyle(deleted ? EmberColors.missedGray : EmberColors.inkText).italic(deleted)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-}

@@ -38,29 +38,13 @@ sync queue's storage — those need Xcode. That is Stage 1.
 
 ---
 
-> **2026-09-08 — GitHub Actions is unavailable on this account.** Every job, including the free Linux ones, is refused with
-> "your account is locked due to a billing issue", although a valid card is on file and nothing is owed. Only GitHub support
-> can lift that. Until they do, Stage 1 runs on **Codemagic** instead: `codemagic.yaml` in the repo root describes the same
-> jobs, and the sign-up is in a browser. The GitHub workflow files stay as they are and become the home again the moment the
-> lock is gone (`docs/debt.md`).
->
-> **Later the same day — lifted.** The lock was a past-due charge declined on an expired card; re-saving the card on
-> Settings → Billing & Licensing → Payment information paid it, and Actions started within minutes. GitHub Actions is the
-> main path below; Codemagic stays as the backup and has never been run.
+> **2026-09-08, morning — GitHub Actions was locked** ("your account is locked due to a billing issue": a past-due charge
+> declined on an expired card). Re-saving the card on Settings → Billing & Licensing → Payment information paid it and Actions
+> started within minutes. A Codemagic backup (`codemagic.yaml`) was written that morning and never run; it was deleted in the
+> evening audit once Actions had been green on every job (debt repaid, R-055). If GitHub ever locks again, Codemagic's
+> `codemagic.yaml` is in git history under commit `36b1b34`.
 
 ## Stage 1 — free macOS CI: compile the iPhone app and watch it run on a simulator
-
-### Stage 1 on Codemagic (the backup — never run yet)
-
-1. Go to `codemagic.io`, sign up **with GitHub**, and authorise it for `roccohandler/crew`.
-2. Add the application when it lists your repositories; choose **"Use codemagic.yaml"** rather than the visual editor.
-3. Pick the `ios-test` workflow and press **Start new build**.
-4. It installs XcodeGen, generates the project, runs the doctrine lint and the Swift engine tests, starts the local web
-   harness, then runs the unit suite, the 51 vectors, and journeys ① and ② on the newest iPhone simulator the image ships.
-5. The build page lists artifacts. `UITestResults.xcresult` holds the journeys' screenshots — that is how you look at the
-   app. The free tier gives 500 macOS minutes a month, which is plenty for the compile-fix loop.
-
-### Stage 1 on GitHub Actions (use this — the lock is lifted)
 
 GitHub's `macos-latest` runners have Xcode. The `ios` job in `.github/workflows/ci.yml` generates the project with
 XcodeGen, compiles the whole app, runs the unit suite and the 51 vectors, then runs journeys ① and ② on the newest iPhone
@@ -126,7 +110,12 @@ the chat.
    (32 random bytes, base64), `CRON_SECRET` (a long random string), `RESEND_API_KEY`, `RESEND_FROM`, `MODERATION_INBOX`,
    `COOKIE_SECURE=true` → Deploy. Then Settings → Environment Variables → `APP_BASE_URL=https://<the project's domain>` and
    Redeploy. Storage → Create Database → Blob → connect it to the project: Vercel adds `BLOB_READ_WRITE_TOKEN` itself;
-   redeploy once more. The agent checks the deployment from here (`/api/v1/users/me` answers 401, the home page 200).
+   redeploy once more. The agent checks the deployment from here (`/api/v1/users/me` answers 401, the home page 200), then runs one journey
+   against it: `BASE_URL=https://<host> npx playwright test journey1 --project=desktop-1280` from `web/` — one journey at
+   one viewport, because Vercel overwrites `x-forwarded-for` and the G11 auth limit is 10 per minute per address. Done
+   2026-09-08: the host is `crew-eta-one.vercel.app`; the first two builds failed until Root Directory was saved as
+   `web` (Vercel's log: "No Next.js version detected"), and the Vercel CLI (`npx vercel login`) lets the agent read build
+   logs, list variable names and redeploy from this machine.
 4. **Apple, on developer.apple.com/account** — first accept the updated Program License Agreement (the Account Holder;
    until then the App Store Connect API answers 403 to everything, cloud signing included). Membership details → the
    10-character Team ID. Certificates, Identifiers & Profiles → Keys → a key with "Apple Push Notifications service (APNs)"
