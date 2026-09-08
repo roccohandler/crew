@@ -1,0 +1,76 @@
+{
+  "file": "achievements.vectors.json",
+  "spec": "Part VIII 8.1 — Achievements (V45–V50, appended 2026-09-04); shared/seed/achievements.json rules; V35; 5.6.1 Award.achievement(id); E8 (unlocks fold into the celebration)",
+  "vectors": [
+    {
+      "id": "V45",
+      "title": "the first workout post earns First flame and Showed up, in seed order",
+      "spec": "8.1 V45; seed first-flame (postsTotal 1) + showed-up (workoutsCompleted 1); Flow 1 step 6; Flow 2",
+      "kind": "achievements",
+      "rule": "Both counters reach their thresholds on the same event; the awards come out in seed order (first-flame before showed-up) and both ids are now earned.",
+      "cases": [
+        { "counters": { "postsTotal": 1, "workoutsCompleted": 1, "currentStreak": 1 }, "alreadyEarned": [], "expect": { "awards": [{ "award": "achievement", "id": "first-flame" }, { "award": "achievement", "id": "showed-up" }], "earnedAfter": ["first-flame", "showed-up"] } }
+      ]
+    },
+    {
+      "id": "V46",
+      "title": "an achievement is earned once — the same or higher counters award nothing again",
+      "spec": "8.1 V46; seed rules (earned once, the first time the trigger reaches threshold); V35",
+      "kind": "achievements",
+      "rule": "With first-flame and showed-up already earned, counters at or above their thresholds produce no award and leave the earned list unchanged.",
+      "cases": [
+        { "counters": { "postsTotal": 1, "workoutsCompleted": 1, "currentStreak": 1 }, "alreadyEarned": ["first-flame", "showed-up"], "expect": { "awards": [], "earnedAfter": ["first-flame", "showed-up"] } },
+        { "counters": { "postsTotal": 2, "workoutsCompleted": 1, "currentStreak": 2 }, "alreadyEarned": ["first-flame", "showed-up"], "expect": { "awards": [], "earnedAfter": ["first-flame", "showed-up"] } }
+      ]
+    },
+    {
+      "id": "V47",
+      "title": "streak achievements fire exactly at 7, 30 and 100 — and catch up in seed order",
+      "spec": "8.1 V47; seed seven-straight / thirty / century (currentStreak); Part IV streak health; Flow 7",
+      "kind": "achievements",
+      "rule": "6 earns nothing; 7 earns seven-straight; 30 with seven-straight earned earns thirty; 100 with both earns century; 100 with nothing earned yet earns all three at once, in seed order.",
+      "cases": [
+        { "counters": { "currentStreak": 6 }, "alreadyEarned": [], "expect": { "awards": [], "earnedAfter": [] } },
+        { "counters": { "currentStreak": 7 }, "alreadyEarned": [], "expect": { "awards": [{ "award": "achievement", "id": "seven-straight" }], "earnedAfter": ["seven-straight"] } },
+        { "counters": { "currentStreak": 30 }, "alreadyEarned": ["seven-straight"], "expect": { "awards": [{ "award": "achievement", "id": "thirty" }], "earnedAfter": ["seven-straight", "thirty"] } },
+        { "counters": { "currentStreak": 100 }, "alreadyEarned": ["seven-straight", "thirty"], "expect": { "awards": [{ "award": "achievement", "id": "century" }], "earnedAfter": ["seven-straight", "thirty", "century"] } },
+        { "counters": { "currentStreak": 100 }, "alreadyEarned": [], "expect": { "awards": [{ "award": "achievement", "id": "seven-straight" }, { "award": "achievement", "id": "thirty" }, { "award": "achievement", "id": "century" }], "earnedAfter": ["seven-straight", "thirty", "century"] } }
+      ]
+    },
+    {
+      "id": "V48",
+      "title": "perfect weeks: 1 then 5; a streak that falls to 0 afterwards removes nothing",
+      "spec": "8.1 V48; seed perfect-week / five-perfect-weeks (perfectWeeks); V13; G6; V35 (never removed)",
+      "kind": "achievements",
+      "rule": "perfectWeeks 1 earns perfect-week; 5 earns five-perfect-weeks; then every counter at 0 (a broken streak, no perfect weeks in the fold) awards nothing and the earned list is untouched.",
+      "cases": [
+        { "counters": { "perfectWeeks": 1, "currentStreak": 7 }, "alreadyEarned": ["seven-straight"], "expect": { "awards": [{ "award": "achievement", "id": "perfect-week" }], "earnedAfter": ["seven-straight", "perfect-week"] } },
+        { "counters": { "perfectWeeks": 5, "currentStreak": 35 }, "alreadyEarned": ["seven-straight", "perfect-week", "thirty"], "expect": { "awards": [{ "award": "achievement", "id": "five-perfect-weeks" }], "earnedAfter": ["seven-straight", "perfect-week", "thirty", "five-perfect-weeks"] } },
+        { "counters": { "perfectWeeks": 0, "currentStreak": 0 }, "alreadyEarned": ["seven-straight", "perfect-week", "thirty", "five-perfect-weeks"], "expect": { "awards": [], "earnedAfter": ["seven-straight", "perfect-week", "thirty", "five-perfect-weeks"] } }
+      ]
+    },
+    {
+      "id": "V49",
+      "title": "crew achievements: found your crew, hype, all in, perfect crew week — and leaving removes nothing",
+      "spec": "8.1 V49; seed found-your-crew (crewJoined) / hype (reactionsGiven) / all-in (crewFullPulseDays) / perfect-crew-week (crewFullPulseWeeks); Flow 6; V37; V38",
+      "kind": "achievements",
+      "rule": "All four crew counters at 1 award the four crew achievements in seed order; after leaving (crewJoined 0) with everything earned, nothing is awarded and nothing is lost.",
+      "cases": [
+        { "counters": { "crewJoined": 1, "reactionsGiven": 1, "crewFullPulseDays": 1, "crewFullPulseWeeks": 1 }, "alreadyEarned": ["first-flame"], "expect": { "awards": [{ "award": "achievement", "id": "found-your-crew" }, { "award": "achievement", "id": "hype" }, { "award": "achievement", "id": "all-in" }, { "award": "achievement", "id": "perfect-crew-week" }], "earnedAfter": ["first-flame", "found-your-crew", "hype", "all-in", "perfect-crew-week"] } },
+        { "counters": { "crewJoined": 1, "reactionsGiven": 0, "crewFullPulseDays": 0, "crewFullPulseWeeks": 0 }, "alreadyEarned": ["first-flame"], "expect": { "awards": [{ "award": "achievement", "id": "found-your-crew" }], "earnedAfter": ["first-flame", "found-your-crew"] } },
+        { "counters": { "crewJoined": 0, "reactionsGiven": 3, "crewFullPulseDays": 2, "crewFullPulseWeeks": 1 }, "alreadyEarned": ["first-flame", "found-your-crew", "hype", "all-in", "perfect-crew-week"], "expect": { "awards": [], "earnedAfter": ["first-flame", "found-your-crew", "hype", "all-in", "perfect-crew-week"] } }
+      ]
+    },
+    {
+      "id": "V50",
+      "title": "new best, saved by the shield, back in it, fifty workouts — thresholds met together, seed order kept",
+      "spec": "8.1 V50; seed new-best (prCount) / saved-by-the-shield (shieldsConsumed) / back-in-it (comebacks) / fifty-workouts (workoutsCompleted 50); Flow 3; V15; V29; Flow 9",
+      "kind": "achievements",
+      "rule": "With showed-up already earned, workoutsCompleted 50 + prCount 1 + shieldsConsumed 1 + comebacks 1 award exactly the four remaining solo achievements those counters reach, in seed order; 49 workouts and prCount 0 award only the shield and comeback ones.",
+      "cases": [
+        { "counters": { "workoutsCompleted": 50, "prCount": 1, "shieldsConsumed": 1, "comebacks": 1 }, "alreadyEarned": ["showed-up"], "expect": { "awards": [{ "award": "achievement", "id": "new-best" }, { "award": "achievement", "id": "saved-by-the-shield" }, { "award": "achievement", "id": "back-in-it" }, { "award": "achievement", "id": "fifty-workouts" }], "earnedAfter": ["showed-up", "new-best", "saved-by-the-shield", "back-in-it", "fifty-workouts"] } },
+        { "counters": { "workoutsCompleted": 49, "prCount": 0, "shieldsConsumed": 2, "comebacks": 3 }, "alreadyEarned": ["showed-up"], "expect": { "awards": [{ "award": "achievement", "id": "saved-by-the-shield" }, { "award": "achievement", "id": "back-in-it" }], "earnedAfter": ["showed-up", "saved-by-the-shield", "back-in-it"] } }
+      ]
+    }
+  ]
+}

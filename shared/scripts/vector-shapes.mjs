@@ -3,6 +3,14 @@
 // Used by check-vectors.mjs. SPEC: Part XI T003 (Verify: JSON schema check) · 8.1
 
 import { checkApplyInvariants, checkDayKeyCases, checkPauseCases, daysBetween, isMonday } from "./vector-invariants.mjs";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// kind achievements: the definitions ARE the seed (shared/seed/achievements.json) — ids, triggers, thresholds, order
+const seedAchievements = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "seed", "achievements.json"), "utf8")).achievements;
+const TRIGGERS = new Set(seedAchievements.map((achievement) => achievement.trigger));
+const ACHIEVEMENT_IDS = new Set(seedAchievements.map((achievement) => achievement.id));
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
@@ -129,7 +137,21 @@ function checkComebackBanner(vector, fail) {
   if (flags[0]) fail(vector.id, "the first post can never be a comeback");
 }
 
+// README kind achievements: counters → the seed-ordered awards not yet earned; earnedAfter = alreadyEarned + awarded ids
+function checkAchievementCase(id, where, item, fail) {
+  const counters = item.counters ?? {};
+  for (const [trigger, value] of Object.entries(counters)) if (!TRIGGERS.has(trigger) || !isInt(value) || value < 0) fail(id, `${where}.counters.${trigger} must be a known trigger with an integer ≥ 0`);
+  const already = Array.isArray(item.alreadyEarned) ? item.alreadyEarned : [];
+  if (!Array.isArray(item.alreadyEarned) || !already.every((earned) => ACHIEVEMENT_IDS.has(earned))) fail(id, `${where}.alreadyEarned must list seed ids`);
+  const awards = item.expect?.awards;
+  if (!Array.isArray(awards) || !awards.every((award) => award.award === "achievement" && ACHIEVEMENT_IDS.has(award.id))) return fail(id, `${where}.expect.awards must be achievement awards with seed ids`);
+  const expectedIds = seedAchievements.filter((achievement) => (counters[achievement.trigger] ?? 0) >= achievement.threshold && !already.includes(achievement.id)).map((achievement) => achievement.id);
+  if (JSON.stringify(awards.map((award) => award.id)) !== JSON.stringify(expectedIds)) fail(id, `${where}.expect.awards must be exactly ${JSON.stringify(expectedIds)} (seed order, thresholds, not yet earned)`);
+  if (JSON.stringify(item.expect?.earnedAfter) !== JSON.stringify([...already, ...expectedIds])) fail(id, `${where}.expect.earnedAfter must be alreadyEarned followed by the awarded ids`);
+}
+
 export const shapeChecks = {
+  achievements: withCases(checkAchievementCase),
   apply: checkApply,
   dayKey: (vector, fail) => { withCases(checkDayKeyCase)(vector, fail); if (Array.isArray(vector.cases)) checkDayKeyCases(vector, fail); },
   completion: withCases(checkCompletionCase),

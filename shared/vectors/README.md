@@ -113,3 +113,28 @@ session's `completed`), judging every day up to `asOfDayKey`.
 - `comebackBanner`: `{ posts[], pauses }` for one member → per post `{ dayKey, comeback }` using the
   engine's comeback rule (≥ `comebackMissedDaysThreshold` non-paused quiet days since the previous
   post; never on the first post; once per return).
+
+## kind: `achievements` — Achievements.earned (seed thresholds; earned once; never removed)
+
+Appended 2026-09-04 (V45–V50) with the awarding pass. The definitions live in `shared/seed/achievements.json`
+(`trigger` + `threshold`, in seed order). Counters are FACTS each platform derives (integers ≥ 0; a missing
+counter is 0):
+
+- `postsTotal` — the user's live (non-deleted) posts · `workoutsCompleted` — completed sessions ·
+  `currentStreak` — the engine state's streak · `reactionsGiven` — reactions the user has given.
+- `perfectWeeks`, `shieldsConsumed`, `comebacks` — the engine's tallies of `perfectWeek`, `shieldConsumed`
+  and `comeback` awards emitted so far (engine memory, folded like everything else; an undo reverts them
+  with the day). Never asserted by `apply` vectors.
+- `prCount` — (completed session, exercise) pairs whose best done work-set weight beats every EARLIER
+  completed session's best for that exercise, where an earlier logged weight exists (Flow 3 "new best";
+  Flow 9 layer 3 — never logged weight → no PR).
+- `crewJoined` — 1 while the user is in a crew, else 0.
+- `crewFullPulseDays` — days from the user's own `joinedDayKey` through `asOfDayKey` on which the crew
+  pulse was full (`posted == total`) with `total ≥ crewMinMembers`, membership as of each day (V40) ·
+  `crewFullPulseWeeks` — complete Mon–Sun weeks (Monday ≥ the user's `joinedDayKey`, Sunday ≤ `asOfDayKey`) whose seven days were all full.
+
+`cases[]`: `{ counters, alreadyEarned }` → `expect { awards, earnedAfter }`. `awards` = one
+`{ "award": "achievement", "id" }` per seed achievement, IN SEED ORDER, whose counter ≥ threshold and whose
+id is not in `alreadyEarned`; `earnedAfter` = `alreadyEarned` followed by the awarded ids. A counter that
+falls later awards nothing and takes nothing (V35). The platforms run the pass after every recompute /
+local apply and append the awards after `levelUp` (canonical order).

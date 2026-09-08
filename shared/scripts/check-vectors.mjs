@@ -1,5 +1,5 @@
 // Validates shared/vectors/*.vectors.json against the fixture contract in shared/vectors/README.md:
-// file shape, unique ids, V01–V40 (+V18b) coverage, the per-kind shape checks in vector-shapes.mjs and
+// file shape, unique ids, V01–V50 (+V18b) coverage, the per-kind shape checks in vector-shapes.mjs and
 // the arithmetic invariants in vector-invariants.mjs. Exits 1 on any problem.
 // Run: node shared/scripts/check-vectors.mjs
 // SPEC: Part XI T003 (Verify: JSON schema check) · 8.1 (append-only; both engines must match EXACTLY)
@@ -11,7 +11,7 @@ import { shapeChecks } from "./vector-shapes.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const vectorsDir = join(repoRoot, "shared", "vectors");
-const REQUIRED_IDS = [...Array.from({ length: 40 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b"];
+const REQUIRED_IDS = [...Array.from({ length: 50 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b"]; // V41–V44 (S02) · V45–V50 achievements (2026-09-04)
 const problems = [];
 const fail = (id, message) => problems.push(`${id}: ${message}`);
 
