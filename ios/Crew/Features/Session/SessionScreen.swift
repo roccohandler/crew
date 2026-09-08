@@ -86,7 +86,7 @@ struct SessionScreen: View {
         let firstOpen = sets.firstIndex { !$0.done && !$0.isWarmup }
         ForEach(Array(sets.enumerated()), id: \.element.order) { index, set in
             if exercise.type == "mobility" {
-                MobilityHoldRow(name: exercise.name, set: set, perSide: SeedCatalog.shared.exercise(exercise.exerciseId)?.perSide ?? false) { model.finishHold(set) }
+                MobilityHoldRow(name: exercise.name, setLog: set, perSide: SeedCatalog.shared.exercise(exercise.exerciseId)?.perSide ?? false) { model.finishHold(set) }
             } else {
                 SetRow(exerciseName: exercise.name, equipment: exercise.equipment, set: set, index: sets[...index].filter { !$0.isWarmup }.count, count: sets.filter { !$0.isWarmup }.count, units: model.units,
                        isGhost: firstOpen.map { index > $0 } ?? false,

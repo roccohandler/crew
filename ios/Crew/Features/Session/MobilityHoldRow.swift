@@ -5,14 +5,14 @@ import SwiftUI
 
 struct MobilityHoldRow: View {
     let name: String
-    let set: LocalSetLog
+    let setLog: LocalSetLog // not `set`: inside a computed property `{ set... }` reads as a setter accessor
     let perSide: Bool
     let onFinished: () -> Void
     @State private var remaining: Int?
     @State private var sidesLeft = 1
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    private var seconds: Int { set.holdSeconds ?? 0 }
+    private var seconds: Int { setLog.holdSeconds ?? 0 }
 
     var body: some View {
         Button(action: tap) {
@@ -20,9 +20,9 @@ struct MobilityHoldRow: View {
                 Text(name).font(.body).foregroundStyle(EmberColors.inkText)
                 Spacer()
                 Text(label).font(.body.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
-                Image(systemName: set.done ? "checkmark.circle.fill" : (remaining == nil ? "play.circle" : "pause.circle"))
+                Image(systemName: setLog.done ? "checkmark.circle.fill" : (remaining == nil ? "play.circle" : "pause.circle"))
                     .font(.title2)
-                    .foregroundStyle(set.done ? EmberColors.inkText : EmberColors.secondaryText)
+                    .foregroundStyle(setLog.done ? EmberColors.inkText : EmberColors.secondaryText)
             }
             .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
             .contentShape(Rectangle())
@@ -30,18 +30,18 @@ struct MobilityHoldRow: View {
         .buttonStyle(.plain)
         .onAppear { sidesLeft = perSide ? SpecConstants.perSideHoldRepeats : 1 }
         .onReceive(timer) { _ in tick() }
-        .accessibilityLabel("\(name), \(seconds) seconds\(perSide ? " each side" : "")\(set.done ? ", done" : "")")
-        .accessibilityHint(set.done ? "" : "Double-tap to start the hold")
+        .accessibilityLabel("\(name), \(seconds) seconds\(perSide ? " each side" : "")\(setLog.done ? ", done" : "")")
+        .accessibilityHint(setLog.done ? "" : "Double-tap to start the hold")
     }
 
     private var label: String {
-        if set.done { return "\(seconds)s\(perSide ? " each" : "")" }
+        if setLog.done { return "\(seconds)s\(perSide ? " each" : "")" }
         if let remaining { return "\(remaining)s\(perSide && sidesLeft > 1 ? " · side 1" : "")" }
         return "\(seconds)s\(perSide ? " each" : "")"
     }
 
     private func tap() {
-        guard !set.done else { return }
+        guard !setLog.done else { return }
         remaining = remaining == nil ? seconds : nil
     }
 

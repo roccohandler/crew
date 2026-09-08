@@ -5,6 +5,11 @@
 #     bash docs/commit-queue.sh
 # Blocks are idempotent: a task whose files are already committed produces an empty commit attempt that
 # git skips ("nothing to commit"). Run it whenever you like; the queue is append-only.
+#
+# Ordering rule (learned 2026-09-08, block S38): a block stages every listed path that has changes, so a later
+# EDIT to a file lands in the FIRST block that names it — S38's CI fix was committed under older messages. The
+# history below is fully committed and never re-runs, so from now on every fix block goes in the FIX QUEUE
+# section right under commit_task, newest LAST within that section, ahead of the history.
 set -u
 cd "$(dirname "$0")/.."
 
@@ -13,6 +18,14 @@ commit_task() {
   git add -- "$@" 2>/dev/null
   if git diff --cached --quiet; then echo "skip   (already committed) $message"; else git commit -q -m "$message" && echo "commit $message"; fi
 }
+
+# ===== FIX QUEUE — runs before the history; append new fix blocks at the END of this section =====
+
+# --- F01 (the first Xcode compile, run 34226861952: one parse error, the module stopped there) ---
+commit_task "fix(ios): MobilityHoldRow — a stored property named 'set' reads as a setter accessor inside a computed property; renamed setLog. First Xcode diagnostic; fix blocks now run ahead of the history [SPEC: S09; Flow 3; XI T025/T008]" \
+  ios/Crew/Features/Session/MobilityHoldRow.swift ios/Crew/Features/Session/SessionScreen.swift docs/commit-queue.sh docs/debt.md docs/progress.md
+
+# ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
 
 # --- S03 ---
 commit_task "feat(shared): seed exercises.json (101, swap-covered) + check-seeds; continuous-build amendment + T003 ratification logged [SPEC: Appendix B; Part IX seed; XI T004]" \
