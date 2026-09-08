@@ -4,6 +4,10 @@ import { spawn } from "node:child_process";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
 const mongo = await MongoMemoryServer.create();
+// `next dev` reads web/.env and only skips keys that are ALREADY set in its environment. A developer's .env holds real
+// vendor keys (Atlas, Resend, Blob, APNs), so every vendor variable is pinned to "" here: an empty value keeps each lib on
+// its dev/test substitute (outbox, .blob-dev, no APNs client) and the harness can never mail, upload or push for real.
+// SPEC: continuous-build rule 3b (local substitutes) · 8.7 (the test tree never touches production services)
 const env = {
   ...process.env,
   MONGODB_URI: mongo.getUri(),
@@ -14,6 +18,15 @@ const env = {
   APPLE_BUNDLE_ID: "com.e2e.crew",
   APPLE_SERVICES_ID: "com.e2e.crew.web",
   CRON_SECRET: "e2e-cron",
+  RESEND_API_KEY: "",
+  RESEND_FROM: "",
+  MODERATION_INBOX: "",
+  BLOB_READ_WRITE_TOKEN: "",
+  APNS_TEAM_ID: "",
+  APNS_KEY_ID: "",
+  APNS_PRIVATE_KEY: "",
+  APNS_BUNDLE_ID: "",
+  APNS_ENVIRONMENT: "",
 };
 const next = spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["next", "dev", "-p", "3000"], { env, stdio: "inherit", shell: process.platform === "win32" });
 const stop = async () => {
