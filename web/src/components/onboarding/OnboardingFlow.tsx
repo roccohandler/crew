@@ -9,6 +9,7 @@ import { SaveForm } from "@/components/onboarding/SaveForm";
 import { SingleSelect } from "@/components/onboarding/SingleSelect";
 import { putPlan } from "@/lib/api-client";
 import { joinCrew } from "@/lib/api-client-crew";
+import { flushFunnel, markFunnelStep } from "@/lib/funnel";
 import { generatePlan, workoutFor, type PlanDraft, type SeedCatalog } from "@/lib/engine/plan-generator";
 import { swapCandidates } from "@/lib/engine/swap-finder";
 import { exercises, planTemplates, type EquipmentAccess, type Experience, type SeedExercise } from "@/generated/seed";
@@ -49,6 +50,7 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     const equipment = value as EquipmentAccess;
     const plan = generatePlan(draft.days, draft.experience ?? "brandNew", equipment, seed);
     persist({ ...draft, equipment, plan });
+    markFunnelStep("onboarding_plan_built", { days: draft.days.length, experience: draft.experience ?? "brandNew", equipment }); // 1C funnel
     setStep("reveal");
   };
 
@@ -68,6 +70,8 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     if (draft.plan) await putPlan(draft.plan);
     if (draft.invite) await joinCrew(draft.invite).catch(() => undefined);
     try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* nothing to clear */ }
+    // 1C: hero → questions → plan built → saved, flushed now that the account exists (a rebuild by a member records nothing)
+    if (!signedIn) { markFunnelStep("onboarding_saved", { invited: draft.invite !== null }); await flushFunnel(); }
     router.push(signedIn ? "/plan" : draft.invite ? "/crew" : "/home");
   };
 
@@ -77,8 +81,8 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
 interface StepViewProps { step: Step; draft: Draft; whisperShown: boolean; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseEquipment: (value: string) => void; swap: (weekday: number, exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
 
 function StepView({ step, draft, whisperShown, appleHref, signedIn, persist, setStep, chooseEquipment, swap, finish }: StepViewProps) {
-  if (step === "days") return <DaysQuestion days={draft.days} onToggle={(weekday) => persist({ ...draft, days: draft.days.includes(weekday) ? draft.days.filter((day) => day !== weekday) : [...draft.days, weekday] })} onContinue={() => setStep("experience")} />;
-  if (step === "experience") return <SingleSelect number={QUESTION.experience} title="How experienced are you?" selected={draft.experience} options={[{ value: "brandNew", label: "Brand new", symbol: "🚶" }, { value: "some", label: "Some", symbol: "🏋️" }, { value: "experienced", label: "Experienced", symbol: "🏆" }]} onChoose={(value) => { persist({ ...draft, experience: value as Experience }); setStep("equipment"); }} />;
+  if (step === "days") return <DaysQuestion days={draft.days} onToggle={(weekday) => persist({ ...draft, days: draft.days.includes(weekday) ? draft.days.filter((day) => day !== weekday) : [...draft.days, weekday] })} onContinue={() => { if (!signedIn) markFunnelStep("onboarding_days"); setStep("experience"); }} />;
+  if (step === "experience") return <SingleSelect number={QUESTION.experience} title="How experienced are you?" selected={draft.experience} options={[{ value: "brandNew", label: "Brand new", symbol: "🚶" }, { value: "some", label: "Some", symbol: "🏋️" }, { value: "experienced", label: "Experienced", symbol: "🏆" }]} onChoose={(value) => { persist({ ...draft, experience: value as Experience }); if (!signedIn) markFunnelStep("onboarding_experience"); setStep("equipment"); }} />;
   if (step === "equipment") return <SingleSelect number={QUESTION.equipment} title="What do you have access to?" selected={draft.equipment} options={[{ value: "fullGym", label: "Full gym", symbol: "🏢" }, { value: "dumbbells", label: "Dumbbells", symbol: "🏋️" }, { value: "bodyweight", label: "Bodyweight", symbol: "🏠" }]} onChoose={chooseEquipment} />;
   if (step === "reveal" && draft.plan) return <GeneratedPlan draft={draft.plan} whisperShown={whisperShown} swapCandidates={(exerciseId) => { const incumbent = exercises.find((candidate) => candidate.id === exerciseId); return incumbent ? swapCandidates(incumbent, draft.equipment ?? "fullGym", draft.experience ?? "brandNew", exercises) : []; }} onSwap={swap} onAccept={() => { persist(draft); if (signedIn) void finish(); else setStep("save"); }} />;
   return <SaveForm appleHref={appleHref} onSaved={finish} />;

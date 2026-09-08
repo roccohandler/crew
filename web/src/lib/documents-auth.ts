@@ -34,7 +34,8 @@ export interface EventDoc {
   _id: ObjectId;
   userId: ObjectId | null;
   name: string; // e.g. "onboarding_hero", "post_created"
-  at: Date;
+  at: Date; // the moment it happened — the client's own clock for a client batch (POST events), the server's otherwise
+  receivedAt?: Date; // client batches only: the server clock when the batch arrived (E15)
   props: Record<string, string | number | boolean | null>;
   source: "server" | "ios" | "web";
 }

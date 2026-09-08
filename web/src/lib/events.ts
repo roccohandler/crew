@@ -15,3 +15,20 @@ export async function logEvent(userId: string | null, name: string, props: Event
     source,
   });
 }
+
+// A client's batch (POST events): `at` is the client's own timestamp — a funnel step that happened before the account
+// existed keeps its moment — and `receivedAt` is the server clock (E15). Returns how many were stored.
+export async function logClientEvents(userId: string, source: "ios" | "web", batch: { name: string; at: string; props?: EventProps }[]): Promise<number> {
+  const receivedAt = new Date();
+  const docs = batch.map((event) => ({
+    _id: new ObjectId(),
+    userId: new ObjectId(userId),
+    name: event.name,
+    at: new Date(event.at),
+    receivedAt,
+    props: event.props ?? {},
+    source,
+  }));
+  const result = await (await events()).insertMany(docs);
+  return result.insertedCount;
+}

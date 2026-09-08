@@ -68,6 +68,9 @@ export interface PostReply { post: { id: string; dayKey: string }; gamification:
 export const createPost = async (body: unknown) => (await postJson("/posts", body)) as PostReply;
 export const deletePost = async (id: string) => (await deleteJson(`/posts/${id}`)) as { ok: true; gamification: PublicState };
 
+// docs/api.md POST events — the funnel steps a client recorded, each with its own `at` (lib/funnel.ts queues them pre-auth)
+export const logClientEvents = async (batch: { name: string; at: string; props?: Record<string, string | number | boolean | null> }[]) => (await postJson("/events", { events: batch })) as { accepted: number };
+
 export async function uploadPhoto(file: File, purpose: "post" | "profile"): Promise<{ photoKey: string }> {
   const form = new FormData();
   form.set("file", file);

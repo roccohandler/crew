@@ -138,7 +138,7 @@ Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web t
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| POST `events` | `clientEventsSchema` { events: [ { name, at, props? } ] } | first-party funnel events from clients (onboarding steps, hero→Home, bridge→first post); server-side events are inserted by `lib/events.ts` directly | `validation` |
+| POST `events` | `clientEventsSchema` { events: [ { name, at, props? } ] } (auth) | first-party funnel events from clients (web: `onboarding_hero` · `onboarding_days` · `onboarding_experience` · `onboarding_plan_built` · `onboarding_saved`, queued pre-auth by `lib/funnel.ts` and flushed after sign-up with their original `at`; the 1C hero → Home reading is `onboarding_saved.at − onboarding_hero.at`); stored with `source` ios/web and the server's `receivedAt` (E15); replies `{ accepted: n }` 201; server-side events are inserted by `lib/events.ts` directly (`account_created`, `post_created` give the 1D bridge → first-post step) | `validation` |
 
 ## Standing checks (8.2 ①–④, T015)
 

@@ -90,6 +90,7 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "push-token:POST": { jsonBody: true },
   "push-token:DELETE": { jsonBody: true },
   "reports:POST": { jsonBody: true },
+  "events:POST": { jsonBody: true },
   "../cron/notifications:GET": { public: true, jsonBody: false }, // CRON_SECRET-gated, not a user route
   "users/me:GET": { jsonBody: false },
   "users/me:PATCH": { jsonBody: true },
