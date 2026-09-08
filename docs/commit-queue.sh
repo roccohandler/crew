@@ -29,6 +29,10 @@ commit_task "fix(ios): MobilityHoldRow — a stored property named 'set' reads a
 commit_task "fix(ios): AuthStore compares the token's remaining seconds as TimeInterval; CI passes -continue-building-after-errors so one run reports every type error [SPEC: G11; C7; XI T012/T008]" \
   ios/Crew/Api/AuthStore.swift .github/workflows/ci.yml codemagic.yaml docs/commit-queue.sh docs/debt.md docs/progress.md
 
+# --- F03 (run 34228245648: the whole module type-checks except one line) ---
+commit_task "fix(ios): ProgressModel — the plan is optional to the heat map (a user without a plan still sees their days); the guard no longer unwraps it [SPEC: Flow 9; S15; XI T040]" \
+  ios/Crew/Features/Progress/ProgressModel.swift docs/commit-queue.sh docs/progress.md
+
 # ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
 
 # --- S03 ---
