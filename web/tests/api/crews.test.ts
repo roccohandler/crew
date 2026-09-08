@@ -7,8 +7,10 @@ import { POST as regenerateInvite } from "@/app/api/v1/crews/[id]/invite/route";
 import { DELETE as leaveOrRemove, GET as listMembers } from "@/app/api/v1/crews/[id]/members/route";
 import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
 import { GET as previewInvite, POST as joinCrew } from "@/app/api/v1/crews/join/route";
+import { PATCH as muteCrew } from "@/app/api/v1/crews/[id]/mute/route";
 import { GET as myCrew, POST as createCrew } from "@/app/api/v1/crews/route";
 import { POST as createPost } from "@/app/api/v1/posts/route";
+import { GET as getMe } from "@/app/api/v1/users/me/route";
 import { closeDb, crews, resetDbForTests } from "@/lib/db";
 import { SpecConstants } from "@/generated/spec-constants";
 import { createUser, type TestUser } from "./fixtures";
@@ -87,6 +89,20 @@ describe("crews", () => {
     const full = await joinCrew(request("POST", "/crews/join", { token: eleventh.accessToken, body: { token: tokenOf(inviteLink) } }));
     expect(full.status).toBe(409);
     expect((await readJson(full)).error).toMatchObject({ code: "crewFull" });
+  });
+
+  // SPEC: E2 per-crew mute · S17 (Settings: per-crew mute) · docs/api.md PATCH crews/[id]/mute
+  it("mutes and unmutes the crew for one member only, visible on users/me; an outsider is 404", async () => {
+    expect((await muteCrew(request("PATCH", `/crews/${crewId}/mute`, { token: alex.accessToken, body: { muted: true } }), params(crewId))).status).toBe(200);
+    const alexMe = await readJson<{ crew: { muted: boolean } }>(await getMe(request("GET", "/users/me", { token: alex.accessToken })));
+    expect(alexMe.crew.muted).toBe(true);
+    const captainMe = await readJson<{ crew: { muted: boolean } }>(await getMe(request("GET", "/users/me", { token: captain.accessToken })));
+    expect(captainMe.crew.muted).toBe(false); // a mute is the member's own, never the crew's
+    expect((await muteCrew(request("PATCH", `/crews/${crewId}/mute`, { token: alex.accessToken, body: { muted: false } }), params(crewId))).status).toBe(200);
+    expect((await readJson<{ crew: { muted: boolean } }>(await getMe(request("GET", "/users/me", { token: alex.accessToken })))).crew.muted).toBe(false);
+    expect((await muteCrew(request("PATCH", `/crews/${crewId}/mute`, { token: alex.accessToken, body: { muted: "yes" } }), params(crewId))).status).toBe(400);
+    const outsider = await createUser("outsider", "UTC");
+    expect((await muteCrew(request("PATCH", `/crews/${crewId}/mute`, { token: outsider.accessToken, body: { muted: true } }), params(crewId))).status).toBe(404);
   });
 
   it("Captain removes a member; a member cannot; leaving passes captaincy to the longest-tenured; last out archives", async () => {
