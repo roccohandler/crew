@@ -764,3 +764,27 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
 - Look at: the SwiftUI screens have compiled but not yet run — journeys ① and ② (CrewUITests) are the next stage and the
   first time a screen renders; the eight main-actor warnings stay in debt; the ios job now carries a 45-minute timeout so a
   hung simulator cannot burn the six-hour default.
+
+### R-052 · 2026-09-08 · The app runs on a simulator: the first four screens, one layout gap, one server rule · T021 / T028 / T035 · gap + checkpoint — proceeding
+- What was checked: run 34243884907 (the push carrying F04): the unit suite went 49/49, then the CrewUITests scheme built,
+  installed the app on the iPhone 17 simulator and drove it. `LaunchTests` passed (the bone frame, no splash). Journey ①
+  walked the hero, the days question, both single-selects and the plan reveal, and filled the save screen — four screenshots
+  came back in `UITestResults.xcresult` and were looked at: S02 hero, S03 days, S04 "Your week, built." (Monday · Push day
+  with its three holds, Wednesday · Pull day), S05 "Save your plan". Three of the four are right. It failed at Home (the bridge
+  never appeared), and journey ②'s seed failed earlier at `POST auth/register → 400`.
+- Verdict, the 400: the server's `timezoneSchema` accepted only `Intl.supportedValuesOf("timeZone")` (plus a hand-added
+  "UTC"); Foundation names a device set to UTC "GMT" — which is what a CI simulator is — and older phones report legacy names
+  ("US/Pacific"), none of them in that list. A zone the runtime can format with is a zone the server can compute day keys
+  with (E8), so the rule is now `new Intl.DateTimeFormat(…, { timeZone })` succeeding; "Mars/Olympus" still fails. The seed
+  now quotes the response body in its error so the next 400 explains itself. (Stated as the cause from the evidence at hand;
+  the dev-server log is now an artifact so the next run can confirm it.)
+- Verdict, S03 (GAP): the spec asks for seven ≥ 56 pt circular toggles in one row; 7 × 56 pt plus any gap is wider than every
+  iPhone inside the 24 pt margins, and the screenshot shows the row clipped on both edges and the Continue button stretched
+  edge to edge. Conservative in-spec call: the tap area keeps ≥ 56 pt of height and the full column of width (≥ 44 pt, 6.3);
+  the circle draws at the column width. Tagged `// GAP:` in PlanQuestionsScreen.swift.
+- Also: journey ① waits 20 s (not 10) for Home after Save and prints the save screen's texts when it fails; CI warms every
+  API route before the journeys (the Playwright warm-up already did — `next dev` compiles on first hit) and uploads the
+  dev-server log; SaveAuthScreen's `allSatisfy { $0 == nil }` on non-optional values (a compiler warning) became `isEmpty`,
+  same behaviour.
+- Look at: the S03 circle size on a 375 pt phone is about 45 pt — smaller than the 56 pt the spec pictured; if the owner wants
+  56 pt circles the row must wrap or the margins shrink, which is a design decision, not a build one.
