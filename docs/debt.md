@@ -5,8 +5,15 @@ Format: `- <date> · <task> · <what was compromised> · <why> · <how it gets r
 
 ## Open
 
-- 2026-09-04 · T003 · V35 ("earned achievements survive undo") uses the opaque placeholder id `first-post`; no vector yet AWARDS an achievement · shared/seed/achievements.json does not exist until T006 (owner approves the list) · repaid by appending achievement-awarding vectors (V45+) right after T006 is signed, never by editing V35.
+
+- 2026-09-04 · T039 · Lighthouse CI budgets are not enforced on web PRs · @lhci/cli is not in the approved dependency list · repaid by adding it to ci.yml (web-e2e job) once the owner approves the dependency; the 8.8 budget numbers are already in spec-constants (performanceBudgets).
+- 2026-09-04 · T043 · the automated a11y pass on web is a hand-rolled Playwright audit (landmarks, h1, alt, names, labels, overflow) rather than axe-core · @axe-core/playwright is not in the approved list · repaid by adding it beside the substitute once approved; the substitute stays as the floor.
+- 2026-09-04 · T042 · the iOS welcome-back acknowledgement (PATCH users/me) is not queued when offline · the 5.6.3 OpKind list has no profile op and the map may not grow without a plan note · repaid by an owner-approved map change (OpKind.patchMe) or by accepting that the web may ask once more.
+- 2026-09-05 · T035 · the XCUITest journey ② launches with `-seededReturningUser` but nothing seeded that user (a signed-in member with a plan, a crew and a reacting crew-mate) · the seed needs a server the test can reach · UPDATE 2026-09-06: WRITTEN — UNVERIFIED — `CrewUITests/SeedClient.swift` builds the member, plan, first post, crew and crew-mate through the real API on the local dev server, hands the session over in CREW_SEED_SESSION and reacts mid-test; the app hydrates as a reinstalled phone would (R-046) · repaid when journey ② runs green on a simulator (the Mac pass).
+- 2026-09-06 · T035 · `Info.plist` carries `NSAllowsLocalNetworking` so the simulator reaches the `http://localhost:3000` dev server (journeys ① and ②) · XcodeGen renders one Info.plist for every configuration here · repaid by a Debug-only override on the Mac pass; production talks https only, so the key changes nothing there.
 
 ## Repaid
+
+- 2026-09-04 · T003 · V35 used the opaque placeholder id `first-post` and no vector awarded an achievement · the seed list did not exist until T006 · repaid 2026-09-04 by the awarding pass + vectors V45–V50 (kind `achievements`, README contract, both engines); V35 itself is untouched (append-only) — its placeholder id is simply an id the pass never awards, which is exactly what V35 asserts (survival, not awarding). Ratification R-037.
 
 - 2026-09-04 · T002 · EmberColors.swift and ember.css emitted the LIGHT value for `missedGray` and `emberText` in dark mode (Part III defined no dark values; gap G4) · repaid the same day: owner set missedGray dark = #5E574F and emberText dark = #FF7A1F (Decision Registry G4), tokens updated, files regenerated, the generator no longer tolerates a missing dark value.
