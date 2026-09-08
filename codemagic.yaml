@@ -34,18 +34,26 @@ workflows:
           npm ci
           nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
           npx --yes wait-on http://localhost:3000/login --timeout 180000
+      # The image decides which simulators exist (GitHub's first run, 2026-09-08: Xcode 26.6 had no "iPhone 16"), so the
+      # device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time. Same rule as ci.yml.
+      - name: Pick an iPhone simulator
+        script: |
+          CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
+          test -n "$CREW_SIM"
+          echo "Simulator: $CREW_SIM"
+          echo "CREW_SIM=$CREW_SIM" >> $CM_ENV
       - name: Unit tests + the 51 vectors
         script: |
           cd ios
           xcodebuild test -project Crew.xcodeproj -scheme Crew \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest" \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
       - name: Journeys ① and ② on a simulator
         script: |
           cd ios
           xcodebuild test -project Crew.xcodeproj -scheme CrewUITests \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest" \
             -resultBundlePath UITestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
     artifacts:
