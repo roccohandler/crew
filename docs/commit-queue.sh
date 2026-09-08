@@ -33,6 +33,10 @@ commit_task "fix(ios): AuthStore compares the token's remaining seconds as TimeI
 commit_task "fix(ios): ProgressModel — the plan is optional to the heat map (a user without a plan still sees their days); the guard no longer unwraps it [SPEC: Flow 9; S15; XI T040]" \
   ios/Crew/Features/Progress/ProgressModel.swift docs/commit-queue.sh docs/progress.md
 
+# --- F04 (run 34228816686: the app compiles, 49 unit tests ran, 51 vectors green under Xcode; one wrong expectation) ---
+commit_task "test(ios): HomeModelTests — Friday of a Mon/Wed/Fri plan is Leg day (PPL cycles over the sorted days), the model was right; ios job gets a 45-minute timeout; ratification R-051 [SPEC: Flow 1 step 3; S07; 8.1; XI T024/T008]" \
+  ios/CrewTests/HomeModelTests.swift .github/workflows/ci.yml docs/ratification.md docs/progress.md docs/commit-queue.sh
+
 # ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
 
 # --- S03 ---
