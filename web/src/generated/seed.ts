@@ -1,0 +1,1657 @@
+// GENERATED FILE — DO NOT EDIT. Source: shared/seed/*.json · Generator: shared/scripts/generate.mjs
+// Re-run `node shared/scripts/generate.mjs`; `node shared/scripts/check-drift.mjs` fails CI when this file drifts.
+// SPEC: Part IX seed data — the plan generator and swap finder read these; never edited by hand.
+
+export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility";
+export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
+export type EquipmentAccess = "fullGym" | "dumbbells" | "bodyweight";
+export type Experience = "brandNew" | "some" | "experienced";
+export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
+export type Region = "push" | "pull" | "legs" | "core" | "mobility";
+
+export interface SeedExercise {
+  id: string; name: string; pattern: Pattern; swapGroup: string; equipment: Equipment; level: Experience;
+  type: "strength" | "mobility"; cueLine: string; holdSeconds?: number; perSide?: boolean;
+}
+export interface SeedTargets { sets: number; reps: number; repsMax?: number }
+export interface SeedPlanTemplates {
+  targets: Record<Experience, SeedTargets>;
+  split: { fullBodyMaxTrainingDays: number; pplCycle: WorkoutKind[]; fullBodyCycle: WorkoutKind[] };
+  workoutNames: Record<WorkoutKind, string>;
+  templates: Record<WorkoutKind, Record<Experience, Record<EquipmentAccess, string[]>>>;
+  mobilityBlocks: Record<WorkoutKind, string[]>;
+}
+export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }
+
+export const equipmentAccess: Record<EquipmentAccess, Equipment[]> = {
+  "fullGym": [
+    "barbell",
+    "dumbbell",
+    "machine",
+    "cable",
+    "bodyweight"
+  ],
+  "dumbbells": [
+    "dumbbell",
+    "bodyweight"
+  ],
+  "bodyweight": [
+    "bodyweight"
+  ]
+};
+export const regionOfPattern: Record<Pattern, Region> = {
+  "horizontalPush": "push",
+  "verticalPush": "push",
+  "chestIsolation": "push",
+  "shoulderIsolation": "push",
+  "triceps": "push",
+  "horizontalPull": "pull",
+  "verticalPull": "pull",
+  "rearDelt": "pull",
+  "biceps": "pull",
+  "squat": "legs",
+  "hinge": "legs",
+  "lunge": "legs",
+  "calf": "legs",
+  "core": "core",
+  "mobility": "mobility"
+};
+export const exercises: SeedExercise[] = [
+  {
+    "id": "barbell-bench-press",
+    "name": "Barbell Bench Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Eyes under the bar, feet planted, lower to mid-chest and press up and slightly back."
+  },
+  {
+    "id": "dumbbell-bench-press",
+    "name": "Dumbbell Bench Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Dumbbells over your chest, elbows about 45° from your sides, press up until they nearly touch."
+  },
+  {
+    "id": "incline-dumbbell-press",
+    "name": "Incline Dumbbell Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Bench at 30°, press from the upper chest, don't let the dumbbells drift over your face."
+  },
+  {
+    "id": "machine-chest-press",
+    "name": "Machine Chest Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Seat so the handles sit at mid-chest, press forward and stop just short of locking out."
+  },
+  {
+    "id": "push-up",
+    "name": "Push-Up",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hands under the shoulders, body one straight line, chest to the floor and back up."
+  },
+  {
+    "id": "incline-push-up",
+    "name": "Incline Push-Up",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hands on a bench or counter — the higher the surface, the easier the push."
+  },
+  {
+    "id": "decline-push-up",
+    "name": "Decline Push-Up",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Feet on a bench, hands under the shoulders, chest to the floor with a tight core."
+  },
+  {
+    "id": "dumbbell-floor-press",
+    "name": "Dumbbell Floor Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Lie on the floor, upper arms touch the ground at the bottom, press straight up."
+  },
+  {
+    "id": "dip",
+    "name": "Dip",
+    "pattern": "horizontalPush",
+    "swapGroup": "chestPress",
+    "equipment": "bodyweight",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Lean slightly forward, lower until the upper arms are parallel to the floor, press back up."
+  },
+  {
+    "id": "cable-chest-fly",
+    "name": "Cable Chest Fly",
+    "pattern": "chestIsolation",
+    "swapGroup": "chestFly",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Handles at chest height, soft elbows, sweep your hands together in front of you."
+  },
+  {
+    "id": "dumbbell-chest-fly",
+    "name": "Dumbbell Chest Fly",
+    "pattern": "chestIsolation",
+    "swapGroup": "chestFly",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Slight bend in the elbows, open wide until you feel the stretch, squeeze back up."
+  },
+  {
+    "id": "pec-deck",
+    "name": "Pec Deck",
+    "pattern": "chestIsolation",
+    "swapGroup": "chestFly",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Pads at chest height, elbows slightly bent, bring the pads together slowly."
+  },
+  {
+    "id": "barbell-overhead-press",
+    "name": "Barbell Overhead Press",
+    "pattern": "verticalPush",
+    "swapGroup": "overheadPress",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Bar at the collarbone, squeeze the glutes, press straight up and push your head through."
+  },
+  {
+    "id": "dumbbell-shoulder-press",
+    "name": "Dumbbell Shoulder Press",
+    "pattern": "verticalPush",
+    "swapGroup": "overheadPress",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Dumbbells at ear height, press up until the arms lock out, lower under control."
+  },
+  {
+    "id": "machine-shoulder-press",
+    "name": "Machine Shoulder Press",
+    "pattern": "verticalPush",
+    "swapGroup": "overheadPress",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Handles level with your ears, press up, don't shrug."
+  },
+  {
+    "id": "pike-push-up",
+    "name": "Pike Push-Up",
+    "pattern": "verticalPush",
+    "swapGroup": "overheadPress",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Hips high in a pike, lower the top of your head toward the floor, press back up."
+  },
+  {
+    "id": "dumbbell-lateral-raise",
+    "name": "Dumbbell Lateral Raise",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Slight lean forward, raise to shoulder height leading with the elbows."
+  },
+  {
+    "id": "cable-lateral-raise",
+    "name": "Cable Lateral Raise",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Cable set low, raise the arm out to the side until level with the shoulder."
+  },
+  {
+    "id": "machine-lateral-raise",
+    "name": "Machine Lateral Raise",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Pads just above the elbows, raise until the upper arms are level with the floor."
+  },
+  {
+    "id": "dumbbell-front-raise",
+    "name": "Dumbbell Front Raise",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Dumbbells at the thighs, raise them straight in front to shoulder height, lower slowly."
+  },
+  {
+    "id": "dumbbell-upright-row",
+    "name": "Dumbbell Upright Row",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Dumbbells close to the body, pull the elbows up and out to chest height."
+  },
+  {
+    "id": "dumbbell-floor-fly",
+    "name": "Dumbbell Floor Fly",
+    "pattern": "chestIsolation",
+    "swapGroup": "chestFly",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Lie on the floor, soft elbows, open the arms until they touch the ground, squeeze back up."
+  },
+  {
+    "id": "cable-triceps-pushdown",
+    "name": "Cable Triceps Pushdown",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Elbows pinned to your sides, push the bar down until the arms are straight."
+  },
+  {
+    "id": "overhead-dumbbell-triceps-extension",
+    "name": "Overhead Dumbbell Triceps Extension",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Both hands under one dumbbell overhead, lower it behind your head, extend."
+  },
+  {
+    "id": "skull-crusher",
+    "name": "Skull Crusher",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Lying down, lower the bar toward your forehead with the elbows still, extend back up."
+  },
+  {
+    "id": "close-grip-push-up",
+    "name": "Close-Grip Push-Up",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hands close under your chest, elbows brushing your ribs on the way down."
+  },
+  {
+    "id": "bench-dip",
+    "name": "Bench Dip",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hands on a bench behind you, lower until the elbows hit 90°, press up."
+  },
+  {
+    "id": "dumbbell-triceps-kickback",
+    "name": "Dumbbell Triceps Kickback",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hinge forward, upper arm level with your torso, straighten the arm behind you."
+  },
+  {
+    "id": "barbell-row",
+    "name": "Barbell Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Hinge to about 45°, pull the bar to your lower ribs, lower under control."
+  },
+  {
+    "id": "one-arm-dumbbell-row",
+    "name": "One-Arm Dumbbell Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hand and knee on a bench, pull the dumbbell to your hip, elbow close."
+  },
+  {
+    "id": "chest-supported-dumbbell-row",
+    "name": "Chest-Supported Dumbbell Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Chest on an incline bench, row both dumbbells to your ribs, squeeze the shoulder blades."
+  },
+  {
+    "id": "seated-cable-row",
+    "name": "Seated Cable Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Sit tall, pull the handle to your stomach, let the shoulder blades open on the return."
+  },
+  {
+    "id": "machine-row",
+    "name": "Machine Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Chest against the pad, pull the handles back, pause, return slowly."
+  },
+  {
+    "id": "inverted-row",
+    "name": "Inverted Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hang under a bar or sturdy table, body straight, pull your chest to the edge."
+  },
+  {
+    "id": "bent-over-dumbbell-row",
+    "name": "Bent-Over Dumbbell Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Hinge forward with a flat back, row both dumbbells to your hips."
+  },
+  {
+    "id": "doorframe-row",
+    "name": "Doorframe Row",
+    "pattern": "horizontalPull",
+    "swapGroup": "row",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hold both sides of a doorframe, lean back with straight arms, pull your chest to the frame."
+  },
+  {
+    "id": "pull-up",
+    "name": "Pull-Up",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "bodyweight",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Overhand grip, pull until your chin clears the bar, lower all the way down."
+  },
+  {
+    "id": "chin-up",
+    "name": "Chin-Up",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "bodyweight",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Underhand grip, chin over the bar, full hang at the bottom."
+  },
+  {
+    "id": "negative-pull-up",
+    "name": "Negative Pull-Up",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Jump or step to the top of a bar, then lower yourself as slowly as you can."
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "Lat Pulldown",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Grip wider than the shoulders, pull the bar to your upper chest, lean back slightly."
+  },
+  {
+    "id": "assisted-pull-up",
+    "name": "Assisted Pull-Up",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Kneel on the pad, pull until your chin clears the handles, lower slowly."
+  },
+  {
+    "id": "dumbbell-pullover",
+    "name": "Dumbbell Pullover",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Lying across a bench, lower one dumbbell behind your head, pull it back over your chest."
+  },
+  {
+    "id": "cable-face-pull",
+    "name": "Cable Face Pull",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Rope at face height, pull toward your eyes with the elbows high and wide."
+  },
+  {
+    "id": "dumbbell-rear-delt-fly",
+    "name": "Dumbbell Rear Delt Fly",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hinge forward, raise the dumbbells out to the sides with a slight elbow bend."
+  },
+  {
+    "id": "reverse-pec-deck",
+    "name": "Reverse Pec Deck",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Face the pad, arms out in front, sweep the handles back until level with your shoulders."
+  },
+  {
+    "id": "prone-y-raise",
+    "name": "Prone Y-Raise",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Lie face down, thumbs up, lift the arms into a Y shape and hold a beat."
+  },
+  {
+    "id": "prone-t-raise",
+    "name": "Prone T-Raise",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Lie face down, arms out to the sides, lift them off the floor and squeeze the shoulder blades."
+  },
+  {
+    "id": "dumbbell-concentration-curl",
+    "name": "Dumbbell Concentration Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Seated, elbow braced on the inner thigh, curl the dumbbell to the shoulder."
+  },
+  {
+    "id": "barbell-curl",
+    "name": "Barbell Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "barbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Elbows at your sides, curl the bar to your shoulders without swinging."
+  },
+  {
+    "id": "dumbbell-curl",
+    "name": "Dumbbell Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Palms up, curl both dumbbells with the elbows still, lower slowly."
+  },
+  {
+    "id": "hammer-curl",
+    "name": "Hammer Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Palms facing each other, curl toward the shoulders, no swing."
+  },
+  {
+    "id": "cable-curl",
+    "name": "Cable Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Bar on the low pulley, curl to the shoulders, keep tension at the bottom."
+  },
+  {
+    "id": "machine-preacher-curl",
+    "name": "Machine Preacher Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Upper arms flat on the pad, curl the handles up, lower all the way."
+  },
+  {
+    "id": "underhand-inverted-row",
+    "name": "Underhand Inverted Row",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Underhand grip on a bar or table edge, pull your chest up, squeeze the biceps."
+  },
+  {
+    "id": "barbell-back-squat",
+    "name": "Barbell Back Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Bar on the upper back, brace, sit down between your feet until the thighs pass parallel."
+  },
+  {
+    "id": "barbell-front-squat",
+    "name": "Barbell Front Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Bar on the front of the shoulders, elbows high, stay tall as you squat."
+  },
+  {
+    "id": "goblet-squat",
+    "name": "Goblet Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hold one dumbbell at your chest, sit down between your heels, chest up."
+  },
+  {
+    "id": "leg-press",
+    "name": "Leg Press",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Feet shoulder-width on the platform, lower until the knees hit 90°, press without locking out."
+  },
+  {
+    "id": "bodyweight-squat",
+    "name": "Bodyweight Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Feet shoulder-width, arms forward, sit down until the thighs are parallel."
+  },
+  {
+    "id": "dumbbell-squat",
+    "name": "Dumbbell Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "A dumbbell in each hand at your sides, squat to parallel with a tall chest."
+  },
+  {
+    "id": "jump-squat",
+    "name": "Jump Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Squat to parallel, jump, land softly and sink straight into the next rep."
+  },
+  {
+    "id": "leg-extension",
+    "name": "Leg Extension",
+    "pattern": "squat",
+    "swapGroup": "quadIsolation",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Pad on the shins, extend until the legs are straight, lower under control."
+  },
+  {
+    "id": "barbell-romanian-deadlift",
+    "name": "Barbell Romanian Deadlift",
+    "pattern": "hinge",
+    "swapGroup": "hinge",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Soft knees, push the hips back, the bar slides down the thighs until the hamstrings pull."
+  },
+  {
+    "id": "barbell-deadlift",
+    "name": "Barbell Deadlift",
+    "pattern": "hinge",
+    "swapGroup": "hinge",
+    "equipment": "barbell",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Bar over mid-foot, flat back, push the floor away and stand tall."
+  },
+  {
+    "id": "dumbbell-romanian-deadlift",
+    "name": "Dumbbell Romanian Deadlift",
+    "pattern": "hinge",
+    "swapGroup": "hinge",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Dumbbells in front of the thighs, hips back, lower to mid-shin, stand up."
+  },
+  {
+    "id": "barbell-hip-thrust",
+    "name": "Barbell Hip Thrust",
+    "pattern": "hinge",
+    "swapGroup": "hipThrust",
+    "equipment": "barbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Upper back on a bench, bar over the hips, drive up until the hips are level."
+  },
+  {
+    "id": "glute-bridge",
+    "name": "Glute Bridge",
+    "pattern": "hinge",
+    "swapGroup": "hipThrust",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "On your back, feet flat, squeeze the glutes and lift the hips until the body is straight."
+  },
+  {
+    "id": "single-leg-glute-bridge",
+    "name": "Single-Leg Glute Bridge",
+    "pattern": "hinge",
+    "swapGroup": "hipThrust",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "One foot flat, the other leg straight, drive the hips up with the planted foot."
+  },
+  {
+    "id": "lying-leg-curl",
+    "name": "Lying Leg Curl",
+    "pattern": "hinge",
+    "swapGroup": "hamstringCurl",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Pad just above the heels, curl toward your glutes, lower slowly."
+  },
+  {
+    "id": "nordic-curl",
+    "name": "Nordic Curl",
+    "pattern": "hinge",
+    "swapGroup": "hamstringCurl",
+    "equipment": "bodyweight",
+    "level": "experienced",
+    "type": "strength",
+    "cueLine": "Heels anchored, lower your torso as slowly as you can, push back up with your hands."
+  },
+  {
+    "id": "dumbbell-walking-lunge",
+    "name": "Dumbbell Walking Lunge",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Dumbbells at your sides, step forward, back knee to the floor, step through."
+  },
+  {
+    "id": "reverse-lunge",
+    "name": "Reverse Lunge",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Step back, lower the back knee toward the floor, push through the front foot to stand."
+  },
+  {
+    "id": "bulgarian-split-squat",
+    "name": "Bulgarian Split Squat",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "dumbbell",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Back foot on a bench, dumbbells at your sides, lower straight down."
+  },
+  {
+    "id": "step-up",
+    "name": "Step-Up",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Step onto a bench with your whole foot, drive up, lower under control."
+  },
+  {
+    "id": "split-squat",
+    "name": "Split Squat",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Long stance, lower the back knee straight down, keep the front knee over the foot."
+  },
+  {
+    "id": "machine-standing-calf-raise",
+    "name": "Standing Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Balls of the feet on the edge, rise as high as you can, lower for a stretch."
+  },
+  {
+    "id": "seated-calf-raise",
+    "name": "Seated Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Pads on the knees, rise onto the toes, pause at the top."
+  },
+  {
+    "id": "single-leg-calf-raise",
+    "name": "Single-Leg Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "One foot on a step, fingertips on a wall for balance, rise and lower slowly."
+  },
+  {
+    "id": "dumbbell-calf-raise",
+    "name": "Dumbbell Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Dumbbells at your sides, rise onto the toes, pause, lower past level."
+  },
+  {
+    "id": "bodyweight-calf-raise",
+    "name": "Bodyweight Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Both feet on the edge of a step, rise as high as you can, lower for a stretch."
+  },
+  {
+    "id": "dead-bug",
+    "name": "Dead Bug",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "On your back, arms up, lower the opposite arm and leg while the lower back stays flat."
+  },
+  {
+    "id": "hanging-knee-raise",
+    "name": "Hanging Knee Raise",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "bodyweight",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Hang from a bar, lift the knees to hip height, lower without swinging."
+  },
+  {
+    "id": "cable-crunch",
+    "name": "Cable Crunch",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Kneel facing the cable, rope behind your head, crunch the elbows toward the thighs."
+  },
+  {
+    "id": "reverse-crunch",
+    "name": "Reverse Crunch",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "On your back, knees bent, curl the hips off the floor toward your chest."
+  },
+  {
+    "id": "bicycle-crunch",
+    "name": "Bicycle Crunch",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "On your back, hands by the ears, bring the opposite elbow and knee together, slow and controlled."
+  },
+  {
+    "id": "dumbbell-russian-twist",
+    "name": "Dumbbell Russian Twist",
+    "pattern": "core",
+    "swapGroup": "core",
+    "equipment": "dumbbell",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Sit back to 45°, hold one dumbbell, rotate the ribs side to side."
+  },
+  {
+    "id": "couch-stretch",
+    "name": "Couch Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hipFlexorStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 90,
+    "perSide": true,
+    "cueLine": "Back knee against a wall or couch, front foot forward, squeeze the glute and stay tall."
+  },
+  {
+    "id": "thoracic-opener",
+    "name": "Thoracic Opener",
+    "pattern": "mobility",
+    "swapGroup": "thoracic",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 90,
+    "perSide": false,
+    "cueLine": "Lie with a foam roller or rolled towel across the upper back, arms overhead, breathe into it."
+  },
+  {
+    "id": "doorway-pec-stretch",
+    "name": "Doorway Pec Stretch",
+    "pattern": "mobility",
+    "swapGroup": "chestOpener",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "Forearm on the doorframe at shoulder height, step through until the chest opens."
+  },
+  {
+    "id": "childs-pose",
+    "name": "Child's Pose",
+    "pattern": "mobility",
+    "swapGroup": "latStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 90,
+    "perSide": false,
+    "cueLine": "Knees wide, sit back onto your heels, walk the hands forward and breathe."
+  },
+  {
+    "id": "pigeon-stretch",
+    "name": "Pigeon Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hipOpener",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "Front shin across the mat, back leg long, fold forward as far as is comfortable."
+  },
+  {
+    "id": "lying-hamstring-stretch",
+    "name": "Lying Hamstring Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hamstringStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 45,
+    "perSide": true,
+    "cueLine": "On your back, one leg up with a strap or towel, keep the knee mostly straight."
+  },
+  {
+    "id": "kneeling-hip-flexor-stretch",
+    "name": "Kneeling Hip Flexor Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hipFlexorStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "Half-kneel, tuck the pelvis, shift forward until the front of the hip stretches."
+  },
+  {
+    "id": "ninety-ninety-hip-stretch",
+    "name": "90/90 Hip Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hipOpener",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "Both knees at 90°, sit tall and lean over the front shin."
+  },
+  {
+    "id": "cat-cow",
+    "name": "Cat-Cow",
+    "pattern": "mobility",
+    "swapGroup": "thoracic",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 90,
+    "perSide": false,
+    "cueLine": "On all fours, arch and round the spine slowly with the breath."
+  },
+  {
+    "id": "wall-lat-stretch",
+    "name": "Wall Lat Stretch",
+    "pattern": "mobility",
+    "swapGroup": "latStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 90,
+    "perSide": false,
+    "cueLine": "Hands on a wall at hip height, walk back and sink the chest toward the floor."
+  },
+  {
+    "id": "wall-calf-stretch",
+    "name": "Wall Calf Stretch",
+    "pattern": "mobility",
+    "swapGroup": "calfStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 45,
+    "perSide": true,
+    "cueLine": "Hands on the wall, back leg straight, heel down, lean in."
+  },
+  {
+    "id": "deep-squat-hold",
+    "name": "Deep Squat Hold",
+    "pattern": "mobility",
+    "swapGroup": "squatHold",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": false,
+    "cueLine": "Sit into the deepest squat you can, elbows push the knees out, breathe."
+  },
+  {
+    "id": "cross-body-shoulder-stretch",
+    "name": "Cross-Body Shoulder Stretch",
+    "pattern": "mobility",
+    "swapGroup": "shoulderStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "Pull one arm across the chest with the other, shoulders down."
+  },
+  {
+    "id": "figure-four-stretch",
+    "name": "Figure-Four Stretch",
+    "pattern": "mobility",
+    "swapGroup": "hipOpener",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": true,
+    "cueLine": "On your back, ankle over the opposite knee, pull the thigh toward you."
+  },
+  {
+    "id": "seated-forward-fold",
+    "name": "Seated Forward Fold",
+    "pattern": "mobility",
+    "swapGroup": "hamstringStretch",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "mobility",
+    "holdSeconds": 60,
+    "perSide": false,
+    "cueLine": "Legs long, hinge from the hips, reach for the shins or toes."
+  }
+];
+export const planTemplates: SeedPlanTemplates = {
+  "targets": {
+    "brandNew": {
+      "sets": 3,
+      "reps": 10
+    },
+    "some": {
+      "sets": 3,
+      "reps": 8,
+      "repsMax": 10
+    },
+    "experienced": {
+      "sets": 3,
+      "reps": 8
+    }
+  },
+  "split": {
+    "fullBodyMaxTrainingDays": 2,
+    "pplCycle": [
+      "push",
+      "pull",
+      "legs"
+    ],
+    "fullBodyCycle": [
+      "fullBodyA",
+      "fullBodyB"
+    ]
+  },
+  "workoutNames": {
+    "push": "Push day",
+    "pull": "Pull day",
+    "legs": "Leg day",
+    "fullBodyA": "Full body A",
+    "fullBodyB": "Full body B"
+  },
+  "templates": {
+    "push": {
+      "brandNew": {
+        "fullGym": [
+          "machine-chest-press",
+          "machine-shoulder-press",
+          "dumbbell-lateral-raise",
+          "cable-triceps-pushdown"
+        ],
+        "dumbbells": [
+          "dumbbell-floor-press",
+          "dumbbell-shoulder-press",
+          "dumbbell-lateral-raise",
+          "bench-dip"
+        ],
+        "bodyweight": [
+          "incline-push-up",
+          "push-up",
+          "close-grip-push-up",
+          "bench-dip"
+        ]
+      },
+      "some": {
+        "fullGym": [
+          "dumbbell-bench-press",
+          "dumbbell-shoulder-press",
+          "cable-chest-fly",
+          "cable-lateral-raise",
+          "cable-triceps-pushdown"
+        ],
+        "dumbbells": [
+          "dumbbell-bench-press",
+          "dumbbell-shoulder-press",
+          "dumbbell-chest-fly",
+          "dumbbell-lateral-raise",
+          "overhead-dumbbell-triceps-extension"
+        ],
+        "bodyweight": [
+          "push-up",
+          "pike-push-up",
+          "decline-push-up",
+          "close-grip-push-up",
+          "bench-dip"
+        ]
+      },
+      "experienced": {
+        "fullGym": [
+          "barbell-bench-press",
+          "barbell-overhead-press",
+          "incline-dumbbell-press",
+          "cable-chest-fly",
+          "dumbbell-lateral-raise",
+          "skull-crusher"
+        ],
+        "dumbbells": [
+          "dumbbell-bench-press",
+          "dumbbell-shoulder-press",
+          "incline-dumbbell-press",
+          "dumbbell-chest-fly",
+          "dumbbell-lateral-raise",
+          "overhead-dumbbell-triceps-extension"
+        ],
+        "bodyweight": [
+          "dip",
+          "push-up",
+          "pike-push-up",
+          "decline-push-up",
+          "close-grip-push-up",
+          "bench-dip"
+        ]
+      }
+    },
+    "pull": {
+      "brandNew": {
+        "fullGym": [
+          "lat-pulldown",
+          "seated-cable-row",
+          "cable-face-pull",
+          "dumbbell-curl"
+        ],
+        "dumbbells": [
+          "one-arm-dumbbell-row",
+          "dumbbell-rear-delt-fly",
+          "dumbbell-curl",
+          "hammer-curl"
+        ],
+        "bodyweight": [
+          "inverted-row",
+          "doorframe-row",
+          "prone-y-raise",
+          "underhand-inverted-row"
+        ]
+      },
+      "some": {
+        "fullGym": [
+          "lat-pulldown",
+          "seated-cable-row",
+          "chest-supported-dumbbell-row",
+          "cable-face-pull",
+          "barbell-curl"
+        ],
+        "dumbbells": [
+          "one-arm-dumbbell-row",
+          "chest-supported-dumbbell-row",
+          "dumbbell-rear-delt-fly",
+          "dumbbell-curl",
+          "hammer-curl"
+        ],
+        "bodyweight": [
+          "inverted-row",
+          "negative-pull-up",
+          "doorframe-row",
+          "prone-y-raise",
+          "underhand-inverted-row"
+        ]
+      },
+      "experienced": {
+        "fullGym": [
+          "pull-up",
+          "barbell-row",
+          "seated-cable-row",
+          "lat-pulldown",
+          "cable-face-pull",
+          "barbell-curl"
+        ],
+        "dumbbells": [
+          "one-arm-dumbbell-row",
+          "chest-supported-dumbbell-row",
+          "dumbbell-pullover",
+          "dumbbell-rear-delt-fly",
+          "dumbbell-curl",
+          "hammer-curl"
+        ],
+        "bodyweight": [
+          "pull-up",
+          "chin-up",
+          "inverted-row",
+          "doorframe-row",
+          "prone-y-raise",
+          "underhand-inverted-row"
+        ]
+      }
+    },
+    "legs": {
+      "brandNew": {
+        "fullGym": [
+          "leg-press",
+          "lying-leg-curl",
+          "leg-extension",
+          "machine-standing-calf-raise"
+        ],
+        "dumbbells": [
+          "goblet-squat",
+          "dumbbell-romanian-deadlift",
+          "reverse-lunge",
+          "dumbbell-calf-raise"
+        ],
+        "bodyweight": [
+          "bodyweight-squat",
+          "glute-bridge",
+          "reverse-lunge",
+          "single-leg-calf-raise"
+        ]
+      },
+      "some": {
+        "fullGym": [
+          "leg-press",
+          "dumbbell-romanian-deadlift",
+          "dumbbell-walking-lunge",
+          "lying-leg-curl",
+          "machine-standing-calf-raise"
+        ],
+        "dumbbells": [
+          "goblet-squat",
+          "dumbbell-romanian-deadlift",
+          "bulgarian-split-squat",
+          "single-leg-glute-bridge",
+          "dumbbell-calf-raise"
+        ],
+        "bodyweight": [
+          "bodyweight-squat",
+          "single-leg-glute-bridge",
+          "reverse-lunge",
+          "step-up",
+          "single-leg-calf-raise"
+        ]
+      },
+      "experienced": {
+        "fullGym": [
+          "barbell-back-squat",
+          "barbell-romanian-deadlift",
+          "leg-press",
+          "dumbbell-walking-lunge",
+          "lying-leg-curl",
+          "machine-standing-calf-raise"
+        ],
+        "dumbbells": [
+          "dumbbell-squat",
+          "dumbbell-romanian-deadlift",
+          "bulgarian-split-squat",
+          "dumbbell-walking-lunge",
+          "single-leg-glute-bridge",
+          "dumbbell-calf-raise"
+        ],
+        "bodyweight": [
+          "jump-squat",
+          "nordic-curl",
+          "step-up",
+          "single-leg-glute-bridge",
+          "reverse-lunge",
+          "single-leg-calf-raise"
+        ]
+      }
+    },
+    "fullBodyA": {
+      "brandNew": {
+        "fullGym": [
+          "leg-press",
+          "machine-chest-press",
+          "seated-cable-row",
+          "lying-leg-curl"
+        ],
+        "dumbbells": [
+          "goblet-squat",
+          "dumbbell-floor-press",
+          "one-arm-dumbbell-row",
+          "dumbbell-romanian-deadlift"
+        ],
+        "bodyweight": [
+          "bodyweight-squat",
+          "incline-push-up",
+          "doorframe-row",
+          "glute-bridge"
+        ]
+      },
+      "some": {
+        "fullGym": [
+          "leg-press",
+          "dumbbell-bench-press",
+          "seated-cable-row",
+          "dumbbell-romanian-deadlift",
+          "cable-face-pull"
+        ],
+        "dumbbells": [
+          "goblet-squat",
+          "dumbbell-bench-press",
+          "one-arm-dumbbell-row",
+          "dumbbell-romanian-deadlift",
+          "dumbbell-lateral-raise"
+        ],
+        "bodyweight": [
+          "bodyweight-squat",
+          "push-up",
+          "inverted-row",
+          "single-leg-glute-bridge",
+          "prone-y-raise"
+        ]
+      },
+      "experienced": {
+        "fullGym": [
+          "barbell-back-squat",
+          "barbell-bench-press",
+          "barbell-row",
+          "barbell-romanian-deadlift",
+          "cable-face-pull",
+          "cable-triceps-pushdown"
+        ],
+        "dumbbells": [
+          "dumbbell-squat",
+          "dumbbell-bench-press",
+          "chest-supported-dumbbell-row",
+          "dumbbell-romanian-deadlift",
+          "dumbbell-lateral-raise",
+          "dumbbell-curl"
+        ],
+        "bodyweight": [
+          "jump-squat",
+          "dip",
+          "pull-up",
+          "nordic-curl",
+          "prone-y-raise",
+          "close-grip-push-up"
+        ]
+      }
+    },
+    "fullBodyB": {
+      "brandNew": {
+        "fullGym": [
+          "reverse-lunge",
+          "machine-shoulder-press",
+          "lat-pulldown",
+          "machine-standing-calf-raise"
+        ],
+        "dumbbells": [
+          "reverse-lunge",
+          "dumbbell-shoulder-press",
+          "dumbbell-rear-delt-fly",
+          "dumbbell-curl"
+        ],
+        "bodyweight": [
+          "reverse-lunge",
+          "bench-dip",
+          "inverted-row",
+          "dead-bug"
+        ]
+      },
+      "some": {
+        "fullGym": [
+          "dumbbell-walking-lunge",
+          "dumbbell-shoulder-press",
+          "lat-pulldown",
+          "lying-leg-curl",
+          "cable-crunch"
+        ],
+        "dumbbells": [
+          "bulgarian-split-squat",
+          "dumbbell-shoulder-press",
+          "chest-supported-dumbbell-row",
+          "dumbbell-chest-fly",
+          "dead-bug"
+        ],
+        "bodyweight": [
+          "step-up",
+          "pike-push-up",
+          "underhand-inverted-row",
+          "single-leg-calf-raise",
+          "dead-bug"
+        ]
+      },
+      "experienced": {
+        "fullGym": [
+          "barbell-deadlift",
+          "barbell-overhead-press",
+          "pull-up",
+          "dumbbell-walking-lunge",
+          "lying-leg-curl",
+          "hanging-knee-raise"
+        ],
+        "dumbbells": [
+          "bulgarian-split-squat",
+          "dumbbell-shoulder-press",
+          "dumbbell-pullover",
+          "one-arm-dumbbell-row",
+          "dumbbell-calf-raise",
+          "dumbbell-russian-twist"
+        ],
+        "bodyweight": [
+          "step-up",
+          "pike-push-up",
+          "chin-up",
+          "single-leg-glute-bridge",
+          "single-leg-calf-raise",
+          "hanging-knee-raise"
+        ]
+      }
+    }
+  },
+  "mobilityBlocks": {
+    "push": [
+      "doorway-pec-stretch",
+      "thoracic-opener",
+      "childs-pose"
+    ],
+    "pull": [
+      "wall-lat-stretch",
+      "cross-body-shoulder-stretch",
+      "cat-cow"
+    ],
+    "legs": [
+      "couch-stretch",
+      "pigeon-stretch",
+      "wall-calf-stretch"
+    ],
+    "fullBodyA": [
+      "couch-stretch",
+      "thoracic-opener",
+      "lying-hamstring-stretch"
+    ],
+    "fullBodyB": [
+      "kneeling-hip-flexor-stretch",
+      "doorway-pec-stretch",
+      "deep-squat-hold"
+    ]
+  }
+};
+export const achievements: SeedAchievement[] = [
+  {
+    "id": "first-flame",
+    "title": "First flame",
+    "line": "Your first post. The streak starts here.",
+    "scope": "solo",
+    "trigger": "postsTotal",
+    "threshold": 1,
+    "spec": "Flow 1 step 6; 1D (first flame lights today)"
+  },
+  {
+    "id": "showed-up",
+    "title": "Showed up",
+    "line": "First workout in the books.",
+    "scope": "solo",
+    "trigger": "workoutsCompleted",
+    "threshold": 1,
+    "spec": "Flow 2; V25"
+  },
+  {
+    "id": "seven-straight",
+    "title": "Seven straight",
+    "line": "A full week of showing up.",
+    "scope": "solo",
+    "trigger": "currentStreak",
+    "threshold": 7,
+    "spec": "Part IV (streak health); Flow 7"
+  },
+  {
+    "id": "thirty",
+    "title": "Thirty",
+    "line": "Thirty days. This is a habit now.",
+    "scope": "solo",
+    "trigger": "currentStreak",
+    "threshold": 30,
+    "spec": "Part IV; Flow 7"
+  },
+  {
+    "id": "century",
+    "title": "Century",
+    "line": "One hundred days in a row. Ridiculous.",
+    "scope": "solo",
+    "trigger": "currentStreak",
+    "threshold": 100,
+    "spec": "Part IV; Flow 7"
+  },
+  {
+    "id": "perfect-week",
+    "title": "Perfect week",
+    "line": "Every planned workout, every day posted. Shield earned.",
+    "scope": "solo",
+    "trigger": "perfectWeeks",
+    "threshold": 1,
+    "spec": "Part IV table; V13; G6"
+  },
+  {
+    "id": "five-perfect-weeks",
+    "title": "Five perfect weeks",
+    "line": "Five of them. You're the plan now.",
+    "scope": "solo",
+    "trigger": "perfectWeeks",
+    "threshold": 5,
+    "spec": "Part IV table; V13"
+  },
+  {
+    "id": "new-best",
+    "title": "New best",
+    "line": "Your first personal record where you logged the weight.",
+    "scope": "solo",
+    "trigger": "prCount",
+    "threshold": 1,
+    "spec": "Flow 3 (PR celebrations); Flow 9 layer 3"
+  },
+  {
+    "id": "saved-by-the-shield",
+    "title": "Saved by the shield",
+    "line": "A shield took the hit. Your streak lives.",
+    "scope": "solo",
+    "trigger": "shieldsConsumed",
+    "threshold": 1,
+    "spec": "Flow 7; V15"
+  },
+  {
+    "id": "back-in-it",
+    "title": "Back in it",
+    "line": "The first post after a quiet stretch is the loudest one.",
+    "scope": "solo",
+    "trigger": "comebacks",
+    "threshold": 1,
+    "spec": "Flow 6 (comeback); V29"
+  },
+  {
+    "id": "fifty-workouts",
+    "title": "Fifty workouts",
+    "line": "Fifty sessions logged. Sets on sets.",
+    "scope": "solo",
+    "trigger": "workoutsCompleted",
+    "threshold": 50,
+    "spec": "Flow 9 layer 1 (totals)"
+  },
+  {
+    "id": "found-your-crew",
+    "title": "Found your crew",
+    "line": "You're in a crew. Nobody trains alone now.",
+    "scope": "crew",
+    "trigger": "crewJoined",
+    "threshold": 1,
+    "spec": "Flow 6; E2"
+  },
+  {
+    "id": "hype",
+    "title": "Hype",
+    "line": "First reaction sent. Keep them coming.",
+    "scope": "crew",
+    "trigger": "reactionsGiven",
+    "threshold": 1,
+    "spec": "Flow 6 (reactions); V27"
+  },
+  {
+    "id": "all-in",
+    "title": "All in",
+    "line": "Everyone in the crew posted today.",
+    "scope": "crew",
+    "trigger": "crewFullPulseDays",
+    "threshold": 1,
+    "spec": "Flow 6 (Crew Pulse); V37"
+  },
+  {
+    "id": "perfect-crew-week",
+    "title": "Perfect crew week",
+    "line": "Seven days, every member, every day.",
+    "scope": "crew",
+    "trigger": "crewFullPulseWeeks",
+    "threshold": 1,
+    "spec": "Flow 6 (weekly crew ring); V38"
+  }
+];

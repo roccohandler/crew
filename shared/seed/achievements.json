@@ -1,0 +1,21 @@
+{
+  "spec": "Appendix B (final achievements list ~12–15, solo + crew, from approved mechanics) · Part IV rules table · Flow 6 · Flow 7 · 5.6.1 Award.achievement(id) · T006",
+  "rules": "An achievement is earned once, the first time its trigger counter reaches threshold, and is never removed (V35). Triggers are counters the engine derives from facts: postsTotal · workoutsCompleted · currentStreak · perfectWeeks · prCount · shieldsConsumed · comebacks · crewJoined · reactionsGiven · crewFullPulseDays · crewFullPulseWeeks. Copy is gym-buddy voice (Part III Voice; 6.6 — sentence case, no '!'). Achievement unlocks fold into the completion celebration (E8) as Award.achievement(id).",
+  "achievements": [
+    { "id": "first-flame", "title": "First flame", "line": "Your first post. The streak starts here.", "scope": "solo", "trigger": "postsTotal", "threshold": 1, "spec": "Flow 1 step 6; 1D (first flame lights today)" },
+    { "id": "showed-up", "title": "Showed up", "line": "First workout in the books.", "scope": "solo", "trigger": "workoutsCompleted", "threshold": 1, "spec": "Flow 2; V25" },
+    { "id": "seven-straight", "title": "Seven straight", "line": "A full week of showing up.", "scope": "solo", "trigger": "currentStreak", "threshold": 7, "spec": "Part IV (streak health); Flow 7" },
+    { "id": "thirty", "title": "Thirty", "line": "Thirty days. This is a habit now.", "scope": "solo", "trigger": "currentStreak", "threshold": 30, "spec": "Part IV; Flow 7" },
+    { "id": "century", "title": "Century", "line": "One hundred days in a row. Ridiculous.", "scope": "solo", "trigger": "currentStreak", "threshold": 100, "spec": "Part IV; Flow 7" },
+    { "id": "perfect-week", "title": "Perfect week", "line": "Every planned workout, every day posted. Shield earned.", "scope": "solo", "trigger": "perfectWeeks", "threshold": 1, "spec": "Part IV table; V13; G6" },
+    { "id": "five-perfect-weeks", "title": "Five perfect weeks", "line": "Five of them. You're the plan now.", "scope": "solo", "trigger": "perfectWeeks", "threshold": 5, "spec": "Part IV table; V13" },
+    { "id": "new-best", "title": "New best", "line": "Your first personal record where you logged the weight.", "scope": "solo", "trigger": "prCount", "threshold": 1, "spec": "Flow 3 (PR celebrations); Flow 9 layer 3" },
+    { "id": "saved-by-the-shield", "title": "Saved by the shield", "line": "A shield took the hit. Your streak lives.", "scope": "solo", "trigger": "shieldsConsumed", "threshold": 1, "spec": "Flow 7; V15" },
+    { "id": "back-in-it", "title": "Back in it", "line": "The first post after a quiet stretch is the loudest one.", "scope": "solo", "trigger": "comebacks", "threshold": 1, "spec": "Flow 6 (comeback); V29" },
+    { "id": "fifty-workouts", "title": "Fifty workouts", "line": "Fifty sessions logged. Sets on sets.", "scope": "solo", "trigger": "workoutsCompleted", "threshold": 50, "spec": "Flow 9 layer 1 (totals)" },
+    { "id": "found-your-crew", "title": "Found your crew", "line": "You're in a crew. Nobody trains alone now.", "scope": "crew", "trigger": "crewJoined", "threshold": 1, "spec": "Flow 6; E2" },
+    { "id": "hype", "title": "Hype", "line": "First reaction sent. Keep them coming.", "scope": "crew", "trigger": "reactionsGiven", "threshold": 1, "spec": "Flow 6 (reactions); V27" },
+    { "id": "all-in", "title": "All in", "line": "Everyone in the crew posted today.", "scope": "crew", "trigger": "crewFullPulseDays", "threshold": 1, "spec": "Flow 6 (Crew Pulse); V37" },
+    { "id": "perfect-crew-week", "title": "Perfect crew week", "line": "Seven days, every member, every day.", "scope": "crew", "trigger": "crewFullPulseWeeks", "threshold": 1, "spec": "Flow 6 (weekly crew ring); V38" }
+  ]
+}
