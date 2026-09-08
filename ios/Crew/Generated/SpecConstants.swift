@@ -34,6 +34,8 @@ enum SpecConstants {
     static let pauseMaxDays: Int = 21
     /// SPEC: Flow 7; Part IX — one active pause at a time
     static let maxActivePauses: Int = 1
+    /// SPEC: GAP (agent, 2026-09-05): Flow 7 / S17 — the pre-filled return day is one week out (never above pauseMaxDays)
+    static let pauseDefaultDays: Int = 7
 
     // MARK: xp
     /// SPEC: Part IV table; V24 — first post of day = 25
@@ -62,6 +64,12 @@ enum SpecConstants {
     static let startingLevel: Int = 1
     /// SPEC: Decision Registry G2 (2026-09-04) — level N (N ≥ 2) requires totalXP ≥ levelBaseXp × (N−1) × N / 2; formula, never a table
     static let levelBaseXp: Int = 500
+    /// SPEC: Decision Registry G2 (2026-09-04) — the /2 of the triangular formula levelBaseXp × (N−1) × N / 2
+    static let levelFormulaDivisor: Int = 2
+
+    // MARK: identity
+    /// SPEC: GAP (agent, 2026-09-04): E1 initials fallback — first letters of up to two names
+    static let initialsMaxLetters: Int = 2
 
     // MARK: crew
     /// SPEC: Flow 6 — 2–10 people
@@ -74,6 +82,8 @@ enum SpecConstants {
     static let feedWindowDays: Int = 7
     /// SPEC: Flow 6; Part IX — the only five reactions
     static let reactionEmojis: [String] = ["🔥", "💪", "👏", "😂", "❤️"]
+    /// SPEC: GAP (agent, 2026-09-05): Flow 6 'a name, an emoji' — one emoji, ZWJ sequences included, counted in UTF-16 units
+    static let crewEmojiMaxChars: Int = 16
 
     // MARK: limits
     /// SPEC: E20; Part IX
@@ -84,10 +94,18 @@ enum SpecConstants {
     static let exerciseNameMaxChars: Int = 60
     /// SPEC: E20; Part IX; 8.2
     static let chatMessageMaxChars: Int = 1000
+    /// SPEC: GAP (agent, 2026-09-04): E1 names a display name but no limit; conservative default = the crew-name limit
+    static let displayNameMaxChars: Int = 30
+    /// SPEC: GAP (agent, 2026-09-04): E18 standard resets, no password floor stated; conservative common floor
+    static let passwordMinChars: Int = 8
+    /// SPEC: GAP (agent, 2026-09-04): E9 report flow, no length stated; docs/api.md reports
+    static let reportReasonMaxChars: Int = 500
     /// SPEC: Flow 8 — ≤15 exercises/day
     static let planMaxExercisesPerDay: Int = 15
     /// SPEC: Flow 8; Decision Registry G3 (2026-09-04) — ≤20 sets per exercise; 15 × 20 is the day ceiling
     static let planMaxSetsPerExercise: Int = 20
+    /// SPEC: GAP (agent, 2026-09-05): Flow 3 / Flow 8 name no reps ceiling — above 100 reps a set is a typo, not training
+    static let planTargetRepsMax: Int = 100
 
     // MARK: planGeneration
     /// SPEC: Flow 1 step 3; S04 — Full-Body A/B at ≤2 days
@@ -134,8 +152,34 @@ enum SpecConstants {
     static let weightStepKg: Double = 2.5
     /// SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able
     static let restTimerDefaultSeconds: Int = 90
+    /// SPEC: GAP (agent, 2026-09-05): G9 says per-workout adjustable but names no step — 15 s per tap, the smallest step a resting lifter notices
+    static let restTimerAdjustStepSeconds: Int = 15
+    /// SPEC: GAP (agent, 2026-09-04): Flow 3 plate math ('45 + 25 + 2.5 per side') — a standard bar
+    static let barbellBarWeightLb: Int = 45
+    /// SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — a standard bar
+    static let barbellBarWeightKg: Int = 20
+    /// SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — the common gym plate set
+    static let plateSetLb: [Double] = [45, 35, 25, 10, 5, 2.5]
+    /// SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — the common gym plate set
+    static let plateSetKg: [Double] = [25, 20, 15, 10, 5, 2.5, 1.25]
+    /// SPEC: GAP (agent, 2026-09-04): Flow 3 smart steppers — long-press fast-scroll repeat interval
+    static let longPressStepIntervalMs: Int = 120
     /// SPEC: S01 — stale (>day) in-progress session triggers the stale-session prompt
     static let staleInProgressSessionAfterHours: Int = 24
+    /// SPEC: GAP (agent, 2026-09-05): Flow 3 names no weight ceiling — 1000 lb/kg keeps a typo out of the plate math
+    static let setWeightMax: Int = 1000
+    /// SPEC: GAP (agent, 2026-09-05): Flow 3 plate math 'per side' — plates load on both ends of the bar
+    static let barbellPlateSides: Int = 2
+    /// SPEC: GAP (agent, 2026-09-05): Flow 3 mobility '90s each' — a per-side hold runs once per side
+    static let perSideHoldRepeats: Int = 2
+    /// SPEC: GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min
+    static let holdSecondsMax: Int = 600
+
+    // MARK: progress
+    /// SPEC: GAP (agent, 2026-09-04): S15 layer 1 heat map — weeks shown; Flow 9 names no span (12 = a quarter, the smallest span where a weekly pattern reads)
+    static let progressHeatMapWeeks: Int = 12
+    /// SPEC: GAP (agent, 2026-09-04): S15 rings history — weeks of past rings shown; Flow 9 names no span
+    static let progressRingHistoryWeeks: Int = 8
 
     // MARK: nutrition
     /// SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)
@@ -150,6 +194,10 @@ enum SpecConstants {
     // MARK: reminders
     /// SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in
     static let reminderSuggestedMinuteOfDay: Int = 450
+    /// SPEC: GAP (agent, 2026-09-04): Flow 4 rhythm reminder 'at YOUR usual time' — the nudge may fire within this many minutes after the user's usual post time
+    static let streakRiskNudgeWindowMinutes: Int = 60
+    /// SPEC: GAP (agent, 2026-09-04): the user's usual post time = the median of the last N post times
+    static let usualPostTimeSampleSize: Int = 14
 
     // MARK: onboarding
     /// SPEC: Flow 1; 1B — three questions, the '1 of 3' whisper
@@ -215,6 +263,18 @@ enum SpecConstants {
     /// SPEC: 8.8 — image pipeline: 12 MP → ≤ ~300 KB upload
     static let imageUploadMaxKb: Int = 300
 
+    // MARK: photos
+    /// SPEC: GAP (agent, 2026-09-04): 8.8 image pipeline 12 MP → ≤ ~300 KB; the long edge after resize (docs/api.md photos)
+    static let photoMaxEdgePx: Int = 1600
+    /// SPEC: GAP (agent, 2026-09-04): first JPEG quality tried by the pipeline
+    static let photoJpegQuality: Int = 82
+    /// SPEC: GAP (agent, 2026-09-04): the pipeline steps quality down toward this floor until the upload fits imageUploadMaxKb
+    static let photoJpegQualityFloor: Int = 60
+    /// SPEC: GAP (agent, 2026-09-04): quality step between attempts
+    static let photoJpegQualityStep: Int = 8
+    /// SPEC: GAP (agent, 2026-09-04): the largest source file the photos route accepts (a 12 MP HEIC/JPEG is well under)
+    static let photoMaxSourceMb: Int = 25
+
     // MARK: touchAndLayout
     /// SPEC: 6.3 — targets ≥ 44×44 pt
     static let minTouchTargetPt: Int = 44
@@ -230,6 +290,12 @@ enum SpecConstants {
     static let webMinViewportPx: Int = 360
     /// SPEC: 6.7 — no horizontal scroll 360–1920
     static let webMaxViewportPx: Int = 1920
+    /// SPEC: GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton
+    static let skeletonPlaceholderRows: Int = 3
+    /// SPEC: GAP (agent, 2026-09-05): S13 chat composer grows to four lines before it scrolls
+    static let chatComposerMaxLines: Int = 4
+    /// SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)
+    static let captionComposerMaxLines: Int = 3
 
     // MARK: accessibility
     /// SPEC: 6.5 — text ≥ 4.5:1
@@ -244,10 +310,18 @@ enum SpecConstants {
     static let syncMaxAttemptsBeforeHeld: Int = 5
     /// SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete
     static let failedUploadChoiceAfterHours: Int = 24
+    /// SPEC: GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins
+    static let syncClientTimestampMaxAgeDays: Int = 7
+    /// SPEC: GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync)
+    static let clientClockSkewToleranceMinutes: Int = 5
     /// SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s
     static let chatPollIntervalMinSeconds: Int = 5
     /// SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s
     static let chatPollIntervalMaxSeconds: Int = 10
+    /// SPEC: GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops
+    static let syncBatchMaxOps: Int = 1000
+    /// SPEC: GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived
+    static let hydrationMaxWaitSeconds: Int = 10
 
     // MARK: authAndPolicy
     /// SPEC: Part IV email table; 8.2 Auth — single-use token, 30-min expiry
@@ -256,12 +330,16 @@ enum SpecConstants {
     static let jwtAccessTokenMinutes: Int = 15
     /// SPEC: Decision Registry G11 (2026-09-04) — refresh token 30 days, rotating
     static let jwtRefreshTokenDays: Int = 30
+    /// SPEC: GAP (agent, 2026-09-04): clients refresh the access token this long before it expires so no request ever races the 15-min expiry
+    static let tokenRefreshLeadSeconds: Int = 60
     /// SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — auth endpoints 10 req/min/IP
     static let rateLimitAuthRequestsPerMinutePerIp: Int = 10
     /// SPEC: 8.7 rate limits; Decision Registry G11 (2026-09-04) — post creation 60/hour/user; everything else unlimited in MVP
     static let rateLimitPostCreationPerHourPerUser: Int = 60
     /// SPEC: E9; Appendix A — age floor 13+
     static let minimumAgeYears: Int = 13
+    /// SPEC: GAP (agent, 2026-09-04): the age gate asks a birth year; validator floor
+    static let birthYearMin: Int = 1900
     /// SPEC: Part IV email table; lib/email.ts — the only three
     static let transactionalEmailKinds: [String] = ["passwordReset", "reportReceived", "accountDeleted"]
 
@@ -312,4 +390,6 @@ enum SpecConstants {
     static let functionMaxLines: Int = 40
     /// SPEC: 5.3 lint — no numeric literal outside Generated (allowlist: 0, 1)
     static let numericLiteralAllowlist: [Int] = [0, 1]
+    /// SPEC: GAP (agent, 2026-09-04): the percent → fraction scale (photoJpegQuality, success-target percentages)
+    static let percentScale: Int = 100
 }
