@@ -37,6 +37,10 @@ commit_task "fix(ios): ProgressModel — the plan is optional to the heat map (a
 commit_task "test(ios): HomeModelTests — Friday of a Mon/Wed/Fri plan is Leg day (PPL cycles over the sorted days), the model was right; ios job gets a 45-minute timeout; ratification R-051 [SPEC: Flow 1 step 3; S07; 8.1; XI T024/T008]" \
   ios/CrewTests/HomeModelTests.swift .github/workflows/ci.yml docs/ratification.md docs/progress.md docs/commit-queue.sh
 
+# --- F05 (run 34243884907: the app runs on a simulator; journeys ①② fail on the server's timezone rule; S03 clipped) ---
+commit_task "fix: a phone's timezone is whatever Intl can format with (Foundation says GMT on a UTC device — the seed and the app both got 400); S03 day toggles fit the screen (GAP, R-052); CI warms the API routes and keeps the dev-server log [SPEC: E8; S03; 1B; 6.3; 8.4; XI T021/T028/T035/T008]" \
+  ios/Crew/Features/Onboarding/PlanQuestionsScreen.swift ios/Crew/Features/Onboarding/SaveAuthScreen.swift ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/SeedClient.swift web/src/lib/validate.ts web/tests/api/auth.test.ts .github/workflows/ci.yml codemagic.yaml docs/ratification.md docs/progress.md docs/commit-queue.sh
+
 # ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
 
 # --- S03 ---
