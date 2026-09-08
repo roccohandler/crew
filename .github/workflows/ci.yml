@@ -72,6 +72,7 @@ jobs:
     # owner opens it on a Mac. Continuous-build rule 3a: every iOS task is WRITTEN — UNVERIFIED until this job is green.
     name: ios (xcodegen · build · unit + vectors · journeys ①②)
     runs-on: macos-latest
+    timeout-minutes: 45 # a hung simulator must not burn the six-hour default; a green run takes about ten minutes
     needs: contracts
     steps:
       - uses: actions/checkout@v4
