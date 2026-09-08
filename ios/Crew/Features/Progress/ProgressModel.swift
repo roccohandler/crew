@@ -59,7 +59,8 @@ final class ProgressModel {
     }
 
     func refresh(now: Date = Date()) {
-        guard let posts = try? store.allPosts(for: userId), let plan = try? store.plan(for: userId), let state = try? store.gamificationState(for: userId) else { return }
+        guard let posts = try? store.allPosts(for: userId), let state = try? store.gamificationState(for: userId) else { return }
+        let plan = try? store.plan(for: userId) // nil until onboarding wrote one — the heat map still renders, the rings plan 0
         let completed = (try? store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.userId == userId && $0.status == "completed" }, sortBy: [SortDescriptor(\.dayKey)]))) ?? []
         isEmpty = posts.isEmpty
         let todayKey = DayKey.dayKey(for: now, tz: timeZone)
