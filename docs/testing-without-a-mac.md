@@ -38,7 +38,25 @@ sync queue's storage — those need Xcode. That is Stage 1.
 
 ---
 
-## Stage 1 — free, on GitHub: compile the iPhone app and watch it run on a simulator
+> **2026-09-08 — GitHub Actions is unavailable on this account.** Every job, including the free Linux ones, is refused with
+> "your account is locked due to a billing issue", although a valid card is on file and nothing is owed. Only GitHub support
+> can lift that. Until they do, Stage 1 runs on **Codemagic** instead: `codemagic.yaml` in the repo root describes the same
+> jobs, and the sign-up is in a browser. The GitHub workflow files stay as they are and become the home again the moment the
+> lock is gone (`docs/debt.md`).
+
+## Stage 1 — free macOS CI: compile the iPhone app and watch it run on a simulator
+
+### Stage 1 on Codemagic (use this today)
+
+1. Go to `codemagic.io`, sign up **with GitHub**, and authorise it for `roccohandler/crew`.
+2. Add the application when it lists your repositories; choose **"Use codemagic.yaml"** rather than the visual editor.
+3. Pick the `ios-test` workflow and press **Start new build**.
+4. It installs XcodeGen, generates the project, runs the doctrine lint and the Swift engine tests, starts the local web
+   harness, then runs the unit suite, the 51 vectors, and journeys ① and ② on an iPhone 16 simulator.
+5. The build page lists artifacts. `UITestResults.xcresult` holds the journeys' screenshots — that is how you look at the
+   app. The free tier gives 500 macOS minutes a month, which is plenty for the compile-fix loop.
+
+### Stage 1 on GitHub Actions (once the billing lock is lifted)
 
 GitHub's `macos-latest` runners have Xcode. The `ios` job in `.github/workflows/ci.yml` generates the project with
 XcodeGen, compiles the whole app, runs the unit suite and the 51 vectors, then runs journeys ① and ② on an iPhone 16
