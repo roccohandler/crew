@@ -747,3 +747,20 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   toolchain could find — the remaining errors are the ones only Xcode reports.
 - Look at: two CI descriptions now exist (Actions + Codemagic) and must not drift — `docs/debt.md`; Codemagic is the backup
   and stays unrun unless GitHub locks again.
+
+### R-051 · 2026-09-08 · The Swift app compiles under Xcode and its unit suite runs on a simulator · T013–T025 / T040–T042 / T008 · checkpoint — proceeding
+- What was checked: run 34228816686 (the push carrying F03): the whole `Crew` target and the `CrewTests` target compiled
+  under Xcode 26.6 (iOS 26.5 SDK, iPhone 17 simulator) with zero errors, and 49 XCTest cases ran — 48 passed, including BOTH
+  vector runners: 47 + 4 = all 51 shared vectors green on the Swift twin under the real toolchain, so 8.1's "both engines"
+  gate now holds under Xcode and not only on Linux (R-048). Also green: SyncQueue (9), ServerHydrate (4), HomeModel edge (5),
+  LapsedUser (6), Onboarding (3), Session (3), SwapFinder (2), PlanGenerator (2), Achievements (4 + the SwiftData case),
+  ShellStates (3), SpecConstants (2).
+- Verdict: one failure, and it is the test's. `HomeModelTests.testBridgeUntilTheFirstPostThenWorkoutState` expected Friday
+  of a Mon/Wed/Fri plan to be "Push day"; the generator cycles Push → Pull → Legs over the sorted days (plan-templates.json's
+  documented GAP; the web's journey ④ asserts "Monday · Push day" by the same rule), so Friday is "Leg day" and HomeModel
+  was right. The expectation is corrected (F04); no product behaviour changed. The compile-fix loop took four pushes for four
+  one-line defects — a property named `set` parsed as an accessor, a Double/Int comparison, a doubly-unwrapped optional,
+  and this expectation; the desk-checks (R-042) and the Linux build (R-048) had removed the rest.
+- Look at: the SwiftUI screens have compiled but not yet run — journeys ① and ② (CrewUITests) are the next stage and the
+  first time a screen renders; the eight main-actor warnings stay in debt; the ios job now carries a 45-minute timeout so a
+  hung simulator cannot burn the six-hour default.

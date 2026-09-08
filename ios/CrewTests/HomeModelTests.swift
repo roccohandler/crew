@@ -34,7 +34,8 @@ final class HomeModelTests: XCTestCase {
         store.context.insert(LocalPost(clientId: "p1", userId: userId, type: "meal", sessionClientId: nil, caption: "eggs", mealTag: "breakfast", shareToCrew: false, dayKey: "2026-09-03", isPlannedDay: true, workoutCompleted: false, earlierToday: false, createdAt: friday))
         try store.save()
         model.refresh(now: friday)
-        XCTAssertEqual(model.today, .workout(name: "Push day", exerciseCount: SpecConstants.beginnerExerciseCount, done: false))
+        // Mon/Wed/Fri cycles Push → Pull → Legs over the sorted days (plan-templates.json), so Friday is Leg day (R-051)
+        XCTAssertEqual(model.today, .workout(name: "Leg day", exerciseCount: SpecConstants.beginnerExerciseCount, done: false))
         XCTAssertTrue(model.quickCompleteAvailable)
         XCTAssertEqual(model.ringPlanned, 3)
     }
