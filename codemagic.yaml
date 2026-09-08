@@ -48,14 +48,16 @@ workflows:
           xcodebuild test -project Crew.xcodeproj -scheme Crew \
             -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest" \
             -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            OTHER_SWIFT_FLAGS="-continue-building-after-errors"
       - name: Journeys ① and ② on a simulator
         script: |
           cd ios
           xcodebuild test -project Crew.xcodeproj -scheme CrewUITests \
             -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest" \
             -resultBundlePath UITestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            OTHER_SWIFT_FLAGS="-continue-building-after-errors"
     artifacts:
       - ios/*.xcresult
       - web/dev-server.log

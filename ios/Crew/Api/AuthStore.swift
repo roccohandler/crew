@@ -59,7 +59,7 @@ final class AuthStore {
 
     // The access token is refreshed one minute before it expires; a dead refresh token signs the user out (G11)
     func validAccessToken() async throws -> String {
-        if let token = accessToken, let expiresAt = accessExpiresAt, expiresAt.timeIntervalSinceNow > SpecConstants.tokenRefreshLeadSeconds {
+        if let token = accessToken, let expiresAt = accessExpiresAt, expiresAt.timeIntervalSinceNow > TimeInterval(SpecConstants.tokenRefreshLeadSeconds) {
             return token
         }
         guard let refresh = refreshToken else { throw AppError.unauthorized }

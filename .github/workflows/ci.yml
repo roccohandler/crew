@@ -99,11 +99,13 @@ jobs:
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath TestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          OTHER_SWIFT_FLAGS="-continue-building-after-errors"
       - run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewUITests
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath UITestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          OTHER_SWIFT_FLAGS="-continue-building-after-errors"
       # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
       - uses: actions/upload-artifact@v4
