@@ -43,37 +43,46 @@ sync queue's storage — those need Xcode. That is Stage 1.
 > can lift that. Until they do, Stage 1 runs on **Codemagic** instead: `codemagic.yaml` in the repo root describes the same
 > jobs, and the sign-up is in a browser. The GitHub workflow files stay as they are and become the home again the moment the
 > lock is gone (`docs/debt.md`).
+>
+> **Later the same day — lifted.** The lock was a past-due charge declined on an expired card; re-saving the card on
+> Settings → Billing & Licensing → Payment information paid it, and Actions started within minutes. GitHub Actions is the
+> main path below; Codemagic stays as the backup and has never been run.
 
 ## Stage 1 — free macOS CI: compile the iPhone app and watch it run on a simulator
 
-### Stage 1 on Codemagic (use this today)
+### Stage 1 on Codemagic (the backup — never run yet)
 
 1. Go to `codemagic.io`, sign up **with GitHub**, and authorise it for `roccohandler/crew`.
 2. Add the application when it lists your repositories; choose **"Use codemagic.yaml"** rather than the visual editor.
 3. Pick the `ios-test` workflow and press **Start new build**.
 4. It installs XcodeGen, generates the project, runs the doctrine lint and the Swift engine tests, starts the local web
-   harness, then runs the unit suite, the 51 vectors, and journeys ① and ② on an iPhone 16 simulator.
+   harness, then runs the unit suite, the 51 vectors, and journeys ① and ② on the newest iPhone simulator the image ships.
 5. The build page lists artifacts. `UITestResults.xcresult` holds the journeys' screenshots — that is how you look at the
    app. The free tier gives 500 macOS minutes a month, which is plenty for the compile-fix loop.
 
-### Stage 1 on GitHub Actions (once the billing lock is lifted)
+### Stage 1 on GitHub Actions (use this — the lock is lifted)
 
 GitHub's `macos-latest` runners have Xcode. The `ios` job in `.github/workflows/ci.yml` generates the project with
-XcodeGen, compiles the whole app, runs the unit suite and the 51 vectors, then runs journeys ① and ② on an iPhone 16
-simulator against the same local harness. **This is the compile-fix loop, and it needs no Mac of your own.**
+XcodeGen, compiles the whole app, runs the unit suite and the 51 vectors, then runs journeys ① and ② on the newest iPhone
+simulator the runner image ships (picked at run time — the image, not the workflow, decides which devices exist) against
+the same local harness. **This is the compile-fix loop, and it needs no Mac of your own.**
 
-1. Commit and push. Git is hook-blocked for the agent, so the commits are queued:
+1. Commit and push. Git is hook-blocked for the agent, so the commits are queued. In PowerShell, plain `bash` is WSL and
+   cannot enter the repo, so call Git Bash by its path:
 
 ```
 cd C:\Users\princ\CREW_2.0
-bash docs/commit-queue.sh
+& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh
 git push
 ```
 
-2. Open the repository's **Actions** tab. Five jobs run: contracts, web, web e2e, ios engine (Linux), ios (macOS).
-3. The `ios` job will fail the first time. 126 Swift files have never met the Xcode compiler; two desk-check passes and
+2. Open the repository's **Actions** tab. Five jobs run: contracts, web, web e2e, ios engine (Linux), ios (macOS). The
+   first run (2026-09-08, run 34224403865) had the four non-Xcode jobs green, Playwright included.
+3. The `ios` job will fail the first time. 127 Swift files have never met the Xcode compiler; two desk-check passes and
    the Linux build removed what could be found without one. Read the log, fix the errors in the repo here, push again.
-   Behaviour must not change — the tests are the contract.
+   Behaviour must not change — the tests are the contract. The agent reads the log itself:
+   `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
+   `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
 4. **Look at the app.** The job uploads `ios-test-results` on every run, pass or fail. Download it, and inside the
    `.xcresult` bundle are the journeys' screenshots (`CrewUITests/Screenshots.swift` attaches one at every named moment:
    the hero, the three questions, the built week, Home's bridge, the session, the celebration, the crew card with its
