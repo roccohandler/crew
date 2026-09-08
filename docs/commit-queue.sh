@@ -25,6 +25,10 @@ commit_task() {
 commit_task "fix(ios): MobilityHoldRow — a stored property named 'set' reads as a setter accessor inside a computed property; renamed setLog. First Xcode diagnostic; fix blocks now run ahead of the history [SPEC: S09; Flow 3; XI T025/T008]" \
   ios/Crew/Features/Session/MobilityHoldRow.swift ios/Crew/Features/Session/SessionScreen.swift docs/commit-queue.sh docs/debt.md docs/progress.md
 
+# --- F02 (run 34227696962: one type error; CI now asks swiftc to keep going after the first failing batch) ---
+commit_task "fix(ios): AuthStore compares the token's remaining seconds as TimeInterval; CI passes -continue-building-after-errors so one run reports every type error [SPEC: G11; C7; XI T012/T008]" \
+  ios/Crew/Api/AuthStore.swift .github/workflows/ci.yml codemagic.yaml docs/commit-queue.sh docs/debt.md docs/progress.md
+
 # ===== HISTORY — every block below is committed; kept for the record and for a fresh clone =====
 
 # --- S03 ---
