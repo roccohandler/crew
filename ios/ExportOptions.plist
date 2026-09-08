@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPEC: XI T045 (TestFlight) — how `xcodebuild -exportArchive` packages and delivers the archive built by
+     .github/workflows/testflight.yml. `destination: upload` sends the build straight to App Store Connect, so no
+     second tool (altool/notarytool) and no local Mac is involved. Signing is automatic: the App Store Connect API key
+     in the workflow lets Xcode create the certificate and profile on demand. -->
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>app-store-connect</string>
+  <key>destination</key>
+  <string>upload</string>
+  <key>signingStyle</key>
+  <string>automatic</string>
+  <key>manageAppVersionAndBuildNumber</key>
+  <true/>
+  <key>uploadSymbols</key>
+  <true/>
+  <key>testFlightInternalTestingOnly</key>
+  <true/>
+</dict>
+</plist>
