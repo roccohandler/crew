@@ -50,21 +50,28 @@ struct SetRow: View {
         .overlay(alignment: .bottomLeading) {
             if let plateLine { Text(plateLine).font(.caption).foregroundStyle(EmberColors.secondaryText).offset(y: EmberTokens.Spacing.space16) }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(exerciseName), \(set.isWarmup ? "warm-up" : "set \(index) of \(count)"), \(set.actualReps) reps\(set.weight.map { ", \($0) \(units)" } ?? "")\(set.done ? ", done" : "")")
-        .accessibilityHint(set.done ? "Double-tap to undo" : "Double-tap to complete")
-        .accessibilityAddTraits(.isButton) // E20: the row is the target ("double-tap to complete") — a button to VoiceOver and to XCUITest (run 34360394481: it read as a plain element, so no journey could tap a set)
+        // E20: to VoiceOver and to XCUITest the row IS its check button (below, carrying the whole "Bench press, set 3 of 3 …"
+        // label), and the steppers stay reachable as their own "Decrease reps" / "Increase weight" buttons. A single element
+        // spanning the wrapped row was activated at its centre — which on a phone is the weight stepper's minus (run
+        // 34364030257: the tap that was meant to check set 1 set its weight to 0 instead).
+        .accessibilityElement(children: .contain)
+    }
+
+    // "Machine Chest Press, set 1 of 3, 10 reps, 135 lb, done" — the one line VoiceOver and the journeys read for a set (E20)
+    private var rowLabel: String {
+        "\(exerciseName), \(set.isWarmup ? "warm-up" : "set \(index) of \(count)"), \(set.actualReps) reps\(set.weight == nil ? "" : ", \(weightText) \(units)")\(set.done ? ", done" : "")"
     }
 
     private var setLabel: some View {
         Text(set.isWarmup ? "Warm-up" : "Set \(index)").font(.subheadline).foregroundStyle(EmberColors.secondaryText).frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), alignment: .leading)
+            .accessibilityHidden(true) // spoken by the check button's label
     }
 
     private var steppers: some View {
         HStack(spacing: EmberTokens.Spacing.space12) {
-            Stepper(label: "\(set.actualReps) reps", onStep: onReps)
+            Stepper(label: "\(set.actualReps) reps", noun: "reps", onStep: onReps)
             if equipment != "bodyweight" {
-                Stepper(label: "\(weightText) \(units)", onStep: onWeight)
+                Stepper(label: "\(weightText) \(units)", noun: "weight", onStep: onWeight)
                     .onLongPressGesture(minimumDuration: Double(SpecConstants.longPressStepIntervalMs) / Double(TimeUnits.msPerSecond)) {
                         if equipment == "barbell", let weight = set.weight { plateLine = PlateMath.plateLine(totalWeight: weight, units: units) }
                     }
@@ -80,25 +87,30 @@ struct SetRow: View {
                 .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(rowLabel)
+        .accessibilityHint(set.done ? "Double-tap to undo" : "Double-tap to complete")
     }
 }
 
-// A stepper with ± buttons ≥ 44 pt; long-press repeats (Flow 3 fast-scroll)
+// A stepper with ± buttons ≥ 44 pt; long-press repeats (Flow 3 fast-scroll). `noun` names what the buttons change to
+// VoiceOver ("Decrease reps", "Increase weight") — a row holds two steppers, so a bare "Decrease" says nothing (E20)
 struct Stepper: View {
     let label: String
+    let noun: String
     let onStep: (Int) -> Void
 
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space4) {
-            StepButton(symbol: "minus") { onStep(-1) }
+            StepButton(symbol: "minus", noun: noun) { onStep(-1) }
             Text(label).font(.body.monospacedDigit()).foregroundStyle(EmberColors.inkText).frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt)) // a touch target's width, not the ring's: two steppers must share a 375-pt row (6.7)
-            StepButton(symbol: "plus") { onStep(1) }
+            StepButton(symbol: "plus", noun: noun) { onStep(1) }
         }
     }
 }
 
 struct StepButton: View {
     let symbol: String
+    let noun: String
     let action: () -> Void
     @State private var repeating = false
 
@@ -113,7 +125,7 @@ struct StepButton: View {
                 repeating = pressing
                 if pressing { repeatWhilePressed() }
             }, perform: {})
-            .accessibilityLabel(symbol == "plus" ? "Increase" : "Decrease")
+            .accessibilityLabel(symbol == "plus" ? "Increase \(noun)" : "Decrease \(noun)")
     }
 
     private func repeatWhilePressed() {

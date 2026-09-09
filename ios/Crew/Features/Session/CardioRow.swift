@@ -65,7 +65,7 @@ struct CardioRow: View {
     private var controls: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
             HStack(spacing: EmberTokens.Spacing.space12) {
-                Stepper(label: "\(minutes) min") { minutes = CardioRow.bounded(minutes + $0 * SpecConstants.cardioMinutesStep) }
+                Stepper(label: "\(minutes) min", noun: "minutes") { minutes = CardioRow.bounded(minutes + $0 * SpecConstants.cardioMinutesStep) }
                 Spacer()
                 Button("Done") { onDone(minutes, distanceMeters) }
                     .font(.headline)

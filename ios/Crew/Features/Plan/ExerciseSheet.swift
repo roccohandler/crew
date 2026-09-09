@@ -78,7 +78,7 @@ struct StepperRow: View {
         HStack {
             Text(label).font(.body).foregroundStyle(EmberColors.inkText)
             Spacer()
-            Stepper(label: value) { delta in
+            Stepper(label: value, noun: label.lowercased()) { delta in // "Decrease sets" / "Increase reps" to VoiceOver
                 Haptics.selection()
                 onStep(delta)
             }

@@ -1031,3 +1031,21 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   the journey instead of hiding in a screenshot.
 - **Checked here.** `node shared/scripts/swift-xref.mjs` clean (166 files, 342 types); doctrine-lint clean. Not checkable
   here: the SwiftUI layout and the trait — the next `ios` verdict is the proof (WRITTEN — UNVERIFIED).
+
+## R-060 — 2026-09-09, run 34364030257: the row is a button and fits; its centre was the wrong control (F26)
+
+- **What the run said.** Every job green but `ios`, and `ios` only at the journeys: unit 89/0; journeys 3 of 5. Journey ①
+  and the offline test both found the set row as a Button, both on-screen assertions passed (the dump's frames: the card
+  338 pt wide, Skip at x = 345 on a 402 pt window — F25's layout holds), and both tapped it. The tap changed the row's label
+  from "…, 10 reps" to "…, 10 reps, 0.0 lb": XCUITest, like VoiceOver's activate, touches an element at its centre, and the
+  centre of the wrapped 96-pt row is the steppers line — the weight stepper's minus took the touch (weight nil → 0) and
+  the set stayed unchecked. Journey ① then pressed Complete and got "Check off at least one set and this counts."; the
+  offline test never saw ", done".
+- **What changed (F26).** The check button is the row to assistive tech: it carries the full "Machine Chest Press, set 1
+  of 3, 10 reps, 135 lb, done" label (weight written as displayed) and the double-tap hint; the row container is
+  `.accessibilityElement(children: .contain)`, so the steppers are reachable as their own buttons and now say what they
+  change — `Stepper` gains `noun` ("Decrease reps", "Increase weight", "Decrease minutes" in CardioRow, "Increase sets" in
+  the exercise sheet). The row's whole-area tap gesture stays for fingers (Flow 3). The journeys' `firstSet` query now
+  resolves to a 44-pt button whose centre is unambiguous. Nothing about behaviour or copy moved.
+- **Checked here.** swift-xref clean (the `noun:` label is checked at all three call sites), doctrine-lint clean. The
+  rest — the tap, the check, the celebration, the resume after a kill — is the next `ios` verdict (WRITTEN — UNVERIFIED).

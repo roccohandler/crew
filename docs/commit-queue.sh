@@ -123,6 +123,10 @@ commit_task "feat(ci): swift-xref — a compiler-free Swift cross-reference chec
 commit_task "fix(ios): a set row is a button to VoiceOver and XCUITest and wraps its steppers under the label so no session card passes a 375-pt edge; exercise names wrap; journey ① trains every day and the journeys measure that the row, Skip and Complete sit inside the window (the iOS twin of the web overflow check); the day-toggle step shared on its third use [SPEC: 6.7; E20; S09; 8.4; 8.9; XI T025/T028/T043]" \
   ios/Crew/Features/Session/SetRow.swift ios/Crew/Features/Session/SessionScreen.swift ios/CrewUITests/JourneySteps.swift ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/OfflineSessionTests.swift ios/CrewUITests/CameraDeniedTests.swift docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F26 (run 34364030257: the set row is a button and fits — and its centre is the weight stepper's minus, so the journeys' tap set the weight to 0 instead of checking the set) ---
+commit_task "fix(ios): the check button is the set row to VoiceOver and XCUITest — it carries the row's full label and hint, the container holds its children, and every stepper button names what it changes (Decrease reps, Increase weight, Decrease minutes, Increase sets) [SPEC: E20; Flow 3; S09; 6.7; 8.4; XI T025/T028/T043]" \
+  ios/Crew/Features/Session/SetRow.swift ios/Crew/Features/Session/CardioRow.swift ios/Crew/Features/Plan/ExerciseSheet.swift docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
