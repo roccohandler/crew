@@ -1149,3 +1149,22 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   classes — no call site changes. Keychain I/O now happens on the main thread (four small calls per sign-in; acceptable).
 - **Still open.** Build 3's launch crash has no log yet (the owner's report was build 2's); F31 (the store) is the standing
   hypothesis. Both fixes ship in one push; TestFlight build 4 follows the green run. WRITTEN — UNVERIFIED.
+
+## R-067 — 2026-09-09, run 34405436792: one default argument, and the check that now catches its kind (F33)
+
+- **What the run said.** `HomeModel.swift:40:163: error: main actor-isolated property 'currentUser' can not be referenced
+  from a nonisolated context` — the only unique error across all 91 files (the module was fully type-checked). F32 made
+  `AuthStore` `@MainActor`; a parameter's default value is evaluated in a nonisolated context even inside a `@MainActor`
+  type, so `welcomeBackAckDay: String? = AuthStore.shared.currentUser?.welcomeBackAckDay` stopped compiling. The many
+  `store: Store = .shared` defaults are unaffected: a main-actor `static let` read is a warning in Swift 5 mode, and those
+  warnings have been in the log since the first Xcode run — it is reading a mutable PROPERTY through it that is an error.
+- **What changed.** The default is `nil`; `HomeScreen` passes `AuthStore.shared.currentUser?.welcomeBackAckDay`, the same
+  way ProgressScreen, SettingsScreen and CelebrationScreen already read `units` from the account (5.6.6 holds: the screen
+  passes data, the model keeps the rule). `HomeModelEdgeTests` passes the ack day explicitly at every call, so E4's
+  behaviour is untouched and no test changed.
+- **The local check grew with it (the standing rule).** `swift-xref` now collects every `@MainActor` type and reports a
+  parameter default that reads `<MainActorType>.shared.<property>`. Verified both directions: clean on the fixed tree
+  (166 files, 342 types), and a scratch copy with the exact line restored reports it at HomeModel.swift:42. Three classes
+  of macOS-only error are now caught on Windows: removed members, mismatched argument labels, main-actor defaults.
+- **Verdict.** WRITTEN — UNVERIFIED (swift-xref and doctrine-lint clean); the next `ios` verdict is the proof, and
+  TestFlight build 4 follows it.

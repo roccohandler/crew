@@ -48,6 +48,10 @@ what to run before every queue-and-push:
 node shared/scripts/swift-xref.mjs
 ```
 
+Since 2026-09-09 it also knows one concurrency rule: a parameter's default value is evaluated in a NONISOLATED context, so a
+default that reads `<a @MainActor type>.shared.<property>` is a compile error — the one diagnostic that making `AuthStore`
+main-actor produced.
+
 It is a text check, not a compiler: types it does not see (Apple's, generics, closures' bodies, `switch` cases) pass
 untouched, and only a name declared under `ios/` is ever checked — precision over recall, so a clean run means "none of
 the mistakes this repo has made before", not "it compiles". Test logic that depends on Foundation behaviour (a date

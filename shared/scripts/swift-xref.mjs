@@ -209,6 +209,7 @@ function statements(flat) {
   return out;
 }
 
+const mainActorTypes = new Set(); // types declared @MainActor: their mutable statics and properties are unreachable from a nonisolated context
 const types = new Map(); // simple name → { kinds, members:Set, inits:[{params, inBody}], funcs:Map name→[params], memberwise:[params|null], hasBodyInit, rawType, privateUndefaulted, declaredAt }
 function typeEntry(name) {
   if (!types.has(name)) types.set(name, { kinds: new Set(), members: new Set(["self", "Type", "init"]), inits: [], funcs: new Map(), memberwise: [], hasBodyInit: false, declaredAt: [] });
@@ -247,6 +248,7 @@ for (const { file, code } of files) {
     const header = code.slice(decl.index, k);
     const entry = typeEntry(key);
     entry.kinds.add(kind);
+    if (/@MainActor\b/.test(code.slice(Math.max(0, decl.index - 160), decl.index))) mainActorTypes.add(name);
     if (decl.parent) typeEntry(decl.parent.key).members.add(name);
     if (kind !== "extension") entry.declaredAt.push(`${relative(repoRoot, file).replaceAll("\\", "/")}:${lineOf(code, decl.index)}`);
     const rawType = kind === "enum" ? header.match(/:\s*(String|Int|Double|UInt8|Int64|Character)\b/) : null;
@@ -361,6 +363,37 @@ function checkInit(entry, name, code, open, at) {
   if (candidates.some((params) => matches(params, args, hasTrailing))) return;
   const hint = SWIFTUI_NAMES.has(name.split(".").pop()) ? ` — the module's ${name} shadows SwiftUI's; a call meant for SwiftUI's needs the SwiftUI. prefix` : "";
   findings.push(`${at}: ${name}(${describe(args)}) matches no initializer of ${name} (${entry.declaredAt.join(", ")}): ${candidates.map((p) => `(${describe(p.map((q) => q.label))})`).join(" / ")}${hint}`);
+}
+
+// Pass 3 — a parameter's DEFAULT VALUE is evaluated in a nonisolated context, even inside a @MainActor type, so reading a
+// property through a main-actor singleton there is a hard compile error ("main actor-isolated property … can not be
+// referenced from a nonisolated context"). `Type = .shared` is fine (a static let is only a warning today); it is the
+// `.shared.property` read that fails. Run 34405436792 died on exactly one of these after AuthStore became @MainActor.
+const SIGNATURE = /\b(?:init|func\s+[A-Za-z_]\w*)\s*(?:<[^{()<>]*>)?\s*\(/g;
+const ISOLATED_READ = /\b([A-Z]\w*)\s*\.\s*shared\s*\.\s*[A-Za-z_]/;
+for (const { file, code } of files) {
+  for (const hit of code.matchAll(SIGNATURE)) {
+    const open = hit.index + hit[0].length - 1;
+    for (const part of splitTop(code.slice(open + 1, matching(code, open)))) {
+      const value = defaultValueOf(part);
+      const read = value === null ? null : value.match(ISOLATED_READ);
+      if (read && mainActorTypes.has(read[1])) {
+        findings.push(`${relative(repoRoot, file).replaceAll("\\", "/")}:${lineOf(code, hit.index)}: a parameter default reads ${read[1]}.shared.… — ${read[1]} is @MainActor and a default value is evaluated in a nonisolated context; pass it at the call site or read it in the body`);
+      }
+    }
+  }
+}
+
+// The text after a parameter's top-level `=`, or null when it has no default
+function defaultValueOf(part) {
+  let depth = 0;
+  for (let k = 0; k < part.length; k += 1) {
+    const c = part[k];
+    if (c === "(" || c === "[" || c === "{" || c === "<") depth += 1;
+    else if (c === ")" || c === "]" || c === "}" || c === ">") depth = Math.max(0, depth - 1);
+    else if (c === "=" && depth === 0 && part[k + 1] !== "=" && !"=!<>".includes(part[k - 1] ?? "")) return part.slice(k + 1).trim();
+  }
+  return null;
 }
 
 findings.sort();

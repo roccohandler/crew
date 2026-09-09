@@ -37,7 +37,9 @@ final class HomeModel {
     private let syncQueue: SyncQueue?
     private var welcomeBackAckDay: String?
 
-    init(store: Store = .shared, userId: String? = nil, timeZone: TimeZone = .current, syncQueue: SyncQueue? = nil, welcomeBackAckDay: String? = AuthStore.shared.currentUser?.welcomeBackAckDay) {
+    // A default argument is evaluated in a NONISOLATED context, even on a @MainActor type — so it cannot read the account
+    // (AuthStore is main-actor since F32). The ack day is passed in: by HomeScreen from the account, by the tests explicitly.
+    init(store: Store = .shared, userId: String? = nil, timeZone: TimeZone = .current, syncQueue: SyncQueue? = nil, welcomeBackAckDay: String? = nil) {
         self.store = store
         self.userId = userId ?? AuthStore.shared.currentUser?.id ?? "local"
         self.timeZone = timeZone

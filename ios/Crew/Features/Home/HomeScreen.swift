@@ -15,7 +15,7 @@ enum HomeLoadState: Equatable {
 }
 
 struct HomeScreen: View {
-    @State private var model = HomeModel()
+    @State private var model = HomeModel(welcomeBackAckDay: AuthStore.shared.currentUser?.welcomeBackAckDay) // E4: the account remembers the answer (as ProgressScreen and SettingsScreen read units)
     @State private var loadState: HomeLoadState = .loading
     @State private var activeSession: LocalSession?
     @State private var celebration: CelebrationOutcome?

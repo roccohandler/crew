@@ -151,6 +151,10 @@ commit_task "fix(ios): an on-disk store the current schema cannot open is remove
 commit_task "fix(ios): AuthStore is main-actor isolated — token refreshes wrote its Strings from the cooperative pool while Home and the sync drain read them on main, which a Release build turns into SIGBUS (build 2's crash on the owner's phone) [SPEC: C14; 5.6.3; G11; 8.7; XI T012]" \
   ios/Crew/Api/AuthStore.swift docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F33 (run 34405436792: making AuthStore @MainActor broke one default argument — defaults are evaluated nonisolated) ---
+commit_task "fix(ios): HomeModel takes the welcome-back ack day instead of defaulting to it — a parameter default is evaluated in a nonisolated context and cannot read the main-actor account; HomeScreen passes it, and swift-xref now reports this whole class of error from Windows [SPEC: E4; C14; 5.3; 5.6.6; XI T024/T008]" \
+  ios/Crew/Features/Home/HomeModel.swift ios/Crew/Features/Home/HomeScreen.swift shared/scripts/swift-xref.mjs docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
