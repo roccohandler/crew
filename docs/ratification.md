@@ -1070,3 +1070,13 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
 - **Checked here.** The workflow parses; swift-xref and doctrine-lint clean. Whether ad-hoc signing accepts the project's
   entitlements (Sign in with Apple, push, associated domains) without a team is the next run's first line; if it refuses, the
   verdict names the setting to change. WRITTEN — UNVERIFIED.
+
+## R-062 — 2026-09-09, run 34371679615: the signed build wants an Info.plist for the test bundles (F28)
+
+- **What the run said.** Ten seconds into the first ad-hoc-signed simulator build: "Cannot code sign because the target does
+  not have an Info.plist file and one is not being generated automatically … (in target 'CrewTests')". Both steps stopped
+  before compiling. The signing override itself was taken ("Using codesigning identity override: -").
+- **What changed.** `GENERATE_INFOPLIST_FILE: YES` on CrewTests and CrewUITests in `ios/project.yml` — the app target
+  already has `Crew/Info.plist`; the test bundles never needed one while nothing was signed. project.yml parses.
+- **Verdict.** WRITTEN — UNVERIFIED; whether ad-hoc signing accepts the app's entitlements without a team remains the next
+  run's first line (R-061).

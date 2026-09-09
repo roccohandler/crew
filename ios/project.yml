@@ -84,6 +84,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourteam.crew.tests
+        # A signed bundle needs an Info.plist — Xcode writes this one (run 34371679615: the first ad-hoc-signed CI build stopped
+        # here; unsigned builds never asked)
+        GENERATE_INFOPLIST_FILE: YES
   CrewUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -94,6 +97,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourteam.crew.uitests
+        GENERATE_INFOPLIST_FILE: YES # as CrewTests: the signed runner app needs one
 schemes:
   Crew:
     build:

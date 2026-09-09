@@ -131,6 +131,10 @@ commit_task "fix(ios): the check button is the set row to VoiceOver and XCUITest
 commit_task "fix(ci): simulator builds are signed ad hoc so the app carries its entitlements and the Keychain works (unsigned: errSecMissingEntitlement, the session lost at every kill); the offline journey names a signed-out relaunch [SPEC: 1C; S01; 8.4; 8.7; XI T008/T043]" \
   .github/workflows/ci.yml ios/CrewUITests/OfflineSessionTests.swift docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F28 (run 34371679615: the first signed simulator build asked the test bundles for an Info.plist) ---
+commit_task "fix(ios): the test bundles generate their Info.plist, which a signed bundle must carry — the ad-hoc-signed CI build stopped there before compiling [SPEC: 5.2; 8.4; XI T007/T008]" \
+  ios/project.yml docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
