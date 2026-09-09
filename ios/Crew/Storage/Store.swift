@@ -22,7 +22,24 @@ final class Store {
         do {
             container = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            fatalError("SwiftData container failed: \(error)")
+            // SPEC: 1C · S01 · docs/debt.md (no SwiftData migration in the beta) — a store written by an earlier schema (build 2's,
+            // before A1/A2 reshaped plans and sets) cannot be opened by this one. The phone is not the source of truth: the server
+            // is (ServerHydrate fills an empty Store on the next signed-in frame), so the beta's answer is to start the store
+            // over rather than crash at launch — TestFlight build 3 installed over build 2 crashed on exactly this line.
+            guard !inMemory else { fatalError("SwiftData container failed: \(error)") }
+            Store.removeStoreFiles(at: configuration.url)
+            do {
+                container = try ModelContainer(for: schema, configurations: [configuration])
+            } catch {
+                fatalError("SwiftData container failed after a fresh store: \(error)")
+            }
+        }
+    }
+
+    // The store and its SQLite side files (-shm, -wal); a missing file is not an error
+    private static func removeStoreFiles(at url: URL) {
+        for path in [url.path, url.path + "-shm", url.path + "-wal"] {
+            try? FileManager.default.removeItem(atPath: path)
         }
     }
 
