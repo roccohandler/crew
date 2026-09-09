@@ -1006,3 +1006,28 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   script (`node shared/scripts/swift-xref.mjs` clean; probe: 7 findings covering the 4 seeded errors), the e2e change
   (`npx playwright test tests/e2e/a11y.spec.ts`: 11 passed, 1 skipped; `npm run typecheck` clean; eslint clean), the
   workflow file (parses), doctrine-lint clean.
+
+## R-059 — 2026-09-09, run 34360394481 read from Windows: the set row was never a button, and never fit a phone (F25)
+
+- **What the run said.** contracts (now with swift-xref) ✓ · web ✓ · web e2e ✓ · ios engine ✓ · ios unit 89/0 · journeys 3 of 5:
+  journey ① and OfflineSessionTests (Q09) failed at the same query, `app.buttons` matching "set 1 of" after "Start your
+  first workout".
+- **How it was read without a Mac.** The `ios-test-results` artifact's `.xcresult/Data` files are zstd-compressed; Node 22
+  decompresses them, and the text that starts `Application, 0x…` is the accessibility hierarchy XCUITest captured at the
+  failure. It showed the session screen OPEN — "Push day", Machine Chest Press, three rows labelled "…, set 1 of 3, 10 reps"
+  — with each row typed `Other`, not `Button`: SetRow is an HStack with a tap gesture and an accessibility label, which is a
+  plain element to XCUITest and to VoiceOver (E20 asks for "double-tap to complete", a button's hint). The same dump gave
+  frames: the exercise name at x = −41, Skip at x = 418, the Complete button 516 pt wide — on a 402 pt window. The row's
+  fixed parts (a 64-pt label, two steppers of 44 + 64 + 44, the 44-pt check, four gaps) sum to 476 pt before any padding;
+  an HStack never shrinks them, so the card, the scroll content and the bottom bar all grew past the edge.
+- **Why it passed before.** 2026-09-08 was a Tuesday: journey ①'s Mon/Wed/Fri plan put it on the bridge's meal branch and
+  it never touched a set row; Q09 (all seven days) has failed at this exact line since its first run. Today is a Wednesday.
+- **What changed (F25).** SetRow: `.accessibilityAddTraits(.isButton)`; a `ViewThatFits` — one line where it fits, on a
+  phone the steppers under the label (the web's `.setrow` flex-wrap, mirrored); the stepper label's minimum width is a touch
+  target, not the ring diameter. SessionScreen: exercise names wrap. Journey ①: selects all seven days, so it always logs
+  a set (the meal-first bridge is CameraDeniedTests' path). `CrewUITests/JourneySteps.swift`: the day-toggle step shared on
+  its third occurrence, and `expectOnScreen` — journey ① and the offline test assert that the set row, the first Skip and
+  Complete lie inside the window: the iOS twin of `expectNoHorizontalScroll`, so a layout that passes past the edge fails
+  the journey instead of hiding in a screenshot.
+- **Checked here.** `node shared/scripts/swift-xref.mjs` clean (166 files, 342 types); doctrine-lint clean. Not checkable
+  here: the SwiftUI layout and the trait — the next `ios` verdict is the proof (WRITTEN — UNVERIFIED).

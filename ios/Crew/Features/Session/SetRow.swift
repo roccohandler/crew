@@ -22,24 +22,26 @@ struct SetRow: View {
         return weight.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(weight))" : "\(weight)"
     }
 
+    // 6.7: one line where it fits (iPad, landscape); on a phone the steppers wrap under the set label — the row's fixed parts
+    // (label, two 44-pt-button steppers, the check) are wider than any iPhone, and an HStack never shrinks them, so the row
+    // pushed every card past the edge (run 34360394481: the session's Complete button measured 516 pt on a 402 pt window).
+    // The web twin is .setrow's flex-wrap.
     var body: some View {
-        HStack(spacing: EmberTokens.Spacing.space12) {
-            Text(set.isWarmup ? "Warm-up" : "Set \(index)").font(.subheadline).foregroundStyle(EmberColors.secondaryText).frame(minWidth: EmberTokens.Size.ringDiameter, alignment: .leading)
-            Stepper(label: "\(set.actualReps) reps", onStep: onReps)
-            if equipment != "bodyweight" {
-                Stepper(label: "\(weightText) \(units)", onStep: onWeight)
-                    .onLongPressGesture(minimumDuration: Double(SpecConstants.longPressStepIntervalMs) / Double(TimeUnits.msPerSecond)) {
-                        if equipment == "barbell", let weight = set.weight { plateLine = PlateMath.plateLine(totalWeight: weight, units: units) }
-                    }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: EmberTokens.Spacing.space12) {
+                setLabel
+                steppers
+                Spacer(minLength: 0)
+                check
             }
-            Spacer()
-            Button(action: onCheck) {
-                Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundStyle(set.done ? EmberColors.inkText : EmberColors.secondaryText)
-                    .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+                HStack(spacing: EmberTokens.Spacing.space12) {
+                    setLabel
+                    Spacer(minLength: 0)
+                    check
+                }
+                steppers
             }
-            .buttonStyle(.plain)
         }
         .opacity(isGhost ? EmberTokens.Opacity.disabled : 1)
         .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
@@ -51,6 +53,33 @@ struct SetRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(exerciseName), \(set.isWarmup ? "warm-up" : "set \(index) of \(count)"), \(set.actualReps) reps\(set.weight.map { ", \($0) \(units)" } ?? "")\(set.done ? ", done" : "")")
         .accessibilityHint(set.done ? "Double-tap to undo" : "Double-tap to complete")
+        .accessibilityAddTraits(.isButton) // E20: the row is the target ("double-tap to complete") — a button to VoiceOver and to XCUITest (run 34360394481: it read as a plain element, so no journey could tap a set)
+    }
+
+    private var setLabel: some View {
+        Text(set.isWarmup ? "Warm-up" : "Set \(index)").font(.subheadline).foregroundStyle(EmberColors.secondaryText).frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), alignment: .leading)
+    }
+
+    private var steppers: some View {
+        HStack(spacing: EmberTokens.Spacing.space12) {
+            Stepper(label: "\(set.actualReps) reps", onStep: onReps)
+            if equipment != "bodyweight" {
+                Stepper(label: "\(weightText) \(units)", onStep: onWeight)
+                    .onLongPressGesture(minimumDuration: Double(SpecConstants.longPressStepIntervalMs) / Double(TimeUnits.msPerSecond)) {
+                        if equipment == "barbell", let weight = set.weight { plateLine = PlateMath.plateLine(totalWeight: weight, units: units) }
+                    }
+            }
+        }
+    }
+
+    private var check: some View {
+        Button(action: onCheck) {
+            Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .foregroundStyle(set.done ? EmberColors.inkText : EmberColors.secondaryText)
+                .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -62,7 +91,7 @@ struct Stepper: View {
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space4) {
             StepButton(symbol: "minus") { onStep(-1) }
-            Text(label).font(.body.monospacedDigit()).foregroundStyle(EmberColors.inkText).frame(minWidth: EmberTokens.Size.ringDiameter)
+            Text(label).font(.body.monospacedDigit()).foregroundStyle(EmberColors.inkText).frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt)) // a touch target's width, not the ring's: two steppers must share a 375-pt row (6.7)
             StepButton(symbol: "plus") { onStep(1) }
         }
     }

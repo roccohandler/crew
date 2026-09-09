@@ -119,6 +119,10 @@ commit_task "fix(ios): SyncDeliveryTests enqueue and step the queue on one clock
 commit_task "feat(ci): swift-xref — a compiler-free Swift cross-reference check that reproduces every compile error the macOS job has reported (first step of the contracts job, and the local pre-push command); the ios job runs unit + journeys even when unit fails and writes a verdict summary; the e2e overflow check measures again under a wide fallback font and names the element — it caught the crew header pushing the pulse 9 px past a 375 edge, which now wraps [SPEC: 5.3; 6.7; 8.1; 8.4; 8.9; XI T008/T043]" \
   shared/scripts/swift-xref.mjs .github/workflows/ci.yml web/tests/e2e/helpers.ts web/src/components/CrewHeader.tsx docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F25 (run 34360394481: unit 89/0; journeys 3/5 — journey ① and Q09 both failed at the set row, read from the xcresult's accessibility dump: the row was not a button and the card was 484 pt wide on a 402 pt window) ---
+commit_task "fix(ios): a set row is a button to VoiceOver and XCUITest and wraps its steppers under the label so no session card passes a 375-pt edge; exercise names wrap; journey ① trains every day and the journeys measure that the row, Skip and Complete sit inside the window (the iOS twin of the web overflow check); the day-toggle step shared on its third use [SPEC: 6.7; E20; S09; 8.4; 8.9; XI T025/T028/T043]" \
+  ios/Crew/Features/Session/SetRow.swift ios/Crew/Features/Session/SessionScreen.swift ios/CrewUITests/JourneySteps.swift ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/OfflineSessionTests.swift ios/CrewUITests/CameraDeniedTests.swift docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

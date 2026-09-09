@@ -23,6 +23,10 @@ final class Journey1_NewUserTests: XCTestCase {
         // S03 days: Mon/Wed/Fri pre-selected, the encouragement line reads live
         XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 2))
         shoot(app, "S03 days")
+        // Every day trains, so today is a workout day whatever the calendar says and the journey always logs a set (the
+        // meal-first bridge is CameraDeniedTests' path). Until 2026-09-09 this ran Mon/Wed/Fri and took a different branch
+        // each weekday — the set row's defect (run 34360394481) hid behind a Tuesday.
+        for unselected in [1, 3, 5, 6] { app.dayToggle(unselected).tap() }
         app.buttons["Continue"].tap()
 
         // single-selects auto-advance
@@ -60,6 +64,10 @@ final class Journey1_NewUserTests: XCTestCase {
             // S09: check the first set, run one hold, complete
             let firstSet = app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of'")).firstMatch
             XCTAssertTrue(firstSet.waitForExistence(timeout: 5))
+            // 6.7: the row, its Skip and the Complete button all lie inside the window (the iOS overflow check, JourneySteps.swift)
+            expectOnScreen(firstSet, in: app, "the first set row")
+            expectOnScreen(app.buttons["Skip"].firstMatch, in: app, "the first Skip")
+            expectOnScreen(app.buttons["Complete workout"], in: app, "Complete workout")
             firstSet.tap()
             shoot(app, "S09 session")
             app.buttons["Complete workout"].tap()

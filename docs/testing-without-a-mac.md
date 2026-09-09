@@ -88,6 +88,11 @@ git push
    every failure, not one layer per push. The agent reads the log itself:
    `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
    `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
+   **Reading a UI-test failure from Windows:** the artifact's `.xcresult/Data` files are zstd-compressed (magic `28 B5 2F FD`);
+   Node 22 opens them (`zlib.zstdDecompressSync`), and the decompressed text starting `Application, 0x…` is the accessibility
+   hierarchy XCUITest captured at the failure — element types, labels and frames, which is how run 34360394481's set row
+   was found to be a plain element 484 pt wide on a 402 pt window. The `shoot()` screenshots are plain PNGs in the same
+   folder; the automatic failure recordings are the QuickTime movies.
 4. **Look at the app.** The job uploads `ios-test-results` on every run, pass or fail. Download it, and inside the
    `.xcresult` bundle are the journeys' screenshots (`CrewUITests/Screenshots.swift` attaches one at every named moment:
    the hero, the three questions, the built week, Home's bridge, the session, the celebration, the crew card with its

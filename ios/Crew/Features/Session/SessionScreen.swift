@@ -66,8 +66,9 @@ struct SessionScreen: View {
                 HStack {
                     Button { cue = SeedCatalog.shared.exercise(exercise.exerciseId)?.cueLine } label: {
                         Text(exercise.name).font(.headline).foregroundStyle(exercise.skipped ? EmberColors.missedGray : EmberColors.inkText)
+                            .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true) // 6.7: a long name wraps; it never pushes Swap and Skip past a 375-pt edge
                     }.buttonStyle(.plain)
-                    Spacer()
+                    Spacer(minLength: EmberTokens.Spacing.space8)
                     Text(exercise.equipment.capitalized).font(.caption).foregroundStyle(EmberColors.secondaryText)
                     if exercise.type == "strength", !exercise.skipped {
                         Button("Swap") { swapping = exercise }.font(.caption).foregroundStyle(EmberColors.secondaryText).accessibilityLabel("Swap \(exercise.name)")

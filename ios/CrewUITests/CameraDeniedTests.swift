@@ -15,20 +15,15 @@ final class CameraDeniedTests: XCTestCase {
         app.launch()
     }
 
-    // The seven day toggles carry their letter as the label (M T W T F S S), in Monday-first order
-    private func dayToggle(_ index: Int) -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "label IN {'M', 'T', 'W', 'F', 'S'}")).element(boundBy: index)
-    }
-
     func testNoCameraMeansTextFirstPostingStillCounts() {
         XCTAssertTrue(app.staticTexts["One plan. Every week. Your crew sees you show up."].waitForExistence(timeout: 5))
         app.buttons["Build my week"].tap()
         XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 2))
 
         // Mon/Wed/Fri arrive pre-selected (1B): switch them off, then switch on tomorrow alone, so today is a rest day
-        for preselected in [0, 2, 4] { dayToggle(preselected).tap() }
+        for preselected in [0, 2, 4] { app.dayToggle(preselected).tap() }
         let mondayFirstToday = (Calendar.current.component(.weekday, from: Date()) + 5) % 7 // Foundation: Sunday = 1 … Saturday = 7 → Monday = 0 … Sunday = 6
-        dayToggle((mondayFirstToday + 1) % 7).tap()
+        app.dayToggle((mondayFirstToday + 1) % 7).tap()
         app.buttons["Continue"].tap()
         app.buttons["Brand new"].tap()
         XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 2))
