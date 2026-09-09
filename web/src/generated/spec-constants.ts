@@ -114,6 +114,8 @@ export const SpecConstants = {
   defaultTrainingWeekdays: [1, 3, 5],
   /** SPEC: 1B — Continue requires ≥ 1 day */
   minTrainingDaysToContinue: 1,
+  /** SPEC: A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5 */
+  planEstimateRoundingMinutes: 5,
   /** SPEC: Flow 1 step 3 — Brand new = 4 simple exercises */
   beginnerExerciseCount: 4,
   /** SPEC: Flow 1 step 3 — at 3×10 */
@@ -175,11 +177,31 @@ export const SpecConstants = {
   /** SPEC: GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min */
   holdSecondsMax: 600,
 
+  // --- cardio ---
+  /** SPEC: A2, owner-directed 2026-09-08 — a cardio log is at least one minute */
+  cardioMinutesMin: 1,
+  /** SPEC: A2, owner-directed 2026-09-08 — a cardio log never runs past five hours */
+  cardioMinutesMax: 300,
+  /** SPEC: A2, owner-directed 2026-09-08 — the minutes stepper moves in fives */
+  cardioMinutesStep: 5,
+  /** SPEC: A2, owner-directed 2026-09-08 — the optional distance; a 100 km ceiling keeps a typo out */
+  cardioDistanceMaxMeters: 100000,
+  /** SPEC: A2, owner-directed 2026-09-08 — distance is stored in meters and shown in km (units kg) at one decimal */
+  metersPerKilometer: 1000,
+  /** SPEC: A2, owner-directed 2026-09-08 — distance is stored in meters and shown in mi (units lb) at one decimal */
+  metersPerMile: 1609.344,
+  /** SPEC: GAP (agent, 2026-09-08): A2/A6 'Walk · 25 min · 2.1 km' — distance rounds half-up to tenths (scale 10 = one decimal) with integer arithmetic so both engines print the same digit */
+  distanceDecimalScale: 10,
+
   // --- progress ---
   /** SPEC: GAP (agent, 2026-09-04): S15 layer 1 heat map — weeks shown; Flow 9 names no span (12 = a quarter, the smallest span where a weekly pattern reads) */
   progressHeatMapWeeks: 12,
   /** SPEC: GAP (agent, 2026-09-04): S15 rings history — weeks of past rings shown; Flow 9 names no span */
   progressRingHistoryWeeks: 8,
+
+  // --- journal ---
+  /** SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8 */
+  dayLabelWeekdayWithinDays: 6,
 
   // --- nutrition ---
   /** SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight) */

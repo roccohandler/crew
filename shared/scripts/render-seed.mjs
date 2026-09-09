@@ -28,16 +28,16 @@ export function renderSeedDataSwift(seeds) {
   ].join("\n");
 }
 
-const seedTypes = `export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility";
+const seedTypes = `export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility" | "cardio";
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
 export type EquipmentAccess = "fullGym" | "dumbbells" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
-export type Region = "push" | "pull" | "legs" | "core" | "mobility";
+export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
 
 export interface SeedExercise {
   id: string; name: string; pattern: Pattern; swapGroup: string; equipment: Equipment; level: Experience;
-  type: "strength" | "mobility"; cueLine: string; holdSeconds?: number; perSide?: boolean;
+  type: "strength" | "mobility" | "cardio"; cueLine: string; holdSeconds?: number; perSide?: boolean;
 }
 export interface SeedTargets { sets: number; reps: number; repsMax?: number }
 export interface SeedPlanTemplates {

@@ -3,7 +3,7 @@
   "gapNotes": [
     "GAP: experienced sets×reps are not stated in the spec; the conservative choice continues the stated progression (10 → 8–10 → 8): 3×8.",
     "GAP: a rep range (Some = 8–10) is stored as targetReps = 8 (the pre-filled floor; asPlanned = actualReps ≥ 8) plus targetRepsMax = 10 for display — a one-field extension of ExerciseTemplate.",
-    "GAP: PPL on 4–7 training days cycles Push → Pull → Legs over the user's sorted days within the week (5 days = P P L P P); the spec only names PPL and the ≤2-day Full-Body fallback."
+    "A1 (owner-directed 2026-09-08): every generated plan is Push day · Pull day · Leg day at every frequency 1–7 — workouts rotate, the next one is the one after the last completed rotation workout, so balance is automatic over any 3k completed workouts; Full-Body A/B is no longer generated (the templates stay for legacy plans and split.fullBodyMaxTrainingDays stays validated, unused by generation)."
   ],
   "targets": {
     "brandNew": { "sets": 3, "reps": 10 },

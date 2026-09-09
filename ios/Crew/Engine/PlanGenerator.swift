@@ -1,6 +1,8 @@
-// SPEC: Flow 1 step 3 (PPL on your days; Full-Body A/B at ≤2 days; equipment tag + sets×reps; mobility block closing each
-// workout) · 5.6.1 generatePlan(days, exp, equip, seed) -> PlanDraft · plan-templates.json. Twin of plan-generator.ts.
-// WRITTEN — UNVERIFIED (needs Mac).
+// SPEC: Flow 1 step 3 (Push · Pull · Legs; equipment tag + sets×reps; mobility block closing each workout) · A1
+// (owner-directed 2026-09-08: a plan is trainingWeekdays plus an ORDERED list of workouts — Push day · Pull day · Leg day
+// at every frequency 1–7; Full-Body A/B is no longer generated, the seed keeps its templates for legacy plans) · A2
+// (cardio is a third row type, duration-based like a hold) · 5.6.1 generatePlan(days, exp, equip, seed) -> PlanDraft ·
+// plan-templates.json. Twin of plan-generator.ts. WRITTEN — UNVERIFIED on a Mac; verified on Linux (ios/Package.swift).
 
 import Foundation
 
@@ -9,23 +11,24 @@ struct PlanDraftExercise: Codable, Equatable {
     let name: String
     let pattern: String
     let equipment: String
-    let type: String            // strength | mobility
+    let type: String            // strength | mobility | cardio
     let targetSets: Int
     let targetReps: Int
     let targetRepsMax: Int?
-    let holdSeconds: Int?
+    let holdSeconds: Int?       // mobility holds and cardio blocks: seconds
     let perSide: Bool?
     let order: Int
 }
 
 struct PlanDraftWorkout: Codable, Equatable {
-    let weekday: Int            // ISO 1 = Monday … 7 = Sunday
     let name: String
-    let kind: String
-    let exercises: [PlanDraftExercise]
+    let kind: String            // push | pull | legs | fullBodyA | fullBodyB | custom
+    let exercises: [PlanDraftExercise]   // strength rows, then the mobility block (an added cardio block sits between)
 }
 
+// SPEC: A1 — trainingWeekdays (ISO 1 = Monday … 7 = Sunday; sorted, unique) + workouts in rotation order, no weekday
 struct PlanDraft: Codable, Equatable {
+    let trainingWeekdays: [Int]
     let workouts: [PlanDraftWorkout]
 }
 
@@ -41,22 +44,23 @@ enum PlanGenerator {
         return PlanDraftExercise(exerciseId: exercise.id, name: exercise.name, pattern: exercise.pattern, equipment: exercise.equipment, type: "mobility", targetSets: 1, targetReps: 0, targetRepsMax: nil, holdSeconds: exercise.holdSeconds ?? 0, perSide: exercise.perSide ?? false, order: order)
     }
 
-    static func workout(kind: String, weekday: Int, experience: String, access: String, seed: SeedCatalog) -> PlanDraftWorkout {
+    // SPEC: A2 — a cardio block is duration-based like a hold: one "set", no reps, holdSeconds = the activity's seed default
+    static func cardioRow(_ id: String, order: Int, seed: SeedCatalog) -> PlanDraftExercise? {
+        guard let exercise = seed.exercise(id) else { return nil }
+        return PlanDraftExercise(exerciseId: exercise.id, name: exercise.name, pattern: exercise.pattern, equipment: exercise.equipment, type: "cardio", targetSets: 1, targetReps: 0, targetRepsMax: nil, holdSeconds: exercise.holdSeconds ?? 0, perSide: nil, order: order)
+    }
+
+    static func workout(kind: String, experience: String, access: String, seed: SeedCatalog) -> PlanDraftWorkout {
         let ids = seed.planTemplates.templates[kind]?[experience]?[access] ?? []
         let strength = ids.enumerated().compactMap { strengthRow($1, experience: experience, order: $0, seed: seed) }
         let holds = (seed.planTemplates.mobilityBlocks[kind] ?? []).enumerated().compactMap { mobilityRow($1, order: strength.count + $0, seed: seed) }
-        return PlanDraftWorkout(weekday: weekday, name: seed.planTemplates.workoutNames[kind] ?? kind, kind: kind, exercises: strength + holds)
+        return PlanDraftWorkout(name: seed.planTemplates.workoutNames[kind] ?? kind, kind: kind, exercises: strength + holds)
     }
 
-    // SPEC: Flow 1 step 3 — PPL on the chosen days, Full-Body A/B at ≤ fullBodyMaxTrainingDays; the cycle repeats over the
-    // user's sorted days within the week (plan-templates.json gapNotes)
+    // SPEC: A1 — every generated plan is the pplCycle in stored order (three workouts, at every day count); the days are
+    // kept sorted and unique. Which workout lands on which day is the rotation's job (PlanRotation), never the plan's.
     static func generatePlan(days: Set<Int>, experience: String, access: String, seed: SeedCatalog) -> PlanDraft {
-        let split = seed.planTemplates.split
-        let sortedDays = days.sorted()
-        let cycle = sortedDays.count <= split.fullBodyMaxTrainingDays ? split.fullBodyCycle : split.pplCycle
-        let workouts = sortedDays.enumerated().map { index, weekday in
-            workout(kind: cycle[index % cycle.count], weekday: weekday, experience: experience, access: access, seed: seed)
-        }
-        return PlanDraft(workouts: workouts)
+        let workouts = seed.planTemplates.split.pplCycle.map { workout(kind: $0, experience: experience, access: access, seed: seed) }
+        return PlanDraft(trainingWeekdays: days.sorted(), workouts: workouts)
     }
 }

@@ -64,6 +64,7 @@
     "fullBodyMaxTrainingDays": { "value": 2, "spec": "Flow 1 step 3; S04 — Full-Body A/B at ≤2 days" },
     "defaultTrainingWeekdays": { "value": [1, 3, 5], "spec": "1B; S03 — Mon/Wed/Fri pre-selected (ISO weekdays)" },
     "minTrainingDaysToContinue": { "value": 1, "spec": "1B — Continue requires ≥ 1 day" },
+    "planEstimateRoundingMinutes": { "value": 5, "spec": "A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5" },
     "beginnerExerciseCount": { "value": 4, "spec": "Flow 1 step 3 — Brand new = 4 simple exercises" },
     "beginnerTargetSets": { "value": 3, "spec": "Flow 1 step 3 — at 3×10" },
     "beginnerTargetReps": { "value": 10, "spec": "Flow 1 step 3 — at 3×10" },
@@ -96,9 +97,21 @@
     "perSideHoldRepeats": { "value": 2, "spec": "GAP (agent, 2026-09-05): Flow 3 mobility '90s each' — a per-side hold runs once per side" },
     "holdSecondsMax": { "value": 600, "spec": "GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min" }
   },
+  "cardio": {
+    "cardioMinutesMin": { "value": 1, "spec": "A2, owner-directed 2026-09-08 — a cardio log is at least one minute" },
+    "cardioMinutesMax": { "value": 300, "spec": "A2, owner-directed 2026-09-08 — a cardio log never runs past five hours" },
+    "cardioMinutesStep": { "value": 5, "spec": "A2, owner-directed 2026-09-08 — the minutes stepper moves in fives" },
+    "cardioDistanceMaxMeters": { "value": 100000, "spec": "A2, owner-directed 2026-09-08 — the optional distance; a 100 km ceiling keeps a typo out" },
+    "metersPerKilometer": { "value": 1000, "spec": "A2, owner-directed 2026-09-08 — distance is stored in meters and shown in km (units kg) at one decimal" },
+    "metersPerMile": { "value": 1609.344, "spec": "A2, owner-directed 2026-09-08 — distance is stored in meters and shown in mi (units lb) at one decimal" },
+    "distanceDecimalScale": { "value": 10, "spec": "GAP (agent, 2026-09-08): A2/A6 'Walk · 25 min · 2.1 km' — distance rounds half-up to tenths (scale 10 = one decimal) with integer arithmetic so both engines print the same digit" }
+  },
   "progress": {
     "progressHeatMapWeeks": { "value": 12, "spec": "GAP (agent, 2026-09-04): S15 layer 1 heat map — weeks shown; Flow 9 names no span (12 = a quarter, the smallest span where a weekly pattern reads)" },
     "progressRingHistoryWeeks": { "value": 8, "spec": "GAP (agent, 2026-09-04): S15 rings history — weeks of past rings shown; Flow 9 names no span" }
+  },
+  "journal": {
+    "dayLabelWeekdayWithinDays": { "value": 6, "spec": "A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8" }
   },
   "nutrition": {
     "mealTagBreakfastFromMinute": { "value": 240, "spec": "Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)" },

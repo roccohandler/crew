@@ -1,6 +1,7 @@
 // Validates shared/seed/exercises.json + plan-templates.json (+ achievements.json when present) against
 // Part IX seed shape, Flow 1 step 3 counts, the mobility block budget, E20 name limits and the swap promise
-// (Flow 1 step 4: 3–5 alternatives that do the same job). Exits 1 on any problem.
+// (Flow 1 step 4: 3–5 alternatives that do the same job) and the A2 cardio rows (owner-directed 2026-09-08: duration-based
+// like mobility, pattern cardio; templates stay strength-only). Exits 1 on any problem.
 // Run: node shared/scripts/check-seeds.mjs   SPEC: Part XI T004–T006 · Appendix B · 8.3 (plan generator property)
 
 import { existsSync, readFileSync } from "node:fs";
@@ -28,7 +29,9 @@ for (const exercise of seed.exercises) {
   for (const field of ["pattern", "equipment", "level", "type"]) if (!seed.enums[field].includes(exercise[field])) fail(`exercises: ${exercise.id}.${field} = ${exercise[field]} is not in the enum`);
   if (typeof exercise.swapGroup !== "string" || typeof exercise.cueLine !== "string" || exercise.cueLine.length < 20) fail(`exercises: ${exercise.id} needs swapGroup + a real cueLine`);
   if (exercise.type === "mobility" && (!Number.isInteger(exercise.holdSeconds) || exercise.holdSeconds <= 0 || typeof exercise.perSide !== "boolean" || exercise.pattern !== "mobility")) fail(`exercises: mobility ${exercise.id} needs holdSeconds > 0, perSide, pattern mobility`);
-  if (exercise.type === "strength" && (exercise.holdSeconds !== undefined || exercise.pattern === "mobility")) fail(`exercises: strength ${exercise.id} must not carry holdSeconds or the mobility pattern`);
+  // SPEC: A2 — a cardio activity is duration-based (holdSeconds = its default seconds) and carries the cardio pattern
+  if (exercise.type === "cardio" && (!Number.isInteger(exercise.holdSeconds) || exercise.holdSeconds <= 0 || exercise.pattern !== "cardio")) fail(`exercises: cardio ${exercise.id} needs holdSeconds > 0 and pattern cardio`);
+  if (exercise.type === "strength" && (exercise.holdSeconds !== undefined || exercise.pattern === "mobility" || exercise.pattern === "cardio")) fail(`exercises: strength ${exercise.id} must not carry holdSeconds, the mobility pattern or the cardio pattern`);
 }
 
 const allowed = seed.enums.equipmentAccess;
@@ -104,8 +107,8 @@ if (existsSync(join(repoRoot, "shared/seed/achievements.json"))) {
   console.log(`achievements.json: ${achievements.achievements.length} achievements`);
 }
 
-const strength = seed.exercises.filter((exercise) => exercise.type === "strength").length;
-console.log(`exercises.json: ${seed.exercises.length} exercises (${strength} strength, ${seed.exercises.length - strength} mobility)`);
+const countByType = seed.enums.type.map((type) => `${seed.exercises.filter((exercise) => exercise.type === type).length} ${type}`);
+console.log(`exercises.json: ${seed.exercises.length} exercises (${countByType.join(", ")})`);
 console.log(`plan-templates.json: ${Object.keys(templates.templates).length} workout kinds × 3 levels × 3 equipment access = ${Object.keys(templates.templates).length * 9} lists`);
 for (const problem of problems) console.log(`PROBLEM  ${problem}`);
 if (problems.length > 0) { console.log(`check-seeds: ${problems.length} problem(s)`); process.exit(1); }

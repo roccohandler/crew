@@ -172,6 +172,27 @@
         ],
         "state": { "currentStreak": 7, "longestStreak": 7, "totalXP": 580, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-05", "earnedAchievementIds": [] }
       }
+    },
+    {
+      "id": "V51",
+      "title": "a duration-only session (one done cardio set, targetReps 0) is complete: setsDone 1, setsPlanned 1, setsAsPlanned 1",
+      "spec": "A2 (2026-09-08)",
+      "kind": "completion",
+      "rule": "A done cardio set is a work set like any other: one done set with targetReps 0 and actualReps 0 makes the session complete with setsDone 1, setsPlanned 1, setsAsPlanned 1 (0 ≥ 0); the same set left undone is not complete. The completion rule itself is unchanged (V32).",
+      "cases": [
+        {
+          "sets": [
+            { "targetReps": 0, "actualReps": 0, "done": true, "isWarmup": false }
+          ],
+          "expect": { "complete": true, "setsDone": 1, "setsPlanned": 1, "setsAsPlanned": 1, "sets": [ { "done": true, "asPlanned": true } ] }
+        },
+        {
+          "sets": [
+            { "targetReps": 0, "actualReps": 0, "done": false, "isWarmup": false }
+          ],
+          "expect": { "complete": false, "setsDone": 0, "setsPlanned": 1, "setsAsPlanned": 0, "sets": [ { "done": false, "asPlanned": false } ] }
+        }
+      ]
     }
   ]
 }

@@ -2,16 +2,16 @@
 // Re-run `node shared/scripts/generate.mjs`; `node shared/scripts/check-drift.mjs` fails CI when this file drifts.
 // SPEC: Part IX seed data — the plan generator and swap finder read these; never edited by hand.
 
-export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility";
+export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility" | "cardio";
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
 export type EquipmentAccess = "fullGym" | "dumbbells" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
-export type Region = "push" | "pull" | "legs" | "core" | "mobility";
+export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
 
 export interface SeedExercise {
   id: string; name: string; pattern: Pattern; swapGroup: string; equipment: Equipment; level: Experience;
-  type: "strength" | "mobility"; cueLine: string; holdSeconds?: number; perSide?: boolean;
+  type: "strength" | "mobility" | "cardio"; cueLine: string; holdSeconds?: number; perSide?: boolean;
 }
 export interface SeedTargets { sets: number; reps: number; repsMax?: number }
 export interface SeedPlanTemplates {
@@ -54,7 +54,8 @@ export const regionOfPattern: Record<Pattern, Region> = {
   "lunge": "legs",
   "calf": "legs",
   "core": "core",
-  "mobility": "mobility"
+  "mobility": "mobility",
+  "cardio": "cardio"
 };
 export const exercises: SeedExercise[] = [
   {
@@ -1096,6 +1097,105 @@ export const exercises: SeedExercise[] = [
     "holdSeconds": 60,
     "perSide": false,
     "cueLine": "Legs long, hinge from the hips, reach for the shins or toes."
+  },
+  {
+    "id": "walk",
+    "name": "Walk",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 1200,
+    "cueLine": "Easy pace, arms swinging, breathe through your nose — a walk you could talk through."
+  },
+  {
+    "id": "run",
+    "name": "Run",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Short quick steps, shoulders loose, land under your hips, keep a pace you can hold."
+  },
+  {
+    "id": "bike",
+    "name": "Bike",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Seat at hip height, light gear, spin smooth circles and keep the upper body quiet."
+  },
+  {
+    "id": "swim",
+    "name": "Swim",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Long strokes, exhale under the water, rest at the wall whenever you need to."
+  },
+  {
+    "id": "row",
+    "name": "Row",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Legs, then back, then arms on the drive; arms, back, legs on the way home."
+  },
+  {
+    "id": "elliptical",
+    "name": "Elliptical",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Stand tall, push through the heels, let the handles move you and keep it steady."
+  },
+  {
+    "id": "stairs",
+    "name": "Stairs",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Whole foot on each step, hands off the rails when you can, steady breathing."
+  },
+  {
+    "id": "hike",
+    "name": "Hike",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 1800,
+    "cueLine": "Short steps uphill, soft knees downhill, water on hand and a pace you can keep."
+  },
+  {
+    "id": "other-cardio",
+    "name": "Other cardio",
+    "pattern": "cardio",
+    "swapGroup": "cardio",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "cardio",
+    "holdSeconds": 600,
+    "cueLine": "Anything that gets you breathing harder for a while — log the minutes and move on."
   }
 ];
 export const planTemplates: SeedPlanTemplates = {

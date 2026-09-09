@@ -1,12 +1,12 @@
 {
   "spec": "Part IX seed data · Appendix B (~80 exercises: pattern, equipment, level, type, cueLine, swapGroup, holdSeconds?) · Flow 1 step 3 (PPL, mobility block) · Flow 3 (setup cues, mobility holds) · T004",
   "enums": {
-    "pattern": ["horizontalPush", "verticalPush", "chestIsolation", "shoulderIsolation", "triceps", "horizontalPull", "verticalPull", "rearDelt", "biceps", "squat", "hinge", "lunge", "calf", "core", "mobility"],
+    "pattern": ["horizontalPush", "verticalPush", "chestIsolation", "shoulderIsolation", "triceps", "horizontalPull", "verticalPull", "rearDelt", "biceps", "squat", "hinge", "lunge", "calf", "core", "mobility", "cardio"],
     "equipment": ["barbell", "dumbbell", "machine", "cable", "bodyweight"],
     "level": ["brandNew", "some", "experienced"],
-    "type": ["strength", "mobility"],
+    "type": ["strength", "mobility", "cardio"],
     "equipmentAccess": { "fullGym": ["barbell", "dumbbell", "machine", "cable", "bodyweight"], "dumbbells": ["dumbbell", "bodyweight"], "bodyweight": ["bodyweight"] },
-    "region": { "horizontalPush": "push", "verticalPush": "push", "chestIsolation": "push", "shoulderIsolation": "push", "triceps": "push", "horizontalPull": "pull", "verticalPull": "pull", "rearDelt": "pull", "biceps": "pull", "squat": "legs", "hinge": "legs", "lunge": "legs", "calf": "legs", "core": "core", "mobility": "mobility" }
+    "region": { "horizontalPush": "push", "verticalPush": "push", "chestIsolation": "push", "shoulderIsolation": "push", "triceps": "push", "horizontalPull": "pull", "verticalPull": "pull", "rearDelt": "pull", "biceps": "pull", "squat": "legs", "hinge": "legs", "lunge": "legs", "calf": "legs", "core": "core", "mobility": "mobility", "cardio": "cardio" }
   },
   "swapRule": "GAP (Flow 1 step 4 promises 3–5 alternatives that do the same job; 5.6.1/8.3 say same pattern + equipment): SwapFinder takes candidates with the user's equipment access and the same type, never the incumbent, in tiers — same swapGroup first, then same pattern, then same region — widening only while fewer than swapCandidatesMin are found, ranked same-or-lower level first, capped at swapCandidatesMax.",
   "exercises": [
@@ -110,6 +110,15 @@
     { "id": "deep-squat-hold", "name": "Deep Squat Hold", "pattern": "mobility", "swapGroup": "squatHold", "equipment": "bodyweight", "level": "brandNew", "type": "mobility", "holdSeconds": 60, "perSide": false, "cueLine": "Sit into the deepest squat you can, elbows push the knees out, breathe." },
     { "id": "cross-body-shoulder-stretch", "name": "Cross-Body Shoulder Stretch", "pattern": "mobility", "swapGroup": "shoulderStretch", "equipment": "bodyweight", "level": "brandNew", "type": "mobility", "holdSeconds": 60, "perSide": true, "cueLine": "Pull one arm across the chest with the other, shoulders down." },
     { "id": "figure-four-stretch", "name": "Figure-Four Stretch", "pattern": "mobility", "swapGroup": "hipOpener", "equipment": "bodyweight", "level": "brandNew", "type": "mobility", "holdSeconds": 60, "perSide": true, "cueLine": "On your back, ankle over the opposite knee, pull the thigh toward you." },
-    { "id": "seated-forward-fold", "name": "Seated Forward Fold", "pattern": "mobility", "swapGroup": "hamstringStretch", "equipment": "bodyweight", "level": "brandNew", "type": "mobility", "holdSeconds": 60, "perSide": false, "cueLine": "Legs long, hinge from the hips, reach for the shins or toes." }
+    { "id": "seated-forward-fold", "name": "Seated Forward Fold", "pattern": "mobility", "swapGroup": "hamstringStretch", "equipment": "bodyweight", "level": "brandNew", "type": "mobility", "holdSeconds": 60, "perSide": false, "cueLine": "Legs long, hinge from the hips, reach for the shins or toes." },
+    { "id": "walk", "name": "Walk", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 1200, "cueLine": "Easy pace, arms swinging, breathe through your nose — a walk you could talk through." },
+    { "id": "run", "name": "Run", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Short quick steps, shoulders loose, land under your hips, keep a pace you can hold." },
+    { "id": "bike", "name": "Bike", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Seat at hip height, light gear, spin smooth circles and keep the upper body quiet." },
+    { "id": "swim", "name": "Swim", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Long strokes, exhale under the water, rest at the wall whenever you need to." },
+    { "id": "row", "name": "Row", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Legs, then back, then arms on the drive; arms, back, legs on the way home." },
+    { "id": "elliptical", "name": "Elliptical", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Stand tall, push through the heels, let the handles move you and keep it steady." },
+    { "id": "stairs", "name": "Stairs", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Whole foot on each step, hands off the rails when you can, steady breathing." },
+    { "id": "hike", "name": "Hike", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 1800, "cueLine": "Short steps uphill, soft knees downhill, water on hand and a pace you can keep." },
+    { "id": "other-cardio", "name": "Other cardio", "pattern": "cardio", "swapGroup": "cardio", "equipment": "bodyweight", "level": "brandNew", "type": "cardio", "holdSeconds": 600, "cueLine": "Anything that gets you breathing harder for a while — log the minutes and move on." }
   ]
 }
