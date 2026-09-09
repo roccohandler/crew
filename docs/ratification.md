@@ -1049,3 +1049,24 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   resolves to a 44-pt button whose centre is unambiguous. Nothing about behaviour or copy moved.
 - **Checked here.** swift-xref clean (the `noun:` label is checked at all three call sites), doctrine-lint clean. The
   rest — the tap, the check, the celebration, the resume after a kill — is the next `ios` verdict (WRITTEN — UNVERIFIED).
+
+## R-061 — 2026-09-09, run 34367618719: journey ① green end to end; the last journey lost its session to an unsigned build (F27)
+
+- **What the run said.** contracts · web · web e2e · ios engine ✓; ios unit 89/0; journeys 4 of 5 — journey ① passed for the
+  first time on a simulator (install → seven days → plan → save → bridge → set 1 checked → Complete → "+XP" → Done → the
+  bridge gone), with journey ②, CameraDenied and Launch. OfflineSessionTests checked set 1, photographed it, killed the app
+  — and the relaunch woke on the hero: "One plan. Every week…", Build my week, I have an invite, Log in. Signed out.
+- **Why.** The job built the simulator app with `CODE_SIGNING_ALLOWED=NO`. An app that is never signed carries no
+  entitlements, and on a simulator an app without entitlements cannot write the Keychain: every SecItemAdd answers
+  errSecMissingEntitlement (-34018), which KeychainStore does not inspect (C6: four plain calls). The session therefore lived
+  in memory only, and the kill took it. Journeys ① and ② never relaunch, so only Q09 could see this — and it has been Q09's
+  failure since its first run, behind the set-row defects fixed in F25/F26. A TestFlight build is signed for real; the
+  phone is unaffected.
+- **What changed (F27).** Both xcodebuild steps sign ad hoc — `CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=-
+  CODE_SIGNING_REQUIRED=NO`: no certificate, no team, no profile, the entitlements embedded (the fix Apple's own thread on
+  -34018 names: give the app an entitlements file). OfflineSessionTests asserts Home ("Today") before it looks for the Resume
+  banner and says "signed out after a kill — the Keychain did not keep the session" with the screen's first lines, so the
+  next failure of this kind reads as what it is. docs/testing-without-a-mac.md records the rule.
+- **Checked here.** The workflow parses; swift-xref and doctrine-lint clean. Whether ad-hoc signing accepts the project's
+  entitlements (Sign in with Apple, push, associated domains) without a team is the next run's first line; if it refuses, the
+  verdict names the setting to change. WRITTEN — UNVERIFIED.

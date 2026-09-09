@@ -102,8 +102,11 @@ jobs:
           test -n "$CREW_SIM"
           echo "Simulator: $CREW_SIM"
           echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
-      # Simulator builds need no signing identity (the entitlements name a team the runner does not have); raw xcodebuild
-      # output into a log — `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
+      # Simulator builds are signed AD HOC (`-`: no certificate, no team, no profile) with the entitlements embedded. Unsigned
+      # (CODE_SIGNING_ALLOWED=NO, until 2026-09-09) the app had no entitlements at all, and on a simulator that makes every
+      # Keychain write fail with errSecMissingEntitlement (-34018): the session lived in memory only, so a kill-and-relaunch
+      # woke on the hero and the offline journey could never pass (run 34367618719, Q09). Raw xcodebuild output into a log —
+      # `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
       # Both suites run even when the first fails (continue-on-error), so ONE run reports every failure instead of one layer
       # per push; the verdict step below is where the job actually passes or fails.
       - id: unit
@@ -113,7 +116,7 @@ jobs:
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme Crew
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath TestResults.xcresult
-          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
           OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee unit.log
       - id: ui
         continue-on-error: true
@@ -122,7 +125,7 @@ jobs:
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewUITests
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath UITestResults.xcresult
-          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
           OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee ui.log
       # The verdict: the compile errors, failed assertions and suite totals from both logs go to the job summary (the page
       # the Actions tab opens), so nobody reads 3,000 lines of xcodebuild to find the one line that matters.

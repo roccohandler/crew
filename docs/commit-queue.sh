@@ -127,6 +127,10 @@ commit_task "fix(ios): a set row is a button to VoiceOver and XCUITest and wraps
 commit_task "fix(ios): the check button is the set row to VoiceOver and XCUITest — it carries the row's full label and hint, the container holds its children, and every stepper button names what it changes (Decrease reps, Increase weight, Decrease minutes, Increase sets) [SPEC: E20; Flow 3; S09; 6.7; 8.4; XI T025/T028/T043]" \
   ios/Crew/Features/Session/SetRow.swift ios/Crew/Features/Session/CardioRow.swift ios/Crew/Features/Plan/ExerciseSheet.swift docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F27 (run 34367618719: journeys 4/5 — journey ① end to end for the first time; the offline journey relaunched onto the hero because an UNSIGNED simulator app cannot write the Keychain) ---
+commit_task "fix(ci): simulator builds are signed ad hoc so the app carries its entitlements and the Keychain works (unsigned: errSecMissingEntitlement, the session lost at every kill); the offline journey names a signed-out relaunch [SPEC: 1C; S01; 8.4; 8.7; XI T008/T043]" \
+  .github/workflows/ci.yml ios/CrewUITests/OfflineSessionTests.swift docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

@@ -93,6 +93,9 @@ git push
    hierarchy XCUITest captured at the failure — element types, labels and frames, which is how run 34360394481's set row
    was found to be a plain element 484 pt wide on a 402 pt window. The `shoot()` screenshots are plain PNGs in the same
    folder; the automatic failure recordings are the QuickTime movies.
+   **Signing on the runner:** simulator builds are signed ad hoc (`CODE_SIGN_IDENTITY=-` — no certificate, no team), never
+   left unsigned: an unsigned simulator app carries no entitlements and cannot write the Keychain (errSecMissingEntitlement,
+   -34018), which is how the offline journey's kill-and-relaunch woke on the hero, signed out (run 34367618719).
 4. **Look at the app.** The job uploads `ios-test-results` on every run, pass or fail. Download it, and inside the
    `.xcresult` bundle are the journeys' screenshots (`CrewUITests/Screenshots.swift` attaches one at every named moment:
    the hero, the three questions, the built week, Home's bridge, the session, the celebration, the crew card with its
