@@ -939,4 +939,39 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   shouldn't be involved"). The icon is now drawn from the Ember system itself: the streak flame in ember `#FF6600` with a
   bone core on the bone canvas `#FAF8F5` — the same frame the launch screen shows, so the tap and the first frame match.
   Source: `shared/brand/app-icon.svg`; rendered to the 1024 px opaque PNG with sharp (`.flatten().removeAlpha()`), which is
-  what App Store Connect insists on. Build 1 (the sloth) stays in TestFlight until build 2 replaces it.
+  what App Store Connect insists on. Build 1 (the sloth) stays in TestFlight until build 2 replaces it. Run 34285838041
+  then uploaded the flame build ("Upload succeeded", 22:29Z): the third TestFlight run in a row to sign and archive cleanly.
+
+### R-057 · 2026-09-09 · The smoke-test amendments A1–A8 built end to end: PPL rotation, cardio, the rest-day Home, the two-level plan editor, the crew tab, the journal, settings · T021–T027, T031, T036–T041 · checkpoint — proceeding
+
+- **Checkpoint.** The owner's first review of the app on their iPhone (build 0.1.0 (2), 2026-09-08 evening) became eight
+  owner-directed amendments in Appendix A (A1–A8) with the contract in `docs/improvement-plan-2026-09-08.md`. Fifteen
+  research and code briefs preceded the plan (in the session scratchpad; the decisions they support are in the plan's §0).
+  Two contract agents (shared/engine, server/client), eight client agents (five iOS folders, three web areas) and one Swift
+  compile-risk reader implemented it; this entry records what was checked and what the owner should look at.
+- **What was checked, by command (2026-09-09 morning).** `node shared/scripts/generate.mjs && check-drift.mjs` → all seven
+  Generated files match; `check-vectors` → 52 vectors across 7 files (V51 appended, V01–V50 byte-identical); `check-seeds` →
+  110 exercises (86 strength · 15 mobility · 9 cardio), 45 template lists consistent; `doctrine-lint` → clean (165 Swift
+  files, 1 CSS file). Web: `npm run typecheck` clean · `npm run lint` clean · `npm test` **34 files, 340 tests passed** ·
+  `npm run vectors` **52 passed** · `npm run build` green (new routes `/plan/[kind]`, `/log-cardio`, `/privacy`, `/terms`) ·
+  `npm run e2e` **23 passed, 1 skipped (by design)** across 375 / 768 / 1280 — journeys ① ② ③ ④ and the a11y sweep, which
+  now audits `/plan/push`, `/log-cardio`, `/privacy` and `/terms`. Swift engine under Docker (`swift:5.10`): **43 tests,
+  0 failures** — all 52 vectors on the Swift engine plus the new PlanRotation (9), DayLabel, SessionSummaryLine and the
+  rewritten PlanGenerator property test (127 day subsets × 3 × 3 → always the three PPL workouts).
+- **What is WRITTEN — UNVERIFIED.** Every SwiftUI/SwiftData file (about sixty changed or added under `ios/Crew/Features`,
+  `Storage`, `Api`, `Shared`) — no Xcode here. Each implementer self-checked labels, optionals and switches; a separate
+  compile-risk read cross-checked every call against its callee. The macOS CI job is the compiler: the owner runs the queue,
+  pushes, and the agent reads `gh run view`. The XCUITest journeys will also need their selectors re-read against the new
+  Home/Plan copy on that run.
+- **Verdict.** The amendments are in the code on both platforms with the doctrine intact (files under the caps, numbers through
+  the constants, twins named identically, vectors append-only, gamification numbers untouched). Deviations from the plan are
+  in `docs/debt.md` (2026-09-09 lines): no snackbar timer, no cardio timer, the seed's unused full-body templates, the
+  placeholder legal pages, no SwiftData migration, the blocked-user strip rule.
+- **What the owner should look at.** (1) Appendix A 2026-09-08: ratify or strike A1–A8, the GAP constant
+  `distanceDecimalScale`, and `planEstimateRoundingMinutes`. (2) The ≤ 2-day question: PPL rotates at every frequency as
+  asked; the evidence (Schoenfeld 2016, ACSM 2026, Pedersen 2022 in `r-programming.md`) favours full-body at 1–2 days — say
+  the word and the seed's Full-Body A/B comes back for ≤ 2 days. (3) On the phone after the next TestFlight build: the rest-day
+  Home (Post a meal · Log cardio · Bonus workout · the what's-next line), the Plan week map → editor → sheet, the Crew tab with
+  the strip on top and the invite card, the Journal's day labels and summary lines, Settings › profile photo / notification
+  toggles / blocked people / legal pages. (4) The Blob store is still not connected on Vercel — photo posts from the phone keep
+  failing until it is; the A3 sync fix now keeps the local streak honest while they wait.
