@@ -109,6 +109,10 @@ commit_task "feat(ios): A1–A8 — rotation-driven Home with next-up, bonus wor
 commit_task "feat(web): A1–A8 parity — Home next-up/bonus/cardio, /log-cardio, CardioRow, the /plan week map and /plan/[kind] editor with the exercise sheet, onboarding projection, crew solo explainer + crew-of-one invite card + report/block, journal day groups and summary lines, progress minutes, Settings profile photo / notification toggles / blocked people / legal links, /privacy and /terms drafts [SPEC: A1–A8; Part IV parity; 8.4; 8.5; XI T036–T040]"   "web/src/app/(app)/home" "web/src/app/(app)/journal" "web/src/app/(app)/log-cardio" "web/src/app/(app)/plan" "web/src/app/(app)/post/page.tsx" "web/src/app/(app)/progress/page.tsx" "web/src/app/(app)/session"   web/src/app/privacy web/src/app/terms web/src/app/app.css web/src/lib/plan-draft.ts web/src/components   web/tests/e2e/a11y.spec.ts web/tests/e2e/journey1.spec.ts web/tests/e2e/journey4-web-parity.spec.ts web/tests/e2e/warm-up.ts
 
 
+# --- F23 (run 34351357853: the whole rewritten app compiled first time; one test named the offline state the editor dropped; the phone-375 a11y sweep found 11 px of sideways scroll under the runner's fonts) ---
+commit_task "fix: PlanLoadState keeps its offline case (6.1 five states); the settings file input and the session exercise header stay inside a 375-wide column under wide fallback fonts; the overflow assertion names its page [SPEC: 6.1; 6.7; 8.9; S14; XI T013/T039]" \
+  ios/Crew/Features/Plan/PlanScreen.swift web/src/app/app.css web/src/components/SessionLogger.tsx web/tests/e2e/helpers.ts web/tests/e2e/a11y.spec.ts docs/commit-queue.sh docs/progress.md
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

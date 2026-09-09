@@ -38,7 +38,7 @@ async function expectAccessible(page: Page, path: string): Promise<void> {
   expect(result.unnamedImages, `${path}: images without alt`).toBe(0);
   expect(result.unnamedControls, `${path}: controls without a name`).toEqual([]);
   expect(result.unlabelledFields, `${path}: fields without a label`).toEqual([]);
-  await expectNoHorizontalScroll(page);
+  await expectNoHorizontalScroll(page, path);
 }
 
 test("public pages: landmarks, names, labels, no sideways scroll", async ({ page }) => {

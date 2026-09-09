@@ -33,7 +33,7 @@ function SetLine({ exercise, set, index, units, onSet }: { exercise: SessionExer
 function ExerciseCard({ exercise, open, units, lastTime, onOpen, onSkip, onSwap, onSet }: { exercise: SessionExerciseView; open: boolean; units: "lb" | "kg"; lastTime?: string; onOpen: () => void; onSkip: () => void; onSwap: () => void; onSet: SetUpdate }) {
   return (
     <section className="card stack stack--tight">
-      <div className="row row--between">
+      <div className="row row--between row--wrap">{/* 6.7: name · chip · Swap · Skip wrap under wide fonts instead of scrolling sideways */}
         <h3 className={exercise.skipped ? "missed" : ""}>{exercise.name}</h3>
         <span className="chip" aria-hidden="true">{exercise.equipment}</span>
         {exercise.type === "strength" && !exercise.skipped ? <button type="button" className="button button--text" onClick={onSwap} aria-label={`Swap ${exercise.name}`}>Swap</button> : null}

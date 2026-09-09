@@ -207,6 +207,11 @@ a {
   width: 6ch;
 }
 
+/* 6.7 / 8.9: a file input's intrinsic width (the chooser's own label, wide on some fonts) stays inside the column */
+.field input[type="file"] {
+  width: 100%;
+  min-width: 0;
+}
 .toggle {
   display: inline-flex;
   align-items: center;

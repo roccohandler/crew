@@ -11,6 +11,7 @@ enum PlanLoadState: Equatable {
     case ready
     case empty
     case failed(String)
+    case offline // 6.1 five states: the plan lives on the phone, so offline renders the week map with a banner
 }
 
 struct PlanScreen: View {
@@ -26,6 +27,7 @@ struct PlanScreen: View {
                 switch loadState {
                 case .loading: ListSkeleton(rows: TimeUnits.daysPerWeek)
                 case .ready: weekMap
+                case .offline: VStack(spacing: 0) { OfflineBanner(lastSyncedLine: "Your plan is on this phone — edits sync later."); weekMap }
                 case .empty: EmptyState(title: "No plan yet", line: "Answer three questions and your week is built.", ctaTitle: "Build my week") { rebuilding = true }
                 case .failed(let line): ErrorState(line: line) { load() }
                 }

@@ -78,7 +78,7 @@ export async function fillWhenHydrated(page: Page, label: string, text: string, 
 }
 
 // 6.7 / 8.9: no horizontal scroll at any width from 360 to 1920
-export async function expectNoHorizontalScroll(page: Page): Promise<void> {
+export async function expectNoHorizontalScroll(page: Page, label = ""): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(0);
+  expect(overflow, `${label || page.url()}: sideways overflow in px`).toBeLessThanOrEqual(0);
 }
