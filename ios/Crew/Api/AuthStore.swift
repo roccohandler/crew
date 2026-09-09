@@ -7,7 +7,13 @@ import AuthenticationServices
 import Foundation
 import Observation
 
+// SPEC: C14 · 5.6.3 — main-actor isolated (2026-09-09): every token write happens on one thread. Until then `store(_:)` ran
+// wherever `validAccessToken()` was awaited — the cooperative pool, from Api.send — while Home, the crew poll and the sync
+// drain read `currentUser` and `isSignedIn` on the main thread, and two refreshes could write the same Strings at once.
+// Build 2's crash on the owner's phone (07:49, SIGBUS in swift_retain on a cooperative thread, a second thread inside
+// SecItemDelete from a concurrent `store`) is that race; Debug builds never showed it.
 @Observable
+@MainActor
 final class AuthStore {
     static let shared = AuthStore()
 
