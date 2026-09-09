@@ -49,7 +49,7 @@ extension SyncQueue {
         guard let record = try store.context.fetch(descriptor).first, var object = try JSONSerialization.jsonObject(with: record.payload) as? [String: Any] else { return }
         object["photoKey"] = photoKey
         object.removeValue(forKey: "localPhotoPath")
-        record.payload = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        record.payload = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
         try store.save()
     }
 

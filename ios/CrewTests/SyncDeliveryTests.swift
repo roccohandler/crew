@@ -29,15 +29,15 @@ final class SyncDeliveryTests: XCTestCase {
     // queued payload keeps the key and drops the local path (what SyncTransport does after POST photos), so a retry never re-uploads
     func testADeliveredPostIsStampedWithItsPhotoKey() async throws {
         let (queue, store) = makeQueue { op in self.okResponse(for: op) }
+        let when = Date(timeIntervalSince1970: 1_000_000) // the clock the queue is stepped with: an op enqueued later than `now` is not due yet (5.6.3), so both share it
         let post = localPost("post-1", store: store)
         post.localPhotoPath = "/outbox/post-1.jpg"
-        try queue.enqueue(.createPost, payload: PhotoPayload(clientId: "post-1", localPhotoPath: "/outbox/post-1.jpg", photoKey: nil))
+        try queue.enqueue(.createPost, payload: PhotoPayload(clientId: "post-1", localPhotoPath: "/outbox/post-1.jpg", photoKey: nil), now: when)
         let record = try XCTUnwrap(store.pendingOps().first)
         try queue.attachPhotoKey(opId: record.id, photoKey: "blob/abc")
         let payload = String(decoding: record.payload, as: UTF8.self)
         XCTAssertTrue(payload.contains("blob/abc"))
         XCTAssertFalse(payload.contains("localPhotoPath"))
-        let when = Date(timeIntervalSince1970: 1_000_000)
         guard case .sent = await queue.processNext(now: when) else { return XCTFail("the op is delivered") }
         XCTAssertEqual(post.deliveredAt, when)
         XCTAssertEqual(post.photoKey, "blob/abc")
@@ -47,10 +47,10 @@ final class SyncDeliveryTests: XCTestCase {
     // A6: a workout's completion post rides inside the patchSession op — it is stamped delivered the same way
     func testACompletionPostInsideAPatchSessionOpIsStamped() async throws {
         let (queue, store) = makeQueue { op in self.okResponse(for: op) }
-        let post = localPost("post-2", store: store)
-        let payload = PatchSessionPayload(sessionId: "s1", timezone: "UTC", exercises: nil, status: "completed", completedAt: Date(), post: CompletionPostDTO(clientId: "post-2", shareToCrew: true, caption: nil, photoKey: nil))
-        try queue.enqueue(.patchSession, payload: payload)
         let when = Date(timeIntervalSince1970: 1_000_000)
+        let post = localPost("post-2", store: store)
+        let payload = PatchSessionPayload(sessionId: "s1", timezone: "UTC", exercises: nil, status: "completed", completedAt: when, post: CompletionPostDTO(clientId: "post-2", shareToCrew: true, caption: nil, photoKey: nil))
+        try queue.enqueue(.patchSession, payload: payload, now: when)
         guard case .sent = await queue.processNext(now: when) else { return XCTFail("the op is delivered") }
         XCTAssertEqual(post.deliveredAt, when)
         XCTAssertNil(post.photoKey)

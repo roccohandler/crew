@@ -8,6 +8,6 @@ enum PostPayloadPhotoStripper {
         guard var object = try JSONSerialization.jsonObject(with: payload) as? [String: Any] else { return payload }
         object["photoKey"] = NSNull()
         object["localPhotoPath"] = NSNull()
-        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
     }
 }
