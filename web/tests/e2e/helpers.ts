@@ -39,14 +39,15 @@ export async function buildWeekAndSave(page: Page, options: { invite?: string; l
 }
 
 // The generated week is Mon/Wed/Fri (1B); a journey that logs a workout must not depend on the weekday it runs on, so the
-// member's own plan (Flow 8: theirs to edit) gains today as a planned day — a copy of the first workout — when it lacks one.
-// The 3 AM day (E8) in the member's zone is "today", the same day Home judges.
+// member's own plan (Flow 8: theirs to edit) gains today as a training day when it lacks one — the rotation supplies the
+// workout (A1), so the PUT carries the same ordered workouts. The 3 AM day (E8) in the member's zone is "today", the same day
+// Home judges.
 export async function ensureTodayHasAWorkout(page: Page): Promise<void> {
   const me = (await (await page.request.get("/api/v1/users/me")).json()) as { user: { timezone: string } };
   const today = isoWeekday(dayKeyFor(new Date(), me.user.timezone));
-  const plan = (await (await page.request.get("/api/v1/plans")).json()) as { workouts: { weekday: number }[] };
-  if (plan.workouts.some((workout) => workout.weekday === today)) return;
-  const saved = await page.request.put("/api/v1/plans", { data: { workouts: [...plan.workouts, { ...plan.workouts[0], weekday: today }] } });
+  const plan = (await (await page.request.get("/api/v1/plans")).json()) as { trainingWeekdays: number[]; workouts: object[] };
+  if (plan.trainingWeekdays.includes(today)) return;
+  const saved = await page.request.put("/api/v1/plans", { data: { trainingWeekdays: [...plan.trainingWeekdays, today], workouts: plan.workouts } });
   expect(saved.status()).toBe(200);
 }
 

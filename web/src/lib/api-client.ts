@@ -1,7 +1,7 @@
 // SPEC: 5.6.5 lib/api-client.ts — one typed function per endpoint, names identical to Api.swift (createSession, createPost…).
 // Cookie auth (credentials: include); on 401 the client refreshes once through auth/refresh and retries (G11 rotation).
 // No generics (C1): apiFetch returns unknown and every endpoint function names its reply type. Crews + settings live in
-// api-client-crew.ts (C9 cap).
+// api-client-crew.ts (C9 cap). A1: PlanReply carries trainingWeekdays; A2: sessions carry workoutKind and distanceMeters.
 import type { PlanDraft } from "@/lib/engine/plan-generator";
 import type { PublicState } from "@/lib/engine/gamification";
 import type { PublicUser } from "@/lib/users";
@@ -50,13 +50,14 @@ export const logout = async () => (await postJson("/auth/logout", {})) as { ok: 
 export const requestPasswordReset = async (email: string) => (await postJson("/auth/reset", { email })) as { accepted: true };
 export const confirmPasswordReset = async (token: string, newPassword: string) => (await postJson("/auth/reset/confirm", { token, newPassword })) as { ok: true };
 
-export interface PlanReply { workouts: PlanDraft["workouts"]; updatedAt: string }
+// A1: the plan is training days + the ordered rotation (mirrors PlanDTO / PutPlanRequestDTO)
+export interface PlanReply { trainingWeekdays: number[]; workouts: PlanDraft["workouts"]; updatedAt: string }
 export const getPlan = async () => (await apiFetch("/plans")) as PlanReply;
-export const putPlan = async (draft: { workouts: object[] }) => (await putJson("/plans", draft)) as PlanReply;
+export const putPlan = async (draft: { trainingWeekdays: number[]; workouts: object[] }) => (await putJson("/plans", draft)) as PlanReply;
 
-export interface SessionSummary { id: string; clientId: string; status: string; setsDone: number; setsPlanned: number; workoutName: string; dayKey: string; exercises: SessionExerciseView[] }
-export interface SetView { targetReps: number; actualReps: number; weight: number | null; holdSeconds: number | null; isWarmup: boolean; done: boolean; asPlanned: boolean }
-export interface SessionExerciseView { exerciseId: string; name: string; equipment: string; type: "strength" | "mobility"; targetSets: number; targetReps: number; holdSeconds: number | null; order: number; skipped: boolean; sets: SetView[] }
+export interface SessionSummary { id: string; clientId: string; status: string; setsDone: number; setsPlanned: number; workoutName: string; workoutKind: string | null; isPlannedDay: boolean; dayKey: string; startedAt: string; completedAt: string | null; exercises: SessionExerciseView[] }
+export interface SetView { targetReps: number; actualReps: number; weight: number | null; holdSeconds: number | null; distanceMeters: number | null; isWarmup: boolean; done: boolean; asPlanned: boolean }
+export interface SessionExerciseView { exerciseId: string; name: string; equipment: string; type: "strength" | "mobility" | "cardio"; targetSets: number; targetReps: number; holdSeconds: number | null; order: number; skipped: boolean; sets: SetView[] }
 export type GamificationReply = PublicState & { newAchievementIds?: string[] }; // E8: what this mutation unlocked
 export const earnedQuery = (ids: string[] | undefined) => (ids !== undefined && ids.length > 0 ? `?earned=${ids.join(",")}` : "");
 export interface SessionReply { session: SessionSummary; gamification?: GamificationReply }

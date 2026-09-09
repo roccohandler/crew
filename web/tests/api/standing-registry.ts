@@ -85,6 +85,7 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "crews/[id]/stream:GET": { jsonBody: false, foreignPath: foreignCrewPath("/stream") },
   "crews/[id]/messages:POST": { jsonBody: true, foreignPath: foreignCrewPath("/messages"), validBody: () => ({ clientId: randomUUID(), body: "hi" }) },
   "crews/[id]/messages/[messageId]:DELETE": { jsonBody: false, foreignPath: foreignMessagePath },
+  "blocks:GET": { jsonBody: false },
   "blocks:POST": { jsonBody: true },
   "blocks:DELETE": { jsonBody: true },
   "push-token:POST": { jsonBody: true },

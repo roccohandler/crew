@@ -1,9 +1,10 @@
-// SPEC: Part IX User · E1 (name + one profile picture; initials until set) · E9 (EULA at signup, 13+) · E18.
+// SPEC: Part IX User · E1 (name + one profile picture; initials until set) · E9 (EULA at signup, 13+) · E18 · A7 (notification
+// preferences, absent = all on; the profile photo must be the caller's own, purpose "profile").
 // Creation, the public shape, and the age/EULA gates — the same for email and Apple accounts.
 import { ObjectId } from "mongodb";
 import { apiError } from "@/lib/api-error";
-import { gamificationStates, users } from "@/lib/db";
-import type { UserDoc } from "@/lib/documents";
+import { gamificationStates, photos, users } from "@/lib/db";
+import type { NotificationPrefs, UserDoc } from "@/lib/documents";
 
 import { HttpStatus } from "@/lib/http-status";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -17,8 +18,14 @@ export interface PublicUser {
   units: "lb" | "kg";
   timezone: string;
   reminderTime: string | null;
+  notificationPrefs: NotificationPrefs; // always present — defaults filled (A7)
   welcomeBackAckDay: string | null;
   createdAt: string;
+}
+
+// SPEC: A7 — every toggle is on until the user turns it off; a partial object from the client is merged over these
+export function notificationPrefsOf(doc: { notificationPrefs?: NotificationPrefs }): NotificationPrefs {
+  return { workoutReminder: true, streakRisk: true, crewActivity: true, ...doc.notificationPrefs };
 }
 
 export function publicUser(doc: UserDoc): PublicUser {
@@ -31,6 +38,7 @@ export function publicUser(doc: UserDoc): PublicUser {
     units: doc.units,
     timezone: doc.timezone,
     reminderTime: doc.reminderTime,
+    notificationPrefs: notificationPrefsOf(doc),
     welcomeBackAckDay: doc.welcomeBackAckDay ?? null,
     createdAt: doc.createdAt.toISOString(),
   };
@@ -42,6 +50,12 @@ export function requireSignupGates(eulaAccepted: boolean, birthYear: number | un
   if (birthYear !== undefined && now.getUTCFullYear() - birthYear < SpecConstants.minimumAgeYears) {
     throw apiError("underage", `Crew is for people ${SpecConstants.minimumAgeYears} and up.`, HttpStatus.forbidden);
   }
+}
+
+// SPEC: A7 / E1 — a profile photo key must name a photo the caller uploaded with purpose "profile" (400 otherwise)
+export async function requireOwnProfilePhoto(userId: ObjectId, photoKey: string): Promise<void> {
+  const photo = await (await photos()).findOne({ photoKey, ownerId: userId, purpose: "profile" });
+  if (photo === null) throw apiError("validation", "That isn't one of your profile photos. Upload it first.", HttpStatus.badRequest);
 }
 
 interface NewUser {

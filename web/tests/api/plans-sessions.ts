@@ -1,4 +1,5 @@
 // Fixture builders for plans and sessions — the shapes the clients send (mirrors PlanDraft / session snapshots).
+// A1: a plan body is { trainingWeekdays, workouts } straight from the generator; A2: a standalone cardio log is one done cardio set.
 import { randomUUID } from "node:crypto";
 import { generatePlan } from "@/lib/engine/plan-generator";
 import { exercises, planTemplates } from "@/generated/seed";
@@ -14,7 +15,7 @@ export function sampleSessionBody(overrides: Partial<{ clientId: string; started
     startedAt: overrides.startedAt ?? new Date().toISOString(),
     workoutSnapshot: {
       name: "Push day",
-      weekday: 1,
+      kind: "push" as const,
       isPlannedDay: overrides.isPlannedDay ?? true,
       exercises: [
         { exerciseId: "push-up", name: "Push-Up", equipment: "bodyweight", type: "strength" as const, targetSets: 3, targetReps: 10, holdSeconds: null, order: 0, sets: [
@@ -25,6 +26,27 @@ export function sampleSessionBody(overrides: Partial<{ clientId: string; started
         ] },
         { exerciseId: "couch-stretch", name: "Couch Stretch", equipment: "bodyweight", type: "mobility" as const, targetSets: 1, targetReps: 0, holdSeconds: 90, order: 1, sets: [
           { targetReps: 0, actualReps: 0, weight: null, holdSeconds: 90, isWarmup: false, done: false },
+        ] },
+      ],
+    },
+  };
+}
+
+// A2: the standalone log the Home "Log cardio" flow sends — created and completed in one go, never a planned day
+export function sampleCardioSessionBody(overrides: Partial<{ clientId: string; startedAt: string; timezone: string; activity: string; minutes: number; distanceMeters: number | null }> = {}) {
+  const minutes = overrides.minutes ?? 25;
+  const activity = overrides.activity ?? "Walk";
+  return {
+    clientId: overrides.clientId ?? randomUUID(),
+    timezone: overrides.timezone ?? "America/Los_Angeles",
+    startedAt: overrides.startedAt ?? new Date().toISOString(),
+    workoutSnapshot: {
+      name: activity,
+      kind: "cardio" as const,
+      isPlannedDay: false,
+      exercises: [
+        { exerciseId: activity.toLowerCase(), name: activity, equipment: "bodyweight", type: "cardio" as const, targetSets: 1, targetReps: 0, holdSeconds: minutes * 60, order: 0, sets: [
+          { targetReps: 0, actualReps: 0, weight: null, holdSeconds: minutes * 60, distanceMeters: overrides.distanceMeters ?? null, isWarmup: false, done: true },
         ] },
       ],
     },

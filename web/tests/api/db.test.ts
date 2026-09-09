@@ -25,8 +25,8 @@ describe("lib/db — Part IX invariants as unique indexes", () => {
   it("one plan per user", async () => {
     const userId = new ObjectId();
     const collection = await plans();
-    await collection.insertOne({ _id: new ObjectId(), userId, workouts: [], updatedAt: new Date() });
-    await expectDuplicateKey(() => collection.insertOne({ _id: new ObjectId(), userId, workouts: [], updatedAt: new Date() }));
+    await collection.insertOne({ _id: new ObjectId(), userId, trainingWeekdays: [], workouts: [], updatedAt: new Date() });
+    await expectDuplicateKey(() => collection.insertOne({ _id: new ObjectId(), userId, trainingWeekdays: [], workouts: [], updatedAt: new Date() }));
   });
 
   it("one crew per user", async () => {

@@ -50,14 +50,19 @@ export const appleSignInSchema = z.object({
 export const resetRequestSchema = z.object({ email: emailSchema });
 export const resetConfirmSchema = z.object({ token: z.string().min(1), newPassword: passwordSchema });
 
+// SPEC: A7 — per-row toggles; a partial object is merged over the stored preferences server-side
+export const notificationPrefsSchema = z.object({ workoutReminder: z.boolean(), streakRisk: z.boolean(), crewActivity: z.boolean() });
+
 export const updateMeSchema = z.object({
   displayName: displayNameSchema.optional(),
   units: z.enum(["lb", "kg"]).optional(),
   timezone: timezoneSchema.optional(),
   reminderTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "must be HH:MM").nullable().optional(),
-  profilePhotoKey: z.string().min(1).nullable().optional(),
+  profilePhotoKey: z.string().min(1).nullable().optional(), // verified against `photos` (own, purpose profile) by the route
+  notificationPrefs: notificationPrefsSchema.partial().optional(),
   welcomeBackAckDay: dayKeySchema.optional(), // E4: set when the user answers the welcome-back screen
 });
+export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 
 export const deleteAccountSchema = z.object({ confirm: z.literal("delete") });
 

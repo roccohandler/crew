@@ -1,5 +1,6 @@
 // SPEC: T041 (Verify: account suite) · 8.2 Account: JSON export completeness; delete cascade — posts vanish from streams, blobs
-// deleted, 404s everywhere after · 8.2 Pause: create/end; overlap rejected; XP suppression server-enforced (V20) · E18 re-signup.
+// deleted, 404s everywhere after · 8.2 Pause: create/end; overlap rejected; XP suppression server-enforced (V20) · E18 re-signup ·
+// A7: notification toggles round-trip (absent = all on, partial PATCH merges); a profile photo key must be the caller's own.
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
@@ -56,13 +57,37 @@ describe("users/me + export + delete cascade", () => {
   it("patches profile fields and exports everything the user owns", async () => {
     const patched = await readJson<{ displayName: string; units: string }>(await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { displayName: "Owner Prime", units: "kg", reminderTime: "07:30" } })));
     expect(patched).toMatchObject({ displayName: "Owner Prime", units: "kg" });
-    const data = await readJson<{ user: { email: string; passwordHash?: string }; posts: unknown[]; memberships: unknown[]; gamification: unknown; pauses: unknown[] }>(await exportData(request("GET", "/users/me/export", { token: me.accessToken })));
+    const data = await readJson<{ user: { email: string; passwordHash?: string }; posts: unknown[]; memberships: unknown[]; gamification: unknown; pauses: unknown[]; blocks: unknown[] }>(await exportData(request("GET", "/users/me/export", { token: me.accessToken })));
     expect(data.user.email).toBe(me.email);
     expect(data.user.passwordHash).toBeUndefined();
     expect(data.posts.length).toBe(1);
     expect(data.memberships.length).toBe(1);
     expect(data.pauses.length).toBe(1);
+    expect(data.blocks).toEqual([]);
     expect(data.gamification).not.toBeNull();
+  });
+
+  it("keeps notification toggles per row: absent = all on, a partial PATCH merges over the stored ones (A7)", async () => {
+    type Prefs = { workoutReminder: boolean; streakRisk: boolean; crewActivity: boolean };
+    const mine = async () => (await readJson<{ user: { notificationPrefs: Prefs } }>(await getMe(request("GET", "/users/me", { token: me.accessToken })))).user.notificationPrefs;
+    expect(await mine()).toEqual({ workoutReminder: true, streakRisk: true, crewActivity: true });
+    const first = await readJson<{ notificationPrefs: Prefs }>(await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { notificationPrefs: { streakRisk: false } } })));
+    expect(first.notificationPrefs).toEqual({ workoutReminder: true, streakRisk: false, crewActivity: true });
+    await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { notificationPrefs: { crewActivity: false } } }));
+    expect(await mine()).toEqual({ workoutReminder: true, streakRisk: false, crewActivity: false }); // merged, not replaced
+    expect((await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { notificationPrefs: { streakRisk: "no" } } }))).status).toBe(400);
+  });
+
+  it("accepts a profile photo key only when it names the caller's own photo uploaded with purpose profile (A7, E1)", async () => {
+    const patchPhoto = async (profilePhotoKey: string | null) => patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { profilePhotoKey } }));
+    const photo = (photoKey: string, ownerId: string, purpose: "post" | "profile") => ({ _id: new ObjectId(), photoKey, ownerId: new ObjectId(ownerId), purpose, bytes: 1, width: 1, height: 1, storage: "local" as const, url: `C:/nonexistent/${photoKey}.jpg`, createdAt: new Date() });
+    await (await photos()).insertMany([photo("owner-post", me.id, "post"), photo("mate-profile", mate.id, "profile"), photo("owner-profile", me.id, "profile")]);
+    expect((await patchPhoto("ghost")).status).toBe(400);
+    expect((await patchPhoto("owner-post")).status).toBe(400); // a post photo is not a profile photo
+    expect((await patchPhoto("mate-profile")).status).toBe(400); // someone else's
+    const set = await readJson<{ profilePhotoKey: string | null }>(await patchPhoto("owner-profile"));
+    expect(set.profilePhotoKey).toBe("owner-profile");
+    expect((await readJson<{ profilePhotoKey: string | null }>(await patchPhoto(null))).profilePhotoKey).toBeNull(); // null still clears
   });
 
   it("deletes the account: posts vanish from the stream, photos go, everything 404s, the email goes out, re-signup is fresh", async () => {

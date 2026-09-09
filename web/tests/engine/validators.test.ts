@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { createPostSchema, patchPostSchema, reactionSchema } from "@/lib/validate-posts";
 import { createCrewSchema, createReportSchema, sendMessageSchema } from "@/lib/validate-crews";
 import { exerciseTemplateInputSchema, putPlanSchema, workoutTemplateInputSchema } from "@/lib/validate-plans";
-import { setLogInputSchema, syncSchema } from "@/lib/validate-sessions";
+import { sessionExerciseInputSchema, setLogInputSchema, syncSchema } from "@/lib/validate-sessions";
 import { clientEventsSchema, registerSchema, timezoneSchema, updateMeSchema } from "@/lib/validate";
 import { TimeUnits } from "@/lib/time-units";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -55,13 +55,36 @@ describe("input limits (8.3 validators)", () => {
     expect(setLogInputSchema.safeParse({ ...set, actualReps: SpecConstants.planTargetRepsMax + 1 }).success).toBe(false);
   });
 
-  it("≤ 15 exercises per day, one workout per weekday, never an eighth day (Flow 8)", () => {
+  it("≤ 15 exercises per day, one workout per kind, training days 1..7 unique and never empty, never an eighth day (Flow 8, A1)", () => {
     const rows = (count: number) => Array.from({ length: count }, (_, index) => exerciseRow({ exerciseId: `row-${index}`, order: index }));
-    const workout = (weekday: number, count: number) => ({ weekday, name: "Push day", kind: "push" as const, exercises: rows(count) });
-    expect(workoutTemplateInputSchema.safeParse(workout(1, SpecConstants.planMaxExercisesPerDay)).success).toBe(true);
-    expect(workoutTemplateInputSchema.safeParse(workout(1, SpecConstants.planMaxExercisesPerDay + 1)).success).toBe(false);
-    expect(putPlanSchema.safeParse({ workouts: [workout(1, 1), workout(1, 1)] }).success).toBe(false);
-    expect(putPlanSchema.safeParse({ workouts: [workout(TimeUnits.daysPerWeek + 1, 1)] }).success).toBe(false);
+    const workout = (kind: "push" | "pull", count: number) => ({ name: "Push day", kind, exercises: rows(count) });
+    const plan = (trainingWeekdays: number[], workouts: object[]) => ({ trainingWeekdays, workouts });
+    expect(workoutTemplateInputSchema.safeParse(workout("push", SpecConstants.planMaxExercisesPerDay)).success).toBe(true);
+    expect(workoutTemplateInputSchema.safeParse(workout("push", SpecConstants.planMaxExercisesPerDay + 1)).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan([1, 3, 5], [workout("push", 1), workout("pull", 1)])).success).toBe(true);
+    expect(putPlanSchema.safeParse(plan([1], [workout("push", 1), workout("push", 1)])).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan([1], [])).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan([], [workout("push", 1)])).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan([1, 1], [workout("push", 1)])).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan([TimeUnits.daysPerWeek + 1], [workout("push", 1)])).success).toBe(false);
+    expect(putPlanSchema.safeParse(plan(Array.from({ length: TimeUnits.daysPerWeek + 1 }, (_, index) => index + 1), [workout("push", 1)])).success).toBe(false);
+    expect(putPlanSchema.safeParse({ workouts: [workout("push", 1)] }).success).toBe(false); // the pre-A1 shape
+  });
+
+  it("cardio rows and distances (A2): seconds are capped per type (a hold ≤ holdSecondsMax, cardio ≤ cardioMinutesMax minutes); a set's distance ≤ cardioDistanceMaxMeters", () => {
+    const cardioSeconds = SpecConstants.cardioMinutesMax * TimeUnits.secondsPerMinute;
+    expect(exerciseTemplateInputSchema.safeParse(exerciseRow({ type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: cardioSeconds })).success).toBe(true);
+    expect(exerciseTemplateInputSchema.safeParse(exerciseRow({ type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: cardioSeconds + 1 })).success).toBe(false);
+    expect(exerciseTemplateInputSchema.safeParse(exerciseRow({ type: "mobility", targetSets: 1, targetReps: 0, holdSeconds: SpecConstants.holdSecondsMax + 1 })).success).toBe(false);
+    const row = { exerciseId: "walk", name: "Walk", equipment: "bodyweight", targetSets: 1, targetReps: 0, order: 0 };
+    const cardioSet = { targetReps: 0, actualReps: 0, isWarmup: false, done: true, holdSeconds: cardioSeconds };
+    expect(sessionExerciseInputSchema.safeParse({ ...row, type: "cardio", holdSeconds: cardioSeconds, sets: [cardioSet] }).success).toBe(true);
+    expect(sessionExerciseInputSchema.safeParse({ ...row, type: "mobility", holdSeconds: SpecConstants.holdSecondsMax, sets: [cardioSet] }).success).toBe(false); // a hold never runs to cardio length
+    const set = { targetReps: 0, actualReps: 0, isWarmup: false, done: true, holdSeconds: SpecConstants.holdSecondsMax };
+    expect(setLogInputSchema.safeParse({ ...set, distanceMeters: SpecConstants.cardioDistanceMaxMeters }).success).toBe(true);
+    expect(setLogInputSchema.safeParse({ ...set, distanceMeters: SpecConstants.cardioDistanceMaxMeters + 1 }).success).toBe(false);
+    expect(setLogInputSchema.safeParse({ ...set, distanceMeters: null }).success).toBe(true);
+    expect(setLogInputSchema.safeParse(set).success).toBe(true); // absent = null (Swift omits a nil)
   });
 
   it("accounts: password ≥ passwordMinChars, display name ≤ displayNameMaxChars, birth year ≥ birthYearMin, a real timezone", () => {
@@ -74,6 +97,8 @@ describe("input limits (8.3 validators)", () => {
     for (const zone of ["UTC", "GMT", "US/Pacific", "Europe/Berlin"]) expect(timezoneSchema.safeParse(zone).success).toBe(true);
     expect(updateMeSchema.safeParse({ reminderTime: "07:30" }).success).toBe(true);
     expect(updateMeSchema.safeParse({ reminderTime: "7:30" }).success).toBe(false);
+    expect(updateMeSchema.safeParse({ notificationPrefs: { streakRisk: false } }).success).toBe(true); // A7: partial, merged server-side
+    expect(updateMeSchema.safeParse({ notificationPrefs: { streakRisk: "no" } }).success).toBe(false);
   });
 
   it("sync batches ≤ syncBatchMaxOps; a client event batch never empty and never nameless", () => {

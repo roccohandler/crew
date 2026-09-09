@@ -1,4 +1,5 @@
-// SPEC: docs/api.md GET/PUT plans — one plan per user; PUT replaces forward-only; limits rejected by the schema (400) · T023
+// SPEC: docs/api.md GET/PUT plans — one plan per user; PUT replaces forward-only; limits rejected by the schema (400) · A1 (the
+// plan is trainingWeekdays + the ordered rotation; a pre-A1 document reads back normalised) · T023
 import { ObjectId } from "mongodb";
 import { errorResponse, json, notFound } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
@@ -22,7 +23,7 @@ export async function PUT(req: Request) {
     const userId = await requireUser(req);
     const body = putPlanSchema.parse(await req.json());
     const plan = await replacePlan(new ObjectId(userId), body);
-    await logEvent(userId, "plan_saved", { workouts: plan.workouts.length });
+    await logEvent(userId, "plan_saved", { workouts: plan.workouts.length, trainingDays: plan.trainingWeekdays.length });
     return json(planResponse(plan));
   } catch (error) {
     return errorResponse(error);

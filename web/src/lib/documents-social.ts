@@ -17,6 +17,7 @@ export interface PostDoc {
   isPlannedDay: boolean; // stamped at creation so recompute equals apply (V36 note)
   workoutCompleted: boolean;
   earlierToday: boolean; // same-day backfill label (Flow 4)
+  summary?: string; // A6: one readable line set by the server at workout completion ("Push day · 12/12 sets · 44 min", "Walk · 25 min · 2.1 km")
   createdAt: Date;
   deletedAt: Date | null; // post ≠ log (E3)
 }

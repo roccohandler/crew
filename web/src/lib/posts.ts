@@ -1,5 +1,6 @@
 // SPEC: docs/api.md posts — create (server dayKey, idempotent on clientId), the journal shape, delete keeps the log (E3).
 // Shared by the posts route (T026/T027), session completion (S10: your workout is now a POST) and sync. Part IX Post.
+// A6: a workout post carries the summary line the server wrote at completion; it rides into the journal and the crew stream.
 import { ObjectId } from "mongodb";
 import { crewMemberships, posts } from "@/lib/db";
 import type { PostDoc } from "@/lib/documents-social";
@@ -17,6 +18,7 @@ export interface NewPost {
   isPlannedDay: boolean;
   workoutCompleted: boolean;
   earlierToday?: boolean;
+  summary?: string; // A6: set by session completion only; clients never send one
   createdAt?: Date; // the client's creation instant, reconciled by server-clock.ts
   dayKey?: string; // sessions pass their own (completion) dayKey
 }
@@ -34,6 +36,7 @@ export interface PostResponse {
   isPlannedDay: boolean;
   workoutCompleted: boolean;
   earlierToday: boolean;
+  summary: string | null; // A6
   createdAt: string;
 }
 
@@ -41,7 +44,7 @@ export function postResponse(doc: PostDoc): PostResponse {
   return {
     id: doc._id.toHexString(), clientId: doc.clientId, type: doc.type, sessionId: doc.sessionId?.toHexString() ?? null, photoKey: doc.photoKey, caption: doc.caption,
     mealTag: doc.mealTag, crewId: doc.crewId?.toHexString() ?? null, dayKey: doc.dayKey, isPlannedDay: doc.isPlannedDay,
-    workoutCompleted: doc.workoutCompleted, earlierToday: doc.earlierToday, createdAt: doc.createdAt.toISOString(),
+    workoutCompleted: doc.workoutCompleted, earlierToday: doc.earlierToday, summary: doc.summary ?? null, createdAt: doc.createdAt.toISOString(),
   };
 }
 
@@ -73,6 +76,7 @@ export async function createPost(userId: ObjectId, input: NewPost, now: Date = n
     createdAt: createdAt.getTime() <= now.getTime() ? createdAt : now,
     deletedAt: null,
   };
+  if (input.summary !== undefined) doc.summary = input.summary;
   await collection.insertOne(doc);
   return { post: doc, created: true };
 }

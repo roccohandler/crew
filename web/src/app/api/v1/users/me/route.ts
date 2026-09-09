@@ -1,4 +1,5 @@
-// SPEC: docs/api.md users/me — GET (user + gamification + pause + crew summary) · PATCH profile fields · DELETE the cascade (E9) · T041
+// SPEC: docs/api.md users/me — GET (user + gamification + pause + crew summary) · PATCH profile fields (A7: notification
+// preferences merged; a profile photo key must be the caller's own) · DELETE the cascade (E9) · T041
 import { ObjectId } from "mongodb";
 import { errorResponse, json, notFound } from "@/lib/api-error";
 import { deleteAccount } from "@/lib/account-delete";
@@ -9,7 +10,7 @@ import { logEvent } from "@/lib/events";
 import { storedState } from "@/lib/gamification-store";
 import { HttpStatus } from "@/lib/http-status";
 import { currentPause, pauseResponse } from "@/lib/pauses";
-import { findUserById, publicUser } from "@/lib/users";
+import { findUserById, notificationPrefsOf, publicUser, requireOwnProfilePhoto } from "@/lib/users";
 import { deleteAccountSchema, updateMeSchema } from "@/lib/validate";
 
 export async function GET(req: Request) {
@@ -26,12 +27,18 @@ export async function GET(req: Request) {
   }
 }
 
+// SPEC: A7 — notificationPrefs arrives partial and is merged over the stored toggles; profilePhotoKey must name the caller's own
+// profile photo (400 otherwise); null still clears it
 export async function PATCH(req: Request) {
   try {
     const userId = await requireUser(req);
     const body = updateMeSchema.parse(await req.json());
+    const current = await findUserById(userId);
+    if (current === null) throw notFound("User");
+    if (typeof body.profilePhotoKey === "string") await requireOwnProfilePhoto(current._id, body.profilePhotoKey);
     const changes: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) if (value !== undefined) changes[key] = value;
+    if (body.notificationPrefs !== undefined) changes.notificationPrefs = { ...notificationPrefsOf(current), ...body.notificationPrefs };
     await (await users()).updateOne({ _id: new ObjectId(userId) }, { $set: changes });
     const user = await findUserById(userId);
     if (user === null) throw notFound("User");
