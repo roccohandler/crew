@@ -32,7 +32,11 @@ struct SaveAuthScreen: View {
                 Text("or with email").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 AuthField(title: "Name", text: $displayName, error: fieldErrors["name"], contentType: .name, focus: $focused, key: "name") { validateName() }
                 AuthField(title: "Email", text: $email, error: fieldErrors["email"], contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress) { validateEmail() }
-                AuthField(title: "Password", text: $password, error: fieldErrors["password"], contentType: .newPassword, focus: $focused, key: "password", secure: true) { validatePassword() }
+                // .password, not .newPassword: on a signed build iOS answers a .newPassword field with its Automatic Strong Password —
+                // the generated text replaces what is typed, and the first signed CI build (run 34373681818) saved one character
+                // of the password on every journey. The Keychain still offers to save the pair at signup and autofills it at
+                // login (S05); the strong-password suggestion is deferred (docs/debt.md, 2026-09-09).
+                AuthField(title: "Password", text: $password, error: fieldErrors["password"], contentType: .password, focus: $focused, key: "password", secure: true) { validatePassword() }
                 AuthField(title: "Birth year", text: $birthYear, error: fieldErrors["birthYear"], contentType: .birthdateYear, focus: $focused, key: "birthYear", keyboard: .numberPad) { validateBirthYear() }
                 Text("By saving you agree to the terms. Crew is for people \(SpecConstants.minimumAgeYears) and up.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }

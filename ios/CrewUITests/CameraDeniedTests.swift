@@ -11,6 +11,7 @@ final class CameraDeniedTests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = false
+        dismissSystemPrompts() // JourneySteps.swift: a signed build shows system prompts (Save Password, permissions)
         app.launchArguments = ["-uiTest", "-resetState"]
         app.launch()
     }

@@ -1080,3 +1080,21 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   already has `Crew/Info.plist`; the test bundles never needed one while nothing was signed. project.yml parses.
 - **Verdict.** WRITTEN — UNVERIFIED; whether ad-hoc signing accepts the app's entitlements without a team remains the next
   run's first line (R-061).
+
+## R-063 — 2026-09-09, run 34373681818: the signed build works; the signup field met Automatic Strong Password (F29)
+
+- **What the run said.** The ad-hoc-signed simulator build compiled and its unit suite passed (89/0): signing with the app's
+  entitlements needs no team. Journeys 2 of 5 — journey ② and Launch green; journey ①, CameraDenied and Offline all stopped
+  at "Save your plan". The three failure dumps agree: the form still up, `At least 8 characters.` under the password (the
+  validation error, SaveAuthScreen line 49), the SecureTextField holding one character (`value: •`), Birth year focused.
+  The dev server saw no register POST from the app; the unsigned run (34367618719) had five.
+- **Why.** Signing turned on Password AutoFill. A `.newPassword` field answers focus with iOS's Automatic Strong Password:
+  the generated text replaces what XCUITest types, one character survives the keyboard swap, `submit()` fails its guard
+  silently. The F27 Keychain fix is what exposed it — the same build that keeps a session across a kill is the build that
+  offers passwords.
+- **What changed (F29).** `SaveAuthScreen`: the password field is `.textContentType(.password)` — iOS still offers to save
+  the username/password pair at signup and autofills it at login (S05); the strong-password suggestion is deferred
+  (docs/debt.md, 2026-09-09, T022). `JourneySteps.swift`: `dismissSystemPrompts()` installs a UI-interruption monitor that
+  answers Save Password / permission prompts with the quiet button (Not Now, Don't Allow, OK); the four tapping journeys
+  call it in setUp — a signed build shows those prompts, an unsigned one never did.
+- **Checked here.** swift-xref clean, doctrine-lint clean. WRITTEN — UNVERIFIED: the next `ios` verdict decides.

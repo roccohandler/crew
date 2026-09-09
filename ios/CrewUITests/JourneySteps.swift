@@ -15,6 +15,18 @@ extension XCUIApplication {
 }
 
 extension XCTestCase {
+    // A signed build gets the system's prompts — Save Password, notifications, camera — which sit over the app until answered.
+    // XCTest asks this monitor only when a tap is blocked; the answer is always the quiet one (Not Now / Don't Allow / OK).
+    func dismissSystemPrompts() {
+        addUIInterruptionMonitor(withDescription: "system prompt") { prompt in
+            for label in ["Not Now", "Don't Allow", "OK", "Cancel", "Allow"] where prompt.buttons[label].exists {
+                prompt.buttons[label].tap()
+                return true
+            }
+            return false
+        }
+    }
+
     // 6.7: the element lies inside the window — not beside it, not clipped by the edge
     func expectOnScreen(_ element: XCUIElement, in app: XCUIApplication, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
         let window = app.frame

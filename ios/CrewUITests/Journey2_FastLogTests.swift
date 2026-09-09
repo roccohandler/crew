@@ -15,6 +15,7 @@ final class Journey2_FastLogTests: XCTestCase {
 
     override func setUp() async throws {
         continueAfterFailure = false
+        dismissSystemPrompts() // JourneySteps.swift: a signed build shows system prompts (Save Password, permissions)
         let member = try await seed.register(name: "Journey Two")
         try await seed.putPlanForEveryDay(as: member)
         try await seed.postMeal(as: member)
