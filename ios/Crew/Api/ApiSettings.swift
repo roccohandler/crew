@@ -3,17 +3,22 @@
 
 import Foundation
 
-// PATCH semantics (docs/api.md): an absent key leaves the field alone, an explicit null clears the reminder
+// PATCH semantics (docs/api.md): an absent key leaves the field alone, an explicit null clears the reminder or the photo.
+// SPEC: A7 — notificationPrefs is a PARTIAL object (NotificationPrefsPatchDTO, ApiModels.swift): only the toggle that changed
+// goes on the wire, the server merges it over the stored preferences (lib/validate.ts notificationPrefsSchema.partial())
 struct UpdateMeRequestDTO: Codable {
     var displayName: String? = nil
     var units: String? = nil
     var timezone: String? = nil
     var reminderTime: String? = nil
     var clearsReminder = false
+    var profilePhotoKey: String? = nil       // E1: a key from photos with purpose profile, the caller's own (A7)
+    var clearsProfilePhoto = false
+    var notificationPrefs: NotificationPrefsPatchDTO? = nil
     var welcomeBackAckDay: String? = nil
 
     enum CodingKeys: String, CodingKey {
-        case displayName, units, timezone, reminderTime, welcomeBackAckDay
+        case displayName, units, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay
     }
 
     func encode(to encoder: Encoder) throws {
@@ -22,6 +27,8 @@ struct UpdateMeRequestDTO: Codable {
         try container.encodeIfPresent(units, forKey: .units)
         try container.encodeIfPresent(timezone, forKey: .timezone)
         if clearsReminder { try container.encodeNil(forKey: .reminderTime) } else { try container.encodeIfPresent(reminderTime, forKey: .reminderTime) }
+        if clearsProfilePhoto { try container.encodeNil(forKey: .profilePhotoKey) } else { try container.encodeIfPresent(profilePhotoKey, forKey: .profilePhotoKey) }
+        try container.encodeIfPresent(notificationPrefs, forKey: .notificationPrefs)
         try container.encodeIfPresent(welcomeBackAckDay, forKey: .welcomeBackAckDay)
     }
 }

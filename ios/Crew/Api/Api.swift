@@ -72,7 +72,8 @@ final class Api {
         return try decode(Reply.self, from: data, response: response)
     }
 
-    private func perform(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    // SPEC: E6 — no network is not a failed attempt: the three URLError codes become .offline (ApiPhotos sends through here too)
+    func perform(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else { throw AppError.invalidResponse }

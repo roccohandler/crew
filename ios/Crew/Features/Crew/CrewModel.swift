@@ -1,10 +1,12 @@
 // SPEC: 5.6.2 CrewModel — state: crew?, stream (time-merged, 7-day window), members, pulse, draft; actions: poll (foreground
-// 5–10 s) · send · react · unreact · create · join · leave · captainRemove · regenerateLink. Part IV (chat = polling).
-// 6.1 Offline: social shows last-synced (LocalCrewSnapshot) + one thin banner. Optimistic sends through SyncQueue.
-// WRITTEN — UNVERIFIED (needs Mac). T031 + T032 (crew rules already in CrewRules.swift)
+// 5–10 s) · send · react · unreact · create · join · leave · captainRemove · regenerateLink · report · block. Part IV (chat =
+// polling). 6.1 Offline: social shows last-synced (LocalCrewSnapshot) + one thin banner. Optimistic sends through SyncQueue.
+// A5 (owner-directed 2026-09-08): a crew of one has no composer; the invite sheet follows a create; report/block one long-press
+// away (E9). WRITTEN — UNVERIFIED (needs Mac). T031 + T032 (crew rules already in CrewRules.swift)
 
 import Foundation
 import Observation
+import UIKit
 
 @Observable
 @MainActor
@@ -18,6 +20,8 @@ final class CrewModel {
     var loadError: String?
     var lastSyncedAt: Date?
     var isLoaded = false
+    var noticeLine: String?            // one-line confirmations: reported · blocked · link copied
+    private var invitePromptPending = false
 
     private let store: Store
     private var pollTask: Task<Void, Never>?
@@ -29,6 +33,9 @@ final class CrewModel {
 
     var isSolo: Bool { crew == nil }
     var isCaptain: Bool { crew?.captainId == AuthStore.shared.currentUser?.id }
+    // SPEC: A5 — a crew of one shows the invite card and no composer until two members (crewMinMembers)
+    var isCrewOfOne: Bool { crew != nil && members.count < SpecConstants.crewMinMembers }
+    var canCompose: Bool { crew != nil && members.count >= SpecConstants.crewMinMembers }
 
     // 6.1 Offline — the last-synced stream from SwiftData, instantly
     private func loadSnapshot() {
@@ -87,6 +94,7 @@ final class CrewModel {
     func stopPolling() {
         pollTask?.cancel()
         pollTask = nil
+        noticeLine = nil
     }
 
     // Optimistic send: the line appears at once, the op goes through the queue (E6: chat holds drafts offline)
@@ -117,8 +125,42 @@ final class CrewModel {
         }
     }
 
+    // SPEC: E9 — report from the stream: the post goes to the human moderation queue, the reporter hears one line
+    func report(postId: String) async {
+        do {
+            _ = try await Api.shared.report(targetType: "post", targetId: postId, reason: "Reported from the crew stream")
+            noticeLine = "Reported. A human will look."
+        } catch let error as AppError { noticeLine = error.userLine } catch { noticeLine = AppError.invalidResponse.userLine }
+    }
+
+    // SPEC: E9 — block hides content both ways, silently; their items leave the stream at once, the server keeps them out
+    func block(userId: String) async {
+        do {
+            _ = try await Api.shared.block(userId: userId)
+            stream.removeAll { $0.userId == userId }
+            noticeLine = "Blocked. You won't see each other."
+        } catch let error as AppError { noticeLine = error.userLine } catch { noticeLine = AppError.invalidResponse.userLine }
+    }
+
+    // SPEC: A5 — the link is first-class: Copy link sits beside the share sheet on the crew-of-one card
+    func copyInviteLink() {
+        guard let link = crew?.inviteLink else { return }
+        UIPasteboard.general.string = link
+        noticeLine = "Link copied."
+    }
+
+    // SPEC: Flow 6 — after a successful create the invite sheet opens by itself (A5); the screen asks once and the flag resets
+    func consumeInvitePrompt() -> Bool {
+        defer { invitePromptPending = false }
+        return invitePromptPending
+    }
+
     func create(name: String, emoji: String) async {
-        do { crew = try await Api.shared.createCrew(name: name, emoji: emoji).crew; await refresh() } catch let error as AppError { loadError = error.userLine } catch { loadError = AppError.invalidResponse.userLine }
+        do {
+            crew = try await Api.shared.createCrew(name: name, emoji: emoji).crew
+            invitePromptPending = true
+            await refresh()
+        } catch let error as AppError { loadError = error.userLine } catch { loadError = AppError.invalidResponse.userLine }
     }
 
     func join(token: String) async {

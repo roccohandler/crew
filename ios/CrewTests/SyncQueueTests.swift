@@ -1,5 +1,7 @@
-// SPEC: T014 (Verify: ios unit suite) · 8.3 SyncQueue: retry/backoff, poison-message handling, ordering — against an
-// in-memory SwiftData container, no mocks (C4). The sender is a test-provided plain function. WRITTEN — UNVERIFIED.
+// SPEC: T014 (Verify: ios unit suite) · 8.3 SyncQueue: retry/backoff, poison-message handling, ordering · A3 (2026-09-08: a
+// retryable rejection is a retry, and the reconcile waits while a counted post is undelivered) — against an in-memory SwiftData
+// container, no mocks (C4). The sender is a test-provided plain function. The delivered half (E19) is SyncDeliveryTests.
+// WRITTEN — UNVERIFIED.
 
 import XCTest
 @testable import Crew
@@ -15,6 +17,12 @@ final class SyncQueueTests: XCTestCase {
 
     private func okResponse(for op: SyncOpDTO) -> SyncResponseDTO {
         SyncResponseDTO(results: [SyncOpResultDTO(opId: op.opId, ok: true, error: nil, retryable: nil)], gamification: nil)
+    }
+
+    // The reconcile reads the signed-in user: a Keychain session for "u1" (signed out again at the end of the test)
+    private func signIn() {
+        let user = UserDTO(id: "u1", email: "u@example.com", authProvider: "email", displayName: "U", profilePhotoKey: nil, units: "lb", timezone: "UTC", reminderTime: nil, notificationPrefs: nil, welcomeBackAckDay: nil, createdAt: Date())
+        AuthStore.shared.store(AuthSessionDTO(user: user, accessToken: "a", refreshToken: "r", accessExpiresAt: Date().addingTimeInterval(TimeInterval(SpecConstants.tokenRefreshLeadSeconds))))
     }
 
     func testOpsAreSentInFifoOrder() async throws {
@@ -63,10 +71,21 @@ final class SyncQueueTests: XCTestCase {
         XCTAssertTrue(try store.pendingOps().isEmpty)
     }
 
+    // A3: ok:false with retryable:true is the ordinary backoff — the server may accept it next time; it is never deleted as sent
+    func testARetryableRejectionIsScheduledNotDeleted() async throws {
+        let (queue, store) = makeQueue { op in SyncResponseDTO(results: [SyncOpResultDTO(opId: op.opId, ok: false, error: "later", retryable: true)], gamification: nil) }
+        let start = Date(timeIntervalSince1970: 1_000_000)
+        try queue.enqueue(.createPost, payload: Payload(clientId: "k"), now: start)
+        let outcome = await queue.processNext(now: start)
+        let record = try XCTUnwrap(store.pendingOps().first)
+        XCTAssertEqual(outcome, .retryScheduled(opId: record.id, attempt: 1))
+        XCTAssertEqual(record.lastError, "later")
+    }
+
     func testReconcileReplacesLocalGamificationState() async throws {
         let server = GamificationStateDTO(currentStreak: 13, longestStreak: 21, totalXP: 1525, level: 3, shields: 1, lastCountedDayKey: "2026-09-04", earnedAchievementIds: ["first-flame"])
         let (queue, store) = makeQueue { op in SyncResponseDTO(results: [SyncOpResultDTO(opId: op.opId, ok: true, error: nil, retryable: nil)], gamification: server) }
-        AuthStore.shared.store(AuthSessionDTO(user: UserDTO(id: "u1", email: "u@example.com", authProvider: "email", displayName: "U", profilePhotoKey: nil, units: "lb", timezone: "UTC", reminderTime: nil, welcomeBackAckDay: nil, createdAt: Date()), accessToken: "a", refreshToken: "r", accessExpiresAt: Date().addingTimeInterval(TimeInterval(SpecConstants.tokenRefreshLeadSeconds))))
+        signIn()
         let local = try store.gamificationState(for: "u1")
         local.currentStreak = 99
         try queue.enqueue(.createPost, payload: Payload(clientId: "d"))
@@ -74,6 +93,29 @@ final class SyncQueueTests: XCTestCase {
         XCTAssertEqual(local.currentStreak, 13)
         XCTAssertEqual(local.totalXP, 1525)
         XCTAssertEqual(local.earnedAchievementIds, ["first-flame"])
+        AuthStore.shared.signOutLocally()
+    }
+
+    // A3/E19: while a counted post is still on its way (held here), the server's lower streak never replaces the phone's — and
+    // the moment no post op is left in the queue, 5.6.3 applies again
+    func testReconcileWaitsWhileAPostOpIsUndelivered() async throws {
+        let server = GamificationStateDTO(currentStreak: 0, longestStreak: 0, totalXP: 0, level: 1, shields: 0, lastCountedDayKey: nil, earnedAchievementIds: [])
+        let (queue, store) = makeQueue { op in
+            let ok = op.kind != OpKind.createPost.rawValue
+            return SyncResponseDTO(results: [SyncOpResultDTO(opId: op.opId, ok: ok, error: ok ? nil : "rejected", retryable: false)], gamification: server)
+        }
+        signIn()
+        let local = try store.gamificationState(for: "u1")
+        local.currentStreak = 7
+        try queue.enqueue(.createPost, payload: Payload(clientId: "m"))
+        try queue.enqueue(.react, payload: Payload(clientId: "n"))
+        guard case .held = await queue.processNext() else { return XCTFail("the post op is held") }
+        guard case .sent = await queue.processNext() else { return XCTFail("the reaction goes out") }
+        XCTAssertEqual(local.currentStreak, 7) // both replies carried streak 0; the held post keeps E19's promise
+        try queue.resolve(try XCTUnwrap(queue.heldOver24h(now: .distantFuture).first), choice: .delete)
+        try queue.enqueue(.react, payload: Payload(clientId: "o"))
+        guard case .sent = await queue.processNext() else { return XCTFail("the second reaction goes out") }
+        XCTAssertEqual(local.currentStreak, 0) // nothing undelivered is left: the server's state replaces local (5.6.3)
         AuthStore.shared.signOutLocally()
     }
 

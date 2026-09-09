@@ -1,6 +1,7 @@
 // SPEC: S09 Session — one-tap set logging at pre-fill; ghost row after every set; warm-ups excluded from x/y; mobility holds
 // countdown + auto-check; survives kill (every tap saves); Complete always visible; skips gray; out-of-order works; VoiceOver-
-// complete; screen stays awake (Flow 3). 6.7: Complete visible without scrolling on the SE at XXL. WRITTEN — UNVERIFIED. T025
+// complete; screen stays awake (Flow 3). 6.7: Complete visible without scrolling on the SE at XXL. A2 (owner-directed
+// 2026-09-08): a cardio block renders a CardioRow (minutes + optional distance, Done). WRITTEN — UNVERIFIED. T025
 
 import SwiftUI
 
@@ -31,6 +32,7 @@ struct SessionScreen: View {
                 .padding(EmberTokens.Spacing.space16)
             }
             VStack(spacing: EmberTokens.Spacing.space8) {
+                Text(model.liveSummaryLine).font(.footnote.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) // S09 · A2: the live count, cardio appended
                 if let error = model.completeError { Text(error).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
                 PrimaryButton(title: "Complete workout") { model.complete(shareToCrew: true) } // always visible, bottom-anchored
             }
@@ -87,6 +89,8 @@ struct SessionScreen: View {
         ForEach(Array(sets.enumerated()), id: \.element.order) { index, set in
             if exercise.type == "mobility" {
                 MobilityHoldRow(name: exercise.name, setLog: set, perSide: SeedCatalog.shared.exercise(exercise.exerciseId)?.perSide ?? false) { model.finishHold(set) }
+            } else if exercise.type == "cardio" { // A2: minutes + optional distance, Done
+                CardioRow(name: exercise.name, setLog: set, targetSeconds: exercise.holdSeconds ?? set.holdSeconds ?? 0, units: model.units) { model.finishCardio(set, minutes: $0, distanceMeters: $1) }
             } else {
                 SetRow(exerciseName: exercise.name, equipment: exercise.equipment, set: set, index: sets[...index].filter { !$0.isWarmup }.count, count: sets.filter { !$0.isWarmup }.count, units: model.units,
                        isGhost: firstOpen.map { index > $0 } ?? false,

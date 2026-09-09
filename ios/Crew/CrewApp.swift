@@ -16,7 +16,8 @@ struct CrewApp: App {
     }
 
     // 8.4 journey ① starts from nothing: the Keychain session, the SwiftData store and the pre-auth draft are cleared.
-    private static func resetState() {
+    // SPEC: A7 — the same reset serves Log out and Delete account (SettingsModel): the op queue and pauses go too (D7 fix).
+    static func resetState() {
         AuthStore.shared.signOutLocally()
         DraftStore().clear()
         let context = Store.shared.context

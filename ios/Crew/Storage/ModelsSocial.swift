@@ -20,6 +20,7 @@ final class LocalPost {
     var isPlannedDay: Bool
     var workoutCompleted: Bool
     var earlierToday: Bool
+    var summary: String?             // A6: a workout post's one readable line, computed at completion (SessionSummaryLine) and hydrated from the server
     var createdAt: Date
     var deliveredAt: Date?
     var deletedAt: Date?

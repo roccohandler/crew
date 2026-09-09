@@ -59,7 +59,7 @@ final class PostModel {
         guard canSubmit else { return }
         do {
             let dayKey = DayKey.dayKey(for: now, tz: timeZone)
-            let isPlannedDay = (try? store.plan(for: userId)?.workouts.contains { $0.weekday == DayKey.isoWeekday(dayKey) }) ?? false
+            let isPlannedDay = (try? store.plan(for: userId)?.trainingWeekdays.contains(DayKey.isoWeekday(dayKey))) ?? false // SPEC: A1 — a planned day is a training weekday
             let type = photo == nil && caption.isEmpty ? "text" : "meal"
             let post = LocalPost(clientId: UUID().uuidString.lowercased(), userId: userId, type: type, sessionClientId: nil, caption: repeated ? "↻ \(caption)" : caption, mealTag: mealTag.rawValue, shareToCrew: shareToCrew, dayKey: dayKey, isPlannedDay: isPlannedDay, workoutCompleted: false, earlierToday: earlierToday, createdAt: now)
             if let photo { post.localPhotoPath = try savePhotoLocally(photo, clientId: post.clientId) }

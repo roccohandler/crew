@@ -12,7 +12,7 @@ final class AchievementsLocalTests: XCTestCase {
         let store = Store(inMemory: true)
         let userId = "achiever"
         let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
-        try PlanLocal.replace(draft.workouts, userId: userId, updatedAt: Date(), store: store)
+        try PlanLocal.replace(draft, userId: userId, updatedAt: Date(), store: store)
         let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first)
         let outcome = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: false, store: store))
         XCTAssertEqual(Array(outcome.awards.suffix(2)), [.achievement(id: "first-flame"), .achievement(id: "showed-up")])

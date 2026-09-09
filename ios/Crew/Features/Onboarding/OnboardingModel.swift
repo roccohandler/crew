@@ -1,10 +1,10 @@
-// SPEC: 5.6.2 OnboardingModel — state: step, selectedDays, experience?, equipment?, draft, authError?; actions: toggleDay ·
-// choose(experience) auto-advance · choose(equipment) · regenerate · swap · saveWithApple · saveWithEmail; the draft
-// persists locally pre-auth (S05: the plan survives auth failure/abandon). 1A invite-aware fast path (the crew token
-// rides through onboarding; after auth the user lands INSIDE the crew). C14 (@Observable, plain vars).
-// WRITTEN — UNVERIFIED (needs Mac). T021 + T022
+// SPEC: 5.6.2 OnboardingModel — state: step, selectedDays, experience?, equipment?, draft, weekRows, authError?; actions:
+// toggleDay · choose(experience) auto-advance · choose(equipment) · regenerate · swap (by workout kind, A1) · saveWithApple ·
+// saveWithEmail (OnboardingModelAuth.swift); the draft persists locally pre-auth (S05: the plan survives auth failure/
+// abandon). 1A invite-aware fast path (the crew token rides through onboarding; after auth the user lands INSIDE the
+// crew). A1 (owner-directed 2026-09-08): the reveal shows THIS week's rotation projection — Push · Pull · Legs at every
+// day count. C14 (@Observable, plain vars). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
 
-import AuthenticationServices
 import Foundation
 import Observation
 
@@ -25,6 +25,7 @@ final class OnboardingModel {
     var experience: String?
     var equipment: String?
     var draft: PlanDraft?
+    var weekRows: [WeekMapRow] = []   // A1: this week's projection of the draft (`Mon · Push day` …)
     var authError: String?
     var isSaving = false
     var invitedCrew: CrewPreviewDTO?
@@ -34,13 +35,17 @@ final class OnboardingModel {
     let mode: OnboardingMode
     var rebuildSaved = false
 
-    private let seed: SeedCatalog
-    private let draftStore: DraftStore
+    let seed: SeedCatalog
+    let draftStore: DraftStore
+    private let store: Store?      // rebuild only: the rotation pointer comes from the phone's completed sessions (A1)
+    private let timeZone: TimeZone
 
-    init(seed: SeedCatalog = .shared, draftStore: DraftStore = DraftStore(), mode: OnboardingMode = .signup) {
+    init(seed: SeedCatalog = .shared, draftStore: DraftStore = DraftStore(), mode: OnboardingMode = .signup, store: Store? = nil, timeZone: TimeZone = .current) {
         self.seed = seed
         self.draftStore = draftStore
         self.mode = mode
+        self.store = store
+        self.timeZone = timeZone
         if mode == .signup, let saved = draftStore.load() {
             selectedDays = saved.selectedDays
             experience = saved.experience
@@ -48,15 +53,15 @@ final class OnboardingModel {
             draft = saved.draft
             inviteToken = saved.inviteToken
             step = .save   // S05: resumes here next launch
+            refreshWeekRows()
         }
     }
 
-    // 1B: the encouragement line reads live under the day picker
+    // 1B: the encouragement line reads live under the day picker (A1: no full-body line — every count rotates PPL)
     var encouragementLine: String {
         switch selectedDays.count {
         case 0: return "Pick at least one day."
         case 1: return "1 day a week — a start is a start."
-        case SpecConstants.fullBodyMaxTrainingDays: return "2 days a week — full body, done right."
         default: return "\(selectedDays.count) days a week — solid."
         }
     }
@@ -87,6 +92,22 @@ final class OnboardingModel {
     func regenerate() {
         guard let experience, let equipment else { return }
         draft = PlanGenerator.generatePlan(days: selectedDays, experience: experience, access: equipment, seed: seed)
+        refreshWeekRows()
+    }
+
+    // SPEC: A1 · S04 — the reveal is this week's projection: a signup starts the cycle at its first workout; a rebuild
+    // continues from the last completed rotation workout on the phone, so nobody repeats a day they just did
+    func refreshWeekRows(now: Date = Date()) {
+        guard let draft, !draft.workouts.isEmpty else { weekRows = []; return }
+        let cycle = draft.workouts.map(\.kind)
+        var last: String?
+        if mode == .rebuild, let userId = AuthStore.shared.currentUser?.id {
+            last = (try? (store ?? .shared).lastCompletedRotationKind(for: userId, cycle: cycle)) ?? nil
+        }
+        let todayKey = DayKey.dayKey(for: now, tz: timeZone)
+        let next = PlanRotation.nextWorkoutKind(lastCompletedKind: last, cycle: cycle)
+        let week = PlanRotation.projectWeek(weekKey: DayKey.weekKey(for: todayKey), todayKey: todayKey, trainingWeekdays: draft.trainingWeekdays, cycle: cycle, nextKind: next, completedKindByDay: [:])
+        weekRows = week.map { WeekMapRow.make($0, workouts: draft.workouts) }
     }
 
     func swapCandidates(for exerciseId: String) -> [SeedExercise] {
@@ -94,18 +115,18 @@ final class OnboardingModel {
         return SwapFinder.swapCandidates(for: incumbent, access: equipment, experience: experience ?? "brandNew", seed: seed)
     }
 
-    // Flow 1 step 4 — two taps, no questions asked, ever
-    func swap(exerciseId: String, in weekday: Int, with replacement: SeedExercise) {
-        guard var draft, let experience else { return }
-        draft = PlanDraft(workouts: draft.workouts.map { workout in
-            guard workout.weekday == weekday else { return workout }
+    // Flow 1 step 4 — two taps, no questions asked, ever; the row keeps its order (A1: workouts are keyed by kind)
+    func swap(exerciseId: String, in kind: String, with replacement: SeedExercise) {
+        guard let draft, let experience else { return }
+        let workouts = draft.workouts.map { workout -> PlanDraftWorkout in
+            guard workout.kind == kind else { return workout }
             let exercises = workout.exercises.map { row -> PlanDraftExercise in
                 guard row.exerciseId == exerciseId else { return row }
                 return PlanGenerator.strengthRow(replacement.id, experience: experience, order: row.order, seed: seed) ?? row
             }
-            return PlanDraftWorkout(weekday: workout.weekday, name: workout.name, kind: workout.kind, exercises: exercises)
-        })
-        self.draft = draft
+            return PlanDraftWorkout(name: workout.name, kind: workout.kind, exercises: exercises)
+        }
+        self.draft = PlanDraft(trainingWeekdays: draft.trainingWeekdays, workouts: workouts)
     }
 
     func acceptPlan() {
@@ -116,66 +137,5 @@ final class OnboardingModel {
 
     func persistDraft() {
         draftStore.save(OnboardingDraft(selectedDays: selectedDays, experience: experience, equipment: equipment, draft: draft, inviteToken: inviteToken))
-    }
-
-    // SPEC: Flow 8 Rebuild · E4 [Rebuild] — a signed-in user saves straight from the reveal; forward-only, the server copy
-    // replaces the phone's (PlanLocal). T042
-    func saveRebuild(store: Store = .shared) async {
-        guard let draft, let userId = AuthStore.shared.currentUser?.id else { return }
-        isSaving = true
-        authError = nil
-        defer { isSaving = false }
-        do {
-            let plan = try await Api.shared.putPlan(draft)
-            try PlanLocal.replace(plan.workouts, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: store)
-            rebuildSaved = true
-        } catch let error as AppError {
-            authError = error.userLine
-        } catch {
-            authError = AppError.invalidResponse.userLine
-        }
-    }
-
-    func saveWithEmail(email: String, password: String, displayName: String, birthYear: Int) async {
-        await finishSignup {
-            let request = RegisterRequestDTO(email: email, password: password, displayName: displayName, timezone: TimeZone.current.identifier, eulaAccepted: true, birthYear: birthYear)
-            AuthStore.shared.store(try await Api.shared.register(request))
-        }
-    }
-
-    func saveWithApple(credential: ASAuthorizationAppleIDCredential, birthYear: Int?) async {
-        await finishSignup {
-            try await AuthStore.shared.signInWithApple(credential: credential, timezone: TimeZone.current, eulaAccepted: true, birthYear: birthYear)
-        }
-    }
-
-    func logIn(email: String, password: String) async {
-        await finishSignup {
-            AuthStore.shared.store(try await Api.shared.login(LoginRequestDTO(email: email, password: password)))
-        }
-    }
-
-    // After auth: the plan is saved (the hook becomes the account) and lands on the phone (E6); a login without a draft pulls the
-    // server's plan; the invite is honoured; the draft is cleared
-    private func finishSignup(_ authenticate: () async throws -> Void) async {
-        isSaving = true
-        authError = nil
-        defer { isSaving = false }
-        do {
-            try await authenticate()
-            let userId = AuthStore.shared.currentUser?.id ?? "local"
-            if let draft {
-                let plan = try await Api.shared.putPlan(draft)
-                try PlanLocal.replace(plan.workouts, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: .shared)
-            } else {
-                await ServerHydrate.pullIfEmpty(userId: userId, store: .shared) // a login on a fresh phone: plan, journal, sessions, gamification, crew
-            }
-            if let inviteToken { _ = try? await Api.shared.joinCrew(token: inviteToken) }
-            draftStore.clear()
-        } catch let error as AppError {
-            authError = error.userLine
-        } catch {
-            authError = AppError.invalidResponse.userLine
-        }
     }
 }

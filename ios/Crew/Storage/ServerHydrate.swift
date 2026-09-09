@@ -3,7 +3,9 @@
 // phone holds the truth it judges from: plan, journal, sessions, gamification, crew) · 5.6.3 (gamification: server state
 // REPLACES local). A signed-in phone whose Store holds neither a plan nor a post pulls everything once, before Home judges today
 // (RootView); a login without a draft pulls the same way (OnboardingModel). A phone with any local truth pulls nothing here —
-// the queue and the reconcile keep it current. Plain functions (C2). WRITTEN — UNVERIFIED (needs Mac). T024 / T035 / T042
+// the queue and the reconcile keep it current. A1/A2/A6 (2026-09-08): the plan arrives with its trainingWeekdays (PlanLocal), a
+// session with its workoutKind and set distances, a post with its summary line. Plain functions (C2). WRITTEN — UNVERIFIED
+// (needs Mac). T024 / T035 / T042
 
 import Foundation
 import SwiftData
@@ -47,6 +49,7 @@ enum ServerHydrate {
             let post = LocalPost(clientId: clientId, userId: userId, type: item.type, sessionClientId: nil, caption: item.caption, mealTag: item.mealTag, shareToCrew: item.crewId != nil, dayKey: item.dayKey, isPlannedDay: item.isPlannedDay, workoutCompleted: item.workoutCompleted, earlierToday: item.earlierToday, createdAt: item.createdAt)
             post.serverId = item.id
             post.photoKey = item.photoKey
+            post.summary = item.summary // A6: the line the server wrote at completion
             post.deliveredAt = item.createdAt
             store.context.insert(post)
         }
@@ -60,6 +63,7 @@ enum ServerHydrate {
             let exercises = item.exercises.map { exercise -> LocalSessionExercise in
                 let sets = exercise.sets.enumerated().map { index, set -> LocalSetLog in
                     let row = LocalSetLog(order: index, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: set.isWarmup)
+                    row.distanceMeters = set.distanceMeters // A2
                     row.done = set.done
                     row.asPlanned = Completion.asPlanned(SetFacts(targetReps: set.targetReps, actualReps: set.actualReps, done: set.done, isWarmup: set.isWarmup)) // V33, the same rule the server applied
                     return row
@@ -68,7 +72,7 @@ enum ServerHydrate {
                 local.skipped = exercise.skipped
                 return local
             }
-            let session = LocalSession(clientId: item.clientId, userId: userId, dayKey: item.dayKey, status: item.status, workoutName: item.workoutName, isPlannedDay: item.isPlannedDay, startedAt: item.startedAt, timezone: item.timezone, exercises: exercises)
+            let session = LocalSession(clientId: item.clientId, userId: userId, dayKey: item.dayKey, status: item.status, workoutName: item.workoutName, workoutKind: item.workoutKind, isPlannedDay: item.isPlannedDay, startedAt: item.startedAt, timezone: item.timezone, exercises: exercises)
             session.completedAt = item.completedAt
             session.updatedAt = item.updatedAt
             session.syncedAt = item.updatedAt

@@ -1,11 +1,10 @@
 // SPEC: S03 — 3 questions, all tappable, no keyboard; day toggles ≥ 56 pt with Mon/Wed/Fri pre-selected and a live
-// encouragement line; single-selects auto-advance with a selection haptic after a 250 ms beat (1B); "1 of 3" whisper;
-// SF Symbols at consistent weight; copy survives Dynamic Type XXL. Pure ink-on-bone (Part III onboarding rule).
-// WRITTEN — UNVERIFIED (needs Mac). T021
+// encouragement line plus the neutral whisper (A1, owner-directed 2026-09-08: PPL rotates at every day count, so the
+// picker steers nobody — "Most people start at 3 days."); single-selects auto-advance with a selection haptic after a
+// 250 ms beat (1B); "1 of 3" whisper; SF Symbols at consistent weight; copy survives Dynamic Type XXL. Pure ink-on-bone
+// (Part III onboarding rule). WRITTEN — UNVERIFIED (needs Mac). T021
 
 import SwiftUI
-
-private let weekdayLetters = ["M", "T", "W", "T", "F", "S", "S"]
 
 enum OnboardingQuestion: Int {
     case days = 1, experience, equipment
@@ -23,13 +22,14 @@ struct DaysQuestionScreen: View {
             // and the full column of width (≥ 44 pt, 6.3); the circle itself draws at the column width. R-052.
             HStack(spacing: EmberTokens.Spacing.space4) {
                 ForEach(1...TimeUnits.daysPerWeek, id: \.self) { weekday in
-                    DayToggle(letter: weekdayLetters[weekday - 1], selected: model.selectedDays.contains(weekday)) {
+                    DayToggle(letter: DayToggle.letters[weekday - 1], selected: model.selectedDays.contains(weekday)) {
                         Haptics.selection()
                         model.toggleDay(weekday)
                     }
                 }
             }
             Text(model.encouragementLine).font(.body).foregroundStyle(EmberColors.secondaryText)
+            Text(DayToggle.whisper).font(.footnote).foregroundStyle(EmberColors.secondaryText)
             Spacer()
             PrimaryButton(title: "Continue") { model.continueFromDays(); onContinue() }
                 .disabled(!model.canContinueFromDays)
@@ -41,6 +41,10 @@ struct DaysQuestionScreen: View {
 }
 
 struct DayToggle: View {
+    static let letters = ["M", "T", "W", "T", "F", "S", "S"]
+    // SPEC: A1 — the neutral line under the picker (the default pick is Mon/Wed/Fri, so the number is the default's count)
+    static let whisper = "Most people start at \(SpecConstants.defaultTrainingWeekdays.count) days."
+
     let letter: String
     let selected: Bool
     let action: () -> Void

@@ -1,7 +1,12 @@
 // SPEC: E6 (offline-first; "reconnect → auto-send, silent reconcile") · 8.6 (post queued with chip · reconnect → auto-send ·
 // kill mid-queue → nothing lost) · 5.6.3 — the moments the queue runs: launch (MainTabs), every enqueue (SyncQueue.enqueue),
 // every foreground (CrewApp) and the network coming back (NWPathMonitor — Apple's Network framework, not a dependency).
-// Plain functions (C2); one drain pass at a time. WRITTEN — UNVERIFIED (needs Mac). T014
+// A3 (2026-09-08): foreground and network return first give a young held op another chance (SyncQueue.releaseHeldForRetry).
+// A7 (2026-09-08): a real log out (CrewApp.resetState deletes the ops) — every moment the driver would run first checks
+// AuthStore.shared.isSignedIn, so a signed-out phone never sends (D7: a later sign-in never replays the previous account's ops;
+// MainTabs' .task calls start() again after the next sign-in and the recover + drain run for that account). The path monitor
+// is started once per process: NWPathMonitor cannot be restarted after cancel. Plain functions (C2); one drain pass at a time.
+// WRITTEN — UNVERIFIED (needs Mac). T014
 
 import Foundation
 import Network
@@ -38,22 +43,31 @@ enum SyncDriver {
     private static let monitor = NWPathMonitor()
     private static var started = false
 
-    // Once the user is signed in: recover, drain, then drain again whenever the network returns
+    // Every signed-in first frame (MainTabs): recover, drain, then release-and-drain whenever the network returns
     static func start() {
-        guard !started else { return }
-        started = true
+        guard AuthStore.shared.isSignedIn else { return }
         try? SyncQueue.shared.recoverInFlight()
-        monitor.pathUpdateHandler = { path in
-            guard path.status == .satisfied else { return }
-            Task { @MainActor in await SyncQueue.shared.drain() }
+        if !started {
+            started = true
+            monitor.pathUpdateHandler = { path in
+                guard path.status == .satisfied else { return }
+                Task { @MainActor in await releaseAndDrain() }
+            }
+            monitor.start(queue: DispatchQueue(label: "com.yourteam.crew.sync-path"))
         }
-        monitor.start(queue: DispatchQueue(label: "com.yourteam.crew.sync-path"))
         Task { await SyncQueue.shared.drain() }
     }
 
     // CrewApp: scenePhase → .active
     static func foreground() {
         guard started else { return }
-        Task { await SyncQueue.shared.drain() }
+        Task { await releaseAndDrain() }
+    }
+
+    // SPEC: A3 (2026-09-08) — a held op younger than the 24 h choice goes out again on these two moments; A7 — never signed out
+    private static func releaseAndDrain() async {
+        guard AuthStore.shared.isSignedIn else { return }
+        try? SyncQueue.shared.releaseHeldForRetry()
+        await SyncQueue.shared.drain()
     }
 }

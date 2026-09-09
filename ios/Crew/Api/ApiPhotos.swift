@@ -1,4 +1,6 @@
-// SPEC: docs/api.md POST photos (multipart file + purpose → photoKey). URLSession only. WRITTEN — UNVERIFIED (needs Mac). T027
+// SPEC: docs/api.md POST photos (multipart file + purpose → photoKey). URLSession only; the upload goes through Api.perform so
+// airplane mode is .offline, never a counted attempt (E6 — a photo post waits for the network like any op). WRITTEN — UNVERIFIED
+// (needs Mac). T027
 
 import Foundation
 import UIKit
@@ -33,8 +35,7 @@ extension Api {
         body.append(try Data(contentsOf: fileURL))
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = body
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw AppError.invalidResponse }
+        let (data, http) = try await perform(request)
         guard HttpStatus.successRange.contains(http.statusCode) else {
             if http.statusCode == HttpStatus.unauthorized { throw AppError.unauthorized }
             let body = try? JSONDecoder.crew.decode(ApiErrorBodyDTO.self, from: data)

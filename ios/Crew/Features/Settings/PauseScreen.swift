@@ -18,7 +18,7 @@ struct PauseScreen: View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
             if let pause = model.pause {
                 Text("Plan paused 🧊").font(.title2.weight(.bold)).foregroundStyle(EmberColors.inkText)
-                Text("Streak frozen, reminders off, until \(pause.endDay).").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("Streak frozen, reminders off, until \(model.pauseUntilLabel ?? pause.endDay).").font(.body).foregroundStyle(EmberColors.secondaryText) // A3/A6: a day label, never raw ISO
                 SecondaryButton(title: "End the pause now") { Task { await model.endPause(); dismiss() } }
             } else {
                 Text("Pause my plan").font(.title2.weight(.bold)).foregroundStyle(EmberColors.inkText)

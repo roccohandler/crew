@@ -1,8 +1,9 @@
 // SPEC: 5.6.3 SyncQueue — the one concrete mechanism: OpRecord @Model · enqueue · processNext (FIFO, backoff
-// 1s·2s·4s·8s·16s then .held) · reconcile (gamification: server state REPLACES local, silently) · heldOver24h →
-// UserChoice (E19). E6 offline-first; 8.3 retry/backoff, poison-message handling, ordering. The transport is a plain
-// function passed at init (C3: concrete, no protocol) so tests use an in-memory container and a test-provided sender
-// (C4: no mocks, no mocking frameworks). WRITTEN — UNVERIFIED (needs Mac). T014
+// 1s·2s·4s·8s·16s then .held) · reconcile (gamification: server state REPLACES local, silently — unless a counted post is
+// still undelivered, A3/E19) · heldOver24h → UserChoice (E19). E6 offline-first; 8.3 retry/backoff, poison-message handling,
+// ordering. The transport is a plain function passed at init (C3: concrete, no protocol) so tests use an in-memory container
+// and a test-provided sender (C4: no mocks, no mocking frameworks). The delivered half (E19: counted vs delivered are separate
+// facts) is SyncDelivery.swift; the moments the queue runs are SyncDriver.swift. WRITTEN — UNVERIFIED (needs Mac). T014
 
 import Foundation
 import SwiftData
@@ -82,13 +83,9 @@ final class SyncQueue {
         record.state = OpState.inFlight.rawValue
         do {
             let response = try await send(SyncOpDTO(opId: record.id, kind: record.kind, payload: try JSONValue.from(record.payload)))
+            let outcome = settle(record, response: response, now: now) // the op's own fate first: the reconcile guard reads the queue after it
             try reconcile(response)
-            if let result = response.results.first(where: { $0.opId == record.id }), !result.ok, result.retryable == false {
-                return hold(record, error: result.error ?? "rejected")
-            }
-            store.context.delete(record)
-            try? store.save()
-            return .sent(opId: record.id)
+            return outcome
         } catch AppError.offline {
             record.state = OpState.pending.rawValue // E6: no attempt is counted — the op waits for the network exactly as it was
             try? store.save()
@@ -107,9 +104,26 @@ final class SyncQueue {
         }
     }
 
-    // SPEC: 5.6.3 — gamification: server state REPLACES local, silently (server recompute overrides divergence)
+    // SPEC: 5.6.3 · A3 (2026-09-08) — the server answered: ok → delivered (the post it carried is stamped, the op leaves the
+    // queue); ok:false, retryable:false → held (poison, E19's choice later); ok:false, retryable:true → the ordinary backoff,
+    // never deleted (the server may accept it next time)
+    private func settle(_ record: OpRecord, response: SyncResponseDTO, now: Date) -> ProcessOutcome {
+        if let result = response.results.first(where: { $0.opId == record.id }), !result.ok {
+            if result.retryable == false { return hold(record, error: result.error ?? "rejected") }
+            return schedule(record, error: result.error ?? "rejected", now: now)
+        }
+        try? markDelivered(record, now: now)
+        store.context.delete(record)
+        try? store.save()
+        return .sent(opId: record.id)
+    }
+
+    // SPEC: 5.6.3 — gamification: server state REPLACES local, silently (server recompute overrides divergence) — except while a
+    // counted post is still on its way (A3, 2026-09-08: E19 wins over 5.6.3 while undelivered post ops exist; the server has not
+    // seen that post yet, so its lower streak is not the truth this phone judged from)
     func reconcile(_ response: SyncResponseDTO) throws {
         guard let serverState = response.gamification, let userId = AuthStore.shared.currentUser?.id else { return }
+        guard try !hasUndeliveredPostOps() else { return }
         let local = try store.gamificationState(for: userId)
         local.currentStreak = serverState.currentStreak
         local.longestStreak = serverState.longestStreak

@@ -1,6 +1,8 @@
-// SPEC: S14 Plan editor — Mon–Sun at a glance (Flow 8); tiered editing (swap / tune / full); limits enforced by input constraints
-// (invalid states unreachable); Rebuild = the questions again; forward-only stated in copy; states: loading · ready · empty ·
-// error · offline · undo. Screens hold ZERO logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac). S14 iOS (see PlanModel header)
+// SPEC: S14 Plan · A4 (owner-directed 2026-09-08) — the week map: seven rows from the rotation projection (A1), zero
+// controls in the rows; forward-only stated in copy; `Next week starts with {name}` when the cycle does not divide the
+// days; `Change days` (DaysSheet) and `Rebuild my week` (the questions again). A row opens WorkoutEditorScreen, pushed
+// full screen. Save returns here with the toast `Saved · applies from your next {name}`. States: loading · ready · empty
+// · error. Screens hold ZERO logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
 
@@ -9,65 +11,85 @@ enum PlanLoadState: Equatable {
     case ready
     case empty
     case failed(String)
-    case offline
 }
 
 struct PlanScreen: View {
     @State private var model = PlanModel()
     @State private var loadState: PlanLoadState = .loading
-    @State private var swapping: (weekday: Int, row: PlanDraftExercise)?
-    @State private var addingTo: Int?
+    @State private var path: [String] = []   // the workout kind being edited (A4: one level down)
+    @State private var changingDays = false
     @State private var rebuilding = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 switch loadState {
                 case .loading: ListSkeleton(rows: TimeUnits.daysPerWeek)
-                case .ready, .offline: editor
+                case .ready: weekMap
                 case .empty: EmptyState(title: "No plan yet", line: "Answer three questions and your week is built.", ctaTitle: "Build my week") { rebuilding = true }
                 case .failed(let line): ErrorState(line: line) { load() }
                 }
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Plan")
-            .task { load() }
-            .sheet(isPresented: Binding(get: { swapping != nil }, set: { if !$0 { swapping = nil } })) {
-                SwapSheet(candidates: swapping.map { model.swapCandidates(for: $0.row.exerciseId, in: $0.weekday) } ?? []) { pick in
-                    if let swapping { model.swap(exerciseId: swapping.row.exerciseId, in: swapping.weekday, with: pick) }
-                    swapping = nil
-                }
+            .navigationDestination(for: String.self) { kind in
+                WorkoutEditorScreen(model: model, kind: kind) { path.removeAll() }
             }
-            .sheet(isPresented: Binding(get: { addingTo != nil }, set: { if !$0 { addingTo = nil } })) {
-                SwapSheet(candidates: addingTo.map { model.addCandidates(for: $0) } ?? []) { pick in
-                    if let addingTo { model.add(pick, to: addingTo) }
-                    addingTo = nil
-                }
-            }
+            .onAppear { load() }
+            .sheet(isPresented: $changingDays) { DaysSheet(model: model) { changingDays = false } }
             .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() } }
+            .overlay(alignment: .bottom) {
+                if let line = model.savedLine { BoneToast(line: line) { model.dismissSaved() } }
+            }
         }
+        .tint(EmberColors.inkText)
     }
 
-    private var editor: some View {
+    private var weekMap: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                if loadState == .offline { OfflineBanner(lastSyncedLine: "Your plan is on this phone — edits sync later.") }
-                Text("Everything applies forward. History never rewrites.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                ForEach(model.week) { slot in
-                    PlanDayCard(slot: slot, model: model, onSwap: { row in swapping = (slot.weekday, row) }, onAdd: { addingTo = slot.weekday })
+                Text("Workouts rotate Push → Pull → Legs, so each gets equal time. Changes apply from your next workout on.")
+                    .font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                ForEach(model.rows) { row in
+                    WeekRow(row: row) { if let kind = row.kind { path = [kind] } }
                 }
-                PrimaryButton(title: "Save plan") { model.save() }
-                if model.previous != nil { SecondaryButton(title: "Undo") { model.undo() } }
-                if let line = model.savedLine { Text(line).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                if let line = model.errorLine { Text(line).font(.footnote).foregroundStyle(EmberColors.danger) }
+                if let name = model.nextWeekStartsWith {
+                    Text("Next week starts with \(name)").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                }
+                SecondaryButton(title: "Change days") { changingDays = true }
                 SecondaryButton(title: "Rebuild my week") { rebuilding = true }
+                if let line = model.errorLine { Text(line).font(.footnote).foregroundStyle(EmberColors.inkText) }
             }
             .padding(EmberTokens.Spacing.space16)
+            .padding(.bottom, CGFloat(SpecConstants.minTouchTargetPt) + EmberTokens.Spacing.space32) // room for the toast: its height plus its margins
         }
     }
 
     private func load() {
         model.load()
         if let line = model.errorLine { loadState = .failed(line) } else { loadState = model.hasPlan ? .ready : .empty }
+    }
+}
+
+// A transient bone card with one ink line — saving is not a reward, so never orange (Part III); tap dismisses
+struct BoneToast: View {
+    let line: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        Button(action: onDismiss) {
+            Text(line)
+                .font(.subheadline)
+                .foregroundStyle(EmberColors.inkText)
+                .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                .padding(.horizontal, EmberTokens.Spacing.space16)
+                .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+        }
+        .buttonStyle(.plain)
+        .padding(EmberTokens.Spacing.space16)
+        .accessibilityLabel(line)
+        .accessibilityHint("Dismisses")
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }

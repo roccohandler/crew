@@ -12,7 +12,7 @@ struct CrewStrip: View {
                 ForEach(members) { member in
                     VStack(spacing: EmberTokens.Spacing.space4) {
                         ZStack(alignment: .bottomTrailing) {
-                            AvatarView(displayName: member.displayName, image: nil)
+                            AvatarView(displayName: member.displayName, image: nil, photoKey: member.profilePhotoKey)
                             Circle()
                                 .fill(member.paused ? EmberColors.hairline : (member.postedToday ? EmberColors.ember : EmberColors.missedGray))
                                 .frame(width: EmberTokens.Spacing.space12, height: EmberTokens.Spacing.space12)

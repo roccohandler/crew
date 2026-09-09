@@ -58,6 +58,19 @@ final class Store {
         try context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.userId == userId && $0.dayKey == dayKey }))
     }
 
+    // SPEC: A1 — the history the rotation pointer is derived from: completed sessions, latest first
+    func completedSessions(for userId: String) throws -> [LocalSession] {
+        let completed = "completed"
+        return try context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.userId == userId && $0.status == completed }, sortBy: [SortDescriptor(\.completedAt, order: .reverse)]))
+    }
+
+    // SPEC: A1 — the last completed rotation workout's kind (nil before the first one); a cardio log or a custom kind outside
+    // the cycle never counts, a legacy row infers its kind from its name (PlanRotation)
+    func lastCompletedRotationKind(for userId: String, cycle: [String]) throws -> String? {
+        let history = try completedSessions(for: userId).map { RotationSession(kind: $0.workoutKind, name: $0.workoutName, completedAt: $0.completedAt, status: $0.status) }
+        return PlanRotation.lastRotationKind(sessions: history, cycle: cycle)
+    }
+
     func posts(for userId: String, dayKey: String) throws -> [LocalPost] {
         try context.fetch(FetchDescriptor<LocalPost>(predicate: #Predicate { $0.userId == userId && $0.dayKey == dayKey && $0.deletedAt == nil }, sortBy: [SortDescriptor(\.createdAt)]))
     }

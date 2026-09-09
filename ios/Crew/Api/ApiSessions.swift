@@ -1,5 +1,7 @@
 // SPEC: docs/api.md sessions + the sync op payloads (createSession · patchSession · createPost) — DTOs mirror
-// lib/validate-sessions.ts and lib/validate-posts.ts 1:1. WRITTEN — UNVERIFIED (needs Mac). T024–T027
+// lib/validate-sessions.ts and lib/validate-posts.ts 1:1. A1 (2026-09-08): the snapshot names its plan kind; A2: a cardio set
+// carries an optional distance; A6: a workout post carries the server-written summary line. WRITTEN — UNVERIFIED (needs Mac).
+// T024–T027
 
 import Foundation
 
@@ -8,6 +10,7 @@ struct SetLogDTO: Codable, Equatable {
     var actualReps: Int
     var weight: Double?
     var holdSeconds: Int?
+    var distanceMeters: Int?   // A2: cardio only, optional; nil elsewhere (absent on the wire — Codable omits a nil)
     var isWarmup: Bool
     var done: Bool
 }
@@ -16,7 +19,7 @@ struct SessionExerciseDTO: Codable, Equatable {
     var exerciseId: String
     var name: String
     var equipment: String
-    var type: String
+    var type: String           // strength | mobility | cardio (A2)
     var targetSets: Int
     var targetReps: Int
     var holdSeconds: Int?
@@ -25,9 +28,10 @@ struct SessionExerciseDTO: Codable, Equatable {
     var sets: [SetLogDTO]
 }
 
+// A1: `kind` is the plan kind the session runs ("cardio" for a standalone log, A2); the server no longer needs a weekday
 struct WorkoutSnapshotDTO: Codable, Equatable {
     var name: String
-    var weekday: Int
+    var kind: String?
     var isPlannedDay: Bool
     var exercises: [SessionExerciseDTO]
 }
@@ -83,6 +87,7 @@ struct PostDTO: Codable, Equatable {
     let isPlannedDay: Bool
     let workoutCompleted: Bool
     let earlierToday: Bool
+    let summary: String?       // A6: the one readable line the server wrote at workout completion; nil on meals and text
     let createdAt: Date
 }
 
@@ -102,6 +107,7 @@ struct SessionDTO: Codable {
     let dayKey: String
     let status: String
     let workoutName: String
+    let workoutKind: String?   // A1: the plan kind the snapshot ran; "cardio" for a log (A2); nil on legacy rows
     let isPlannedDay: Bool
     let startedAt: Date
     let completedAt: Date?

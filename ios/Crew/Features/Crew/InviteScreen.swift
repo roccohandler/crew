@@ -22,6 +22,8 @@ struct InviteScreen: View {
                                 .foregroundStyle(EmberColors.primaryButtonLabel)
                                 .background(EmberColors.primaryButtonFill, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
                         }
+                    } else if !model.isCaptain {
+                        Text("Ask your Captain for the link.").font(.body).foregroundStyle(EmberColors.inkText) // the link is the Captain's (S13)
                     }
                     if model.isCaptain {
                         SecondaryButton(title: "Regenerate link (old one dies)") { Task { await model.regenerateLink() } }

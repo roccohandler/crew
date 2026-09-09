@@ -1,4 +1,5 @@
-// SPEC: docs/api.md crews/* + messages + reactions — DTOs mirror lib/validate-crews.ts and crew-stream.ts 1:1.
+// SPEC: docs/api.md crews/* + messages + reactions + the blocked list (GET blocks · DELETE blocks, A7) — DTOs mirror
+// lib/validate-crews.ts, crew-stream.ts and lib/blocks.ts 1:1; a stream post is a PostDTO (its A6 summary rides along).
 // WRITTEN — UNVERIFIED (needs Mac). T031
 
 import Foundation
@@ -83,6 +84,18 @@ struct InviteReplyDTO: Codable {
     let inviteLink: String
 }
 
+// SPEC: A7 — Settings › Blocked people: { blocked: [{ userId, displayName }] }, oldest block first
+struct BlockedUserDTO: Codable, Equatable, Identifiable {
+    let userId: String
+    let displayName: String
+
+    var id: String { userId }
+}
+
+struct BlockedListDTO: Codable {
+    let blocked: [BlockedUserDTO]
+}
+
 extension Api {
     func myCrew() async throws -> MyCrewDTO { try await send("GET", "crews") }
     func createCrew(name: String, emoji: String) async throws -> CreateCrewReplyDTO { try await send("POST", "crews", body: CreateCrewRequestDTO(name: name, emoji: emoji)) }
@@ -92,4 +105,12 @@ extension Api {
     }
     func leaveOrRemove(crewId: String, userId: String?) async throws -> OkDTO { try await send("DELETE", "crews/\(crewId)/members", body: RemoveMemberRequestDTO(userId: userId)) }
     func regenerateInvite(crewId: String) async throws -> InviteReplyDTO { try await send("POST", "crews/\(crewId)/invite") }
+
+    // SPEC: A7 — the people this user blocked, and the unblock (DELETE blocks { userId }; a 404 means it was already undone)
+    func blockedUsers() async throws -> [BlockedUserDTO] {
+        let reply: BlockedListDTO = try await send("GET", "blocks")
+        return reply.blocked
+    }
+
+    func unblock(userId: String) async throws -> OkDTO { try await send("DELETE", "blocks", body: BlockRequestDTO(userId: userId)) }
 }

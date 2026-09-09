@@ -13,8 +13,27 @@ struct UserDTO: Codable, Equatable {
     let units: String
     let timezone: String
     let reminderTime: String?
+    let notificationPrefs: NotificationPrefsDTO?   // A7: absent on an older reply = every toggle on (read `prefs`)
     let welcomeBackAckDay: String?   // E4: the day the welcome-back screen was answered (nil = never)
     let createdAt: Date
+
+    var prefs: NotificationPrefsDTO { notificationPrefs ?? NotificationPrefsDTO.allOn }
+}
+
+// SPEC: A7 (owner-directed 2026-09-08) — per-row notification toggles, server-backed; the server fills defaults (all true)
+struct NotificationPrefsDTO: Codable, Equatable {
+    let workoutReminder: Bool
+    let streakRisk: Bool
+    let crewActivity: Bool
+
+    static let allOn = NotificationPrefsDTO(workoutReminder: true, streakRisk: true, crewActivity: true)
+}
+
+// SPEC: A7 — PATCH users/me sends only the row that changed; the server merges it over the stored toggles
+struct NotificationPrefsPatchDTO: Codable, Equatable {
+    var workoutReminder: Bool? = nil
+    var streakRisk: Bool? = nil
+    var crewActivity: Bool? = nil
 }
 
 // docs/api.md — the iOS signed-in response (X-Crew-Client: ios)

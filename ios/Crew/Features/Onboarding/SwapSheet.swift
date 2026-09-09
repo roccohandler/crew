@@ -1,9 +1,11 @@
 // SPEC: Flow 1 step 4 — Tap → Swap → 3–5 alternatives that do the same job. Two taps. No questions asked, ever.
-// Also used by the Plan editor (T014-S14) and mid-workout swaps (E7). WRITTEN — UNVERIFIED (needs Mac). T021
+// Also the Plan editor's picker (A4: `Swap`, `Add exercise`, `Add cardio` — same list, its own title) and the mid-workout
+// swap (E7). WRITTEN — UNVERIFIED (needs Mac). T021
 
 import SwiftUI
 
 struct SwapSheet: View {
+    var title = "Swap"
     let candidates: [SeedExercise]
     let onPick: (SeedExercise) -> Void
 
@@ -26,7 +28,7 @@ struct SwapSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(EmberColors.canvas)
-            .navigationTitle("Swap")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium, .large])

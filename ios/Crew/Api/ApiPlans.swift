@@ -1,14 +1,21 @@
 // SPEC: docs/api.md plans (GET · PUT replace, forward-only) + crews/join preview (the invite-aware hero, 1A).
-// DTOs mirror lib/validate-plans.ts. WRITTEN — UNVERIFIED (needs Mac).
+// DTOs mirror lib/validate-plans.ts. A1 (owner-directed 2026-09-08): a plan is trainingWeekdays plus an ORDERED list of
+// workouts without a weekday; a PUT without trainingWeekdays is a 400 (poison op), so the phone never sends the old shape.
+// WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
 struct PlanDTO: Codable, Equatable {
+    let trainingWeekdays: [Int]
     let workouts: [PlanDraftWorkout]
     let updatedAt: Date?
+
+    // SPEC: A1 — the server's plan as the engine's draft (PlanLocal.replace takes it)
+    var draft: PlanDraft { PlanDraft(trainingWeekdays: trainingWeekdays, workouts: workouts) }
 }
 
 struct PutPlanRequestDTO: Codable {
+    let trainingWeekdays: [Int]
     let workouts: [PlanDraftWorkout]
 }
 
@@ -35,7 +42,7 @@ extension Api {
     }
 
     func putPlan(_ draft: PlanDraft) async throws -> PlanDTO {
-        try await send("PUT", "plans", body: PutPlanRequestDTO(workouts: draft.workouts))
+        try await send("PUT", "plans", body: PutPlanRequestDTO(trainingWeekdays: draft.trainingWeekdays, workouts: draft.workouts))
     }
 
     func crewPreview(token: String) async throws -> CrewPreviewDTO {

@@ -1,6 +1,7 @@
 // SPEC: T042 (Verify: unit) — the edge screens' triggers in HomeModel: welcome back at 14 quiet days and silent once answered
 // (E4/S18), the stale-session prompt after a day with discard (S01), held uploads past 24 h with the user's choice (E19).
-// Against an in-memory Store and a queue whose transport never sends (C4: no mocks). WRITTEN — UNVERIFIED (needs Mac).
+// Against an in-memory Store and a queue whose transport never sends (C4: no mocks). A1: the plan is trainingWeekdays plus an
+// ordered list of workouts (PlanLocal.replace). WRITTEN — UNVERIFIED (needs Mac).
 
 import XCTest
 @testable import Crew
@@ -14,12 +15,17 @@ final class HomeModelEdgeTests: XCTestCase {
     private func storeWithPlan() throws -> Store {
         let store = Store(inMemory: true)
         let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
-        try PlanLocal.replace(draft.workouts, userId: userId, updatedAt: friday, store: store)
+        try PlanLocal.replace(draft, userId: userId, updatedAt: friday, store: store)
         return store
     }
 
     private func queue(_ store: Store) -> SyncQueue {
         SyncQueue(store: store, send: { _ in throw AppError.invalidResponse })
+    }
+
+    // The rotation's first workout — what an untouched plan offers on any training day (A1)
+    private func firstWorkout(_ store: Store) throws -> LocalWorkoutTemplate {
+        try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
     }
 
     func testWelcomeBackAfterFourteenQuietDaysAndSilentOnceAnswered() throws {
@@ -45,9 +51,9 @@ final class HomeModelEdgeTests: XCTestCase {
 
     func testStaleSessionPromptAfterADayAndDiscard() throws {
         let store = try storeWithPlan()
-        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.weekday == 5 })
+        let workout = try firstWorkout(store)
         let limit = TimeInterval(SpecConstants.staleInProgressSessionAfterHours * TimeUnits.secondsPerHour)
-        _ = try SessionActions.startSession(from: workout, userId: userId, timeZone: tz, now: friday.addingTimeInterval(-limit - 1), store: store)
+        _ = try SessionActions.startSession(from: workout, kind: workout.kind, isPlannedDay: true, userId: userId, timeZone: tz, now: friday.addingTimeInterval(-limit - 1), store: store)
         let model = HomeModel(store: store, userId: userId, timeZone: tz, syncQueue: queue(store), welcomeBackAckDay: nil)
         model.refresh(now: friday)
         XCTAssertNotNil(model.staleSession)
@@ -60,8 +66,8 @@ final class HomeModelEdgeTests: XCTestCase {
 
     func testFreshSessionIsNotStale() throws {
         let store = try storeWithPlan()
-        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.weekday == 5 })
-        _ = try SessionActions.startSession(from: workout, userId: userId, timeZone: tz, now: friday.addingTimeInterval(-TimeInterval(TimeUnits.secondsPerHour)), store: store)
+        let workout = try firstWorkout(store)
+        _ = try SessionActions.startSession(from: workout, kind: workout.kind, isPlannedDay: true, userId: userId, timeZone: tz, now: friday.addingTimeInterval(-TimeInterval(TimeUnits.secondsPerHour)), store: store)
         let model = HomeModel(store: store, userId: userId, timeZone: tz, syncQueue: queue(store), welcomeBackAckDay: nil)
         model.refresh(now: friday)
         XCTAssertNil(model.staleSession)

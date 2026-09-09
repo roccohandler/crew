@@ -29,6 +29,10 @@ final class SessionModel {
     var facts: CompletionFacts { Completion.completionFacts(SessionActions.setFacts(session)) }
     var canComplete: Bool { facts.complete }
 
+    // SPEC: S09 · A2 — the live line above Complete: "x/y sets" (holds and cardio count, warm-ups never) + " + Walk 25 min"
+    // for every cardio block with a done set
+    var liveSummaryLine: String { "\(facts.setsDone)/\(facts.setsPlanned) sets\(JournalFacts.cardioSuffix(session))" }
+
     func sets(of exercise: LocalSessionExercise) -> [LocalSetLog] { exercise.sets.sorted { $0.order < $1.order } }
 
     // Flow 3 "pre-fill from reality": the last ACTUAL performance of this exercise, tiny and gray under the name
@@ -36,10 +40,19 @@ final class SessionModel {
         guard let previous = try? store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.status == "completed" }, sortBy: [SortDescriptor(\.completedAt, order: .reverse)])).first(where: { $0.clientId != session.clientId && $0.exercises.contains { $0.exerciseId == exercise.exerciseId } }),
               let row = previous.exercises.first(where: { $0.exerciseId == exercise.exerciseId }) else { return nil }
         let done = sets(of: row).filter { $0.done && !$0.isWarmup }
-        guard !done.isEmpty else { return nil }
+        guard !done.isEmpty, row.type != "mobility" else { return nil } // holds have no "last": no reps, no weight, ever
+        if row.type == "cardio" { return cardioLastLine(done) }
         let reps = done.map { String($0.actualReps) }.joined(separator: " · ")
         if let weight = done.compactMap(\.weight).max() { return "last: \(reps) @ \(formatted(weight))" }
         return "last: \(reps)"
+    }
+
+    // SPEC: A2 — a cardio block's last time reads its minutes and, when logged, its distance in the user's units
+    private func cardioLastLine(_ done: [LocalSetLog]) -> String {
+        let minutes = JournalFacts.minutes(ofSeconds: done.reduce(0) { $0 + ($1.holdSeconds ?? 0) })
+        let distance = done.compactMap(\.distanceMeters).reduce(0, +)
+        guard distance > 0 else { return "last: \(minutes) min" }
+        return "last: \(minutes) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, units: units))"
     }
 
     // SPEC: Flow 3 base loop — tap a set → ✓ at pre-filled numbers · haptic tick · rest timer starts · last set → next exercise opens
@@ -111,6 +124,20 @@ final class SessionModel {
         set.asPlanned = true
         save()
         Haptics.play(.tick)
+    }
+
+    // SPEC: A2 — a cardio block is duration-based: Done stores the minutes as seconds (holdSeconds = minutes × 60) and the
+    // optional distance in meters, both bounded; the set is done and as planned (targetReps 0, V51). Part of the +100, never
+    // extra XP. The next open exercise opens, as after a finished set.
+    func finishCardio(_ set: LocalSetLog, minutes: Int, distanceMeters: Int?) {
+        let bounded = min(max(minutes, SpecConstants.cardioMinutesMin), SpecConstants.cardioMinutesMax)
+        set.holdSeconds = bounded * TimeUnits.secondsPerMinute
+        set.distanceMeters = distanceMeters.map { min(max($0, 0), SpecConstants.cardioDistanceMaxMeters) }
+        set.done = true
+        set.asPlanned = true
+        save()
+        Haptics.play(.tick)
+        if let exercise = exercises.first(where: { $0.sets.contains { $0 === set } }) { advanceFocus(after: exercise) }
     }
 
     func jumpTo(_ exercise: LocalSessionExercise) {

@@ -1,30 +1,12 @@
-// SPEC: 5.6.2 HomeModel — state: today: TodayState, streak, shields, weeklyRing: [DayRingState], crewStrip: [MemberDot]?;
-// enum TodayState { bridge · workout · rest · paused · allDone }; actions: refresh() (Store-only, < 500 ms) · startWorkout ·
-// quickComplete · openDay. S07: bridge until the first post (1D); Quick Complete hidden once today counts; Resume banner;
-// crew strip ABSENT (nil) for solo (Flow 10). C14. WRITTEN — UNVERIFIED (needs Mac). T024
+// SPEC: 5.6.2 HomeModel — state: today: TodayState (TodayState.swift), streak, shields, weeklyRing: [DayRingState],
+// crewStrip: [MemberDot]?; actions: refresh() (Store-only, < 500 ms) · startWorkout ·
+// quickComplete · startBonus. S07: bridge until the first post (1D); Quick Complete hidden once today counts; Resume banner;
+// crew strip ABSENT (nil) for solo (Flow 10). A1: today's workout comes from the rotation projection (the training-day check
+// plus nextWorkoutKind), never from a weekday slot. A3: the what's-next line and the bonus list (next up first). C14.
+// WRITTEN — UNVERIFIED (needs Mac). T024
 
 import Foundation
 import Observation
-
-enum BridgeKind: Equatable {
-    case workout, rest
-}
-
-enum TodayState: Equatable {
-    case bridge(BridgeKind)
-    case workout(name: String, exerciseCount: Int, done: Bool)
-    case rest(posted: Bool)
-    case paused(until: String)
-    case allDone
-}
-
-struct MemberDot: Equatable, Identifiable {
-    let id: String
-    let displayName: String
-    let streak: Int
-    let postedToday: Bool
-    let paused: Bool
-}
 
 @Observable
 @MainActor
@@ -45,6 +27,9 @@ final class HomeModel {
     var welcomeBack = false          // E4 / S18: 14+ quiet days
     var staleSession: LocalSession?  // S01: in progress for more than a day
     var heldUploads: [OpRecord] = [] // E19: held for more than 24 h — the user chooses
+    var nextUpLine: String?                        // A3: nil on an undone training day, when paused, and on a workout-day bridge
+    var bonusWorkouts: [LocalWorkoutTemplate] = [] // A3: the plan's workouts, the next rotation workout first
+    private var todayWorkout: LocalWorkoutTemplate? // A1: the rotation workout due today; nil on rest, done, paused, no plan
 
     private let store: Store
     private let userId: String
@@ -65,10 +50,10 @@ final class HomeModel {
         do {
             lastAwards = try GamificationLocal.judgeElapsedDays(for: userId, store: store, now: now, timeZone: timeZone)
             let todayKey = DayKey.dayKey(for: now, tz: timeZone)
-            let weekday = DayKey.isoWeekday(todayKey)
             let plan = try store.plan(for: userId)
-            let workout = plan?.workouts.first { $0.weekday == weekday }
-            let doneToday = try store.sessions(for: userId, dayKey: todayKey).contains { $0.status == "completed" }
+            let rotation = try plan.map { try NextUp.rotationFor(userId: userId, plan: $0, todayKey: todayKey, store: store) }
+            let todayEntry = rotation?.week.first(where: { $0.dayKey == todayKey })
+            todayWorkout = todayEntry?.state == .planned ? plan?.workouts.first(where: { $0.kind == todayEntry?.kind }) : nil
             let postedToday = !(try store.posts(for: userId, dayKey: todayKey)).isEmpty
             let lastPostDay = try store.allPosts(for: userId).map(\.dayKey).max()
             let state = try store.gamificationState(for: userId)
@@ -77,8 +62,10 @@ final class HomeModel {
             shields = state.shields
             hasPlan = plan != nil
             resumeSession = try store.openSession(for: userId)
-            today = todayState(workout: workout, doneToday: doneToday, postedToday: postedToday, hasEverPosted: lastPostDay != nil, pause: try store.activePause(for: userId, today: todayKey))
-            quickCompleteAvailable = workout != nil && !doneToday && resumeSession == nil
+            today = todayState(restDay: todayEntry == nil || todayEntry?.state == .rest, postedToday: postedToday, hasEverPosted: lastPostDay != nil, pause: try store.activePause(for: userId, today: todayKey), todayKey: todayKey)
+            quickCompleteAvailable = todayWorkout != nil && resumeSession == nil
+            nextUpLine = whatsNext(plan: plan, rotation: rotation, todayKey: todayKey)
+            bonusWorkouts = NextUp.bonusOrder(plan?.workouts ?? [], nextKind: rotation?.nextKind)
             try refreshRing(plan: plan, todayKey: todayKey)
             crewStrip = try crewStripFromSnapshot()
             try refreshEdges(lastPostDay: lastPostDay, todayKey: todayKey, now: now)
@@ -88,25 +75,36 @@ final class HomeModel {
         }
     }
 
-    private func todayState(workout: LocalWorkoutTemplate?, doneToday: Bool, postedToday: Bool, hasEverPosted: Bool, pause: LocalPause?) -> TodayState {
-        if let pause { return .paused(until: pause.endDay) }
-        if !hasEverPosted { return .bridge(workout == nil ? .rest : .workout) } // 1D: the bridge persists until the first post exists
-        guard let workout else { return .rest(posted: postedToday) }
-        if doneToday { return .allDone }
-        return .workout(name: workout.name, exerciseCount: workout.exercises.filter { $0.type == "strength" }.count, done: false)
+    // SPEC: A1 — done = a completed ROTATION workout today (projectWeek); a standalone cardio log (A2) leaves the day planned
+    private func todayState(restDay: Bool, postedToday: Bool, hasEverPosted: Bool, pause: LocalPause?, todayKey: String) -> TodayState {
+        if let pause { return .paused(until: DayLabel.dayLabel(pause.endDay, todayKey: todayKey)) }
+        if !hasEverPosted { return .bridge(todayWorkout == nil ? .rest : .workout) } // 1D: the bridge persists until the first post exists
+        if restDay { return .rest(posted: postedToday) }
+        guard let workout = todayWorkout else { return .allDone }
+        return .workout(name: workout.name, exerciseCount: NextUp.strengthCount(workout), hasCardio: NextUp.hasCardio(workout))
     }
 
-    // SPEC: Flow 2 ("weekly ring 2/4") — one segment per ISO weekday; missed = gray, never red
+    // SPEC: A3 — nothing on an undone training day or while paused; the bridge shows it only on a rest-day install (1D)
+    private func whatsNext(plan: LocalPlan?, rotation: Rotation?, todayKey: String) -> String? {
+        guard let plan, let rotation else { return nil }
+        switch today {
+        case .workout, .paused, .bridge(.workout): return nil
+        case .bridge(.rest): return NextUp.whatsNext(todayKey: todayKey, plan: plan, rotation: rotation, bridge: true)
+        case .rest, .allDone: return NextUp.whatsNext(todayKey: todayKey, plan: plan, rotation: rotation, bridge: false)
+        }
+    }
+
+    // SPEC: Flow 2 ("weekly ring 2/4") — one segment per ISO weekday from trainingWeekdays (A1); missed = gray, never red;
+    // A2 — a standalone cardio log never fills a planned slot
     private func refreshRing(plan: LocalPlan?, todayKey: String) throws {
         let weekKey = DayKey.weekKey(for: todayKey)
         var done = 0
         var planned = 0
         weeklyRing = try (0..<TimeUnits.daysPerWeek).map { offset in
             let dayKey = DayKey.addDays(weekKey, offset)
-            let isPlanned = plan?.workouts.contains { $0.weekday == offset + 1 } ?? false
-            guard isPlanned else { return dayKey == todayKey ? .today : .rest }
+            guard plan?.trainingWeekdays.contains(offset + 1) ?? false else { return dayKey == todayKey ? .today : .rest }
             planned += 1
-            let completed = try store.sessions(for: userId, dayKey: dayKey).contains { $0.status == "completed" }
+            let completed = try store.sessions(for: userId, dayKey: dayKey).contains { $0.status == "completed" && $0.workoutKind != "cardio" }
             if completed { done += 1; return .done }
             if dayKey == todayKey { return .today }
             return dayKey < todayKey ? .missed : .upcoming
@@ -159,20 +157,25 @@ final class HomeModel {
         return try JSONDecoder.crew.decode([MemberDot].self, from: snapshot.membersJSON)
     }
 
+    // The rotation workout due today — the planned workout, isPlannedDay true (V25: +100 on completion)
     func startWorkout(now: Date = Date()) -> LocalSession? {
+        guard let workout = todayWorkout else { return resumeSession }
+        return startBonus(workout, now: now)
+    }
+
+    // SPEC: A3 — a bonus workout is any plan workout started from Home: isPlannedDay only when today is an undone training day
+    // (then it is simply the planned workout); on a rest or done day it is unplanned (+25, V30/V31 — never expected, Flow 5)
+    func startBonus(_ workout: LocalWorkoutTemplate, now: Date = Date()) -> LocalSession? {
         if let resumeSession { return resumeSession }
-        guard let workout = try? store.plan(for: userId)?.workouts.first(where: { $0.weekday == DayKey.isoWeekday(DayKey.dayKey(for: now, tz: timeZone)) }) else { return nil }
-        let session = try? SessionActions.startSession(from: workout, userId: userId, timeZone: timeZone, now: now, store: store)
+        let session = try? SessionActions.startSession(from: workout, kind: workout.kind, isPlannedDay: todayWorkout != nil, userId: userId, timeZone: timeZone, now: now, store: store)
         refresh(now: now)
         return session
     }
 
     func quickComplete(shareToCrew: Bool, now: Date = Date()) -> CelebrationOutcome? {
-        guard quickCompleteAvailable, let workout = try? store.plan(for: userId)?.workouts.first(where: { $0.weekday == DayKey.isoWeekday(DayKey.dayKey(for: now, tz: timeZone)) }) else { return nil }
+        guard quickCompleteAvailable, let workout = todayWorkout else { return nil }
         let outcome = try? SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: shareToCrew, now: now, store: store)
         refresh(now: now)
         return outcome
     }
 }
-
-extension MemberDot: Codable {}

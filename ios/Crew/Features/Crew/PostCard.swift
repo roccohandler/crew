@@ -1,5 +1,7 @@
 // SPEC: Flow 6 — posts drop into the chat as cards ("SAM · PULL DAY ✓ · 15/15 sets · 🔥 day 4"); long-press → the five
-// reactions; the COMEBACK 🎉 banner (V39); Part III law ④ (ember only where progress is the message). WRITTEN — UNVERIFIED. T031
+// reactions; the COMEBACK 🎉 banner (V39); Part III law ④ (ember only where progress is the message) · A6 (the summary line
+// under the author) · A5 + E9 (Report post · Block {name} one long-press away, never on your own post).
+// WRITTEN — UNVERIFIED. T031
 
 import SwiftUI
 
@@ -8,7 +10,11 @@ struct PostCard: View {
     let authorName: String
     let myUserId: String
     let onReact: (String) -> Void
+    let onReport: () -> Void
+    let onBlock: () -> Void
     @State private var showsReactions = false
+
+    private var isMine: Bool { item.userId == myUserId }
 
     var body: some View {
         Card {
@@ -21,6 +27,7 @@ struct PostCard: View {
                     Spacer()
                     Text(item.post?.type == "workout" ? "Workout ✓" : (item.post?.mealTag.map { MealTag(rawValue: $0)?.emoji ?? "" } ?? "")).font(.caption).foregroundStyle(EmberColors.secondaryText)
                 }
+                if let summary = item.post?.summary, !summary.isEmpty { Text(summary).font(.subheadline).foregroundStyle(EmberColors.inkText) }
                 if let key = item.post?.photoKey { PostPhoto(photoKey: key) }
                 if let caption = item.post?.caption, !caption.isEmpty { Text(caption).font(.body).foregroundStyle(EmberColors.inkText) }
                 if let reactions = item.reactions, !reactions.isEmpty {
@@ -38,6 +45,10 @@ struct PostCard: View {
         .onLongPressGesture { showsReactions = true }
         .confirmationDialog("React", isPresented: $showsReactions) {
             ForEach(SpecConstants.reactionEmojis, id: \.self) { emoji in Button(emoji) { onReact(emoji) } }
+            if !isMine {
+                Button("Report post") { onReport() }
+                Button("Block \(authorName)", role: .destructive) { onBlock() }
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint("Long-press or use React to add a reaction")

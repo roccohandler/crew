@@ -1,8 +1,8 @@
 // SPEC: E7 — mid-workout Swap asks [Just today] [Update my plan]; Flow 1 step 4 swap-don't-interrogate (3–5 alternatives that do
 // the same job). "Just today" rewrites this session's snapshot only (running sessions are snapshots); "Update my plan" also
-// replaces the exercise in the plan's workout for this weekday, forward-only (Flow 8), through PlanLocal + a putPlan op.
-// Plain helpers of the Session feature (5.6.6; the SessionModel map names no swap — E7 does). Twin of web SessionSwap.tsx.
-// WRITTEN — UNVERIFIED (needs Mac).
+// replaces the exercise in the plan's workout of the same KIND (A1: workouts rotate, a weekday names nothing), forward-only
+// (Flow 8), through PlanLocal + a putPlan op. Plain helpers of the Session feature (5.6.6; the SessionModel map names no swap —
+// E7 does). Twin of web SessionSwap.tsx. WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
@@ -32,21 +32,24 @@ enum SessionSwap {
         session.updatedAt = now
         try store.save()
         try SyncQueue.shared.enqueue(.patchSession, payload: PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: SessionActions.exerciseDTOs(session), status: nil, completedAt: nil, post: nil), now: now)
-        guard scope == .plan else { return }
-        try updatePlan(userId: session.userId, weekday: DayKey.isoWeekday(session.dayKey), previousId: previousId, replacement: replacement, store: store, now: now)
+        guard scope == .plan, let kind = session.workoutKind ?? PlanRotation.workoutKindFromName(session.workoutName) else { return } // a legacy row infers its kind (A1)
+        try updatePlan(userId: session.userId, kind: kind, previousId: previousId, replacement: replacement, store: store, now: now)
     }
 
-    // Flow 8: the plan's workout for this weekday gets the same replacement; other days untouched; applies forward
-    private static func updatePlan(userId: String, weekday: Int, previousId: String, replacement: SeedExercise, store: Store, now: Date) throws {
+    // SPEC: Flow 8 · A1 — the plan's workout of this kind gets the same replacement; the other workouts and the training days are
+    // untouched; applies forward. A kind outside the plan (a cardio log, a rebuilt plan) changes nothing.
+    private static func updatePlan(userId: String, kind: String, previousId: String, replacement: SeedExercise, store: Store, now: Date) throws {
         guard let plan = try store.plan(for: userId) else { return }
-        let workouts = PlanModel.draftWorkouts(plan).map { workout -> PlanDraftWorkout in
-            guard workout.weekday == weekday else { return workout }
-            return PlanDraftWorkout(weekday: workout.weekday, name: workout.name, kind: workout.kind, exercises: workout.exercises.map { row in
+        let draft = PlanLocal.draft(plan)
+        let workouts = draft.workouts.map { workout -> PlanDraftWorkout in
+            guard workout.kind == kind else { return workout }
+            return PlanDraftWorkout(name: workout.name, kind: workout.kind, exercises: workout.exercises.map { row in
                 guard row.exerciseId == previousId else { return row }
                 return PlanDraftExercise(exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment, type: row.type, targetSets: row.targetSets, targetReps: row.targetReps, targetRepsMax: row.targetRepsMax, holdSeconds: row.holdSeconds, perSide: row.perSide, order: row.order)
             })
         }
-        try PlanLocal.replace(workouts, userId: userId, updatedAt: now, store: store)
-        try SyncQueue.shared.enqueue(.putPlan, payload: PutPlanRequestDTO(workouts: workouts), now: now)
+        let next = PlanDraft(trainingWeekdays: draft.trainingWeekdays, workouts: workouts)
+        try PlanLocal.replace(next, userId: userId, updatedAt: now, store: store)
+        try SyncQueue.shared.enqueue(.putPlan, payload: PutPlanRequestDTO(trainingWeekdays: next.trainingWeekdays, workouts: next.workouts), now: now)
     }
 }

@@ -2,7 +2,8 @@
 // crew, and a crew-mate who reacts. The test bundle builds all of it through the real API on the local server (web:
 // `node tests/e2e/dev-server.mjs` — in-memory Mongo + next dev on :3000, the harness Playwright uses), hands the member's
 // session to the app (CREW_SEED_SESSION), and reacts as the crew-mate mid-test. URLSession only; nothing is shared with the
-// app target. WRITTEN — UNVERIFIED (needs Mac + simulator). T035
+// app target. A1 (2026-09-08): the plan is trainingWeekdays plus the Push · Pull · Legs rotation, no weekday on a workout.
+// WRITTEN — UNVERIFIED (needs Mac + simulator). T035
 
 import Foundation
 
@@ -35,11 +36,18 @@ struct SeedClient {
         return SeedSession(json: String(decoding: data, as: UTF8.self), accessToken: token, userId: id)
     }
 
-    // Every weekday is a workout day, so the journey never depends on the day it runs (1B's Mon/Wed/Fri would)
+    // Every weekday is a training day, so the journey never depends on the day it runs (1B's Mon/Wed/Fri would); the rotation
+    // (A1) puts Push day first on a fresh account — the workout journey ② starts (putPlanSchema: trainingWeekdays + workouts by kind)
     func putPlanForEveryDay(as session: SeedSession) async throws {
-        let exercise: [String: Any] = ["exerciseId": "push-up", "name": "Push-Up", "pattern": "horizontalPush", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]
-        let workouts = (1...7).map { weekday -> [String: Any] in ["weekday": weekday, "name": "Push day", "kind": "push", "exercises": [exercise]] }
-        let (_, status) = try await call("PUT", "plans", body: ["workouts": workouts], token: session.accessToken)
+        func row(_ id: String, _ name: String, _ pattern: String) -> [String: Any] {
+            ["exerciseId": id, "name": name, "pattern": pattern, "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]
+        }
+        let workouts: [[String: Any]] = [
+            ["name": "Push day", "kind": "push", "exercises": [row("push-up", "Push-Up", "horizontalPush")]],
+            ["name": "Pull day", "kind": "pull", "exercises": [row("inverted-row", "Inverted Row", "horizontalPull")]],
+            ["name": "Leg day", "kind": "legs", "exercises": [row("bodyweight-squat", "Bodyweight Squat", "squat")]],
+        ]
+        let (_, status) = try await call("PUT", "plans", body: ["trainingWeekdays": Array(1...7), "workouts": workouts], token: session.accessToken)
         guard status == 200 else { throw SeedError.unexpected("plans → \(status)") }
     }
 
