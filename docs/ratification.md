@@ -1098,3 +1098,54 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   answers Save Password / permission prompts with the quiet button (Not Now, Don't Allow, OK); the four tapping journeys
   call it in setUp — a signed build shows those prompts, an unsigned one never did.
 - **Checked here.** swift-xref clean, doctrine-lint clean. WRITTEN — UNVERIFIED: the next `ios` verdict decides.
+
+## R-064 — 2026-09-09, run 34377505665: every job green, all five iPhone journeys; TestFlight build 3 started
+
+- **What the run said.** contracts (generate · drift · vectors · seeds · doctrine · swift-xref) ✓ · web ✓ · web e2e 23
+  passed, 1 skipped ✓ · ios engine (Linux) ✓ · ios: 89 unit tests, 0 failures; journeys 5 of 5 on an iPhone 17 simulator —
+  journey ①, journey ②, CameraDenied, Launch, OfflineSessionTests. Q09 (the resume-after-kill probe, red since its first run)
+  is closed: with the signed build the Keychain keeps the session, the relaunch lands on Home with the Resume banner, and
+  the checked set is still there.
+- **The day's chain, for the record.** Six fix commits after the A1–A8 rewrite compiled: two test bugs (F24), the set row
+  that was never a button and never fit a phone (F25), the row activated at its centre (F26), the unsigned build's dead
+  Keychain (F27), the signed build's Info.plist (F28), Automatic Strong Password on the signup field (F29). Each was read
+  from the run's own result bundle on Windows; the local checks added in F24 (swift-xref, the wide-font overflow sweep)
+  ran before every push and stayed clean.
+- **Verdict.** The A1–A8 amendments are DONE-VERIFIED on both platforms by the machine's own record (CLAUDE.md rule 6: Part
+  VIII tests green on both engines, the journeys green). TestFlight build 3 (`gh workflow run testflight.yml -f
+  build_number=3`, run 34379733146) is the owner's phone pass; the phone-only checks (gestures, camera, push, airplane
+  mode, VoiceOver, Dynamic Type) stay on the OWNER-REVIEW device checklist.
+
+## R-065 — 2026-09-09 evening, TestFlight build 3 crashes at launch on the owner's phone (F31, provisional)
+
+- **What is known.** Build 3 (run 34379733146) installed on the owner's iPhone and crashes immediately. The crash log is
+  requested (the phone's Analytics Data `.ips`, mailed to the PC). Build 3 is the first build after A1/A2 reshaped the
+  SwiftData schema (LocalPlan → trainingWeekdays + ordered workouts; LocalSession.workoutKind; LocalSetLog.distanceMeters;
+  LocalPost.summary) and the beta has no migration (debt, 2026-09-09).
+- **The likely line.** `Store.init` did `fatalError("SwiftData container failed")` when `ModelContainer(for:)` threw — which
+  is what an old store does under an incompatible schema. The simulator never saw it (every journey starts from
+  `-resetState` or a fresh simulator); build 2's store on the phone is exactly the case nobody had.
+- **What changed (F31).** For the on-disk store only: on a container failure the store file and its -shm/-wal are removed
+  and the container is created again; only a second failure is fatal. The phone loses unsynced local rows (the queue's
+  pending ops included) and re-hydrates from the server on the next signed-in frame — acceptable for a beta of one, and
+  said so in debt.md; a VersionedSchema migration is still owed before release. swift-xref and doctrine-lint clean.
+- **Provisional.** If the `.ips` names another line (the API URL guard, the seed decode), that fix follows in the same
+  build; F31 stays because a schema change must never brick the app again.
+
+## R-066 — 2026-09-09 evening, build 2's crash report read: a token-refresh data race (F32)
+
+- **The report.** `"build_version":"2"`, captured 07:49 local after 37 minutes in the app. `EXC_BAD_ACCESS (SIGBUS)`,
+  `KERN_PROTECTION_FAILURE` writing at the address of Foundation's `URLComponents` value witness table — `swift_retain` was
+  handed a metadata pointer where an object was expected, on `com.apple.root.user-initiated-qos.cooperative` (an async
+  task) inside Crew code whose registers hold URLComponents, Date and URLRequest values: an API call. A second cooperative
+  thread was inside `SecItemDelete` from Crew code — KeychainStore.write deletes before it adds, so that is `AuthStore.store`.
+- **The race.** `AuthStore` was a plain `@Observable` class. `Api.send` awaits `validAccessToken()` from a nonisolated context,
+  so a refresh — and its `store(session)` writing four properties and the Keychain — ran on the cooperative pool, while the
+  main thread read `currentUser` / `isSignedIn` (RootView, every model) and a second concurrent call (sync drain, Home
+  refresh, crew poll) could refresh at the same time. Two writers and readers on the same Strings: torn pointers, a
+  `swift_retain` of garbage. Debug builds and the simulator journeys never reproduced it; -O did, on the phone.
+- **What changed (F32).** `AuthStore` is `@MainActor`. Every model that reads it is already main-actor isolated, Api and
+  the photo/settings calls `await` it, SessionActions and SyncQueue are main-actor, the tests that touch it are `@MainActor`
+  classes — no call site changes. Keychain I/O now happens on the main thread (four small calls per sign-in; acceptable).
+- **Still open.** Build 3's launch crash has no log yet (the owner's report was build 2's); F31 (the store) is the standing
+  hypothesis. Both fixes ship in one push; TestFlight build 4 follows the green run. WRITTEN — UNVERIFIED.

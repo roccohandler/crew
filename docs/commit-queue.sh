@@ -139,6 +139,18 @@ commit_task "fix(ios): the test bundles generate their Info.plist, which a signe
 commit_task "fix(ios): the signup password field is .password — a signed build's Automatic Strong Password replaced what was typed on a .newPassword field and blocked every signup journey; the UI tests answer system prompts (Save Password, permissions) with the quiet button [SPEC: S05; 8.4; 8.7; XI T022/T043]" \
   ios/Crew/Features/Onboarding/SaveAuthScreen.swift ios/CrewUITests/JourneySteps.swift ios/CrewUITests/CameraDeniedTests.swift ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/Journey2_FastLogTests.swift ios/CrewUITests/OfflineSessionTests.swift docs/debt.md docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F30 (run 34377505665: every job green, all five journeys; TestFlight build 3 started) ---
+commit_task "docs: CI green on every job including all five iPhone journeys (Q09 closed by the signed build); TestFlight build 3 started from that commit; R-064 [SPEC: 8.4; XI T043/T045; Part X Phase 6]" \
+  docs/progress.md docs/ratification.md docs/commit-queue.sh
+
+# --- F31 (TestFlight build 3 over build 2 crashed at launch: the old store cannot be opened by the A1/A2 schema) ---
+commit_task "fix(ios): an on-disk store the current schema cannot open is removed and recreated instead of crashing the launch — the server re-hydrates it; a real migration stays owed (debt) [SPEC: 1C; S01; 5.2; E6; XI T014/T045]" \
+  ios/Crew/Storage/Store.swift docs/debt.md docs/progress.md docs/ratification.md docs/commit-queue.sh
+
+# --- F32 (build 2's phone crash report: SIGBUS in swift_retain on a cooperative thread while another thread ran SecItemDelete — concurrent token refreshes writing AuthStore off the main thread) ---
+commit_task "fix(ios): AuthStore is main-actor isolated — token refreshes wrote its Strings from the cooperative pool while Home and the sync drain read them on main, which a Release build turns into SIGBUS (build 2's crash on the owner's phone) [SPEC: C14; 5.6.3; G11; 8.7; XI T012]" \
+  ios/Crew/Api/AuthStore.swift docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
