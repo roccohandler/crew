@@ -406,6 +406,56 @@ a {
   flex: 1;
 }
 
+/* A5: the crew header (name, pulse, strip) stays put while the stream scrolls beneath it (Flow 6) */
+.crew-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ember-canvas);
+  padding-bottom: var(--ember-space-8);
+}
+
+/* A5: the solo tab explains the loop in three ink lines — a list without bullets */
+.loop {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ember-space-8);
+  text-align: left;
+}
+
+/* E1 / A7: a profile photo fills the avatar circle; the large size is the Settings profile */
+.avatar__photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar--large {
+  width: var(--ember-size-avatar-large);
+  height: var(--ember-size-avatar-large);
+  font-size: 1.4em;
+}
+
+/* A7: one settings row — label left, control right, never shorter than a touch target */
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ember-space-12);
+  min-height: var(--crew-min-touch-target);
+}
+
+.switch input {
+  width: var(--ember-space-24);
+  height: var(--ember-space-24);
+  margin: 0;
+  accent-color: var(--ember-ink-text);
+}
+
 @media (min-width: 768px) {
   .tabs {
     position: sticky;
@@ -422,5 +472,10 @@ a {
 
   .composer {
     bottom: var(--ember-space-16);
+  }
+
+  /* the tab bar is sticky at the top from 768 px: the crew header sits under it */
+  .crew-header {
+    top: calc(var(--crew-min-touch-target) + var(--ember-space-8));
   }
 }

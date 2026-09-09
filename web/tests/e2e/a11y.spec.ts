@@ -42,13 +42,13 @@ async function expectAccessible(page: Page, path: string): Promise<void> {
 }
 
 test("public pages: landmarks, names, labels, no sideways scroll", async ({ page }) => {
-  for (const path of ["/", "/login", "/reset", "/onboarding"]) await expectAccessible(page, path);
+  for (const path of ["/", "/login", "/reset", "/onboarding", "/privacy", "/terms"]) await expectAccessible(page, path);
 });
 
 test("signed-in pages: landmarks, names, labels, no sideways scroll", async ({ page }) => {
   await buildWeekAndSave(page, { label: "a11y" });
   await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
-  for (const path of ["/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new"]) await expectAccessible(page, path);
+  for (const path of ["/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio"]) await expectAccessible(page, path);
 });
 
 // 8.9: 360 → 1920, nothing scrolls sideways; 6.7 single column stays a column

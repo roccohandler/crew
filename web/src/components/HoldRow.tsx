@@ -1,12 +1,13 @@
 "use client";
-// SPEC: Flow 3 mobility holds — tap → countdown → auto-check; per-side holds run twice; no reps, no weight, ever.
-// Mirrors ios MobilityHoldRow.
+// SPEC: Flow 3 mobility holds — tap → countdown → auto-check; per-side holds run twice (perSideHoldRepeats); no reps, no weight,
+// ever. Mirrors ios MobilityHoldRow.
 import { useEffect, useState } from "react";
 import { TimeUnits } from "@/lib/time-units";
+import { SpecConstants } from "@/generated/spec-constants";
 
 export function HoldRow({ name, seconds, perSide, done, onFinished }: { name: string; seconds: number; perSide: boolean; done: boolean; onFinished: () => void }) {
   const [remaining, setRemaining] = useState<number | null>(null);
-  const [sidesLeft, setSidesLeft] = useState(perSide ? 1 + 1 : 1);
+  const [sidesLeft, setSidesLeft] = useState(perSide ? SpecConstants.perSideHoldRepeats : 1);
 
   useEffect(() => {
     if (remaining === null) return;

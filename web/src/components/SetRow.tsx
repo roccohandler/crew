@@ -1,13 +1,14 @@
 "use client";
 // SPEC: Flow 3 set row — tap the row → ✓ at the pre-filled numbers; steppers ±1 reps, ±5 lb / ±2.5 kg; "—" is a complete set
 // (weight invisible until invited; bodyweight = no weight chip); plate math on a visible button (6.7: no hover-only affordance).
-// Mirrors ios Features/Session/SetRow. Keyboard-complete: every control is a button.
+// Mirrors ios Features/Session/SetRow. Keyboard-complete: every control is a button. Stepper is the one ± pair (reps, weight,
+// cardio minutes — the third use, so it is shared from here).
 import { useState } from "react";
 import type { SetView } from "@/lib/api-client";
 import { plateLine } from "@/lib/engine/plate-math";
 import { SpecConstants } from "@/generated/spec-constants";
 
-function Stepper({ label, onStep, ariaLabel }: { label: string; onStep: (direction: number) => void; ariaLabel: string }) {
+export function Stepper({ label, onStep, ariaLabel }: { label: string; onStep: (direction: number) => void; ariaLabel: string }) {
   return (
     <span className="stepper" role="group" aria-label={ariaLabel}>
       <button type="button" onClick={() => onStep(-1)} aria-label={`Decrease ${ariaLabel}`}>−</button>

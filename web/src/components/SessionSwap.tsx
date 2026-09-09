@@ -1,10 +1,10 @@
 "use client";
 // SPEC: E7 — mid-workout Swap asks [Just today] [Update my plan]; Flow 1 step 4 swap-don't-interrogate (3–5 alternatives that do
 // the same job, two taps). "Just today" rewrites this session's snapshot only (running sessions are snapshots, E7); "Update my
-// plan" also replaces the exercise in the plan's workout for this weekday, forward-only (Flow 8). Web twin of ios SessionSwap.
+// plan" also replaces the exercise in the plan's workout of this session's KIND (A1: workouts rotate, so a kind — never a
+// weekday — names the workout), forward-only (Flow 8). Web twin of ios SessionSwap.
 import { useState } from "react";
 import { getPlan, putPlan, type SessionExerciseView } from "@/lib/api-client";
-import { isoWeekday } from "@/lib/engine/day-key";
 import { swapCandidates } from "@/lib/engine/swap-finder";
 import { exercises as seedExercises, type EquipmentAccess, type SeedExercise } from "@/generated/seed";
 
@@ -21,14 +21,14 @@ export function swappedExercise(current: SessionExerciseView, replacement: SeedE
   return { ...current, exerciseId: replacement.id, name: replacement.name, equipment: replacement.equipment };
 }
 
-// Flow 8: the plan's workout for this session's weekday gets the same replacement; other days are untouched
-export async function updatePlanWithSwap(dayKey: string, exerciseId: string, replacement: SeedExercise): Promise<void> {
+// SPEC: Flow 8 · A1 — the plan's workout of this session's kind gets the same replacement; the other workouts and the training
+// days are untouched (the PUT always carries trainingWeekdays + the ordered workouts)
+export async function updatePlanWithSwap(kind: string | null, exerciseId: string, replacement: SeedExercise): Promise<void> {
   const plan = await getPlan();
-  const weekday = isoWeekday(dayKey);
-  const workouts = plan.workouts.map((workout) => (workout.weekday === weekday
+  const workouts = plan.workouts.map((workout) => (workout.kind === kind
     ? { ...workout, exercises: workout.exercises.map((row) => (row.exerciseId === exerciseId ? { ...row, exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment } : row)) }
     : workout));
-  await putPlan({ workouts });
+  await putPlan({ trainingWeekdays: plan.trainingWeekdays, workouts });
 }
 
 export function SessionSwap({ exercise, access, onPick, onClose }: { exercise: SessionExerciseView; access: EquipmentAccess; onPick: (replacement: SeedExercise, scope: SwapScope) => void; onClose: () => void }) {

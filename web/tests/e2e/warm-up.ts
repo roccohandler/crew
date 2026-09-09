@@ -6,7 +6,7 @@
 // <main> under the dev overlay). SPEC: 8.4 (web journeys against a seeded backend in CI) · T039
 import { chromium, type FullConfig } from "@playwright/test";
 
-const PAGES = ["/", "/onboarding", "/login", "/reset", "/join/warm-up", "/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/session/warm-up", "/session/warm-up/done"];
+const PAGES = ["/", "/onboarding", "/login", "/reset", "/join/warm-up", "/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/session/warm-up", "/session/warm-up/done", "/plan/push", "/log-cardio", "/privacy", "/terms"];
 const ROUTES = ["auth/register", "auth/login", "auth/logout", "auth/refresh", "auth/reset", "users/me", "plans", "sessions", "sessions/warm-up", "posts", "posts/warm-up", "posts/warm-up/reactions", "crews", "crews/join?token=warm-up", "crews/warm-up/stream", "crews/warm-up/messages", "crews/warm-up/members", "sync", "pause", "photos"];
 const WARM_UP_IP = "203.0.113.250"; // outside the journeys' fresh-IP range (helpers.ts: % 250), so the G11 limiter never meets it
 

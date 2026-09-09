@@ -1,6 +1,7 @@
 "use client";
 // SPEC: Flow 4 — camera-first (`capture="environment"`), time-smart tags (one tap only if wrong), same-as-yesterday ↻, text-only is
-// legit, same-day backfill, caption ≤ 280, no filters; photo → POST photos → POST posts. Web twin of ios PostModel + PostComposer.
+// legit, same-day backfill, caption ≤ 280, no filters; photo → POST photos → POST posts. A1: isPlannedDay comes from the page
+// (today ∈ trainingWeekdays), never hard-coded. Web twin of ios PostModel + PostComposer.
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createPost, earnedQuery, isApiClientError, uploadPhoto } from "@/lib/api-client";
@@ -18,7 +19,7 @@ function TagPicker({ tag, onPick }: { tag: MealTag; onPick: (tag: MealTag) => vo
   );
 }
 
-export function PostComposer({ timezone, inCrew, yesterday }: { timezone: string; inCrew: boolean; yesterday: { caption: string; mealTag: string | null } | null }) {
+export function PostComposer({ timezone, inCrew, isPlannedDay, yesterday }: { timezone: string; inCrew: boolean; isPlannedDay: boolean; yesterday: { caption: string; mealTag: string | null } | null }) {
   const router = useRouter();
   const now = new Date();
   const [tag, setTag] = useState<MealTag>(mealTagFor(now.getHours() * TimeUnits.minutesPerHour + now.getMinutes()));
@@ -36,7 +37,7 @@ export function PostComposer({ timezone, inCrew, yesterday }: { timezone: string
     setError(null);
     try {
       const photoKey = file ? (await uploadPhoto(file, "post")).photoKey : undefined;
-      const reply = await createPost({ clientId: crypto.randomUUID(), type: "meal", photoKey, caption: repeated ? `↻ ${caption}` : caption, mealTag: tag, shareToCrew: inCrew && share, timezone, isPlannedDay: false, earlierToday: earlier });
+      const reply = await createPost({ clientId: crypto.randomUUID(), type: "meal", photoKey, caption: repeated ? `↻ ${caption}` : caption, mealTag: tag, shareToCrew: inCrew && share, timezone, isPlannedDay, earlierToday: earlier });
       router.push(`/home${earnedQuery(reply.gamification.newAchievementIds)}`);
     } catch (caught) {
       setError(isApiClientError(caught) ? caught.message : "Couldn't post that. Try again.");

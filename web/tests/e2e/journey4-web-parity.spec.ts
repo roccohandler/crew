@@ -1,5 +1,6 @@
 // SPEC: 8.4 journey ④ — full plan build + workout log on web (parity proof); keyboard-first logging; the celebration's numbers
-// come from the engine · T037/T039
+// come from the engine · A4 (the plan edit goes week map → /plan/push → exercise sheet → Save → "Saved · applies from your
+// next Push day") · T037/T039
 import { expect, test } from "@playwright/test";
 import { buildWeekAndSave, ensureTodayHasAWorkout, expectNoHorizontalScroll } from "./helpers";
 
@@ -26,6 +27,20 @@ test("plan build then a full workout log on web, keyboard-first", async ({ page 
   await expect(page.getByRole("heading", { name: "Done for today." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Quick complete" })).toHaveCount(0);
   await page.goto("/plan");
-  await expect(page.getByRole("heading", { name: /Monday · Push day/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your week" })).toBeVisible();
+  await expect(page.getByText(/^Monday · /)).toBeVisible(); // seven rows, Monday first — the day's word depends on the weekday the run lands on
+  await expectNoHorizontalScroll(page);
+  // A4: today's Push day is done (✓) and still a link into its editor; the rotation has moved on to Pull for the next planned day
+  await page.getByRole("link", { name: /Push day/ }).first().click();
+  await expect(page).toHaveURL(/\/plan\/push$/);
+  await expect(page.getByRole("heading", { name: "Push day" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+  await page.getByRole("button", { name: /, \d+ × \d+/ }).first().click(); // the first exercise row opens the sheet
+  await page.getByRole("button", { name: "Increase Sets" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+  await page.getByRole("button", { name: "Done" }).click();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/plan\?saved=push$/, { timeout: 15_000 });
+  await expect(page.getByRole("status")).toHaveText("Saved · applies from your next Push day");
   await expectNoHorizontalScroll(page);
 });

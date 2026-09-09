@@ -1,6 +1,7 @@
 "use client";
 // SPEC: Flow 1 (three questions → plan → save) · 1A invite-aware fast path (the token rides through and the user lands in the
-// crew) · S05 (the draft survives auth abandon: localStorage) · C14 (plain objects + useState). Web twin of ios OnboardingModel.
+// crew) · S05 (the draft survives auth abandon: localStorage) · C14 (plain objects + useState) · A1 (a draft is trainingWeekdays +
+// the rotation; swap is keyed by kind; a pre-A1 draft is dropped). Web twin of ios OnboardingModel.
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DaysQuestion } from "@/components/onboarding/DaysQuestion";
@@ -10,7 +11,8 @@ import { SingleSelect } from "@/components/onboarding/SingleSelect";
 import { putPlan } from "@/lib/api-client";
 import { joinCrew } from "@/lib/api-client-crew";
 import { flushFunnel, markFunnelStep } from "@/lib/funnel";
-import { generatePlan, workoutFor, type PlanDraft, type SeedCatalog } from "@/lib/engine/plan-generator";
+import { dayKeyFor } from "@/lib/engine/day-key";
+import { generatePlan, workoutFor, type PlanDraft, type PlanDraftWorkout, type SeedCatalog } from "@/lib/engine/plan-generator";
 import { swapCandidates } from "@/lib/engine/swap-finder";
 import { exercises, planTemplates, type EquipmentAccess, type Experience, type SeedExercise } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -23,7 +25,8 @@ interface Draft { days: number[]; experience: Experience | null; equipment: Equi
 function loadDraft(): Draft | null {
   try {
     const raw = window.localStorage.getItem(DRAFT_KEY);
-    return raw ? (JSON.parse(raw) as Draft) : null;
+    const saved = raw ? (JSON.parse(raw) as Draft) : null;
+    return saved?.plan && !Array.isArray(saved.plan.trainingWeekdays) ? { ...saved, plan: null } : saved;
   } catch {
     return null;
   }
@@ -54,20 +57,20 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     setStep("reveal");
   };
 
-  const swap = (weekday: number, exerciseId: string, replacement: SeedExercise) => {
+  const swap = (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => {
     if (!draft.plan) return;
     const workouts = draft.plan.workouts.map((workout) => {
-      if (workout.weekday !== weekday) return workout;
-      const fresh = workoutFor(workout.kind, workout.weekday, draft.experience ?? "brandNew", draft.equipment ?? "fullGym", seed);
+      if (workout.kind !== kind) return workout;
+      const fresh = workoutFor(workout.kind, draft.experience ?? "brandNew", draft.equipment ?? "fullGym", seed);
       const exercises = workout.exercises.map((row) => (row.exerciseId === exerciseId ? { ...(fresh.exercises.find((candidate) => candidate.type === "strength") ?? row), exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment, order: row.order } : row));
       return { ...workout, exercises };
     });
-    persist({ ...draft, plan: { workouts } });
+    persist({ ...draft, plan: { trainingWeekdays: draft.plan.trainingWeekdays, workouts } });
     setWhisperShown(true);
   };
 
   const finish = async () => {
-    if (draft.plan) await putPlan(draft.plan);
+    if (draft.plan) await putPlan({ trainingWeekdays: draft.plan.trainingWeekdays, workouts: draft.plan.workouts });
     if (draft.invite) await joinCrew(draft.invite).catch(() => undefined);
     try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* nothing to clear */ }
     // 1C: hero → questions → plan built → saved, flushed now that the account exists (a rebuild by a member records nothing)
@@ -78,13 +81,13 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
   return <StepView step={step} draft={draft} whisperShown={whisperShown} appleHref={appleHref} signedIn={signedIn} persist={persist} setStep={setStep} chooseEquipment={chooseEquipment} swap={swap} finish={finish} />;
 }
 
-interface StepViewProps { step: Step; draft: Draft; whisperShown: boolean; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseEquipment: (value: string) => void; swap: (weekday: number, exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
+interface StepViewProps { step: Step; draft: Draft; whisperShown: boolean; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseEquipment: (value: string) => void; swap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
 
 function StepView({ step, draft, whisperShown, appleHref, signedIn, persist, setStep, chooseEquipment, swap, finish }: StepViewProps) {
   if (step === "days") return <DaysQuestion days={draft.days} onToggle={(weekday) => persist({ ...draft, days: draft.days.includes(weekday) ? draft.days.filter((day) => day !== weekday) : [...draft.days, weekday] })} onContinue={() => { if (!signedIn) markFunnelStep("onboarding_days"); setStep("experience"); }} />;
   if (step === "experience") return <SingleSelect number={QUESTION.experience} title="How experienced are you?" selected={draft.experience} options={[{ value: "brandNew", label: "Brand new", symbol: "🚶" }, { value: "some", label: "Some", symbol: "🏋️" }, { value: "experienced", label: "Experienced", symbol: "🏆" }]} onChoose={(value) => { persist({ ...draft, experience: value as Experience }); if (!signedIn) markFunnelStep("onboarding_experience"); setStep("equipment"); }} />;
   if (step === "equipment") return <SingleSelect number={QUESTION.equipment} title="What do you have access to?" selected={draft.equipment} options={[{ value: "fullGym", label: "Full gym", symbol: "🏢" }, { value: "dumbbells", label: "Dumbbells", symbol: "🏋️" }, { value: "bodyweight", label: "Bodyweight", symbol: "🏠" }]} onChoose={chooseEquipment} />;
-  if (step === "reveal" && draft.plan) return <GeneratedPlan draft={draft.plan} whisperShown={whisperShown} swapCandidates={(exerciseId) => { const incumbent = exercises.find((candidate) => candidate.id === exerciseId); return incumbent ? swapCandidates(incumbent, draft.equipment ?? "fullGym", draft.experience ?? "brandNew", exercises) : []; }} onSwap={swap} onAccept={() => { persist(draft); if (signedIn) void finish(); else setStep("save"); }} />;
+  if (step === "reveal" && draft.plan) return <GeneratedPlan draft={draft.plan} todayKey={dayKeyFor(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone)} whisperShown={whisperShown} swapCandidates={(exerciseId) => { const incumbent = exercises.find((candidate) => candidate.id === exerciseId); return incumbent ? swapCandidates(incumbent, draft.equipment ?? "fullGym", draft.experience ?? "brandNew", exercises) : []; }} onSwap={swap} onAccept={() => { persist(draft); if (signedIn) void finish(); else setStep("save"); }} />;
   return <SaveForm appleHref={appleHref} onSaved={finish} />;
 }
 
