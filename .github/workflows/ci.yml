@@ -20,6 +20,9 @@ jobs:
       - run: node shared/scripts/check-vectors.mjs
       - run: node shared/scripts/check-seeds.mjs
       - run: node shared/scripts/doctrine-lint.mjs
+      # The Swift cross-reference check (removed enum cases, renamed parameters, a shadowed SwiftUI type) fails here in a
+      # minute instead of on the macOS job ten minutes later — and it is the same command the Windows build machine runs.
+      - run: node shared/scripts/swift-xref.mjs
 
   web:
     name: web (lint · typecheck · test · vectors)
@@ -100,19 +103,43 @@ jobs:
           echo "Simulator: $CREW_SIM"
           echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
       # Simulator builds need no signing identity (the entitlements name a team the runner does not have); raw xcodebuild
-      # output, no formatter to install — a formatter in the pipe would hide the real exit status.
-      - run: >
+      # output into a log — `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
+      # Both suites run even when the first fails (continue-on-error), so ONE run reports every failure instead of one layer
+      # per push; the verdict step below is where the job actually passes or fails.
+      - id: unit
+        continue-on-error: true
+        shell: bash
+        run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme Crew
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath TestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
-          OTHER_SWIFT_FLAGS="-continue-building-after-errors"
-      - run: >
+          OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee unit.log
+      - id: ui
+        continue-on-error: true
+        shell: bash
+        run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewUITests
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
           -resultBundlePath UITestResults.xcresult
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
-          OTHER_SWIFT_FLAGS="-continue-building-after-errors"
+          OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee ui.log
+      # The verdict: the compile errors, failed assertions and suite totals from both logs go to the job summary (the page
+      # the Actions tab opens), so nobody reads 3,000 lines of xcodebuild to find the one line that matters.
+      - name: verdict
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## ios — unit: ${{ steps.unit.outcome }} · journeys: ${{ steps.ui.outcome }}"
+            for log in ios/unit.log ios/ui.log; do
+              [ -f "$log" ] || continue
+              echo; echo "### $log"; echo '```'
+              grep -E "error: |Failing tests:|^[[:space:]]+[A-Za-z]+Tests\.[A-Za-z_]+/test|Executed [0-9]+ tests, with|\*\* (BUILD|TEST) (FAILED|SUCCEEDED)" "$log" | grep -v "CoreData: error" | awk '!seen[$0]++' | head -80
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "${{ steps.unit.outcome }}" = success && test "${{ steps.ui.outcome }}" = success
       # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
       - uses: actions/upload-artifact@v4
@@ -121,4 +148,5 @@ jobs:
           name: ios-test-results
           path: |
             ios/*.xcresult
+            ios/*.log
             web/dev-server.log

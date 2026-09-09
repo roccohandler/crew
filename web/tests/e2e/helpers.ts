@@ -77,8 +77,27 @@ export async function fillWhenHydrated(page: Page, label: string, text: string, 
   }).toPass({ timeout: 15_000 });
 }
 
-// 6.7 / 8.9: no horizontal scroll at any width from 360 to 1920
+// 6.7 / 8.9: no horizontal scroll at any width from 360 to 1920 — measured twice: with the page's own fonts, then under a
+// wide fallback face (Verdana on Windows and macOS, DejaVu Sans on the Linux runner — both wider than SF and Segoe), so the
+// layout that passes on the build machine is the one the runner measures. 2026-09-09: 11 px of sideways scroll existed only
+// under the runner's fonts and cost a CI round trip; this is the local check that would have caught it.
 export async function expectNoHorizontalScroll(page: Page, label = ""): Promise<void> {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow, `${label || page.url()}: sideways overflow in px`).toBeLessThanOrEqual(0);
+  // The overflow in px and, when there is one, the elements whose right edge passes the viewport — so the failure names
+  // the culprit instead of a number
+  const measure = () => page.evaluate(() => {
+    const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+    const width = document.documentElement.clientWidth;
+    const culprits = overflow <= 0 ? [] : Array.from(document.querySelectorAll("body *"))
+      .map((element) => ({ element, right: element.getBoundingClientRect().right }))
+      .filter(({ right }) => right > width)
+      .map(({ element, right }) => `${element.tagName.toLowerCase()}${element.className && typeof element.className === "string" ? "." + element.className.split(" ").join(".") : ""} +${Math.round(right - width)}px`)
+      .slice(0, 8);
+    return { overflow, culprits };
+  });
+  const own = await measure();
+  expect(own.overflow, `${label || page.url()}: sideways overflow in px (${own.culprits.join("; ")})`).toBeLessThanOrEqual(0);
+  const wide = await page.addStyleTag({ content: '* { font-family: Verdana, "DejaVu Sans", sans-serif !important; }' });
+  const under = await measure();
+  expect(under.overflow, `${label || page.url()}: sideways overflow in px under a wide fallback font (${under.culprits.join("; ")})`).toBeLessThanOrEqual(0);
+  await wide.evaluate((element) => element.parentNode?.removeChild(element));
 }

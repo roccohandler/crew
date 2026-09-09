@@ -36,6 +36,23 @@ docker run --rm -v "C:\Users\princ\CREW_2.0:/repo" -w /repo/ios swift:5.10 swift
 18 tests, including all 51 shared vectors on the Swift twin. What it cannot cover: SwiftUI, SwiftData, the screens, the
 sync queue's storage — those need Xcode. That is Stage 1.
 
+**The compile errors Stage 1 has actually produced, caught here first.** Every diagnostic the macOS job has reported so
+far was a cross-file mismatch visible in the source text: an enum case a test still named, a parameter renamed under its
+caller, a struct field removed while a caller still passed it, the module's own `Stepper` shadowing SwiftUI's. The check
+below reads every Swift file under `ios/`, derives each type's members and initializer labels (memberwise ones by Swift's
+rules) and reports any `Type.member`, `Type(...)` or `Type.f(...)` that matches nothing. It runs in a quarter of a second,
+is the first step of the `contracts` CI job (so a hit fails the push in a minute, before the macOS job starts), and is
+what to run before every queue-and-push:
+
+```
+node shared/scripts/swift-xref.mjs
+```
+
+It is a text check, not a compiler: types it does not see (Apple's, generics, closures' bodies, `switch` cases) pass
+untouched, and only a name declared under `ios/` is ever checked — precision over recall, so a clean run means "none of
+the mistakes this repo has made before", not "it compiles". Test logic that depends on Foundation behaviour (a date
+comparison, JSON escaping) still meets its first run on the macOS job; that is what the job's summary page is for.
+
 ---
 
 > **2026-09-08, morning — GitHub Actions was locked** ("your account is locked due to a billing issue": a past-due charge
@@ -65,7 +82,10 @@ git push
    journeys ① and ② run end to end on an iPhone 17 simulator. Stage 1 is done; it now guards every push.
 3. When the `ios` job fails, read the log, fix in the repo here, push again. Behaviour must not change — the tests are the
    contract. (Getting here took four one-line compile fixes, one wrong test expectation, one server rule the simulator's
-   "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) The agent reads the log itself:
+   "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) Since 2026-09-09 the job runs the unit suite AND the
+   journeys even when the first fails, and its **verdict** step writes the compile errors, failed assertions and suite
+   totals from both to the run's summary page (Actions → the run → the `ios` job's summary at the top) — one run reports
+   every failure, not one layer per push. The agent reads the log itself:
    `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
    `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
 4. **Look at the app.** The job uploads `ios-test-results` on every run, pass or fail. Download it, and inside the

@@ -31,7 +31,7 @@ function Avatar({ member }: { member: MemberDot }) {
 export function CrewHeader({ crew, feed }: { crew: CrewSummary; feed: StreamReply | null }) {
   return (
     <div className="crew-header stack stack--tight">
-      <div className="row row--between">
+      <div className="row row--between row--wrap">{/* 6.7: a long crew name and the pulse share a line where they fit; under wide fonts at 375 the pulse drops beneath the name instead of past the edge */}
         <h1>{crew.name} {crew.emoji}</h1>
         <Pulse pulse={feed?.pulse} />
       </div>

@@ -975,3 +975,34 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   the strip on top and the invite card, the Journal's day labels and summary lines, Settings › profile photo / notification
   toggles / blocked people / legal pages. (4) The Blob store is still not connected on Vercel — photo posts from the phone keep
   failing until it is; the A3 sync fix now keeps the local streak honest while they wait.
+
+## R-058 — 2026-09-09, after CI run 34354352786: two test bugs fixed, and the owner's "check it locally first" answered (F24)
+
+- **What the run said.** The whole rewritten app compiled; 89 unit tests ran; 3 assertions failed in two `SyncDeliveryTests`
+  cases. Both were the tests' own mistakes, not the queue's: they enqueued at `Date()` and stepped the queue at a 1970 clock,
+  so the head op was `.waiting` (5.6.3 backoff — an op is not due before its `nextAttemptAt`), and `attachPhotoKey`
+  re-serialised the payload with `JSONSerialization`, whose default escapes `/` as `\/`, so a `contains("blob/abc")` read
+  false on a payload that was in fact correct. The journeys never ran — the unit step failed first.
+- **What changed.** The two tests share one clock (`now: when` on enqueue and processNext); `SyncDelivery.attachPhotoKey`
+  and `PostPayloadPhotoStripper.strip` re-serialise with `.withoutEscapingSlashes` (the wire JSON is identical either way —
+  `\/` and `/` decode to the same string — so no server or vector is affected; the stored payload now reads as the encoder
+  wrote it). No behaviour rule moved; no vector changed.
+- **The owner's question** ("how can this get checked locally before it fails so many times on GitHub?") — three answers,
+  each verified here: (1) `shared/scripts/swift-xref.mjs`, a compiler-free cross-reference check over every Swift file
+  (declared types → members, initializer labels incl. memberwise ones by Swift's rules → every `Type.member`, `Type(...)`,
+  `Type.f(...)`, typed `.case` literal checked). Calibrated to zero findings on the tree that compiled in this run (165 files,
+  341 types, 0.24 s); a scratch copy with the four historical errors re-introduced (the dropped `PlanLoadState.offline`,
+  `PlanLocal.replace(plan:)`, the unqualified `Stepper(value:in:step:)`, a struct field removed under its callers) reports
+  all four. It is now the first step of the `contracts` job. (2) `expectNoHorizontalScroll` measures again under a wide
+  fallback font — the a11y spec passed on all three viewports here (11 passed, 1 skipped by design), and this is the check
+  that would have caught the 11 px the runner's DejaVu Sans produced. Its first full-suite run then caught a real one: the crew header's name + pulse row pushed the pulse 9 px past a 375 edge in journeys ② and ③ (`CrewHeader.tsx` gains `row--wrap`; both journeys 6/6 green on the three viewports after the fix). The failure message now names the element. (3) The `ios` job runs the unit suite and the
+  journeys even when the first fails, and a `verdict` step writes both logs' error lines and totals to the run summary.
+- **What is still not checkable here** and is said so in docs/testing-without-a-mac.md: anything that needs SwiftData or
+  SwiftUI to execute — test logic against Foundation behaviour (this run's two bugs are exactly that) meets the macOS job
+  first. A fourth option was NOT taken without the owner: letting the agent push a throwaway branch through the GitHub API
+  so the macOS job compiles uncommitted work before the queue runs — it is a remote git write by the agent, which the
+  owner's hook rule reserves for them.
+- **Verdict.** WRITTEN — UNVERIFIED for the two Swift files (the next `ios` run is the proof); DONE-VERIFIED for the check
+  script (`node shared/scripts/swift-xref.mjs` clean; probe: 7 findings covering the 4 seeded errors), the e2e change
+  (`npx playwright test tests/e2e/a11y.spec.ts`: 11 passed, 1 skipped; `npm run typecheck` clean; eslint clean), the
+  workflow file (parses), doctrine-lint clean.

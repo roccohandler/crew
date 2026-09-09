@@ -113,10 +113,17 @@ commit_task "feat(web): A1–A8 parity — Home next-up/bonus/cardio, /log-cardi
 commit_task "fix: PlanLoadState keeps its offline case (6.1 five states); the settings file input and the session exercise header stay inside a 375-wide column under wide fallback fonts; the overflow assertion names its page [SPEC: 6.1; 6.7; 8.9; S14; XI T013/T039]" \
   ios/Crew/Features/Plan/PlanScreen.swift web/src/app/app.css web/src/components/SessionLogger.tsx web/tests/e2e/helpers.ts web/tests/e2e/a11y.spec.ts docs/commit-queue.sh docs/progress.md
 
+# --- F24 (run 34354352786: 89 unit tests ran, two SyncDeliveryTests cases were wrong about their own clock and about JSON slash escaping; the owner asked for local checks before the next GitHub failure) ---
+commit_task "fix(ios): SyncDeliveryTests enqueue and step the queue on one clock (an op is not due before nextAttemptAt); attachPhotoKey and the photo stripper re-serialise without escaping slashes, so the stored payload reads as the encoder wrote it [SPEC: 5.6.3; E19; A3; A6; XI T014]" \
+  ios/CrewTests/SyncDeliveryTests.swift ios/Crew/Storage/SyncDelivery.swift ios/Crew/Storage/PostPayloadPhotoStripper.swift
+commit_task "feat(ci): swift-xref — a compiler-free Swift cross-reference check that reproduces every compile error the macOS job has reported (first step of the contracts job, and the local pre-push command); the ios job runs unit + journeys even when unit fails and writes a verdict summary; the e2e overflow check measures again under a wide fallback font and names the element — it caught the crew header pushing the pulse 9 px past a 375 edge, which now wraps [SPEC: 5.3; 6.7; 8.1; 8.4; 8.9; XI T008/T043]" \
+  shared/scripts/swift-xref.mjs .github/workflows/ci.yml web/tests/e2e/helpers.ts web/src/components/CrewHeader.tsx docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
 # stage any future edit to a ledger they name, so the queue stops here. =====
+
 exit 0
 
 
