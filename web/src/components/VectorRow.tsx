@@ -29,9 +29,12 @@ function Slot({ title, value, isLogged, href }: { title: string; value: string; 
 export function VectorRow({ slots, workoutHref }: { slots: VectorSlots; workoutHref: string }) {
   return (
     <div className="vectorrow">
-      <Slot title="Workout" value={slots.workoutDone ? "Done" : "—"} isLogged={slots.workoutDone} href={workoutHref} />
-      <Slot title="Cardio" value={slots.cardioMinutes === null ? "—" : `${slots.cardioMinutes} min`} isLogged={slots.cardioMinutes !== null} href="/log-cardio" />
-      <Slot title="Meals" value={slots.meals > 0 ? `${slots.meals}` : "—"} isLogged={slots.meals > 0} href="/post" />
+      {/* A17 / H028 — an unlogged slot says "Log", not "—". The em dash is spec-blessed on an INPUT surface (spec:203)
+          but was never ratified on a STATUS surface, and beside a near-invisible hollow ring it read as the universal
+          idiom for DISABLED — exactly what the owner reported. A verb turns three dead cells into three invitations. */}
+      <Slot title="Workout" value={slots.workoutDone ? "Done" : "Log"} isLogged={slots.workoutDone} href={workoutHref} />
+      <Slot title="Cardio" value={slots.cardioMinutes === null ? "Log" : `${slots.cardioMinutes} min`} isLogged={slots.cardioMinutes !== null} href="/log-cardio" />
+      <Slot title="Meals" value={slots.meals > 0 ? `${slots.meals}` : "Log"} isLogged={slots.meals > 0} href="/post" />
     </div>
   );
 }

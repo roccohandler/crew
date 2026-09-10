@@ -61,7 +61,7 @@ struct ProgressScreen: View {
                     HStack(spacing: EmberTokens.Spacing.space12) {
                         ForEach(model.weeks) { week in
                             VStack {
-                                WeeklyRing(done: week.done, planned: week.planned, days: [])
+                                WeeklyRing(done: week.done, planned: week.planned)
                                 Text(DayLabel.weekHeader(week.weekKey, todayWeekKey: DayKey.weekKey(for: model.todayKey))).font(.caption).foregroundStyle(EmberColors.secondaryText)
                             }
                         }

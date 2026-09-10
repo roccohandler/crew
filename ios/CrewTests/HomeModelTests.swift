@@ -109,6 +109,25 @@ final class HomeModelTests: XCTestCase {
         XCTAssertEqual(model.nextUpLine, "Tomorrow: Push day — your first workout.")
     }
 
+    // SPEC: Flow 7 · V25 — H002, the regression test for F14 recurring. A paused plan on a TRAINING day must offer
+    // nothing to start and, if the user starts something anyway, it must not be planned-day credit. Before this fix
+    // the vector row's Workout slot handed out +100 from a screen that says the streak is frozen.
+    func testAPausedTrainingDayOffersNoWorkoutAndNoPlannedCredit() throws {
+        let store = try storeWithPlan()
+        try post(store, id: "p5", dayKey: "2026-09-03")
+        store.context.insert(LocalPause(userId: userId, startDay: "2026-09-03", endDay: "2026-09-12", createdAt: friday))
+        try store.save()
+        let model = HomeModel(store: store, userId: userId, timeZone: tz)
+        model.refresh(now: friday) // Friday IS a training day in the Mon/Wed/Fri plan
+        XCTAssertEqual(model.today, .paused(until: "Sat Sep 12"))
+        XCTAssertFalse(model.quickCompleteAvailable)
+        XCTAssertNil(model.startWorkout(now: friday), "a paused plan starts nothing from Home")
+        // A bonus is still allowed while paused — "pauses without penalty" — but it is UNPLANNED (+25, V30/V31)
+        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first)
+        let bonus = try XCTUnwrap(model.startBonus(workout, now: friday))
+        XCTAssertFalse(bonus.isPlannedDay, "a workout during a pause never earns planned-day credit")
+    }
+
     // A2: a standalone cardio log is outside the cycle — the training day stays planned, the ring slot stays open
     func testCardioLogNeverCompletesTheTrainingDayNorAdvancesTheRotation() throws {
         let store = try storeWithPlan()

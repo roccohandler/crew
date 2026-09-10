@@ -26,8 +26,8 @@ enum EmberColors {
     static let secondaryText = emberColor(light: 0x6F6860, dark: 0xA69E94)
     /// 20% Ink — missed = warm gray, never red; recedes on dark · light #A8A29A · dark #5E574F
     static let missedGray = emberColor(light: 0xA8A29A, dark: 0x5E574F)
-    /// ≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts · light #FF6600 · dark #FF7A1F
-    static let ember = emberColor(light: 0xFF6600, dark: 0xFF7A1F)
+    /// ≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts. A17.4 (2026-09-10): the light value was #FF6600, which measures 2.77:1 on the bone canvas and fails the 3:1 non-text gate in 6.5; #DF5908 measures 3.56:1 at hue h23 against h24 — the same orange, one shade deeper. emberText #B84D00 (4.83:1, the text gate) and emberTint are unchanged, and dark #FF7A1F already measured 7.03:1. · light #DF5908 · dark #FF7A1F
+    static let ember = emberColor(light: 0xDF5908, dark: 0xFF7A1F)
     /// ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark) · light #B84D00 · dark #FF7A1F
     static let emberText = emberColor(light: 0xB84D00, dark: 0xFF7A1F)
     /// ≤10% Ember — tints & ring tracks · light #FFEFE3 · dark #33241A

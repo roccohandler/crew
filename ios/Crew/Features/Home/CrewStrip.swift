@@ -13,10 +13,17 @@ struct CrewStrip: View {
                     VStack(spacing: EmberTokens.Spacing.space4) {
                         ZStack(alignment: .bottomTrailing) {
                             AvatarView(displayName: member.displayName, image: nil, photoKey: member.profilePhotoKey)
+                            // SPEC: spec:290 ("the EMPTY today-dot") · 6.5 — H016/A17.4. Posted is a FILLED ember dot;
+                            // not-posted is a HOLLOW ring, which is what the spec already called for. Before this the
+                            // two differed by COLOUR ALONE (ember vs missedGray at 2.53:1 on a card), so the single
+                            // fact this dot carries was invisible in grayscale and failed the 3:1 gate at once. The
+                            // one stroke does both jobs: a canvas halo separates a filled dot from the avatar behind
+                            // it, and an ink-gray ring IS the empty state. A paused member reads as not-posted here —
+                            // the ⏸ in the numeral below carries that distinction, and it is the honest reading.
                             Circle()
-                                .fill(member.paused ? EmberColors.hairline : (member.postedToday ? EmberColors.ember : EmberColors.missedGray))
+                                .fill(member.postedToday ? EmberColors.ember : EmberColors.card)
                                 .frame(width: EmberTokens.Spacing.space12, height: EmberTokens.Spacing.space12)
-                                .overlay(Circle().stroke(EmberColors.canvas, lineWidth: EmberTokens.Size.hairline))
+                                .overlay(Circle().strokeBorder(member.postedToday ? EmberColors.canvas : EmberColors.secondaryText, lineWidth: EmberTokens.Size.hairline))
                         }
                         Text(member.paused ? "⏸" : "\(member.streak)").font(.caption.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
                     }
@@ -30,5 +37,9 @@ struct CrewStrip: View {
             }
             .padding(.vertical, EmberTokens.Spacing.space4)
         }
+        // H006: the strip had per-member labels but NO container label, so VoiceOver entered a run of avatars with no
+        // idea what it had entered. `.contain` keeps each member reachable as its own element underneath.
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Crew today")
     }
 }

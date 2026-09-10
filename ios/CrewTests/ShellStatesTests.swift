@@ -20,7 +20,7 @@ final class ShellStatesTests: XCTestCase {
     func testSharedComponentsConstruct() {
         _ = EmptyState(title: "Start a crew", line: "One link.", ctaTitle: "Start a crew") {}
         _ = ErrorState(line: "Couldn't load that. Try again.") {}
-        _ = WeeklyRing(done: 2, planned: 4, days: [.done, .rest, .done, .rest, .today, .upcoming, .upcoming])
+        _ = WeeklyRing(done: 2, planned: 4)
         _ = StreakFlame(streak: 0, paused: false)
         _ = AvatarView(displayName: "Sam Rivera", image: nil)
         _ = HomeSkeleton()

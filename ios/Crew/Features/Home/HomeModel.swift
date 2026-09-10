@@ -66,13 +66,24 @@ final class HomeModel {
             hasPlan = plan != nil
             resumeSession = try store.openSession(for: userId)
             today = todayState(restDay: todayEntry == nil || todayEntry?.state == .rest, postedToday: postedToday, hasEverPosted: lastPostDay != nil, pause: try store.activePause(for: userId, today: todayKey), todayKey: todayKey)
+            // SPEC: Flow 7 · V25 — H002, and F14 recurring verbatim. The rotation projection (NextUp.rotationFor →
+            // projectWeek) takes only trainingWeekdays and the cycle and NEVER consults the pause, so on a paused
+            // training day `todayWorkout` stayed non-nil and every reader of it could hand out full planned-day credit
+            // (+100) from a screen that says the streak is frozen — reachable by tapping the vector row's Workout slot.
+            // One assignment at the source makes every present and future reader safe; a guard per call site does not
+            // (that is exactly how F14 came back). A bonus workout is still allowed while paused, and correctly earns
+            // the unplanned +25 (V30/V31) — "pauses without penalty" never meant "pauses pay planned credit".
+            if isPaused { todayWorkout = nil }
             // A8 · Flow 7 — a paused plan offers nothing to complete: `today` is decided above, so the flag reads the
             // STATE rather than the raw workout, which is what put "Quick complete" under a card saying the plan is paused
             quickCompleteAvailable = todayWorkout != nil && resumeSession == nil && !isPaused
             nextUpLine = whatsNext(plan: plan, rotation: rotation, todayKey: todayKey)
             bonusWorkouts = NextUp.bonusOrder(plan?.workouts ?? [], nextKind: rotation?.nextKind)
             vectors = try HomeModel.slots(userId: userId, dayKey: todayKey, store: store) // A14
-            try refreshRing(plan: plan, todayKey: todayKey)
+            let marks = try HomeModel.weekMarks(userId: userId, plan: plan, todayKey: todayKey, store: store) // Flow 2 · A17.4
+            weeklyRing = marks.days
+            ringDone = marks.done
+            ringPlanned = marks.planned
             crewStrip = try crewStripFromSnapshot()
             try refreshEdges(lastPostDay: lastPostDay, todayKey: todayKey, now: now)
             loadError = nil
@@ -104,24 +115,6 @@ final class HomeModel {
         }
     }
 
-    // SPEC: Flow 2 ("weekly ring 2/4") — one segment per ISO weekday from trainingWeekdays (A1); missed = gray, never red;
-    // A2 — a standalone cardio log never fills a planned slot
-    private func refreshRing(plan: LocalPlan?, todayKey: String) throws {
-        let weekKey = DayKey.weekKey(for: todayKey)
-        var done = 0
-        var planned = 0
-        weeklyRing = try (0..<TimeUnits.daysPerWeek).map { offset in
-            let dayKey = DayKey.addDays(weekKey, offset)
-            guard plan?.trainingWeekdays.contains(offset + 1) ?? false else { return dayKey == todayKey ? .today : .rest }
-            planned += 1
-            let completed = try store.sessions(for: userId, dayKey: dayKey).contains { $0.status == "completed" && $0.workoutKind != "cardio" }
-            if completed { done += 1; return .done }
-            if dayKey == todayKey { return .today }
-            return dayKey < todayKey ? .missed : .upcoming
-        }
-        ringDone = done
-        ringPlanned = planned
-    }
 
     // SPEC: E4 (14 quiet days) · S01 (stale in-progress session) · E19 (held uploads past 24 h) — the edge screens' triggers (T042)
     private func refreshEdges(lastPostDay: String?, todayKey: String, now: Date) throws {
@@ -161,10 +154,15 @@ final class HomeModel {
         refresh(now: now)
     }
 
-    // Flow 10: nil (absent) when solo — Home never shows an empty social panel
+    // Flow 10: nil (absent) when solo — Home never shows an empty social panel.
+    // A17.1 / H033: nil below crewMinMembers too. A crew of ONE has a snapshot whose members are `[you]`, so Home was
+    // showing the user their own face back to them, unlabelled, and calling it a crew. The Crew tab has always known
+    // better (CrewModel.isCrewOfOne, the same predicate) — Home was the last surface that did not. True solo was
+    // already correct (no snapshot → nil), so S07 and Flow 10 were satisfied; this is the crew-of-one state A5 governs.
     private func crewStripFromSnapshot() throws -> [MemberDot]? {
         guard let snapshot = try store.crewSnapshot() else { return nil }
-        return try JSONDecoder.crew.decode([MemberDot].self, from: snapshot.membersJSON)
+        let members = try JSONDecoder.crew.decode([MemberDot].self, from: snapshot.membersJSON)
+        return members.count < SpecConstants.crewMinMembers ? nil : members
     }
 
     // The rotation workout due today — the planned workout, isPlannedDay true (V25: +100 on completion)

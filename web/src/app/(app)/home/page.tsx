@@ -19,6 +19,7 @@ import { storedState } from "@/lib/gamification-store";
 import { shouldShowWelcomeBack } from "@/lib/lapsed-user";
 import { findPlan } from "@/lib/plans";
 import { readSession } from "@/lib/session";
+import { SpecConstants } from "@/generated/spec-constants";
 import { homeFacts, rotationFor, type HomeFacts } from "@/lib/today-state";
 import { TodayCard } from "@/app/(app)/home/TodayCard";
 
@@ -35,16 +36,45 @@ async function CrewToday({ userId, todayKey }: { userId: ObjectId; todayKey: str
   const crew = membership ? await (await crews()).findOne({ _id: membership.crewId }) : null;
   if (crew === null) return null;
   const members = await memberDots(crew._id, crew.captainId, todayKey);
+  // A17.1 / H033 — a crew of ONE has a snapshot whose members are [you], so Home was showing the user their own face
+  // back to them, unlabelled, and calling it a crew. The Crew tab has always known better (the same crewMinMembers
+  // predicate). True solo was already correct (no crew → null), so Flow 10 was satisfied; this is the crew-of-one
+  // state A5 governs. Twin of HomeModel.crewStripFromSnapshot.
+  if (members.length < SpecConstants.crewMinMembers) return null;
   return (
-    <div className="members" aria-label="Crew today">
-      {members.map((member) => <div key={member.id} className="member"><span className="avatar" aria-hidden="true">{member.displayName.slice(0, 1)}<span className={member.postedToday ? "avatar__dot avatar__dot--posted" : "avatar__dot"} /></span><span className="whisper">{member.paused ? "⏸" : member.streak}</span></div>)}
+    // A17.1 / H034 — the strip was a bare avatar with an unexplained dot and numeral. Ink caption, never a link: the
+    // Crew tab is where a member opens (law ①).
+    // H007 — the initial AND the dot were both aria-hidden, so a screen-reader user heard a bare "1" and posted-vs-not
+    // was announced nowhere. `aria-label` also sat on a bare <div>, which ARIA prohibits and browsers widely ignore.
+    // A real list with a labelled listitem carries the same sentence CrewStrip.swift:28 speaks on iOS.
+    <div className="stack stack--tight">
+      <p className="muted">Your crew</p>
+      <ul className="members" aria-label="Crew today">
+        {members.map((member) => (
+          <li key={member.id} className="member" aria-label={`${member.displayName}, streak ${member.streak}, ${member.paused ? "paused" : member.postedToday ? "posted today" : "not yet today"}`}>
+            <span className="avatar" aria-hidden="true">{member.displayName.slice(0, 1)}<span className={member.postedToday ? "avatar__dot avatar__dot--posted" : "avatar__dot"} /></span>
+            <span className="whisper" aria-hidden="true">{member.paused ? "⏸" : member.streak}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
+// SPEC: A17.4 / S07 — the heading NAMES THE STATE, so the page says what today is before anything else is read. It was
+// the constant "Today" while the tab said "Home". The BRIDGE keeps "Today": §1D says that screen carries one CTA and
+// nothing else, and a state name there would be the first thing a brand-new user reads about a day they have not started.
+function title(today: HomeFacts["today"]): string {
+  if (today.kind === "workout") return today.name;
+  if (today.kind === "rest") return "Rest day";
+  if (today.kind === "paused") return "Plan paused";
+  if (today.kind === "allDone") return "Done for today";
+  return "Today";
+}
+
 // SPEC: A14 — one group: the flame, the ring and the week strip belong together, separated from what follows by the section
 // gap rather than by the same 16 px that separated everything from everything (F09).
-function WeekHeader({ facts, streak, isBridge }: { facts: HomeFacts; streak: number; isBridge: boolean }) {
+function WeekHeader({ facts, streak, shields, isBridge }: { facts: HomeFacts; streak: number; shields: number; isBridge: boolean }) {
   return (
     <div className="stack stack--tight">
       <div className="row row--between">
@@ -54,6 +84,38 @@ function WeekHeader({ facts, streak, isBridge }: { facts: HomeFacts; streak: num
         {facts.ringPlanned > 0 && !isBridge ? <WeeklyRing done={facts.ringDone} planned={facts.ringPlanned} /> : null}
       </div>
       {!isBridge ? <WeekStrip week={facts.week} todayKey={facts.todayKey} /> : null}
+      {/* A17.1 / H020 — the shield, computed since day one and rendered nowhere. Reassurance, never a countdown
+          (spec:452); shown only above zero, so a shieldless user is never told they have none (A8). */}
+      {!isBridge && shields > 0 ? (
+        <p className="muted">{shields === 1 ? "1 shield ready — one missed day won't break the streak." : `${shields} shields ready — a missed day won't break the streak.`}</p>
+      ) : null}
+    </div>
+  );
+}
+
+// SPEC: A17.2 / H019 — everything from the card down is ONE bottom-anchored group, so the slack lands as a section
+// break under the header rather than as a hole between the card and the vector row. Twin of the iOS Spacer moving
+// above TodayCard: the day's ink-filled primary is now in the thumb zone on every state.
+function BottomGroup({ facts, streak, bonusKind, userId, isBridge }: { facts: HomeFacts; streak: number; bonusKind: string | null; userId: ObjectId; isBridge: boolean }) {
+  // H008 — the twin divergence. iOS opens the BonusWorkoutSheet on a rest day; web went to "/plan", which answers a
+  // question the user did not ask and leaves the screen entirely. Both offer the bonus workout now; "/plan" survives
+  // only as the last resort when the plan has no next kind to offer.
+  const workoutHref = facts.todayWorkoutKind !== null
+    ? (facts.openSessionId ? `/session/${facts.openSessionId}` : "/session/new")
+    : bonusKind !== null ? `/session/new?bonus=${bonusKind}` : "/plan";
+  return (
+    <div className="stack stack--sections stack--bottom">
+      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} nextUpLine={facts.nextUpLine} streak={streak} />
+      {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
+      {/* A14 — the three vectors as peers; every standalone duplicate that used to sit here or in the card is gone
+          (A17.3). A17.1 / H034 — sectionGap, not the 8 px "within one group" stack: the layout used to assert the
+          crew avatar was a fourth vector slot. */}
+      {!isBridge ? (
+        <div className="stack stack--sections">
+          <VectorRow slots={facts.vectors} workoutHref={workoutHref} />
+          {facts.inCrew ? <CrewToday userId={userId} todayKey={facts.todayKey} /> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -72,23 +134,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <div className="stack stack--page">
       <div className="row row--between">
-        <h1>Today</h1>
+        <h1>{title(facts.today)}</h1>
         {!isBridge ? <Link className="button button--text" href="/post" aria-label="Post a meal"><span aria-hidden="true">📷</span></Link> : null}
       </div>
       <EarnedAchievements ids={unlocked} />
       {facts.openSessionId && facts.openSessionStale ? <StaleSessionPrompt id={facts.openSessionId} workoutName={facts.openSessionName ?? "Your workout"} timezone={session.user.timezone} /> : null}
       {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
-      <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} isBridge={isBridge} />
-      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} nextUpLine={facts.nextUpLine} bonusKind={bonusKind} />
-      {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
-      {/* A14 — the three vectors as peers, bottom-anchored into the thumb zone (6.7). The standalone "Log cardio" button
-          that used to sit here on a workout day IS the Cardio slot now, at a position that no longer moves between states. */}
-      {!isBridge ? (
-        <div className="stack stack--tight stack--bottom">
-          <VectorRow slots={facts.vectors} workoutHref={facts.todayWorkoutKind === null ? "/plan" : facts.openSessionId ? `/session/${facts.openSessionId}` : "/session/new"} />
-          {facts.inCrew ? <CrewToday userId={userId} todayKey={facts.todayKey} /> : null}
-        </div>
-      ) : null}
+      <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} shields={state?.shields ?? 0} isBridge={isBridge} />
+      <BottomGroup facts={facts} streak={state?.currentStreak ?? 0} bonusKind={bonusKind} userId={userId} isBridge={isBridge} />
     </div>
   );
 }

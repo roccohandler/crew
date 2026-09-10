@@ -185,6 +185,16 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" \
   ios/Crew/Features/Onboarding/OnboardingModelAuth.swift shared/scripts/swift-xref.mjs ios/scripts/verdict.sh .github/workflows/ci.yml \
   docs/testing-without-a-mac.md docs/progress.md docs/commit-queue.sh
 
+# --- A17 (the third phone review of Home: "I don't know what to do next or what this screen is for or what the colors are for") ---
+commit_task "feat(home): A17 — Home says what it is. The flame, ring, week strip and crew avatar each built a full sentence and rendered it only to VoiceOver, so a sighted user got a glyph, two bare numerals and seven dots: a new WeekSummary twin now prints 'This week: Wed done · Mon missed · next Sun' for the eye and the full-day-name form aloud, from one function. The flexible space moves above the card so the day's filled primary lands in the thumb zone, the nav title names the state, the shield renders for the first time, the vector slots say Log instead of an em dash and wear control chrome, the card's duplicate cardio/bonus pair is gone, a crew of one is suppressed as the Crew tab already does, and the next training day gets its own mark. Three defects behind it: a paused plan could be un-paused into a full +100 credit (F14 recurring), six of seven status marks failed the 3:1 non-text gate under a certification that answered the wrong WCAG rule, and the web bottom anchor did nothing at all [SPEC: Appendix A 2026-09-10 A17; S07; 1D; 6.1; 6.5; 6.7; 8.9; Flow 2; Flow 7; A3; A8; A14; V25; Ember ① ③ ④ ⑥; XI T024/T036/T040]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  docs/crew-mvp-spec.md docs/home-plan-2026-09-10.md docs/progress.md docs/debt.md docs/commit-queue.sh \
+  shared/design-tokens.json ios/Crew/Generated/EmberColors.swift web/src/generated/ember.css \
+  ios/Crew/Engine/WeekSummary.swift ios/Crew/Features/Home ios/Crew/Features/Progress/ProgressScreen.swift ios/Crew/Shared/WeeklyRing.swift \
+  ios/CrewTests/WeekSummaryTests.swift ios/CrewTests/HomeModelTests.swift ios/CrewTests/ShellStatesTests.swift ios/Package.swift \
+  web/src/lib web/src/components web/src/app web/tests
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

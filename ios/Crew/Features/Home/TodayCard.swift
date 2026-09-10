@@ -1,18 +1,25 @@
 // SPEC: Flow 2 (today's card: "PUSH DAY · 5 exercises + mobility") · Flow 5 (rest day copy) · Flow 7 (paused 🧊) · 1D (the
-// bridge CTA replaces the layout) · A3 (owner-directed 2026-09-08: every non-bridge state carries a what's-next line, a way
-// to post a meal, Log cardio, and — rest / all-done — Bonus workout; the bridge on a rest-day install gets ONE ink line under
-// its CTA) · A8 (never a zero as a verdict, verb-first CTAs) · Part III law ① (one primary, every control ink; HIG: one
-// prominent action per view). Branches only on view state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T024
+// bridge CTA replaces the layout) · A3 (owner-directed 2026-09-08: every non-bridge state carries a what's-next line and a
+// way to post a meal, log cardio and — rest / all-done — start a bonus workout) · A8 (never a zero as a verdict, verb-first
+// CTAs) · Part III law ① (one primary, every control ink; HIG: one prominent action per view). Branches only on view state
+// (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T024
+//
+// A17.3 (2026-09-10) — the "Log cardio" / "Bonus workout" pair is GONE from this card. A3 requires *a way* to reach each,
+// not a dedicated button each, and the three-slot vector row below is that way at a position that no longer moves between
+// states. Before this the rest and all-done states offered seven controls reaching three destinations, with "Post a meal"
+// available three separate ways — and because the card's meal button is a SecondaryButton on rest(posted) and all-done,
+// those seven-control screens carried ZERO ink-filled primaries. They still carry none, deliberately: on a day when
+// nothing is required, a filled primary would manufacture an ask. "One primary action per view" is a ceiling, not a floor.
+// The argument for the removal is RANKING LEGIBILITY, not option count — choice overload does not survive meta-analysis.
 
 import SwiftUI
 
 struct TodayCard: View {
     let state: TodayState
     let nextUpLine: String?
+    let streak: Int // A17.1: so the rest-day line can name what "it" is in "One post keeps it lit"
     let onStart: () -> Void
     let onPost: () -> Void
-    let onLogCardio: () -> Void
-    let onBonus: () -> Void
 
     var body: some View {
         switch state {
@@ -42,14 +49,17 @@ struct TodayCard: View {
             Card {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
                     Text("Rest day — recovery is part of the plan.").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                    Text(posted ? "Today counts." : "One post keeps it lit.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                    // A17.1 — "One post keeps it lit" never said what "it" was. It does now, in the SAME line: no new
+                    // element, no countdown, no notification. spec:452 ("Weights & calories never pressure you") and
+                    // the no-nudges doctrine govern this, so it states a fact about today and stops there.
+                    // A8: at streak 0 it never says "0-day streak" — the first flame is the thing on offer instead.
+                    Text(stakeLine(posted: posted)).font(.body).foregroundStyle(EmberColors.secondaryText)
                     if posted {
                         nextUp
                         SecondaryButton(title: "Post another", action: onPost)
                     } else {
                         PrimaryButton(title: "Post a meal", action: onPost)
                     }
-                    extras
                     if !posted { nextUp }
                 }
             }
@@ -66,10 +76,15 @@ struct TodayCard: View {
                     Text("Done for today.").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
                     nextUp
                     SecondaryButton(title: "Post a meal", action: onPost)
-                    extras
                 }
             }
         }
+    }
+
+    // SPEC: A17.1 · A8 · spec:452 — what today is worth, in the line that was already there
+    private func stakeLine(posted: Bool) -> String {
+        if posted { return "Today counts." }
+        return streak > 0 ? "Post anything today and your \(streak)-day streak holds." : "One post lights your first flame."
     }
 
     @ViewBuilder
@@ -96,13 +111,5 @@ struct TodayCard: View {
         // E20 — VoiceOver reads the workout as one passage; seven separate stops on a read-only list is noise, and the
         // Start button below is the only thing here anyone can act on
         .accessibilityElement(children: .combine)
-    }
-
-    // A3: Log cardio · Bonus workout side by side — ink outlines, never a second primary
-    private var extras: some View {
-        HStack(spacing: EmberTokens.Spacing.space12) {
-            SecondaryButton(title: "Log cardio", action: onLogCardio)
-            SecondaryButton(title: "Bonus workout", action: onBonus)
-        }
     }
 }

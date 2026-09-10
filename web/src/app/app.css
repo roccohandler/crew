@@ -49,6 +49,10 @@ a {
   flex-direction: column;
 }
 
+/* H036 — a flex column, so a page that wants the viewport's height can ask for it with `flex: 1` and actually get it.
+   Before this, .stack--page asked with `min-height: 100%`, which resolves against the PARENT'S HEIGHT PROPERTY — and
+   that was `auto` here, so it computed to auto and the bottom anchor below silently did nothing. The Playwright
+   assertion in tests/e2e/home-layout.spec.ts is what found it: the primary sat at y=186 on a 667-tall phone. */
 .app-column {
   width: 100%;
   max-width: var(--crew-app-max-width);
@@ -56,6 +60,8 @@ a {
   padding: var(--ember-space-16);
   padding-bottom: calc(var(--ember-space-32) * 3);
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-column--progress {
@@ -97,7 +103,12 @@ a {
    absence rather than composition (F09). The two role tokens (sectionGap / rowGap) sit ON the G5 scale — no new number. */
 .stack--page {
   gap: var(--ember-section-gap);
-  min-height: 100%;
+  flex: 1;
+}
+
+/* the same macro gap without claiming the page's height — for a group nested inside a stack--page */
+.stack--sections {
+  gap: var(--ember-section-gap);
 }
 
 /* 6.7 — the primary controls bottom-anchor into the thumb zone; on a short page the auto margin pushes this group down,
@@ -416,6 +427,10 @@ a {
   position: relative;
 }
 
+/* H016 / A17.4 — not-posted is a HOLLOW ring, which is what spec:290 already called "the empty today-dot". It used to
+   be a filled missed-gray disc, so posted-vs-not differed by COLOUR ALONE (and at 2.53:1, under the 3:1 gate). The
+   border does both jobs: an ink-gray ring IS the empty state, and a canvas halo separates a filled dot from the
+   avatar behind it. Twin of CrewStrip.swift's strokeBorder. */
 .avatar__dot {
   position: absolute;
   right: 0;
@@ -423,12 +438,13 @@ a {
   width: var(--ember-space-12);
   height: var(--ember-space-12);
   border-radius: 50%;
-  background: var(--ember-missed-gray);
-  border: var(--ember-size-hairline) solid var(--ember-canvas);
+  background: var(--ember-card);
+  border: var(--ember-size-hairline) solid var(--ember-secondary-text);
 }
 
 .avatar__dot--posted {
   background: var(--ember-ember);
+  border-color: var(--ember-canvas);
 }
 
 .composer {
@@ -521,9 +537,12 @@ a {
 /* SPEC: A14 — the seven-day strip. Home computed these states all along and rendered none of them (F12). Ember marks the
    done days (law ④: progress IS the message here); every other mark is ink or the missed gray, and each carries a SHAPE as
    well as a colour so the strip survives grayscale and every CVD model (6.5). Twin of ios WeekStrip. */
+/* H005: was align-items: flex-end while the iOS twin defaulted to .center, so the two platforms ragged in opposite
+   directions and no screenshot comparison could agree. Both are baseline-stable now: every mark sits in the same
+   12 px box whatever its own size, so a 4 px tick and a 12 px ring share one centre line. */
 .weekstrip {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .weekstrip__day {
@@ -539,31 +558,52 @@ a {
   color: var(--ember-secondary-text);
 }
 
+/* the uniform box every mark centres inside, whatever its own size — the twin of the iOS
+   .frame(width: space12, height: space12). Before H005 the rest tick shrank the BOX to 4 px, so a row of ticks and
+   rings had no shared centre line and the two platforms ragged in opposite directions. */
 .weekstrip__mark {
   width: var(--ember-space-12);
   height: var(--ember-space-12);
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.weekstrip__mark--done {
+.weekstrip__dot {
+  border-radius: 50%;
+  width: var(--ember-space-12);
+  height: var(--ember-space-12);
+}
+
+.weekstrip__dot--done {
   background: var(--ember-ember);
 }
 
 /* today = an ink ring: you are here, nothing has happened yet */
-.weekstrip__mark--today {
+.weekstrip__dot--today {
   box-shadow: inset 0 0 0 calc(var(--ember-size-hairline) * 2) var(--ember-ink-text);
 }
 
-/* missed = a hollow gray outline, never red (Part III semantics) */
-.weekstrip__mark--missed {
-  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-missed-gray);
+/* missed = a hollow outline, never red (Part III semantics). H014: was --ember-missed-gray at 2.39:1 on the bone
+   canvas, under 6.5's 3:1 non-text gate; --ember-secondary-text measures 5.18:1 and is still a warm gray, so A8 holds. */
+.weekstrip__dot--missed {
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-secondary-text);
 }
 
-/* rest and upcoming = one small neutral tick */
-.weekstrip__mark--rest {
+/* rest and upcoming = one small neutral tick, centred in the same 12 px box. H014: was --ember-hairline at 1.19:1. */
+.weekstrip__dot--rest,
+.weekstrip__dot--upcoming {
   width: var(--ember-space-4);
   height: var(--ember-space-4);
-  background: var(--ember-hairline);
+  background: var(--ember-secondary-text);
+}
+
+/* A17.4 — the NEXT training day, and only that one: bigger than a rest tick, ink rather than gray, but not the
+   filled ember of a day already done. Before this, upcoming and rest were byte-identical. */
+.weekstrip__dot--nextUp {
+  width: var(--ember-space-8);
+  height: var(--ember-space-8);
+  background: var(--ember-ink-text);
 }
 
 /* SPEC: A14 — Workout · Cardio · Meals as peers (F10). Every slot is an OUTLINE control: the day's workout keeps the single
@@ -582,8 +622,12 @@ a {
   gap: var(--ember-row-gap);
   min-height: var(--crew-min-touch-target);
   padding: var(--ember-space-8);
-  background: var(--ember-card);
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  /* H028 — the card FILL is gone. With it, the slot was character-for-character the chrome of the read-only .card
+     (same fill, same 1 px hairline), so the eye had no way to tell a control from a container. It now wears what
+     every other secondary control wears: no fill, a hairline outline, an ink label. The outline is only 1.26:1 —
+     a known app-wide debt with its own repair — and what carries the affordance is the ink verb inside. */
+  background: transparent;
+  border: var(--ember-size-hairline) solid var(--ember-secondary-button-outline);
   border-radius: var(--ember-size-corner-radius);
   color: var(--ember-ink-text);
   text-decoration: none;
@@ -602,12 +646,13 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* the redundant encoder: the shape says logged-or-not without asking anyone to read the number (6.5) */
+/* the redundant encoder: the shape says logged-or-not without asking anyone to read the number (6.5).
+   H014: the unlogged ring was --ember-hairline at 1.26:1 on a card — invisible against the 3:1 gate. */
 .vectorslot__dot {
   width: var(--ember-space-8);
   height: var(--ember-space-8);
   border-radius: 50%;
-  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-hairline);
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-secondary-text);
 }
 
 .vectorslot__dot--logged {

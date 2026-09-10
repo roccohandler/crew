@@ -36,7 +36,7 @@ struct HomeScreen: View {
                 }
             }
             .background(EmberColors.canvas.ignoresSafeArea())
-            .navigationTitle("Today")
+            .navigationTitle(title)
             .toolbar { if !isBridge { ToolbarItem(placement: .primaryAction) { postButton } } } // A3: a way to post a meal on every non-bridge state
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
@@ -68,23 +68,49 @@ struct HomeScreen: View {
                             // W043 — the ring is gone from the BRIDGE. There it read "0/3": a competing prompt on the one
                             // screen §1D says must have none, an ember element that is not a reward (law ④), and a zero
                             // used as a verdict (A8) — three rules at once, on a user's first ever screen.
-                            if model.ringPlanned > 0, !isBridge { WeeklyRing(done: model.ringDone, planned: model.ringPlanned, days: model.weeklyRing) }
+                            if model.ringPlanned > 0, !isBridge { WeeklyRing(done: model.ringDone, planned: model.ringPlanned) }
                         }
                         if !isBridge, !model.weeklyRing.isEmpty { WeekStrip(days: model.weeklyRing) } // A14: the states HomeModel already computed (F12)
+                        // A17.1 / H020 — the shield, which HomeModel has computed since day one and iOS rendered
+                        // nowhere. A user holding two shields and a user holding none saw an identical screen and an
+                        // identical "One post keeps it lit." Stated as reassurance, never as a countdown (spec:452).
+                        // A8: rendered only above zero, so a shieldless user is never told they have none.
+                        if !isBridge, model.shields > 0 {
+                            Text(model.shields == 1 ? "1 shield ready — one missed day won't break the streak." : "\(model.shields) shields ready — a missed day won't break the streak.")
+                                .font(.caption).foregroundStyle(EmberColors.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
+                        }
                     }
-                    TodayCard(state: model.today, nextUpLine: model.nextUpLine, onStart: { activeSession = model.startWorkout() }, onPost: { posting = true }, onLogCardio: { loggingCardio = true }, onBonus: { choosingBonus = true })
+                    // A17.2 / H019 — the flexible space moved from BELOW the card to ABOVE it. Under A14 it sat after
+                    // the card, so on every short state (rest, all-done, paused) the day's ink-filled primary was
+                    // stranded in the upper half and the slack became one contiguous hole — ~29% of the screen on
+                    // `.paused`, where the card renders no controls at all. Here the slack is a section break under
+                    // the header group, and the card, its primary and the vector row all sit in the thumb zone.
+                    // This is the first time 6.7's "primary actions stay bottom-anchored" is literally true on Home.
+                    Spacer(minLength: 0)
+                    TodayCard(state: model.today, nextUpLine: model.nextUpLine, streak: model.streak, onStart: { activeSession = model.startWorkout() }, onPost: { posting = true })
                     if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete(shareToCrew: true) } }
-                    Spacer(minLength: EmberTokens.Spacing.sectionGap) // 6.7: what follows sits in the thumb half on a long phone
                     if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
-                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                            // A14 — the three vectors as peers. The standalone "Log cardio" button that used to sit here on
-                            // a workout day is gone: it IS the Cardio slot now, at a position that no longer moves between
-                            // states (F10). The card's own Log cardio / Bonus workout pair (A3) stays on rest and all-done.
+                        // A17.1 / H034 — sectionGap, not rowGap. These were bound at 8 pt, the gap design-tokens.json
+                        // documents as "within one group", while every real boundary on this screen is 24 — so the
+                        // layout asserted the crew avatar was a fourth vector slot.
+                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
+                            // A14 — the three vectors as peers. Every standalone duplicate that used to sit here or in
+                            // the card (Log cardio, Bonus workout) is gone: these ARE those affordances now, at a
+                            // position that no longer moves between states (F10, A17.3).
                             VectorRow(slots: model.vectors,
                                       onWorkout: { if let session = model.startWorkout() { activeSession = session } else { choosingBonus = true } },
                                       onCardio: { loggingCardio = true },
                                       onMeal: { posting = true })
-                            if let members = model.crewStrip { CrewStrip(members: members) } // absent (not empty) for solo
+                            // absent (not empty) for solo AND below crewMinMembers (A17.1)
+                            if let members = model.crewStrip {
+                                VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+                                    // A17.1 — the strip was a bare avatar with an unexplained dot and numeral. Ink,
+                                    // never tappable (law ①): the Crew tab is where a member opens.
+                                    Text("Your crew").font(.caption).foregroundStyle(EmberColors.secondaryText)
+                                    CrewStrip(members: members)
+                                }
+                            }
                         }
                     }
                 }
@@ -104,6 +130,20 @@ struct HomeScreen: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Post a meal")
+    }
+
+    // SPEC: A17.4 / S07 — the title NAMES THE STATE, so the screen says what today is before anything else is read.
+    // It was the constant "Today" while the tab said "Home" — the only one of the five screens where the two
+    // disagreed. The BRIDGE keeps "Today": §1D says that screen carries one CTA and nothing else, and a state name
+    // there would be the first thing a brand-new user reads about a day they have not started.
+    private var title: String {
+        switch model.today {
+        case .bridge: return "Today"
+        case .workout(let name, _, _, _, _): return name
+        case .rest: return "Rest day"
+        case .paused: return "Plan paused"
+        case .allDone: return "Done for today"
+        }
     }
 
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }

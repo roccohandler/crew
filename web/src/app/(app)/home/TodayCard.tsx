@@ -1,42 +1,43 @@
-// SPEC: S07 · A3 (owner-directed 2026-09-08) — the Home card by state. Every non-bridge state carries the what's-next line, a
-// way to post a meal, Log cardio and (rest / all-done) Bonus workout — the next rotation workout, +25 (Flow 5). The paused
-// return day reads through dayLabel (never raw ISO). The bridge stays alone (1D) plus ONE ink line under the CTA. A8: never a
-// zero as a verdict, sentence case, verb-first CTAs. Server component; twin of ios Features/Home/TodayCard.
+// SPEC: S07 · A3 (owner-directed 2026-09-08) — the Home card by state. Every non-bridge state carries the what's-next line
+// and a way to post a meal. The paused return day reads through dayLabel (never raw ISO). The bridge stays alone (1D) plus
+// ONE ink line under the CTA. A8: never a zero as a verdict, sentence case, verb-first CTAs. Server component; twin of ios
+// Features/Home/TodayCard.
+//
+// A17.3 (2026-09-10) — the "Log cardio" / "Bonus workout" pair is GONE from this card, on both platforms. A3 requires *a
+// way* to reach each, not a dedicated button each, and the three-slot vector row below is that way at a position that no
+// longer moves between states. Before this, rest and all-done offered seven controls reaching three destinations with
+// "Post a meal" available three separate ways. They still carry no ink-filled primary once posted, deliberately: on a day
+// when nothing is required, a filled primary would manufacture an ask. One primary per view is a ceiling, not a floor.
 import Link from "next/link";
 import { dayLabel } from "@/lib/engine/day-label";
 import type { TodayState } from "@/lib/today-state";
 
-type Props = { today: TodayState; todayKey: string; openSessionId: string | null; nextUpLine: string | null; bonusKind: string | null };
+type Props = { today: TodayState; todayKey: string; openSessionId: string | null; nextUpLine: string | null; streak: number };
 
 // SPEC: A3 — "Tomorrow: Pull day · 5 exercises" / "Next workout: Wed · Pull day"; nothing on an undone training day
 export function NextUpLine({ line }: { line: string | null }) {
   return line === null ? null : <p className="muted">{line}</p>;
 }
 
-// SPEC: A3 — the secondaries: a meal post (when the state names one), Log cardio, Bonus workout (rest / all-done only)
-function Secondaries({ post, bonusKind }: { post: string | null; bonusKind: string | null }) {
-  return (
-    <div className="row row--wrap">
-      {post !== null ? <Link className="button button--secondary" href="/post">{post}</Link> : null}
-      <Link className="button button--secondary" href="/log-cardio">Log cardio</Link>
-      {bonusKind !== null ? <Link className="button button--secondary" href={`/session/new?bonus=${bonusKind}`}>Bonus workout</Link> : null}
-    </div>
-  );
+// SPEC: A17.1 · A8 · spec:452 — what today is worth, in the line that was already there. "One post keeps it lit" never
+// said what "it" was. No new element, no countdown, no notification; at streak 0 it never says "0-day streak".
+function stakeLine(posted: boolean, streak: number): string {
+  if (posted) return "Today counts.";
+  return streak > 0 ? `Post anything today and your ${streak}-day streak holds.` : "One post lights your first flame.";
 }
 
-function RestCard({ posted, nextUpLine, bonusKind }: { posted: boolean; nextUpLine: string | null; bonusKind: string | null }) {
+function RestCard({ posted, nextUpLine, streak }: { posted: boolean; nextUpLine: string | null; streak: number }) {
   return (
     <section className="card stack stack--tight">
       <h2>Rest day — recovery is part of the plan.</h2>
-      <p className="muted">{posted ? "Today counts." : "One post keeps it lit."}</p>
+      <p className="muted">{stakeLine(posted, streak)}</p>
       {posted ? <NextUpLine line={nextUpLine} /> : <Link className="button button--primary" href="/post">Post a meal</Link>}
-      <Secondaries post={posted ? "Post another" : null} bonusKind={bonusKind} />
-      {posted ? null : <NextUpLine line={nextUpLine} />}
+      {posted ? <Link className="button button--secondary" href="/post">Post another</Link> : <NextUpLine line={nextUpLine} />}
     </section>
   );
 }
 
-export function TodayCard({ today, todayKey, openSessionId, nextUpLine, bonusKind }: Props) {
+export function TodayCard({ today, todayKey, openSessionId, nextUpLine, streak }: Props) {
   if (today.kind === "bridge") {
     return (
       <div className="stack">
@@ -47,13 +48,13 @@ export function TodayCard({ today, todayKey, openSessionId, nextUpLine, bonusKin
     );
   }
   if (today.kind === "paused") return <section className="card stack stack--tight"><h2>Plan paused</h2><p className="muted">Your streak is frozen until {dayLabel(today.until, todayKey)}. Reminders are off.</p></section>;
-  if (today.kind === "rest") return <RestCard posted={today.posted} nextUpLine={nextUpLine} bonusKind={bonusKind} />;
+  if (today.kind === "rest") return <RestCard posted={today.posted} nextUpLine={nextUpLine} streak={streak} />;
   if (today.kind === "allDone") {
     return (
       <section className="card stack stack--tight">
         <h2>Done for today.</h2>
         <NextUpLine line={nextUpLine} />
-        <Secondaries post="Post a meal" bonusKind={bonusKind} />
+        <Link className="button button--secondary" href="/post">Post a meal</Link>
       </section>
     );
   }

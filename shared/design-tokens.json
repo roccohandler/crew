@@ -62,9 +62,9 @@
       "spec": "Part III table + semantics; dark = Decision Registry G4 (2026-09-04)"
     },
     "ember": {
-      "light": "#FF6600",
+      "light": "#DF5908",
       "dark": "#FF7A1F",
-      "role": "≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts",
+      "role": "≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts. A17.4 (2026-09-10): the light value was #FF6600, which measures 2.77:1 on the bone canvas and fails the 3:1 non-text gate in 6.5; #DF5908 measures 3.56:1 at hue h23 against h24 — the same orange, one shade deeper. emberText #B84D00 (4.83:1, the text gate) and emberTint are unchanged, and dark #FF7A1F already measured 7.03:1.",
       "spec": "Part III table; laws ③ ④ ⑤"
     },
     "emberText": {
