@@ -155,6 +155,20 @@ commit_task "fix(ios): AuthStore is main-actor isolated — token refreshes wrot
 commit_task "fix(ios): HomeModel takes the welcome-back ack day instead of defaulting to it — a parameter default is evaluated in a nonisolated context and cannot read the main-actor account; HomeScreen passes it, and swift-xref now reports this whole class of error from Windows [SPEC: E4; C14; 5.3; 5.6.6; XI T024/T008]" \
   ios/Crew/Features/Home/HomeModel.swift ios/Crew/Features/Home/HomeScreen.swift shared/scripts/swift-xref.mjs docs/testing-without-a-mac.md docs/progress.md docs/ratification.md docs/commit-queue.sh
 
+# --- F34 (the F32 audit's remainder: the last shared mutable value outside an actor) ---
+commit_task "fix(ios): Api.baseURL is a let — it is read from every thread that calls the API and never reassigned, so nothing can race it; CI green on every job with the main-actor AuthStore and TestFlight build 4 uploaded [SPEC: C3; C14; 8.7; XI T012/T045]" \
+  ios/Crew/Api/Api.swift docs/progress.md docs/ratification.md docs/commit-queue.sh
+
+# --- R01 (owner ratification 2026-09-10: A9–A16 on the registry, the five overturns applied, the three gates opened) ---
+#     Runs FIRST so the registry and the ledger land as ONE commit, unmixed with any stage code (owner ruling §4).
+commit_task "docs(spec): owner ratifies A9–A16 — A16 maintenance-only with the seven no-grade clauses; spec:240 narrowed and clause-bearing, spec:340 E1 gains the bounded bodyweight exception, spec:396 law ⑥ gains the macro tokens, spec:453 restated, spec:1490 narrowed twice; A16.a methodology screen, A16.b age-questionnaire entry gate, A16.c 18+ target surface (V65); A13 art vendored behind the lawyer gate [SPEC: Appendix A 2026-09-10; Flow 4; E1; E15; Ember 6; XI T047]" \
+  docs/crew-mvp-spec.md docs/ux-plan-2026-09-09.md docs/progress.md docs/debt.md docs/commit-queue.sh
+
+# --- R02 (stages 1–5 of docs/ux-plan-2026-09-09.md, written before ratification, all gates verified green here) ---
+commit_task "feat(session): A9–A12 + A11 — weightUnit/distanceUnit split with every set tagged by the unit it was entered in (derive-on-read, no bulk migration), sets prefill from the last completed session, the open row gets a snapping weight tape, a set can be removed with Undo and a server floor of one work set; the hit-box sweep on the add-set controls, the steppers and the readout [SPEC: A9; A10; A11; A12; Flow 3; 6.3; 6.5; V52-V55; XI T025]" \
+  shared/spec-constants.json shared/scripts/vector-shapes.mjs shared/vectors/weight-units.vectors.json shared/vectors/set-removal.vectors.json \
+  web/src/generated web/src/lib web/src/components web/src/app web/tests ios/Crew ios/CrewTests ios/Package.swift
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

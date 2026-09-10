@@ -56,6 +56,68 @@ State after the build (commands run 2026-09-09 morning):
 Deviations and parking lot: docs/debt.md 2026-09-09 lines. Owner asks: ratify A1–A8 + the two GAP constants; decide ≤ 2-day full-body
 vs PPL (built as PPL, evidence favours full-body); replace the placeholder legal pages; connect the Blob store.
 
+## 2026-09-09 (evening) — the second phone review: A9–A16 (owner-directed; contract docs/ux-plan-2026-09-09.md)
+
+The owner reviewed build 0.1.0 (3) on the phone and directed a UI/UX pass on Home and the Session screen, plus a new
+nutrition subsystem. Decisions are drafted into Appendix A as **A9–A16, PENDING RATIFICATION**; the full contract with
+the evidence, wireframes, palette and a W001–W067 checklist is `docs/ux-plan-2026-09-09.md`.
+
+Evidence: a 13-agent repo review + 6-agent nutrition research (~2.4M tokens) covering Home, Session, the units
+subsystem, exercise data, the design system, spec doctrine, web parity, nutrition, and outside research on numeric
+entry, unit prompting, whitespace, exercise media licensing, macro tracking, the flex-budget pattern, macro colour and
+food data.
+
+**Two defects the review found that the owner had not reported, and which outrank what he did report:**
+
+1. **Units silently corrupt history.** No conversion code exists anywhere. Switching kg/lb relabels every stored weight,
+   changes PlateMath's physical prescription, and corrupts PR detection. Logged in debt.md; fixed by A9 (stage 1).
+2. **Sets never prefill.** Every strength set opens at "—" while `lastTimeLine` computes the exact numbers needed and
+   renders them as grey text — so reaching 225 lb costs 45 taps. Flow 3 already promises the prefill. Fixed by A12.
+
+**Ordering is load-bearing:** units (A9) lands first because the weight tape renders a unit, the exercise sheet shows a
+last-time line in a unit, and macro targets are computed from a bodyweight in a unit.
+
+| Stage | Task IDs | State |
+|---|---|---|
+| 0 · amendments on paper | W001–W004 | **DONE-VERIFIED** — A9–A16 in Appendix A; **RATIFIED 2026-09-10**; 11 debt entries logged |
+| 1 · units (A9) | W005–W015 | **DONE-VERIFIED** — vectors 52→54 · web 340→365 tests · Swift 43→53 tests · e2e 23 pass · all lints clean |
+| 2 · session correctness sweep | W016–W026 | **DONE** (WRITTEN-UNVERIFIED on device) — 11 defect fixes; swift-xref + doctrine-lint clean, Swift 63 tests green |
+| 3 · prefill (A12) | W027–W029 | **DONE-VERIFIED** — SetPrefill twin both engines (10+10 tests), wired into iOS and web session creation; web 375 tests, e2e 23 pass |
+| 4 · weight tape (A10) | W030–W034 | **DONE** (WRITTEN-UNVERIFIED on device) — WeightTape on the open row + keypad + ± ; web gets a number field; 6 new constants; all local gates green |
+| 5 · remove a set (A11) | W035–W038 | **DONE** (WRITTEN-UNVERIFIED on device) — SetRemoval twin + V54/V55 both engines, swipe-to-reveal + accessibility action + Undo, server floor guard |
+| 7 · change today's workout (A15) | W047–W052 | NOT STARTED — unblocked, follows Stage 6 |
+| 6 · Home + three vectors (A14) | W039–W046 | **IN PROGRESS** — unblocked by the 2026-09-10 ratification |
+| 8 · exercise media (A13) | W053–W059, W068–W069 | GATED on ⏳ W053 (lawyer). Art ruled: **vendor** bryllim/workout-guide; prep allowed behind a flag, no TestFlight ship |
+| 9 · nutrition (A16) | W060–W067, W070–W073 | A16 RATIFIED (W060 ✓). GATED on ⏳ W070 (age questionnaire) |
+
+### 2026-09-10 — OWNER RATIFICATION (Appendix A entry 2026-09-10)
+
+**A9–A15 RATIFIED** as drafted and as implemented through Stage 5. **A16 RATIFIED, MAINTENANCE-ONLY** — no deficit, no
+deficit phase, no deficit constants, no sex field, no body stat beyond the single current bodyweight; a deficit would be
+a separate amendment with its own phase and compliance checklist, and is **not stubbed for**. The five overturns are
+applied in the spec exactly as tabled (spec:240 narrowed + the seven no-grade clauses · spec:1490's plate-journal rule
+unchanged · spec:1490's "no goals system" narrowed to training · spec:340 E1's bounded bodyweight exception · spec:396
+Ember law ⑥'s macro-token exception · spec:453 restated). Three owner additions: **A16.a** methodology screen (required),
+**A16.b** age-questionnaire re-run as a Stage 9 entry gate, **A16.c** 18+ gate on the target surface (the app stays 13+,
+`minimumAgeYears` 13 unchanged). **A13 art ruled:** vendor bryllim/workout-guide (CC BY-SA 4.0), never edited on disk, hash
+manifest as the machine-checked ShareAlike boundary — Stage 8 still gated on the lawyer answer. Stages 6 and 7 proceed now.
+
+**⏳ THE THREE OPEN OWNER ITEMS (each blocks only what it names):**
+
+1. **⏳ W070 — OWNER re-answers the App Store Connect age questionnaire with A16 in mind, and the resulting rating is
+   recorded here. Stage 9 does not start until that rating is recorded.** Apple's 2025 questionnaire carries a mandatory
+   medical/wellness section; adding calorie targets changes the honest answer, and Apple may raise the rating above 13+.
+2. **⏳ W053 — OWNER lawyer confirmation** on bundling unmodified CC BY-SA 4.0 SVGs inside a FairPlay-protected iOS app
+   (CC 4.0's Effective Technological Measures clause), tinted at runtime and fully attributed. Vendored assets, the hash
+   test and the attribution screen may be PREPARED behind a feature flag; **nothing ships to a TestFlight build until
+   this clears.** Fallback order if the answer is no: (1) RepDB free tier, (2) exercisedb.io $199 Starter. Neither is
+   pre-built.
+3. **⏳ GAP (A16.c, recorded not resolved) — the account stores a birth YEAR, not a birthdate, and it is OPTIONAL on the
+   Sign in with Apple path (`LoginScreen` passes `nil`), so an account can carry no age at all.** Conservative reading adopted,
+   and the one Stage 9 implements unless the owner rules otherwise: age = `currentYear − birthYear` (the arithmetic
+   `requireSignupGates` already uses), and an **absent birth year reads as under 18** — the surface is hidden, nothing is
+   asked, and no existing account is re-prompted. Recorded here because it lands inside the same owner task as item 1.
+
 ## Ledger
 
 Phase 0 — contracts
@@ -138,6 +200,8 @@ Phases 6–7 — beta & release
 
 - OPERATING MODE (Appendix A, 2026-09-04): CONTINUOUS BUILD — no 🛑 stops the line; former checkpoints are self-reviews in docs/ratification.md; gaps get the most conservative in-spec call tagged `// GAP:`; iOS is WRITTEN-UNVERIFIED (no Xcode here; GitHub's macOS job is the compiler); no real credentials in the repo or the chat.
 - BLOCKED-CREDENTIALS (owner steps, docs/testing-without-a-mac.md Stage 2): the Atlas password (production `MONGODB_URI` fails with "bad auth" — the owner is regenerating the `crew` user's password and replacing the variable; the Blob store `crew-photos` is still not connected) (T046) · the APNs key → Vercel (T033; the Team ID and bundle id are known) · a Services ID for web Sign in with Apple (T012) · an iPhone for the device pass (T028/T035/T043).
+- ⏳ STAGE 9 ENTRY GATE (A16.b, owner task): the App Store Connect age questionnaire is re-answered with A16 in mind and the resulting rating is recorded in the 2026-09-10 section above. Stage 9 does not start until then. Open alongside it: the A16.c birth-year GAP (absent birth year reads as under 18 unless the owner rules otherwise).
+- ⏳ STAGE 8 SHIP GATE (A13, owner task): lawyer confirmation on CC BY-SA 4.0 assets inside a FairPlay-protected binary. Vendoring, the hash test and the attribution screen may be prepared behind a feature flag; nothing reaches TestFlight until it clears.
 - OPEN OWNER DECISION (non-blocking): Firebase Auth ⏳ (Appendix B) — custom auth proceeds by default (12.5); nothing built against Firebase.
 - Git is hook-blocked for the agent: commits are queued in `docs/commit-queue.sh` (FIX QUEUE section); the owner runs `& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh` then `git push`.
 
@@ -162,5 +226,7 @@ Phases 6–7 — beta & release
 - Build 3's own crash log is still wanted: the right file says `"build_version":"3"` in its first line and a capture time after the build 3 install. F31 (the store) + F32 (the race) go up together; TestFlight build 4 follows the green run.
 - CI run 34405436792 (F31 + F32 pushed): ONE compile error, and it is the shape of change that causes it — `HomeModel.swift:40: main actor-isolated property 'currentUser' can not be referenced from a nonisolated context`. A parameter's DEFAULT VALUE is evaluated in a nonisolated context even inside a @MainActor type, so `welcomeBackAckDay: String? = AuthStore.shared.currentUser?.welcomeBackAckDay` stopped compiling the moment AuthStore became @MainActor (F32). `Type = .shared` defaults are unaffected — a static let is only a warning today; it is the `.shared.property` READ that fails. F33: the default is `nil` and HomeScreen passes the account value (as ProgressScreen, SettingsScreen and CelebrationScreen already read units from the account); the tests already passed theirs explicitly, so nothing about E4's behaviour moved.
 - F33 also teaches swift-xref the rule: it collects every `@MainActor` type and reports a parameter default that reads `<MainActorType>.shared.<property>`. Verified both ways — clean on the tree as fixed, and a scratch copy with the exact line back reports it at HomeModel.swift:42. That is the third class of macOS-only error the Windows check now catches (removed members, wrong labels, main-actor defaults).
-- NEXT: the owner runs the queue (F33) and pushes; the agent watches CI and starts `testflight.yml -f build_number=4` on green; the owner DELETES Crew from the phone, installs build 4 (the only build newer than the one installed), and if it still crashes the newest `.ips` at that moment — `"build_version":"4"` — names the line. Then the phone pass and the Stage 2 steps still owed: Blob store, APNs key, DB drop; Appendix A ratification; the ≤ 2-day question.
+- **CI run 34406449090 (push 99614c1 = F31 + F32 + F33): EVERY JOB GREEN again** — contracts · web · web e2e · ios engine · ios (89 unit tests + all five journeys) with AuthStore main-actor isolated and the store's self-repair in. TestFlight build 4 started from that commit: `gh workflow run testflight.yml -f build_number=4` → run 34407879045, "Upload succeeded" at 21:39Z. App Store Connect numbers it itself (build 2 uploaded as (1), so expect 0.1.0 (4) or the next free number).
+- F34 (same audit, one word): `Api.baseURL` was a `var` on the shared nonisolated `Api` — read from every thread that calls the API, never reassigned. It is a `let` now, so the one remaining piece of shared mutable state outside an actor is gone. Nothing else in the app has any: Store, SyncQueue, AuthStore and every model are @MainActor; SeedCatalog is an immutable struct; the rest of the `var`s are DTO fields and computed properties.
+- NEXT: the owner deletes Crew from the phone and installs build 4 from TestFlight. If it launches: the phone pass (rest-day Home, Plan map → editor → sheet, Crew, Journal, Settings) and the Stage 2 steps still owed — Blob store, APNs key, DB drop; Appendix A ratification; the ≤ 2-day question. If it still crashes: the newest `.ips` at that moment (`"build_version":"4"`) names the line.
 - Plan notes (5.6 map / 5.2 tree additions, all logged in R-055): shared/scripts holds generate · check-drift · render-spec-constants · render-ember · render-seed · check-vectors · vector-shapes · vector-invariants · check-seeds · doctrine-lint; Generated/ gains EmberTokens.swift; Api/ gains JSONValue.swift, HttpStatus.swift, KeychainStore.swift and per-resource Api*.swift files (C9); Storage/ gains SyncDriver, ServerHydrate, PlanLocal, GamificationLocal, AchievementFacts, PostPayloadPhotoStripper, SyncTransport, ModelsSocial; ios/ gains Package.swift + ExportOptions.plist + scripts/doctrine-lint.sh; `.github/workflows/testflight.yml`; web gains `api/cron/notifications`, `photos` routes, `crews/[id]/{stream,mute}`, `vercel.json`, `scripts/metrics.mjs`, `/journal`, `/onboarding` outside the (app) group (pre-auth by design, Flow 1); web/AGENTS.md + web/CLAUDE.md are written by `next dev`.

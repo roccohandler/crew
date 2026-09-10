@@ -12,7 +12,7 @@ final class Api {
     // configuration: http + localhost:3000 in Debug, https + the deployed host in Release, overridable on the xcodebuild
     // command line). A TestFlight build must reach a real server, and a device on your desk must reach your machine —
     // neither can be a hard-coded string. Two plain keys, no parsing (C6).
-    var baseURL = Api.configuredBaseURL()
+    let baseURL = Api.configuredBaseURL() // read from every thread that calls the API and never reassigned: a `let`, so there is nothing to race (the F32 lesson)
     private let session = URLSession(configuration: .default)
 
     static func configuredBaseURL() -> URL {
