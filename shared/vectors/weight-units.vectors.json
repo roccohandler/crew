@@ -1,0 +1,42 @@
+{
+  "file": "weight-units.vectors.json",
+  "spec": "Part VIII 8.1 — weight conversion and record comparison (V52–V53); Appendix A A9 (owner-directed 2026-09-09). Closes the defect where `units` was a display suffix with no conversion: a preference change relabelled every logged weight, changed plate math's physical prescription, and fired a false personal record in one direction while going blind in the other.",
+  "vectors": [
+    {
+      "id": "V52",
+      "title": "a weight converts between units and snaps to the loadable increment",
+      "spec": "8.1 V52; A9 (a logged weight is stored in the unit it was entered in; conversion happens for display only)",
+      "kind": "weightUnits",
+      "rule": "weightIn(value, from, to) returns the value unchanged when from == to; otherwise it converts by the exact international pound (0.45359237 kg) and rounds half-up to the target unit's loadable increment — halves for lb, quarters for kg. Both engines print the same digit.",
+      "reviewNote": "The snap is lossy on purpose: a converted weight must name something a gym can actually load. A round trip therefore returns within one display increment, never exactly.",
+      "cases": [
+        { "value": 137.5, "from": "lb", "to": "lb", "expect": 137.5 },
+        { "value": 102.3, "from": "kg", "to": "kg", "expect": 102.3 },
+        { "value": 225, "from": "lb", "to": "kg", "expect": 102 },
+        { "value": 135, "from": "lb", "to": "kg", "expect": 61.25 },
+        { "value": 45, "from": "lb", "to": "kg", "expect": 20.5 },
+        { "value": 100, "from": "kg", "to": "lb", "expect": 220.5 },
+        { "value": 20, "from": "kg", "to": "lb", "expect": 44 },
+        { "value": 60, "from": "kg", "to": "lb", "expect": 132.5 },
+        { "value": 0, "from": "lb", "to": "kg", "expect": 0 },
+        { "value": 1000, "from": "lb", "to": "kg", "expect": 453.5 }
+      ]
+    },
+    {
+      "id": "V53",
+      "title": "a personal record compares on one normalised scale",
+      "spec": "8.1 V53; A9 (plate math, PR detection and strength trends compare on a normalised value, never on the raw number)",
+      "kind": "weightUnits",
+      "rule": "normalizedForCompare(value, unit) puts a weight on the kilogram scale WITHOUT snapping, so two weights are ordered by what was actually on the bar. A weight entered in lb never outranks a heavier weight entered in kg, and two lb weights one pound apart stay distinguishable even though they display at the same kilogram increment.",
+      "reviewNote": "Snapping before comparing would hide a real record: 225 lb and 226 lb both display as the same quarter-kilo. Comparison uses the raw converted value; display uses the snapped one.",
+      "cases": [
+        { "left": { "value": 225, "unit": "lb" }, "right": { "value": 100, "unit": "kg" }, "expect": "left" },
+        { "left": { "value": 226, "unit": "lb" }, "right": { "value": 225, "unit": "lb" }, "expect": "left" },
+        { "left": { "value": 100, "unit": "kg" }, "right": { "value": 220, "unit": "lb" }, "expect": "left" },
+        { "left": { "value": 102, "unit": "kg" }, "right": { "value": 225, "unit": "lb" }, "expect": "right" },
+        { "left": { "value": 50, "unit": "kg" }, "right": { "value": 50, "unit": "kg" }, "expect": "equal" },
+        { "left": { "value": 135, "unit": "lb" }, "right": { "value": 135, "unit": "lb" }, "expect": "equal" }
+      ]
+    }
+  ]
+}

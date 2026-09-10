@@ -23,7 +23,7 @@ export default async function JournalPage() {
   // SPEC: A6 — a workout post without a server summary reads the same line computed from its session
   const sessionIds = docs.flatMap((post) => (post.sessionId ? [post.sessionId] : []));
   const [plan, sessionDocs] = await Promise.all([findPlan(userId), (await sessions()).find({ _id: { $in: sessionIds } }).toArray()]);
-  const sessionLines = new Map(sessionDocs.map((doc) => [doc._id.toHexString(), summaryFromSession(doc, session.user.units)]));
+  const sessionLines = new Map(sessionDocs.map((doc) => [doc._id.toHexString(), summaryFromSession(doc, session.user.distanceUnit)]));
   const todayKey = dayKeyFor(new Date(), session.user.timezone);
   const thisWeek = weekKeyFor(todayKey);
   return (

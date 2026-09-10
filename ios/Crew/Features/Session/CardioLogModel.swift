@@ -1,6 +1,7 @@
 // SPEC: A2 (owner-directed 2026-09-08) — a standalone cardio log from Home: one of the nine seeded activities (last-used
 // first), minutes in cardioMinutesStep steps between cardioMinutesMin and cardioMinutesMax (pre-filled with the last log
-// for that activity or the seed default), an optional distance typed in the user's units (kg → km, lb → mi) and stored in
+// for that activity or the seed default), an optional distance typed in the user's distanceUnit (A9: km or mi, chosen
+// independently of the weight unit) and stored in
 // meters (≤ cardioDistanceMaxMeters). One call creates and completes the session (SessionActions.logCardio): unplanned →
 // +25 (V30/V31), it sustains the streak like any post, it never advances the rotation (A1). No pace, effort, calories,
 // heart rate, goals or targets — ever. 5.6.2 CardioLogModel — state: activities, activity, minutes, distanceText, outcome;
@@ -18,14 +19,14 @@ final class CardioLogModel {
     var distanceText = ""
     var submitError: String?
     var outcome: CelebrationOutcome?
-    let units: String                  // "kg" → km, "lb" → mi (the same rule as SessionSummaryLine)
+    let distanceUnit: String           // A9: "km" or "mi" — the same field SessionSummaryLine reads
 
     private let store: Store
     private let userId: String
     private let timeZone: TimeZone
     private let lastMinutesById: [String: Int]
 
-    init(store: Store = .shared, userId: String? = nil, seed: SeedCatalog = .shared, units: String? = nil, timeZone: TimeZone = .current) {
+    init(store: Store = .shared, userId: String? = nil, seed: SeedCatalog = .shared, distanceUnit: String? = nil, timeZone: TimeZone = .current) {
         let userId = userId ?? AuthStore.shared.currentUser?.id ?? "local"
         let cardio = seed.exercises.filter { $0.type == "cardio" }
         let recent = (try? Self.recentCardioLogs(for: userId, store: store)) ?? []
@@ -40,7 +41,7 @@ final class CardioLogModel {
         self.store = store
         self.userId = userId
         self.timeZone = timeZone
-        self.units = units ?? AuthStore.shared.currentUser?.units ?? "lb"
+        self.distanceUnit = distanceUnit ?? AuthStore.shared.distanceUnit
         self.lastMinutesById = lastMinutes
         self.activities = ordered
         self.activity = ordered.first
@@ -69,14 +70,14 @@ final class CardioLogModel {
         minutes = Self.prefill(for: pick, lastMinutesById: lastMinutesById)
     }
 
-    var unitSuffix: String { units == "kg" ? "km" : "mi" }
+    var unitSuffix: String { distanceUnit == "km" ? "km" : "mi" }
 
-    // SPEC: A2 — "2.1" in the user's units → meters; empty or unreadable → nil ("Skip it if you don't know."); capped at
+    // SPEC: A2 · A9 — "2.1" in the user's distanceUnit → meters; empty or unreadable → nil ("Skip it if you don't know."); capped at
     // cardioDistanceMaxMeters so an invalid value is unreachable rather than rejected
     var distanceMeters: Int? {
         let text = distanceText.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
         guard let value = Double(text), value > 0 else { return nil }
-        let metersPerUnit = units == "kg" ? Double(SpecConstants.metersPerKilometer) : SpecConstants.metersPerMile
+        let metersPerUnit = distanceUnit == "km" ? Double(SpecConstants.metersPerKilometer) : SpecConstants.metersPerMile
         return min(SpecConstants.cardioDistanceMaxMeters, Int((value * metersPerUnit).rounded()))
     }
 

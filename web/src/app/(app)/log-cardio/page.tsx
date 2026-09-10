@@ -26,5 +26,5 @@ export default async function LogCardioPage() {
   if (session.kind !== "signedIn") redirect("/");
   const userId = new ObjectId(session.user.id);
   const [membership, last] = await Promise.all([(await crewMemberships()).findOne({ userId }), lastLogs(userId)]);
-  return <CardioLogForm units={session.user.units} timezone={session.user.timezone} inCrew={membership !== null} lastActivityId={last.lastActivityId} lastMinutes={last.lastMinutes} />;
+  return <CardioLogForm distanceUnit={session.user.distanceUnit} timezone={session.user.timezone} inCrew={membership !== null} lastActivityId={last.lastActivityId} lastMinutes={last.lastMinutes} />;
 }

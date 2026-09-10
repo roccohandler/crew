@@ -17,14 +17,15 @@ enum AchievementFacts {
         counters.perfectWeeks = state.tallies.perfectWeeks
         counters.shieldsConsumed = state.tallies.shieldsConsumed
         counters.comebacks = state.tallies.comebacks
-        counters.prCount = PersonalRecords.prCount(completed.map(recordSession))
+        counters.prCount = PersonalRecords.prCount(completed.map(recordSession), accountUnit: AuthStore.shared.weightUnit)
         counters.crewJoined = try store.crewSnapshot() == nil ? 0 : 1
         return counters
     }
 
     static func recordSession(_ session: LocalSession) -> RecordSession {
         RecordSession(completedAt: session.completedAt ?? session.startedAt, exercises: session.exercises.map { exercise in
-            RecordExercise(exerciseId: exercise.exerciseId, name: exercise.name, sets: exercise.sets.map { RecordSet(done: $0.done, isWarmup: $0.isWarmup, weight: $0.weight) })
+            // A9: each set carries the unit it was ENTERED in, so bests compare on one normalised scale
+            RecordExercise(exerciseId: exercise.exerciseId, name: exercise.name, sets: exercise.sets.map { RecordSet(done: $0.done, isWarmup: $0.isWarmup, weight: $0.weight, weightUnit: $0.weightUnit) })
         })
     }
 
@@ -33,6 +34,6 @@ enum AchievementFacts {
         let clientId = session.clientId
         let userId = session.userId
         let earlier = try store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.userId == userId && $0.status == "completed" && $0.clientId != clientId }))
-        return PersonalRecords.newRecords(recordSession(session).exercises, earlier: earlier.map(recordSession))
+        return PersonalRecords.newRecords(recordSession(session).exercises, earlier: earlier.map(recordSession), accountUnit: AuthStore.shared.weightUnit)
     }
 }

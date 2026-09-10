@@ -22,7 +22,9 @@ export interface UserDoc {
   passwordHash?: string; // scrypt (Part IV); absent for Apple-only accounts
   displayName: string;
   profilePhotoKey: string | null; // null renders initials (E1); a key from `photos` with purpose "profile", owned by the user
-  units: "lb" | "kg";
+  units: "lb" | "kg"; // A9: legacy — the single field that drove BOTH quantities; still written so an older build reads it
+  weightUnit?: "lb" | "kg"; // A9: absent on an account written before the split — derived from `units` on read
+  distanceUnit?: "mi" | "km"; // A9: absent on an account written before the split — derived from `units` on read
   timezone: string; // IANA, follows the device (E8)
   reminderTime: string | null; // "HH:MM" local, chosen by the user (G12); null = no reminder
   notificationPrefs?: NotificationPrefs; // A7: absent = all true
@@ -71,6 +73,7 @@ export interface SetLogDoc {
   weight: number | null; // "—" is a complete set forever
   holdSeconds: number | null; // mobility holds and cardio blocks (A2)
   distanceMeters: number | null; // cardio only, optional (A2); never pace
+  weightUnit?: "lb" | "kg"; // A9: the unit this weight was ENTERED in; absent on a row written before the split
   isWarmup: boolean; // excluded from x/y (Flow 3)
   done: boolean;
   asPlanned: boolean; // V33

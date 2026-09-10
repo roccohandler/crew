@@ -138,17 +138,19 @@ final class LocalSetLog {
     var weight: Double?
     var holdSeconds: Int?
     var distanceMeters: Int?                     // A2: a cardio set's optional distance, meters; nil everywhere else
+    var weightUnit: String?                      // A9: the unit this weight was ENTERED in; nil on a row written before the split (read it through weightUnitOrLegacy)
     var isWarmup: Bool
     var done: Bool
     var asPlanned: Bool
 
-    init(order: Int, targetReps: Int, actualReps: Int, weight: Double?, holdSeconds: Int?, isWarmup: Bool) {
+    init(order: Int, targetReps: Int, actualReps: Int, weight: Double?, holdSeconds: Int?, isWarmup: Bool, weightUnit: String? = nil) {
         self.order = order
         self.targetReps = targetReps
         self.actualReps = actualReps
         self.weight = weight
         self.holdSeconds = holdSeconds
         self.distanceMeters = nil
+        self.weightUnit = weightUnit
         self.isWarmup = isWarmup
         self.done = false
         self.asPlanned = false

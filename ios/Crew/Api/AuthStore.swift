@@ -24,6 +24,11 @@ final class AuthStore {
 
     var isSignedIn: Bool { refreshToken != nil }
 
+    // SPEC: A9 — the two unit preferences, from one place. Signed out (or on a reply written before the split) they fall
+    // back exactly as the server does: `units` drives weight, and the old rule (kg implied km) drives distance.
+    var weightUnit: String { currentUser?.weightUnitOrLegacy ?? "lb" }
+    var distanceUnit: String { currentUser?.distanceUnitOrLegacy ?? "mi" }
+
     private let keychain = KeychainStore(service: "com.yourteam.crew.auth")
 
     init() {
@@ -85,7 +90,7 @@ final class AuthStore {
             throw AppError.invalidResponse
         }
         let name = [credential.fullName?.givenName, credential.fullName?.familyName].compactMap { $0 }.joined(separator: " ")
-        let request = AppleSignInRequestDTO(identityToken: identityToken, displayName: name.isEmpty ? nil : name, timezone: timezone.identifier, eulaAccepted: eulaAccepted, birthYear: birthYear)
+        let request = AppleSignInRequestDTO(identityToken: identityToken, displayName: name.isEmpty ? nil : name, timezone: timezone.identifier, eulaAccepted: eulaAccepted, birthYear: birthYear, measurementSystem: MeasurementSystemHint.current())
         store(try await Api.shared.signInWithApple(request))
     }
 }

@@ -71,8 +71,14 @@ struct HomeScreen: View {
 
     // Ink, like every control (Part III law ①); the label is the a11y name — the glyph alone says nothing to VoiceOver
     private var postButton: some View {
-        Button { posting = true } label: { Image(systemName: "camera") }
-            .accessibilityLabel("Post a meal")
+        // 6.3: a bare toolbar Image is hit-tested at the glyph (~22×18 pt) plus whatever padding UIKit happens to add;
+        // the frame and contentShape make the target explicit rather than inherited
+        Button { posting = true } label: {
+            Image(systemName: "camera")
+                .frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Post a meal")
     }
 
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }

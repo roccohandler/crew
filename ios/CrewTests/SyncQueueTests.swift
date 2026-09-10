@@ -21,7 +21,7 @@ final class SyncQueueTests: XCTestCase {
 
     // The reconcile reads the signed-in user: a Keychain session for "u1" (signed out again at the end of the test)
     private func signIn() {
-        let user = UserDTO(id: "u1", email: "u@example.com", authProvider: "email", displayName: "U", profilePhotoKey: nil, units: "lb", timezone: "UTC", reminderTime: nil, notificationPrefs: nil, welcomeBackAckDay: nil, createdAt: Date())
+        let user = UserDTO(id: "u1", email: "u@example.com", authProvider: "email", displayName: "U", profilePhotoKey: nil, units: "lb", weightUnit: "lb", distanceUnit: "mi", timezone: "UTC", reminderTime: nil, notificationPrefs: nil, welcomeBackAckDay: nil, createdAt: Date())
         AuthStore.shared.store(AuthSessionDTO(user: user, accessToken: "a", refreshToken: "r", accessExpiresAt: Date().addingTimeInterval(TimeInterval(SpecConstants.tokenRefreshLeadSeconds))))
     }
 

@@ -20,7 +20,11 @@ struct CrewStrip: View {
                         }
                         Text(member.paused ? "⏸" : "\(member.streak)").font(.caption.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
                     }
+                    // 6.3 — the strip is a STATUS display, not a control: a 40 pt avatar that looks tappable and does
+                    // nothing is a false affordance. Marking it as an image tells VoiceOver the same truth the eye gets,
+                    // and nothing here invites a tap that has no destination. (The Crew tab is where a member opens.)
                     .accessibilityElement(children: .ignore)
+                    .accessibilityAddTraits(.isImage)
                     .accessibilityLabel("\(member.displayName), streak \(member.streak), \(member.paused ? "paused" : (member.postedToday ? "posted today" : "not yet today"))")
                 }
             }

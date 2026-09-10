@@ -33,7 +33,9 @@ export const unblock = async (userId: string) => (await deleteJson("/blocks", { 
 
 export interface MeUpdate {
   displayName?: string;
-  units?: PublicUser["units"];
+  units?: PublicUser["units"]; // A9: legacy — kept so an older caller still works
+  weightUnit?: PublicUser["weightUnit"];
+  distanceUnit?: PublicUser["distanceUnit"];
   timezone?: string;
   reminderTime?: string | null;
   profilePhotoKey?: string | null; // a key uploaded with purpose "profile" (400 otherwise)

@@ -11,6 +11,7 @@ struct SetLogDTO: Codable, Equatable {
     var weight: Double?
     var holdSeconds: Int?
     var distanceMeters: Int?   // A2: cardio only, optional; nil elsewhere (absent on the wire — Codable omits a nil)
+    var weightUnit: String?    // A9: the unit this weight was ENTERED in; absent on a row written before the split
     var isWarmup: Bool
     var done: Bool
 }

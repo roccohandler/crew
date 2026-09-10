@@ -5,7 +5,7 @@ import type { AppleIdentity } from "@/lib/apple-auth";
 import { users } from "@/lib/db";
 import type { UserDoc } from "@/lib/documents";
 import { logEvent } from "@/lib/events";
-import { createUserWithState, requireSignupGates } from "@/lib/users";
+import { createUserWithState, requireSignupGates, type MeasurementSystem } from "@/lib/users";
 
 interface AppleSignInInput {
   identity: AppleIdentity;
@@ -13,6 +13,7 @@ interface AppleSignInInput {
   timezone: string;
   eulaAccepted: boolean;
   birthYear?: number;
+  measurementSystem?: MeasurementSystem; // A9: the device setting, so the first default is right for this phone
 }
 
 function fallbackEmail(sub: string): string {
@@ -45,6 +46,7 @@ export async function signInOrCreateAppleUser(input: AppleSignInInput): Promise<
     appleSub: input.identity.sub,
     displayName: input.displayName ?? fallbackDisplayName(email),
     timezone: input.timezone,
+    measurementSystem: input.measurementSystem, // A9
   });
   await logEvent(user._id.toHexString(), "account_created", { provider: "apple" });
   return { user, created: true };

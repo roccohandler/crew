@@ -18,7 +18,7 @@ export function Stepper({ label, onStep, ariaLabel }: { label: string; onStep: (
   );
 }
 
-export function SetRow({ exerciseName, equipment, set, index, count, units, ghost, onCheck, onReps, onWeight }: { exerciseName: string; equipment: string; set: SetView; index: number; count: number; units: "lb" | "kg"; ghost: boolean; onCheck: () => void; onReps: (direction: number) => void; onWeight: (direction: number) => void }) {
+export function SetRow({ exerciseName, equipment, set, index, count, units, ghost, onCheck, onReps, onWeight, onSetWeight }: { exerciseName: string; equipment: string; set: SetView; index: number; count: number; units: "lb" | "kg"; ghost: boolean; onCheck: () => void; onReps: (direction: number) => void; onWeight: (direction: number) => void; onSetWeight: (weight: number) => void }) {
   const [plates, setPlates] = useState<string | null>(null);
   const weightLabel = set.weight === null ? "—" : `${set.weight} ${units}`;
   const step = units === "lb" ? SpecConstants.weightStepLb : SpecConstants.weightStepKg;
@@ -29,6 +29,13 @@ export function SetRow({ exerciseName, equipment, set, index, count, units, ghos
       {equipment === "bodyweight" ? <span /> : (
         <span className="row">
           <Stepper label={weightLabel} onStep={onWeight} ariaLabel={`weight, step ${step} ${units}`} />
+          {/* A10 — the iOS twin gets a drag-tape; a desktop keyboard gets a number field, which is the faster control HERE.
+              Parity is on the DATA (the value, its unit, the clamp), not on the affordance; the divergence is in debt.md. */}
+          <input
+            type="number" className="setrow__weight" min={0} max={SpecConstants.setWeightMax} step={step}
+            aria-label={`Weight in ${units}`} value={set.weight ?? ""}
+            onChange={(event) => { const value = Number(event.target.value); if (event.target.value !== "" && Number.isFinite(value)) onSetWeight(Math.min(Math.max(value, 0), SpecConstants.setWeightMax)); }}
+          />
           {equipment === "barbell" && set.weight !== null ? <button type="button" className="button button--text" onClick={() => setPlates(plateLine(set.weight ?? 0, units))}>plates</button> : null}
           {plates ? <span className="whisper">{plates}</span> : null}
         </span>

@@ -1,4 +1,7 @@
-// SPEC: Flow 3 rest timer — a quiet inline countdown ("rest 1:12"), per-workout length, off-able. WRITTEN — UNVERIFIED. T025
+// SPEC: Flow 3 rest timer — a quiet inline countdown ("rest 1:12"), per-workout length, off-able. It renders INSIDE the
+// current exercise card (2026-09-09): as a single view after the last card it was off-screen for any workout longer than
+// one card, so the countdown a lifter starts by checking a set could not be seen while it ran. 6.3: every control here is
+// its own ≥ 44 pt target. WRITTEN — UNVERIFIED. T025
 
 import SwiftUI
 
@@ -6,6 +9,7 @@ struct RestTimerView: View {
     let timer: RestTimer
     @State private var now = Date()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt)
 
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space8) {
@@ -17,12 +21,12 @@ struct RestTimerView: View {
                     .font(.subheadline)
                     .foregroundStyle(EmberColors.secondaryText)
                 if timer.enabled {
-                    Button("−") { timer.lengthSeconds = max(SpecConstants.restTimerAdjustStepSeconds, timer.lengthSeconds - SpecConstants.restTimerAdjustStepSeconds) }.accessibilityLabel("Shorter rest")
-                    Button("+") { timer.lengthSeconds += SpecConstants.restTimerAdjustStepSeconds }.accessibilityLabel("Longer rest")
+                    StepButton(symbol: "minus", noun: "rest") { timer.lengthSeconds = max(SpecConstants.restTimerAdjustStepSeconds, timer.lengthSeconds - SpecConstants.restTimerAdjustStepSeconds) }
+                    StepButton(symbol: "plus", noun: "rest") { timer.lengthSeconds += SpecConstants.restTimerAdjustStepSeconds }
                 }
             }
         }
-        .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        .frame(minHeight: minTarget)
         .onReceive(ticker) { tickNow in
             now = tickNow
             _ = timer.tick(now: tickNow)

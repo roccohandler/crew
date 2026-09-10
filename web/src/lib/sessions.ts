@@ -9,6 +9,7 @@ import type { SessionDoc, SessionExerciseDoc, SetLogDoc } from "@/lib/documents"
 import { asPlanned, completionFacts } from "@/lib/engine/completion";
 import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
 import { createPost } from "@/lib/posts";
+import { distanceUnitOf } from "@/lib/users";
 import { serverDayKey } from "@/lib/server-clock";
 import { TimeUnits } from "@/lib/time-units";
 import type { CreateSessionInput, PatchSessionInput } from "@/lib/validate-sessions";
@@ -18,6 +19,8 @@ type ExerciseInput = CreateSessionInput["workoutSnapshot"]["exercises"][number];
 function toSetLog(input: ExerciseInput["sets"][number]): SetLogDoc {
   return {
     ...input, weight: input.weight ?? null, holdSeconds: input.holdSeconds ?? null, distanceMeters: input.distanceMeters ?? null,
+    // A9: stored only when the client named it — an absent unit stays absent and reads back as the account's own
+    weightUnit: input.weightUnit ?? undefined,
     asPlanned: asPlanned({ targetReps: input.targetReps, actualReps: input.actualReps, done: input.done, isWarmup: input.isWarmup }),
   };
 }
@@ -71,7 +74,7 @@ async function summaryFor(userId: ObjectId, doc: SessionDoc, completedAt: Date):
   const distance = cardioSets.some((set) => typeof set.distanceMeters === "number") ? cardioSets.reduce((sum, set) => sum + (set.distanceMeters ?? 0), 0) : null;
   const minutes = Math.round((completedAt.getTime() - doc.startedAt.getTime()) / TimeUnits.msPerMinute);
   const cardioMinutes = cardioSets.length > 0 ? Math.round(cardioSeconds / TimeUnits.secondsPerMinute) : null;
-  return sessionSummaryLine(doc.workoutName, doc.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, cardioMinutes, distance, user?.units ?? "lb");
+  return sessionSummaryLine(doc.workoutName, doc.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, cardioMinutes, distance, user === null || user === undefined ? "mi" : distanceUnitOf(user));
 }
 
 // SPEC: V32 — ≥1 work set done = complete (a done cardio set is a work set, V51); completion keys the day (V07) and creates the workout post

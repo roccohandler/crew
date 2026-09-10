@@ -25,6 +25,8 @@ export const passwordSchema = z.string().min(SpecConstants.passwordMinChars, `at
 export const displayNameSchema = z.string().trim().min(1).max(SpecConstants.displayNameMaxChars);
 const birthYearSchema = z.number().int().min(SpecConstants.birthYearMin).max(new Date().getUTCFullYear());
 
+export const measurementSystemSchema = z.enum(["us", "uk", "metric"]).optional(); // A9: Locale.MeasurementSystem, as iOS 16+ names it
+
 export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
@@ -32,6 +34,7 @@ export const registerSchema = z.object({
   timezone: timezoneSchema,
   eulaAccepted: z.boolean(),
   birthYear: birthYearSchema,
+  measurementSystem: measurementSystemSchema, // A9: the device setting, so the first default is right for this phone
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
@@ -45,6 +48,7 @@ export const appleSignInSchema = z.object({
   timezone: timezoneSchema,
   eulaAccepted: z.boolean(),
   birthYear: birthYearSchema.optional(),
+  measurementSystem: measurementSystemSchema, // A9
 });
 
 export const resetRequestSchema = z.object({ email: emailSchema });
@@ -55,7 +59,9 @@ export const notificationPrefsSchema = z.object({ workoutReminder: z.boolean(), 
 
 export const updateMeSchema = z.object({
   displayName: displayNameSchema.optional(),
-  units: z.enum(["lb", "kg"]).optional(),
+  units: z.enum(["lb", "kg"]).optional(), // A9: legacy — an older build still sends it; the route mirrors it onto weightUnit
+  weightUnit: z.enum(["lb", "kg"]).optional(),
+  distanceUnit: z.enum(["mi", "km"]).optional(),
   timezone: timezoneSchema.optional(),
   reminderTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "must be HH:MM").nullable().optional(),
   profilePhotoKey: z.string().min(1).nullable().optional(), // verified against `photos` (own, purpose profile) by the route

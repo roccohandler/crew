@@ -14,7 +14,7 @@ struct JournalDay: Identifiable {
 struct JournalScreen: View {
     let posts: [LocalPost]
     let trainingWeekdays: [Int]
-    let units: String
+    let distanceUnit: String // A9: journal lines carry distances, never weights
     let onDelete: (LocalPost) -> Void
     let onPosted: () -> Void
     @State private var posting = false
@@ -51,7 +51,7 @@ struct JournalScreen: View {
                 Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").font(.footnote).foregroundStyle(EmberColors.secondaryText).listRowBackground(EmberColors.canvas)
             }
             ForEach(days) { day in
-                JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), units: units, onDelete: onDelete)
+                JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)
             }
         }
         .scrollContentBackground(.hidden)

@@ -37,9 +37,9 @@ enum JournalFacts {
     }
 
     // SPEC: A6 — the local twin of the server's post summary; a session of kind cardio reads its logged minutes and distance
-    static func summaryLine(_ session: LocalSession, units: String) -> String {
+    static func summaryLine(_ session: LocalSession, distanceUnit: String) -> String { // A9: the line carries a distance, never a weight
         let facts = Completion.completionFacts(SessionActions.setFacts(session))
-        return SessionSummaryLine.sessionSummaryLine(workoutName: session.workoutName, isCardio: session.workoutKind == "cardio", setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, minutes: wallClockMinutes(session), cardioMinutes: cardioMinutes(session), distanceMeters: distanceMeters(session), units: units)
+        return SessionSummaryLine.sessionSummaryLine(workoutName: session.workoutName, isCardio: session.workoutKind == "cardio", setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, minutes: wallClockMinutes(session), cardioMinutes: cardioMinutes(session), distanceMeters: distanceMeters(session), distanceUnit: distanceUnit)
     }
 
     // SPEC: A2 · S10 — " + Walk 25 min" for every cardio block with a done set; a skipped block shows nothing (skips are private)
@@ -64,10 +64,10 @@ enum JournalFacts {
     }
 
     // SPEC: A6 — the one line under a journal row: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km" · "Dinner · 4:31 PM"
-    static func line(for post: LocalPost, store: Store = .shared, units: String) -> String {
+    static func line(for post: LocalPost, store: Store = .shared, distanceUnit: String) -> String {
         if post.type == "workout" {
             if let summary = post.summary, !summary.isEmpty { return summary }
-            return session(for: post, store: store).map { summaryLine($0, units: units) } ?? "Workout ✓"
+            return session(for: post, store: store).map { summaryLine($0, distanceUnit: distanceUnit) } ?? "Workout ✓"
         }
         let meal = MealTag(rawValue: post.mealTag ?? "").map { $0.rawValue.capitalized } ?? "Meal"
         let time = post.createdAt.formatted(date: .omitted, time: .shortened)

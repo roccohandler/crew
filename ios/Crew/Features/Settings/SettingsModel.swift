@@ -58,8 +58,13 @@ final class SettingsModel {
         URL(string: "/\(page.rawValue)", relativeTo: Api.shared.baseURL)?.absoluteURL ?? Api.shared.baseURL
     }
 
-    func setUnits(_ units: String) async {
-        await update(UpdateMeRequestDTO(units: units))
+    // SPEC: A9 — the two preferences move independently; the server keeps the legacy mirror consistent with weightUnit
+    func setWeightUnit(_ unit: String) async {
+        await update(UpdateMeRequestDTO(weightUnit: unit))
+    }
+
+    func setDistanceUnit(_ unit: String) async {
+        await update(UpdateMeRequestDTO(distanceUnit: unit))
     }
 
     func update(_ body: UpdateMeRequestDTO) async {

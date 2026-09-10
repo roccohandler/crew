@@ -15,14 +15,19 @@ final class SessionModel {
     var restTimer = RestTimer()
     var celebration: CelebrationOutcome?
     var completeError: String?
-    var units: String
+    var unitsConfirmed: Bool // A9: answered once per account; the line never returns
+    var lastRemoved: RemovedSet? // A11: what the "Set removed · Undo" row puts back (SessionModel+Units.swift)
+    var units: String        // A9: the WEIGHT unit — set rows, plate math, the last-time line
+    var distanceUnit: String // A9: the DISTANCE unit — a cardio block's last-time line
 
     private let store: Store
 
-    init(session: LocalSession, store: Store = .shared, units: String? = nil) {
+    init(session: LocalSession, store: Store = .shared, units: String? = nil, distanceUnit: String? = nil) {
         self.session = session
         self.store = store
-        self.units = units ?? AuthStore.shared.currentUser?.units ?? "lb"
+        self.units = units ?? AuthStore.shared.weightUnit
+        self.distanceUnit = distanceUnit ?? AuthStore.shared.distanceUnit
+        self.unitsConfirmed = SessionModel.storedUnitsConfirmed() // A9 (SessionModel+Units.swift)
     }
 
     var exercises: [LocalSessionExercise] { session.exercises.sorted { $0.order < $1.order } }
@@ -52,12 +57,15 @@ final class SessionModel {
         let minutes = JournalFacts.minutes(ofSeconds: done.reduce(0) { $0 + ($1.holdSeconds ?? 0) })
         let distance = done.compactMap(\.distanceMeters).reduce(0, +)
         guard distance > 0 else { return "last: \(minutes) min" }
-        return "last: \(minutes) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, units: units))"
+        return "last: \(minutes) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, distanceUnit: distanceUnit))"
     }
 
     // SPEC: Flow 3 base loop — tap a set → ✓ at pre-filled numbers · haptic tick · rest timer starts · last set → next exercise opens
     func checkSet(_ set: LocalSetLog, in exercise: LocalSessionExercise) {
         set.done.toggle()
+        // SPEC: A9 — a set completed at its pre-filled weight was still ENTERED in today's unit; stamp it here too, or a
+        // one-tap log (the commonest path in Flow 3) would store a weight with no unit at all
+        if set.done, set.weight != nil, set.weightUnit == nil { set.weightUnit = units }
         set.asPlanned = Completion.asPlanned(SetFacts(targetReps: set.targetReps, actualReps: set.actualReps, done: set.done, isWarmup: set.isWarmup))
         save()
         guard set.done else { return }
@@ -76,14 +84,8 @@ final class SessionModel {
         save()
     }
 
-    func adjustWeight(_ set: LocalSetLog, by direction: Int) {
-        let step = units == "lb" ? Double(SpecConstants.weightStepLb) : SpecConstants.weightStepKg
-        set.weight = max(0, (set.weight ?? 0) + Double(direction) * step)
-        save()
-    }
-
     func addSet(after set: LocalSetLog, in exercise: LocalSessionExercise) {
-        let clone = LocalSetLog(order: exercise.sets.count, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: false)
+        let clone = LocalSetLog(order: exercise.sets.count, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: false, weightUnit: set.weightUnit ?? units) // A9
         exercise.sets.append(clone)
         save()
     }
@@ -179,7 +181,8 @@ final class SessionModel {
         }
     }
 
-    private func save() {
+    // A9/A10 (SessionModel+Units.swift) writes through this too — internal, not private
+    func save() {
         session.updatedAt = Date()
         try? store.save()
     }

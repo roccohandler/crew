@@ -27,14 +27,14 @@ extension OnboardingModel {
 
     func saveWithEmail(email: String, password: String, displayName: String, birthYear: Int) async {
         await finishSignup {
-            let request = RegisterRequestDTO(email: email, password: password, displayName: displayName, timezone: TimeZone.current.identifier, eulaAccepted: true, birthYear: birthYear)
+            let request = RegisterRequestDTO(email: email, password: password, displayName: displayName, timezone: TimeZone.current.identifier, eulaAccepted: true, birthYear: birthYear, measurementSystem: MeasurementSystemHint.current())
             AuthStore.shared.store(try await Api.shared.register(request))
         }
     }
 
     func saveWithApple(credential: ASAuthorizationAppleIDCredential, birthYear: Int?) async {
         await finishSignup {
-            try await AuthStore.shared.signInWithApple(credential: credential, timezone: TimeZone.current, eulaAccepted: true, birthYear: birthYear)
+            try await AuthStore.shared.signInWithApple(credential: credential, timezone: TimeZone.current, eulaAccepted: true, birthYear: birthYear, measurementSystem: MeasurementSystemHint.current())
         }
     }
 

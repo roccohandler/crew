@@ -18,6 +18,8 @@ final class VectorRunnerTests: XCTestCase {
                 case "recompute": try runRecompute(id: id, vector: vector)
                 case "pauseValidation": try runPauseValidation(id: id, vector: vector)
                 case "achievements": try runAchievements(id: id, vector: vector)
+                case "weightUnits": try runWeightUnits(id: id, vector: vector)
+                case "setRemoval": try runSetRemoval(id: id, vector: vector)
                 case "crewPulse", "crewWeeklyRing", "comebackBanner": continue // VectorRunnerCrewTests
                 default: XCTFail("\(id): no runner for kind \(vector["kind"] ?? "?")")
                 }
@@ -30,6 +32,45 @@ final class VectorRunnerTests: XCTestCase {
         let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
         XCTAssertEqual(checked, total - crewKinds)
         XCTAssertGreaterThan(checked, 0)
+    }
+
+    // README kind weightUnits (V52–V53, A9): one kind, two case shapes — a conversion (value/from/to) and a record
+    // comparison (left/right), told apart by their fields exactly as the TS runner does
+    private func runWeightUnits(id: String, vector: [String: Any]) throws {
+        for item in vector["cases"] as? [[String: Any]] ?? [] {
+            if let left = item["left"] as? [String: Any], let right = item["right"] as? [String: Any] {
+                let leftValue = WeightUnits.normalizedForCompare(numeric(left["value"]), unit: left["unit"] as? String ?? "")
+                let rightValue = WeightUnits.normalizedForCompare(numeric(right["value"]), unit: right["unit"] as? String ?? "")
+                let heavier = leftValue == rightValue ? "equal" : (leftValue > rightValue ? "left" : "right")
+                XCTAssertEqual(heavier, item["expect"] as? String, "\(id) \(numeric(left["value"])) \(left["unit"] ?? "") vs \(numeric(right["value"])) \(right["unit"] ?? "")")
+                continue
+            }
+            let from = item["from"] as? String ?? ""
+            let to = item["to"] as? String ?? ""
+            XCTAssertEqual(WeightUnits.weightIn(numeric(item["value"]), from: from, to: to), numeric(item["expect"]), "\(id) \(numeric(item["value"])) \(from)→\(to)")
+        }
+    }
+
+    // JSONSerialization hands back Int for a whole number and Double for a fractional one; the vectors carry both
+    private func numeric(_ value: Any?) -> Double {
+        (value as? NSNumber)?.doubleValue ?? 0
+    }
+
+    // README kind setRemoval (V54–V55, A11): remove one row, renumber the survivors, never leave an exercise without a work set
+    private func runSetRemoval(id: String, vector: [String: Any]) throws {
+        for item in vector["cases"] as? [[String: Any]] ?? [] {
+            let sets = removableSets(item["sets"])
+            let result = SetRemoval.removeSet(sets, order: item["removeOrder"] as? Int ?? -1)
+            let expect = item["expect"] as? [String: Any] ?? [:]
+            let where_ = "\(id) removing order \(item["removeOrder"] ?? "?")"
+            XCTAssertEqual(result.removed, expect["removed"] as? Bool, where_)
+            XCTAssertEqual(result.sets, removableSets(expect["sets"]), where_)
+            XCTAssertEqual(SetRemoval.setsPlanned(result.sets), expect["setsPlanned"] as? Int, where_)
+        }
+    }
+
+    private func removableSets(_ raw: Any?) -> [RemovableSet] {
+        (raw as? [[String: Any]] ?? []).map { RemovableSet(order: $0["order"] as? Int ?? -1, isWarmup: $0["isWarmup"] as? Bool ?? false) }
     }
 
     // README kind achievements (V45–V50): counters → seed-ordered awards not yet earned; earnedAfter = alreadyEarned + awarded

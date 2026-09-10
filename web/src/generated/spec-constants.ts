@@ -152,6 +152,34 @@ export const SpecConstants = {
   weightStepLb: 5,
   /** SPEC: Flow 3 smart steppers — weight ±2.5 kg */
   weightStepKg: 2.5,
+  /** SPEC: A9, owner-directed 2026-09-09 — the exact international pound, 0.45359237 kg, as an integer scaled by weightConversionScale so both engines convert with integer arithmetic (the distanceDecimalScale precedent: JS and Swift disagree on an exact binary half) */
+  kilogramsPerPoundScaled: 45359237,
+  /** SPEC: A9, owner-directed 2026-09-09 — the divisor for kilogramsPerPoundScaled (1e8) */
+  weightConversionScale: 100000000,
+  /** SPEC: A9, owner-directed 2026-09-09 — a converted weight snaps to the nearest half pound (scale 2 = halves), the smallest increment a lb gym can load */
+  weightDisplayScaleLb: 2,
+  /** SPEC: A9, owner-directed 2026-09-09 — a converted weight snaps to the nearest quarter kilogram (scale 4 = quarters), matching the 1.25 kg smallest plate per side */
+  weightDisplayScaleKg: 4,
+  /** SPEC: A10, owner-directed 2026-09-09 — the distance between two adjacent tape notches. One notch is one plate step (weightStepLb / weightStepKg), so 45→225 lb is 36 notches ≈ one flick; wide enough that a snapped notch is unambiguous under a thumb */
+  weightTapeTickSpacingPt: 24,
+  /** SPEC: A10, owner-directed 2026-09-09 — every fifth notch carries its number (25 lb / 12.5 kg apart); the rest are bare marks, so the ruler reads as a scale rather than a list */
+  weightTapeLabelEveryTicks: 5,
+  /** SPEC: A10, owner-directed 2026-09-09 — the tape's own height; it is a drag surface, so it is a full touch target tall (6.3) */
+  weightTapeHeightPt: 44,
+  /** SPEC: A10, owner-directed 2026-09-09 — a labelled notch's mark */
+  weightTapeMajorTickHeightPt: 16,
+  /** SPEC: A10, owner-directed 2026-09-09 — an unlabelled notch's mark, half the major so the eye finds the labelled ones */
+  weightTapeMinorTickHeightPt: 8,
+  /** SPEC: A10, owner-directed 2026-09-09 — the fixed centre marker the notches snap under; wider than a hairline so it reads as the pointer rather than as another notch */
+  weightTapeMarkerWidthPt: 2,
+  /** SPEC: A11, owner-directed 2026-09-09 — the width of the Remove control a swiped set row reveals; wide enough for the word at accessibility sizes and for a thumb (6.3) */
+  swipeRemoveWidthPt: 96,
+  /** SPEC: A11, owner-directed 2026-09-09 — how far a finger travels before the row starts following it, so a tap meant for the set never begins a swipe */
+  swipeRemoveMinimumDistancePt: 12,
+  /** SPEC: A11, owner-directed 2026-09-09 — released past this fraction of the control width the row snaps open, otherwise closed */
+  swipeRemoveOpenFraction: 0.5,
+  /** SPEC: A10, owner-directed 2026-09-09 — the tape is padded by this fraction of (viewport − one notch) at each end, so the FIRST and LAST weights can still sit under the centre marker */
+  weightTapeCenterFraction: 0.5,
   /** SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able */
   restTimerDefaultSeconds: 90,
   /** SPEC: GAP (agent, 2026-09-05): G9 says per-workout adjustable but names no step — 15 s per tap, the smallest step a resting lifter notices */

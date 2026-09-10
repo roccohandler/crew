@@ -15,22 +15,28 @@ import { asPlanned, completionFacts } from "@/lib/engine/completion";
 import { workoutKindFromName } from "@/lib/engine/plan-rotation";
 import { SpecConstants } from "@/generated/spec-constants";
 
-type Props = { initial: SessionSummary; units: "lb" | "kg"; timezone: string; lastTime: Record<string, string>; inCrew: boolean };
+type Props = { initial: SessionSummary; units: "lb" | "kg"; distanceUnit: "mi" | "km"; timezone: string; lastTime: Record<string, string>; inCrew: boolean };
 type SetUpdate = (index: number, next: SessionExerciseView["sets"][number]) => void;
 
 // One set line by exercise type: a hold counts down (Flow 3), a cardio block takes minutes + distance (A2), a strength set is the tap row
-function SetLine({ exercise, set, index, units, onSet }: { exercise: SessionExerciseView; set: SessionExerciseView["sets"][number]; index: number; units: "lb" | "kg"; onSet: SetUpdate }) {
+function SetLine({ exercise, set, index, units, distanceUnit, onSet }: { exercise: SessionExerciseView; set: SessionExerciseView["sets"][number]; index: number; units: "lb" | "kg"; distanceUnit: "mi" | "km"; onSet: SetUpdate }) {
   if (exercise.type === "mobility") return <HoldRow name={exercise.name} seconds={set.holdSeconds ?? 0} perSide={seedExercises.find((candidate) => candidate.id === exercise.exerciseId)?.perSide ?? false} done={set.done} onFinished={() => onSet(index, { ...set, done: true, asPlanned: true })} />;
-  if (exercise.type === "cardio") return <CardioRow name={exercise.name} seconds={set.holdSeconds ?? exercise.holdSeconds ?? 0} distanceMeters={set.distanceMeters ?? null} units={units} done={set.done} onDone={(seconds, distanceMeters) => onSet(index, { ...set, holdSeconds: seconds, distanceMeters, done: true, asPlanned: true })} />;
+  if (exercise.type === "cardio") return <CardioRow name={exercise.name} seconds={set.holdSeconds ?? exercise.holdSeconds ?? 0} distanceMeters={set.distanceMeters ?? null} distanceUnit={distanceUnit} done={set.done} onDone={(seconds, distanceMeters) => onSet(index, { ...set, holdSeconds: seconds, distanceMeters, done: true, asPlanned: true })} />;
   const firstOpen = exercise.sets.findIndex((candidate) => !candidate.done && !candidate.isWarmup);
   const workCount = exercise.sets.filter((candidate) => !candidate.isWarmup).length;
   return <SetRow exerciseName={exercise.name} equipment={exercise.equipment} set={set} index={exercise.sets.slice(0, index + 1).filter((candidate) => !candidate.isWarmup).length} count={workCount} units={units} ghost={firstOpen >= 0 && index > firstOpen}
     onCheck={() => onSet(index, { ...set, done: !set.done, asPlanned: asPlanned({ ...set, done: !set.done }) })}
     onReps={(direction) => onSet(index, { ...set, actualReps: Math.max(0, set.actualReps + direction * SpecConstants.repsStep) })}
-    onWeight={(direction) => onSet(index, { ...set, weight: Math.max(0, (set.weight ?? 0) + direction * (units === "lb" ? SpecConstants.weightStepLb : SpecConstants.weightStepKg)) })} />;
+    // A12 — stepping off the floor returns to "—" rather than sticking at 0, so a prefilled row can be emptied again
+    onWeight={(direction) => {
+      const next = (set.weight ?? 0) + direction * (units === "lb" ? SpecConstants.weightStepLb : SpecConstants.weightStepKg);
+      onSet(index, { ...set, weight: next <= 0 && direction < 0 ? null : Math.max(0, next), weightUnit: next <= 0 && direction < 0 ? undefined : units });
+    }}
+    // A9/A10 — a typed weight is clamped on commit and stamped with the unit it was entered in
+    onSetWeight={(weight) => onSet(index, { ...set, weight, weightUnit: units })} />;
 }
 
-function ExerciseCard({ exercise, open, units, lastTime, onOpen, onSkip, onSwap, onSet }: { exercise: SessionExerciseView; open: boolean; units: "lb" | "kg"; lastTime?: string; onOpen: () => void; onSkip: () => void; onSwap: () => void; onSet: SetUpdate }) {
+function ExerciseCard({ exercise, open, units, distanceUnit, lastTime, onOpen, onSkip, onSwap, onSet }: { exercise: SessionExerciseView; open: boolean; units: "lb" | "kg"; distanceUnit: "mi" | "km"; lastTime?: string; onOpen: () => void; onSkip: () => void; onSwap: () => void; onSet: SetUpdate }) {
   return (
     <section className="card stack stack--tight">
       <div className="row row--between row--wrap">{/* 6.7: name · chip · Swap · Skip wrap under wide fonts instead of scrolling sideways */}
@@ -41,7 +47,7 @@ function ExerciseCard({ exercise, open, units, lastTime, onOpen, onSkip, onSwap,
       </div>
       {lastTime ? <p className="whisper">{lastTime}</p> : null}
       {!open && !exercise.skipped ? <button type="button" className="button button--text" onClick={onOpen}>Open</button> : null}
-      {open && !exercise.skipped ? exercise.sets.map((set, index) => <SetLine key={index} exercise={exercise} set={set} index={index} units={units} onSet={onSet} />) : null}
+      {open && !exercise.skipped ? exercise.sets.map((set, index) => <SetLine key={index} exercise={exercise} set={set} index={index} units={units} distanceUnit={distanceUnit} onSet={onSet} />) : null}
     </section>
   );
 }
@@ -58,7 +64,7 @@ function withSet(exercises: SessionExerciseView[], exerciseIndex: number, setInd
   return exercises.map((exercise, index) => (index === exerciseIndex ? { ...exercise, sets: exercise.sets.map((candidate, candidateIndex) => (candidateIndex === setIndex ? set : candidate)) } : exercise));
 }
 
-export function SessionLogger({ initial, units, timezone, lastTime, inCrew }: Props) {
+export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime, inCrew }: Props) {
   const router = useRouter();
   const [exercises, setExercises] = useState(initial.exercises);
   const [focus, setFocus] = useState(0);
@@ -90,7 +96,7 @@ export function SessionLogger({ initial, units, timezone, lastTime, inCrew }: Pr
       <h1>{initial.workoutName}</h1>
       <p className="muted">{facts.setsDone}/{facts.setsPlanned} sets</p>
       <RestTimer startToken={restToken} />
-      {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} lastTime={lastTime[exercise.exerciseId]} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
+      {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} distanceUnit={distanceUnit} lastTime={lastTime[exercise.exerciseId]} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
       {swapping !== null && exercises[swapping] ? <SessionSwap exercise={exercises[swapping]} access={accessFor(exercises)} onPick={swap} onClose={() => setSwapping(null)} /> : null}
       {inCrew ? <label className="row"><input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} /> Share to crew</label> : null}
       {error ? <p className="danger" role="alert">{error}</p> : null}

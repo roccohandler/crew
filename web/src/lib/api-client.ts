@@ -56,7 +56,7 @@ export const getPlan = async () => (await apiFetch("/plans")) as PlanReply;
 export const putPlan = async (draft: { trainingWeekdays: number[]; workouts: object[] }) => (await putJson("/plans", draft)) as PlanReply;
 
 export interface SessionSummary { id: string; clientId: string; status: string; setsDone: number; setsPlanned: number; workoutName: string; workoutKind: string | null; isPlannedDay: boolean; dayKey: string; startedAt: string; completedAt: string | null; exercises: SessionExerciseView[] }
-export interface SetView { targetReps: number; actualReps: number; weight: number | null; holdSeconds: number | null; distanceMeters: number | null; isWarmup: boolean; done: boolean; asPlanned: boolean }
+export interface SetView { targetReps: number; actualReps: number; weight: number | null; holdSeconds: number | null; distanceMeters: number | null; weightUnit?: "lb" | "kg"; isWarmup: boolean; done: boolean; asPlanned: boolean } // A9: the unit the weight was ENTERED in
 export interface SessionExerciseView { exerciseId: string; name: string; equipment: string; type: "strength" | "mobility" | "cardio"; targetSets: number; targetReps: number; holdSeconds: number | null; order: number; skipped: boolean; sets: SetView[] }
 export type GamificationReply = PublicState & { newAchievementIds?: string[] }; // E8: what this mutation unlocked
 export const earnedQuery = (ids: string[] | undefined) => (ids !== undefined && ids.length > 0 ? `?earned=${ids.join(",")}` : "");

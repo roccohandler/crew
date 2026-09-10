@@ -8,6 +8,7 @@ import { publicState, type Pause, type PublicState } from "@/lib/engine/gamifica
 import { recomputeState } from "@/lib/engine/gamification-recompute";
 import { logEvent } from "@/lib/events";
 import { gamificationStates, pauses, posts, reactions, sessions, users } from "@/lib/db";
+import { weightUnitOf } from "@/lib/users";
 
 // The API's gamification shape: Part IX fields + the ids unlocked by THIS mutation (E8: they ride the reply into the celebration)
 export type StoredState = PublicState & { newAchievementIds: string[] };
@@ -34,11 +35,17 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
   );
   const existing = await (await gamificationStates()).findOne({ userId }, { projection: { earnedAchievementIds: 1 } });
   const earnedBefore = existing?.earnedAchievementIds ?? []; // V35: achievements never recomputed away
-  const newAchievementIds = achievementsEarned(await achievementCounters(userId, full, todayKey), earnedBefore).map((award) => (award.award === "achievement" ? award.id : "")).filter((id) => id !== "");
+  const newAchievementIds = achievementsEarned(await achievementCounters(userId, full, todayKey, await accountWeightUnit(userId)), earnedBefore).map((award) => (award.award === "achievement" ? award.id : "")).filter((id) => id !== "");
   const stored = { ...publicState(full), earnedAchievementIds: [...earnedBefore, ...newAchievementIds] };
   await (await gamificationStates()).updateOne({ userId }, { $set: { ...stored, recomputedAt: now }, $setOnInsert: { _id: new ObjectId(), userId } }, { upsert: true });
   if (newAchievementIds.length > 0) await logEvent(userIdText, "achievement_earned", { ids: newAchievementIds.join(",") });
   return { ...stored, newAchievementIds };
+}
+
+// SPEC: A9 — a set logged before the split has no unit of its own; the account's own preference is what it was entered in
+async function accountWeightUnit(userId: ObjectId): Promise<"lb" | "kg"> {
+  const user = await (await users()).findOne({ _id: userId }, { projection: { units: 1, weightUnit: 1 } });
+  return user === null ? "lb" : weightUnitOf(user);
 }
 
 export async function storedState(userIdText: string): Promise<PublicState | null> {

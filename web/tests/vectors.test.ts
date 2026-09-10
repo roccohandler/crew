@@ -10,6 +10,8 @@ import { dayKeyFor, weekKeyFor } from "@/lib/engine/day-key";
 import { apply, initialState, publicState, type Award, type GameEvent, type Pause, type PublicState } from "@/lib/engine/gamification";
 import { recompute, type PostFacts, type ReactionFacts, type SessionFacts } from "@/lib/engine/gamification-recompute";
 import { validatePauseRequest } from "@/lib/engine/pause-validation";
+import { normalizedForCompare, weightIn, type WeightUnit } from "@/lib/engine/weight-units";
+import { removeSet, setsPlanned, type RemovableSet } from "@/lib/engine/set-removal";
 
 const vectorsDir = join(process.cwd(), "..", "shared", "vectors");
 
@@ -89,8 +91,32 @@ function runAchievements(vector: Vector) {
   }
 }
 
+// A9 — one kind, two case shapes: a conversion (value/from/to) and a record comparison (left/right)
+function runWeightUnits(vector: Vector) {
+  for (const item of vector.cases as { value?: number; from?: WeightUnit; to?: WeightUnit; left?: { value: number; unit: WeightUnit }; right?: { value: number; unit: WeightUnit }; expect: number | string }[]) {
+    if (item.left !== undefined && item.right !== undefined) {
+      const left = normalizedForCompare(item.left.value, item.left.unit);
+      const right = normalizedForCompare(item.right.value, item.right.unit);
+      const heavier = left === right ? "equal" : left > right ? "left" : "right";
+      expect(heavier, `${vector.id} ${item.left.value} ${item.left.unit} vs ${item.right.value} ${item.right.unit}`).toBe(item.expect);
+      continue;
+    }
+    expect(weightIn(item.value as number, item.from as WeightUnit, item.to as WeightUnit), `${vector.id} ${item.value} ${item.from}→${item.to}`).toBe(item.expect);
+  }
+}
+
+// A11 — remove one row, renumber the survivors, and never leave an exercise without a work set
+function runSetRemoval(vector: Vector) {
+  for (const item of vector.cases as { sets: RemovableSet[]; removeOrder: number; expect: { removed: boolean; sets: RemovableSet[]; setsPlanned: number } }[]) {
+    const result = removeSet(item.sets, item.removeOrder);
+    expect({ removed: result.removed, sets: result.sets, setsPlanned: setsPlanned(result.sets) }, `${vector.id} removing order ${item.removeOrder}`).toEqual(item.expect);
+  }
+}
+
 const runners: Record<string, (vector: Vector) => void> = {
   achievements: runAchievements,
+  weightUnits: runWeightUnits,
+  setRemoval: runSetRemoval,
   dayKey: runDayKey, apply: runApply, completion: runCompletion, recompute: runRecompute,
   pauseValidation: runPauseValidation, crewPulse: runCrewPulse, crewWeeklyRing: runCrewWeeklyRing, comebackBanner: runComebackBanner,
 };

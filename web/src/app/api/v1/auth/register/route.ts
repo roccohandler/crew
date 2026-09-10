@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const existing = await (await users()).findOne({ emailLower: body.email.toLowerCase() });
     if (existing !== null) throw apiError("emailTaken", "That email already has a Crew account. Log in instead.", HttpStatus.conflict);
     const passwordHash = await hashPassword(body.password);
-    const user = await createUserWithState({ email: body.email, authProvider: "email", passwordHash, displayName: body.displayName, timezone: body.timezone });
+    const user = await createUserWithState({ email: body.email, authProvider: "email", passwordHash, displayName: body.displayName, timezone: body.timezone, measurementSystem: body.measurementSystem });
     await logEvent(user._id.toHexString(), "account_created", { provider: "email" });
     return await signedInResponse(req, user._id, publicUser(user), HttpStatus.created);
   } catch (error) {

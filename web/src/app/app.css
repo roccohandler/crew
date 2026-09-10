@@ -317,6 +317,19 @@ a {
   opacity: var(--ember-opacity-disabled);
 }
 
+/* A10: the web twin of the iOS weight tape. A drag-ruler belongs on a phone; on a keyboard the fastest control is a
+   number you can type over, so the affordances diverge while the value, its unit and its clamp stay identical. */
+.setrow__weight {
+  font: inherit;
+  color: var(--ember-ink-text);
+  background: var(--ember-card);
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border-radius: var(--ember-space-12);
+  padding: var(--ember-space-8);
+  min-height: var(--crew-min-touch-target);
+  width: 7ch; /* 6.7: a number field never pushes a 375-wide row past the edge */
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;

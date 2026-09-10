@@ -150,8 +150,49 @@ function checkAchievementCase(id, where, item, fail) {
   if (JSON.stringify(item.expect?.earnedAfter) !== JSON.stringify([...already, ...expectedIds])) fail(id, `${where}.expect.earnedAfter must be alreadyEarned followed by the awarded ids`);
 }
 
+// README kind weightUnits (A9): a conversion case names value + from + to + the expected number; a comparison case names
+// two {value, unit} sides and which one is heavier once normalised. One kind, two case shapes — told apart by their fields.
+const WEIGHT_UNITS = ["lb", "kg"];
+const HEAVIER = ["left", "right", "equal"];
+function checkWeightUnitsCase(id, where, item, fail) {
+  if (item.left !== undefined || item.right !== undefined) {
+    for (const side of ["left", "right"]) {
+      const value = item[side];
+      if (typeof value?.value !== "number" || value.value < 0) fail(id, `${where}.${side}.value must be a number ≥ 0`);
+      if (!WEIGHT_UNITS.includes(value?.unit)) fail(id, `${where}.${side}.unit must be lb or kg`);
+    }
+    if (!HEAVIER.includes(item.expect)) fail(id, `${where}.expect must be left, right or equal`);
+    return;
+  }
+  if (typeof item.value !== "number" || item.value < 0) fail(id, `${where}.value must be a number ≥ 0`);
+  for (const field of ["from", "to"]) if (!WEIGHT_UNITS.includes(item[field])) fail(id, `${where}.${field} must be lb or kg`);
+  if (typeof item.expect !== "number") fail(id, `${where}.expect must be a number`);
+  if (item.from === item.to && item.expect !== item.value) fail(id, `${where}: a same-unit conversion must return the value unchanged`);
+}
+
+// README kind setRemoval (A11): sets in, one order removed, the renumbered survivors and the new denominator out.
+// The expectation is checked for internal consistency here, so a fixture cannot assert a hole or a wrong count.
+function checkSetRemovalCase(id, where, item, fail) {
+  const sets = item.sets;
+  if (!Array.isArray(sets) || sets.length === 0) return fail(id, `${where}.sets must be a non-empty array`);
+  for (const set of sets) if (!isInt(set?.order) || typeof set?.isWarmup !== "boolean") fail(id, `${where}.sets needs order + isWarmup`);
+  if (!isInt(item.removeOrder)) fail(id, `${where}.removeOrder must be an integer`);
+  const expect = item.expect ?? {};
+  if (typeof expect.removed !== "boolean") fail(id, `${where}.expect.removed must be a boolean`);
+  if (!Array.isArray(expect.sets)) return fail(id, `${where}.expect.sets must be an array`);
+  const orders = expect.sets.map((set) => set.order);
+  if (JSON.stringify(orders) !== JSON.stringify(orders.map((_, index) => index))) fail(id, `${where}.expect.sets must be renumbered 0..n-1, got ${JSON.stringify(orders)}`);
+  const work = expect.sets.filter((set) => set.isWarmup === false).length;
+  if (expect.setsPlanned !== work) fail(id, `${where}.expect.setsPlanned must be ${work} (work sets only)`);
+  if (work < 1) fail(id, `${where}: an exercise may never be left with zero work sets`);
+  if (expect.removed && expect.sets.length !== sets.length - 1) fail(id, `${where}: a removal drops exactly one row`);
+  if (!expect.removed && JSON.stringify(expect.sets) !== JSON.stringify(sets)) fail(id, `${where}: a refused removal returns the sets unchanged`);
+}
+
 export const shapeChecks = {
   achievements: withCases(checkAchievementCase),
+  weightUnits: withCases(checkWeightUnitsCase),
+  setRemoval: withCases(checkSetRemovalCase),
   apply: checkApply,
   dayKey: (vector, fail) => { withCases(checkDayKeyCase)(vector, fail); if (Array.isArray(vector.cases)) checkDayKeyCases(vector, fail); },
   completion: withCases(checkCompletionCase),

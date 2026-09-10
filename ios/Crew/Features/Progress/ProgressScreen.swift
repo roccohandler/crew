@@ -19,7 +19,7 @@ struct ProgressScreen: View {
     @State private var selected: DayDetail?
     @State private var showsJournal = false
     @State private var posting = false
-    private var units: String { AuthStore.shared.currentUser?.units ?? "lb" }
+    private var units: String { AuthStore.shared.weightUnit } // A9
     private var userId: String { AuthStore.shared.currentUser?.id ?? "local" }
 
     var body: some View {
@@ -43,7 +43,7 @@ struct ProgressScreen: View {
 
     // SPEC: A6 — the journal reads the Store each time it is built: every post, plus the plan's training days (A1) for rest-day labels
     private var journal: some View {
-        JournalScreen(posts: (try? Store.shared.allPosts(for: userId)) ?? [], trainingWeekdays: (try? Store.shared.plan(for: userId))?.trainingWeekdays ?? [], units: units, onDelete: { post in
+        JournalScreen(posts: (try? Store.shared.allPosts(for: userId)) ?? [], trainingWeekdays: (try? Store.shared.plan(for: userId))?.trainingWeekdays ?? [], distanceUnit: AuthStore.shared.distanceUnit, onDelete: { post in
             post.deletedAt = Date()
             try? Store.shared.save()
             try? SyncQueue.shared.enqueue(.deletePost, payload: ["clientId": post.clientId])

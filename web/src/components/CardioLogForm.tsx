@@ -10,7 +10,7 @@ import { exercises, type SeedExercise } from "@/generated/seed";
 import { createSession, earnedQuery, isApiClientError, patchSession } from "@/lib/api-client";
 import { TimeUnits } from "@/lib/time-units";
 
-type Props = { units: "lb" | "kg"; timezone: string; inCrew: boolean; lastActivityId: string | null; lastMinutes: Record<string, number> };
+type Props = { distanceUnit: "mi" | "km"; timezone: string; inCrew: boolean; lastActivityId: string | null; lastMinutes: Record<string, number> };
 
 // The nine seeded activities, the last-used one first
 function orderedActivities(lastActivityId: string | null): SeedExercise[] {
@@ -38,7 +38,7 @@ export function cardioSessionBody(activity: SeedExercise, seconds: number, dista
   };
 }
 
-export function CardioLogForm({ units, timezone, inCrew, lastActivityId, lastMinutes }: Props) {
+export function CardioLogForm({ distanceUnit, timezone, inCrew, lastActivityId, lastMinutes }: Props) {
   const router = useRouter();
   const activities = orderedActivities(lastActivityId);
   const [activityId, setActivityId] = useState(activities[0]?.id ?? "");
@@ -67,7 +67,7 @@ export function CardioLogForm({ units, timezone, inCrew, lastActivityId, lastMin
       <div className="row row--wrap" role="group" aria-label="Activity">
         {activities.map((candidate) => <button key={candidate.id} type="button" className="chip" aria-pressed={candidate.id === activityId} onClick={() => setActivityId(candidate.id)}>{candidate.name}</button>)}
       </div>
-      {activity !== null ? <CardioFields key={activity.id} name={activity.name} defaultMinutes={defaultMinutes} units={units} action={`Log ${activity.name.toLowerCase()}`} disabled={busy} onSubmit={submit} /> : null}
+      {activity !== null ? <CardioFields key={activity.id} name={activity.name} defaultMinutes={defaultMinutes} distanceUnit={distanceUnit} action={`Log ${activity.name.toLowerCase()}`} disabled={busy} onSubmit={submit} /> : null}
       {inCrew ? <label className="row"><input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} /> Share to crew</label> : null}
       {error ? <p className="danger" role="alert">{error}</p> : null}
     </div>

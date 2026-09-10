@@ -62,7 +62,7 @@ enum ServerHydrate {
             if try store.session(clientId: item.clientId) != nil { continue }
             let exercises = item.exercises.map { exercise -> LocalSessionExercise in
                 let sets = exercise.sets.enumerated().map { index, set -> LocalSetLog in
-                    let row = LocalSetLog(order: index, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: set.isWarmup)
+                    let row = LocalSetLog(order: index, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: set.isWarmup, weightUnit: set.weightUnit) // A9
                     row.distanceMeters = set.distanceMeters // A2
                     row.done = set.done
                     row.asPlanned = Completion.asPlanned(SetFacts(targetReps: set.targetReps, actualReps: set.actualReps, done: set.done, isWarmup: set.isWarmup)) // V33, the same rule the server applied

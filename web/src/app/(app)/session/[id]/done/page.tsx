@@ -34,12 +34,12 @@ function cardioDone(doc: SessionDoc): { name: string; minutes: number; distanceM
 }
 
 // SPEC: S10 · A2 · A6 — "12/12 sets · 44 min" (+ " + Bike 10 min" per done cardio block); a standalone log reads "Walk · 25 min · 2.1 km"
-function summaryLine(doc: SessionDoc, setsDone: number, setsPlanned: number, units: string): string {
+function summaryLine(doc: SessionDoc, setsDone: number, setsPlanned: number, distanceUnit: string): string {
   const minutes = doc.completedAt ? Math.round((doc.completedAt.getTime() - doc.startedAt.getTime()) / TimeUnits.msPerMinute) : 0;
   const blocks = cardioDone(doc);
   if (doc.workoutKind === "cardio") {
     const block = blocks[0];
-    return sessionSummaryLine(doc.workoutName, true, setsDone, setsPlanned, minutes, block?.minutes ?? null, block?.distanceMeters ?? null, units);
+    return sessionSummaryLine(doc.workoutName, true, setsDone, setsPlanned, minutes, block?.minutes ?? null, block?.distanceMeters ?? null, distanceUnit);
   }
   return `${setsDone}/${setsPlanned} sets · ${minutes} min${blocks.map((block) => ` + ${block.name} ${block.minutes} min`).join("")}`;
 }
@@ -58,7 +58,7 @@ export default async function DonePage({ params, searchParams }: { params: Promi
   return (
     <div className="stack center">
       <h1>Counted.</h1>
-      <p className="muted">{summaryLine(doc, view.setsDone, view.setsPlanned, session.user.units)}</p>
+      <p className="muted">{summaryLine(doc, view.setsDone, view.setsPlanned, session.user.distanceUnit)}</p>
       <p className="ember-text" style={{ fontSize: "2em", fontWeight: 700 }}>{state?.totalXP ?? 0} XP total</p>
       <StreakFlame streak={state?.currentStreak ?? 0} paused={false} />
       {records.map((line) => <p key={line} className="ember-text">{line}</p>)}

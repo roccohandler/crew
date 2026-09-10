@@ -21,7 +21,7 @@ let package = Package(
             name: "CrewEngineTests",
             dependencies: ["Crew"],
             path: "CrewTests",
-            sources: ["VectorFiles.swift", "VectorRunnerTests.swift", "VectorRunnerCrewTests.swift", "AchievementsTests.swift", "PlanGeneratorTests.swift", "SwapFinderTests.swift", "LapsedUserTests.swift", "SpecConstantsTests.swift", "DayKeyTests.swift", "PlanRotationTests.swift", "DayLabelTests.swift", "SessionSummaryLineTests.swift"]
+            sources: ["VectorFiles.swift", "VectorRunnerTests.swift", "VectorRunnerCrewTests.swift", "AchievementsTests.swift", "PlanGeneratorTests.swift", "SwapFinderTests.swift", "LapsedUserTests.swift", "SpecConstantsTests.swift", "DayKeyTests.swift", "PlanRotationTests.swift", "DayLabelTests.swift", "SessionSummaryLineTests.swift", "WeightUnitsTests.swift", "SetPrefillTests.swift"]
         ),
     ]
 )

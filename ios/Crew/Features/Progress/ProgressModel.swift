@@ -53,15 +53,17 @@ final class ProgressModel {
     private let store: Store
     private let userId: String
     private let timeZone: TimeZone
-    private let units: String
+    private let units: String       // A9: weight — the strength trends
+    private let distanceUnit: String // A9: distance — the day-detail summary lines
     private let heatMapWeeks = SpecConstants.progressHeatMapWeeks
     private let ringWeeks = SpecConstants.progressRingHistoryWeeks
 
-    init(store: Store = .shared, userId: String? = nil, timeZone: TimeZone = .current, units: String? = nil) {
+    init(store: Store = .shared, userId: String? = nil, timeZone: TimeZone = .current, units: String? = nil, distanceUnit: String? = nil) {
         self.store = store
         self.userId = userId ?? AuthStore.shared.currentUser?.id ?? "local"
         self.timeZone = timeZone
-        self.units = units ?? AuthStore.shared.currentUser?.units ?? "lb"
+        self.units = units ?? AuthStore.shared.weightUnit // A9
+        self.distanceUnit = distanceUnit ?? AuthStore.shared.distanceUnit
     }
 
     // SPEC: 6.1 — a Store error is thrown to the screen (its failed state), never swallowed into a blank
@@ -146,6 +148,6 @@ final class ProgressModel {
     func select(_ dayKey: String) -> DayDetail {
         let sessions = ((try? store.sessions(for: userId, dayKey: dayKey)) ?? []).filter { $0.status == "completed" }
         let plates = ((try? store.posts(for: userId, dayKey: dayKey)) ?? []).filter { $0.type != "workout" }
-        return DayDetail(dayKey: dayKey, workouts: sessions.map { JournalFacts.summaryLine($0, units: units) }, plates: plates)
+        return DayDetail(dayKey: dayKey, workouts: sessions.map { JournalFacts.summaryLine($0, distanceUnit: distanceUnit) }, plates: plates)
     }
 }

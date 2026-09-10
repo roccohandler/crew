@@ -17,10 +17,10 @@ export function clockTime(instant: Date, timeZone: string): string {
 
 // SPEC: A6 — a workout post without a server summary (pre-A6) reads the same line computed from its session: sets from the
 // completion facts (V32: warm-ups excluded), wall-clock minutes rounded like the server's
-export function summaryFromSession(session: SessionDoc, units: string): string {
+export function summaryFromSession(session: SessionDoc, distanceUnit: string): string {
   const facts = completionFacts(session.exercises.flatMap((exercise) => exercise.sets));
   const minutes = session.completedAt ? Math.round((session.completedAt.getTime() - session.startedAt.getTime()) / TimeUnits.msPerMinute) : 0;
-  return sessionSummaryLine(session.workoutName, session.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, null, null, units);
+  return sessionSummaryLine(session.workoutName, session.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, null, null, distanceUnit);
 }
 
 // SPEC: A6 — workout: "{summary}"; meal: "{Meal} · {time}" (+ " · earlier today" for a same-day backfill, Flow 4; the same

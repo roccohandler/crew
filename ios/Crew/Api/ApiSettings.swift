@@ -8,7 +8,9 @@ import Foundation
 // goes on the wire, the server merges it over the stored preferences (lib/validate.ts notificationPrefsSchema.partial())
 struct UpdateMeRequestDTO: Codable {
     var displayName: String? = nil
-    var units: String? = nil
+    var units: String? = nil                 // A9: the legacy mirror; a new build sends weightUnit and the server keeps both consistent
+    var weightUnit: String? = nil
+    var distanceUnit: String? = nil
     var timezone: String? = nil
     var reminderTime: String? = nil
     var clearsReminder = false
@@ -18,13 +20,15 @@ struct UpdateMeRequestDTO: Codable {
     var welcomeBackAckDay: String? = nil
 
     enum CodingKeys: String, CodingKey {
-        case displayName, units, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay
+        case displayName, units, weightUnit, distanceUnit, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(displayName, forKey: .displayName)
         try container.encodeIfPresent(units, forKey: .units)
+        try container.encodeIfPresent(weightUnit, forKey: .weightUnit)
+        try container.encodeIfPresent(distanceUnit, forKey: .distanceUnit)
         try container.encodeIfPresent(timezone, forKey: .timezone)
         if clearsReminder { try container.encodeNil(forKey: .reminderTime) } else { try container.encodeIfPresent(reminderTime, forKey: .reminderTime) }
         if clearsProfilePhoto { try container.encodeNil(forKey: .profilePhotoKey) } else { try container.encodeIfPresent(profilePhotoKey, forKey: .profilePhotoKey) }

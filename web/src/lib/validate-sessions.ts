@@ -16,6 +16,7 @@ export const setLogInputSchema = z.object({
   weight: z.number().min(0).max(SpecConstants.setWeightMax).nullish(), // absent = null: Swift's Codable omits a nil optional
   holdSeconds: z.number().int().min(0).max(cardioSecondsMax).nullish(), // the per-type cap is applied by the exercise schema
   distanceMeters: z.number().int().min(0).max(SpecConstants.cardioDistanceMaxMeters).nullish(), // A2: cardio only, optional
+  weightUnit: z.enum(["lb", "kg"]).nullish(), // A9: the unit this weight was ENTERED in
   isWarmup: z.boolean(),
   done: z.boolean(),
 });
@@ -33,7 +34,10 @@ export const sessionExerciseInputSchema = z
     skipped: z.boolean().optional(),
     sets: z.array(setLogInputSchema).max(SpecConstants.planMaxSetsPerExercise + SpecConstants.planMaxSetsPerExercise), // work + warm-ups
   })
-  .refine((exercise) => (exercise.holdSeconds ?? 0) <= secondsCapFor(exercise.type) && exercise.sets.every((set) => (set.holdSeconds ?? 0) <= secondsCapFor(exercise.type)), "holdSeconds: over the limit for this exercise type");
+  .refine((exercise) => (exercise.holdSeconds ?? 0) <= secondsCapFor(exercise.type) && exercise.sets.every((set) => (set.holdSeconds ?? 0) <= secondsCapFor(exercise.type)), "holdSeconds: over the limit for this exercise type")
+  // SPEC: A11 (V55) — an exercise never arrives with zero work sets. The phone's engine already refuses the removal that
+  // would cause it, but an offline client is not a trusted one, and an exercise made only of warm-ups reports 0/0 forever.
+  .refine((exercise) => exercise.sets.length === 0 || exercise.sets.some((set) => !set.isWarmup), "sets: an exercise needs at least one work set");
 
 // A1: `kind` is the plan kind the session runs ("cardio" for a standalone log, A2); `weekday` is still accepted from older clients and ignored
 export const createSessionSchema = z.object({

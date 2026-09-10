@@ -6,7 +6,7 @@ import SwiftUI
 
 struct JournalRow: View {
     let post: LocalPost
-    let units: String
+    let distanceUnit: String // A9: a journal line carries a distance, never a weight
 
     // SPEC: A6 · E19 — counted on this phone, not yet delivered: no server id and no delivery stamp
     private var isSending: Bool { post.deliveredAt == nil && post.serverId == nil }
@@ -15,7 +15,7 @@ struct JournalRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
             HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space8) {
-                Text(JournalFacts.line(for: post, units: units)).font(.body).foregroundStyle(EmberColors.inkText)
+                Text(JournalFacts.line(for: post, distanceUnit: distanceUnit)).font(.body).foregroundStyle(EmberColors.inkText)
                 Spacer()
                 if isSending {
                     Text("Sending ↻")

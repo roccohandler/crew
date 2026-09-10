@@ -9,7 +9,7 @@ import type { GamificationState } from "@/lib/engine/gamification";
 import { prCount, type RecordSession } from "@/lib/engine/personal-records";
 import type { CrewMembershipDoc } from "@/lib/documents-social";
 
-export async function achievementCounters(userId: ObjectId, state: GamificationState, todayKey: string): Promise<AchievementCounters> {
+export async function achievementCounters(userId: ObjectId, state: GamificationState, todayKey: string, accountUnit: "lb" | "kg" = "lb"): Promise<AchievementCounters> {
   const [postsTotal, completed, reactionsGiven, membership] = await Promise.all([
     (await posts()).countDocuments({ userId, deletedAt: null }),
     (await sessions()).find({ userId, status: "completed" }, { projection: { completedAt: 1, exercises: 1 } }).toArray(),
@@ -19,7 +19,7 @@ export async function achievementCounters(userId: ObjectId, state: GamificationS
   const history: RecordSession[] = completed.map((doc) => ({ completedAt: (doc.completedAt ?? new Date(0)).toISOString(), exercises: doc.exercises.map((row) => ({ exerciseId: row.exerciseId, name: row.name, sets: row.sets })) }));
   const crew = membership === null ? { days: 0, weeks: 0 } : await crewFullPulse(membership, todayKey);
   return {
-    postsTotal, workoutsCompleted: completed.length, currentStreak: state.currentStreak, perfectWeeks: state.tallies.perfectWeeks, prCount: prCount(history),
+    postsTotal, workoutsCompleted: completed.length, currentStreak: state.currentStreak, perfectWeeks: state.tallies.perfectWeeks, prCount: prCount(history, accountUnit), // A9: compare on one normalised scale
     shieldsConsumed: state.tallies.shieldsConsumed, comebacks: state.tallies.comebacks, crewJoined: membership === null ? 0 : 1, reactionsGiven,
     crewFullPulseDays: crew.days, crewFullPulseWeeks: crew.weeks,
   };

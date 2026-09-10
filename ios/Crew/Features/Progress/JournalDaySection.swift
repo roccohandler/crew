@@ -9,7 +9,7 @@ struct JournalDaySection: View {
     let todayKey: String
     let posts: [LocalPost] // chronological
     let isRestDay: Bool
-    let units: String
+    let distanceUnit: String // A9: journal lines carry distances, never weights
     let onDelete: (LocalPost) -> Void
 
     private var header: String {
@@ -20,7 +20,7 @@ struct JournalDaySection: View {
     var body: some View {
         Section {
             ForEach(posts, id: \.clientId) { post in
-                JournalRow(post: post, units: units)
+                JournalRow(post: post, distanceUnit: distanceUnit)
                     .swipeActions { Button("Delete", role: .destructive) { onDelete(post) } }
                     .listRowBackground(EmberColors.card)
             }

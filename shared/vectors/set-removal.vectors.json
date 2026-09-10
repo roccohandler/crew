@@ -1,0 +1,66 @@
+{
+  "file": "set-removal.vectors.json",
+  "spec": "Part VIII 8.1 — removing a set inside a live session (V54–V55); Appendix A A11 (owner-directed 2026-09-09). Before this the SessionModel action surface had addSet and addWarmup and no way back: one accidental tap changed the workout's denominator forever, and that denominator feeds the live x/y line, the celebration, the shared post summary and the journal.",
+  "vectors": [
+    {
+      "id": "V54",
+      "title": "removing a set renumbers the remainder and recomputes the denominator",
+      "spec": "8.1 V54; A11 (order stays dense so a later patch cannot address a hole); Flow 3 (warm-ups are excluded from every count)",
+      "kind": "setRemoval",
+      "rule": "removeSet(sets, order) drops the row at that order and renumbers every survivor from zero, preserving their relative order. setsPlanned counts work sets only — a removed warm-up never changes x/y, and a removed work set always does.",
+      "reviewNote": "Renumbering is what makes removal safe on the wire: SetLogDTO carries no id, so a set's POSITION is its identity across the sync boundary (logged in debt.md). A sparse order after a removal would let a concurrent patch write to the wrong row.",
+      "cases": [
+        {
+          "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }, { "order": 2, "isWarmup": false }],
+          "removeOrder": 1,
+          "expect": { "removed": true, "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }], "setsPlanned": 2 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }, { "order": 2, "isWarmup": false }],
+          "removeOrder": 2,
+          "expect": { "removed": true, "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }], "setsPlanned": 2 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }, { "order": 2, "isWarmup": false }],
+          "removeOrder": 0,
+          "expect": { "removed": true, "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }], "setsPlanned": 2 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }, { "order": 2, "isWarmup": false }],
+          "removeOrder": 1,
+          "expect": { "removed": true, "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }], "setsPlanned": 1 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }],
+          "removeOrder": 7,
+          "expect": { "removed": false, "sets": [{ "order": 0, "isWarmup": false }, { "order": 1, "isWarmup": false }], "setsPlanned": 2 }
+        }
+      ]
+    },
+    {
+      "id": "V55",
+      "title": "an exercise never drops below one work set",
+      "spec": "8.1 V55; A11; Flow 3 (a set row IS the exercise — one with no rows can be neither logged nor skipped)",
+      "kind": "setRemoval",
+      "rule": "Removing the last remaining WORK set is refused: the sets come back unchanged and removed is false. The floor counts work sets only, so it still refuses when warm-ups are present — a warm-up is excluded from x/y, completion and personal records, and an exercise made of warm-ups alone would report 0/0.",
+      "reviewNote": "The refusal is silent at the engine level; the UI is what tells the user (the control is simply absent on a single-set exercise). The server carries the same guard, so an offline phone cannot push a session past it either.",
+      "cases": [
+        {
+          "sets": [{ "order": 0, "isWarmup": false }],
+          "removeOrder": 0,
+          "expect": { "removed": false, "sets": [{ "order": 0, "isWarmup": false }], "setsPlanned": 1 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }],
+          "removeOrder": 1,
+          "expect": { "removed": false, "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }], "setsPlanned": 1 }
+        },
+        {
+          "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": true }, { "order": 2, "isWarmup": false }],
+          "removeOrder": 0,
+          "expect": { "removed": true, "sets": [{ "order": 0, "isWarmup": true }, { "order": 1, "isWarmup": false }], "setsPlanned": 1 }
+        }
+      ]
+    }
+  ]
+}

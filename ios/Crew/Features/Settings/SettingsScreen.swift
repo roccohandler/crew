@@ -7,7 +7,8 @@ import SwiftUI
 
 struct SettingsScreen: View {
     @State private var model = SettingsModel()
-    @State private var units = AuthStore.shared.currentUser?.units ?? "lb"
+    @State private var weightUnit = AuthStore.shared.weightUnit     // A9: the two preferences are separate rows
+    @State private var distanceUnit = AuthStore.shared.distanceUnit
     @State private var legalPage: LegalPage?
     private let auth = AuthStore.shared
 
@@ -24,8 +25,12 @@ struct SettingsScreen: View {
                 }
                 Section("Plan") {
                     NavigationLink { PauseScreen(model: model) } label: { LabeledContent("Pause my plan", value: model.pauseDetail) }
-                    Picker("Units", selection: $units) { Text("lb").tag("lb"); Text("kg").tag("kg") }
-                        .onChange(of: units) { _, value in Task { await model.setUnits(value) } }
+                    // SPEC: A9 — weight and distance are chosen separately: a UK lifter loads kilos and runs in miles,
+                    // which the single field this replaces could never express
+                    Picker("Weight", selection: $weightUnit) { Text("lb").tag("lb"); Text("kg").tag("kg") }
+                        .onChange(of: weightUnit) { _, value in Task { await model.setWeightUnit(value) } }
+                    Picker("Distance", selection: $distanceUnit) { Text("mi").tag("mi"); Text("km").tag("km") }
+                        .onChange(of: distanceUnit) { _, value in Task { await model.setDistanceUnit(value) } }
                 }
                 NotificationRows(model: model)
                 Section("Privacy & safety") {

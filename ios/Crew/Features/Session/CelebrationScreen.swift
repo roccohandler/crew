@@ -14,7 +14,7 @@ struct CelebrationScreen: View {
     @AppStorage("shareToCrewDefault") private var shareDefault = true
     private var hasCrew: Bool { (try? Store.shared.crewSnapshot()) != nil }
     @MainActor private var session: LocalSession? { try? Store.shared.session(clientId: outcome.postDraft.sessionClientId) }
-    private var units: String { AuthStore.shared.currentUser?.units ?? "lb" }
+    private var units: String { AuthStore.shared.weightUnit } // A9
 
     private var xpTotal: Int { outcome.awards.reduce(0) { total, award in if case .xp(let amount, _) = award { return total + amount } else { return total } } }
     private var newStreak: Int? { outcome.awards.compactMap { if case .streakTo(let value) = $0 { return value } else { return nil } }.last }
@@ -22,7 +22,7 @@ struct CelebrationScreen: View {
     // SPEC: S10 · A6 — "12/12 sets · 44 min" with the server's rounding of minutes; A2 — "+ Walk 25 min" when a cardio block
     // was done; a session of kind cardio reads "Walk · 25 min · 2.1 km"
     @MainActor private var summaryLine: String {
-        if let session, session.workoutKind == "cardio" { return JournalFacts.summaryLine(session, units: units) }
+        if let session, session.workoutKind == "cardio" { return JournalFacts.summaryLine(session, distanceUnit: AuthStore.shared.distanceUnit) }
         let minutes = JournalFacts.minutes(ofSeconds: outcome.durationSeconds)
         return "\(outcome.setsDone)/\(outcome.setsPlanned) sets · \(minutes) min\(session.map { JournalFacts.cardioSuffix($0) } ?? "")"
     }

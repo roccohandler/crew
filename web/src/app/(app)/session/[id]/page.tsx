@@ -16,7 +16,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const doc = ObjectId.isValid(id) ? await (await sessions()).findOne({ _id: new ObjectId(id), userId }) : null;
   if (doc === null) notFound();
   if (doc.status === "completed") redirect(`/session/${id}/done`);
-  const lastTime = await lastTimeLines(userId, doc.exercises.map((exercise) => exercise.exerciseId), doc._id, session.user.units);
+  const lastTime = await lastTimeLines(userId, doc.exercises.map((exercise) => exercise.exerciseId), doc._id, session.user.weightUnit);
   const inCrew = (await (await crewMemberships()).findOne({ userId })) !== null;
-  return <SessionLogger initial={sessionResponse(doc)} units={session.user.units} timezone={session.user.timezone} lastTime={lastTime} inCrew={inCrew} />;
+  return <SessionLogger initial={sessionResponse(doc)} units={session.user.weightUnit} distanceUnit={session.user.distanceUnit} timezone={session.user.timezone} lastTime={lastTime} inCrew={inCrew} />;
 }

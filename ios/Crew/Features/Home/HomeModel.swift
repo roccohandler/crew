@@ -65,7 +65,9 @@ final class HomeModel {
             hasPlan = plan != nil
             resumeSession = try store.openSession(for: userId)
             today = todayState(restDay: todayEntry == nil || todayEntry?.state == .rest, postedToday: postedToday, hasEverPosted: lastPostDay != nil, pause: try store.activePause(for: userId, today: todayKey), todayKey: todayKey)
-            quickCompleteAvailable = todayWorkout != nil && resumeSession == nil
+            // A8 · Flow 7 — a paused plan offers nothing to complete: `today` is decided above, so the flag reads the
+            // STATE rather than the raw workout, which is what put "Quick complete" under a card saying the plan is paused
+            quickCompleteAvailable = todayWorkout != nil && resumeSession == nil && !isPaused
             nextUpLine = whatsNext(plan: plan, rotation: rotation, todayKey: todayKey)
             bonusWorkouts = NextUp.bonusOrder(plan?.workouts ?? [], nextKind: rotation?.nextKind)
             try refreshRing(plan: plan, todayKey: todayKey)
@@ -76,6 +78,8 @@ final class HomeModel {
             loadError = AppError.storage("home").userLine
         }
     }
+
+    private var isPaused: Bool { if case .paused = today { return true } else { return false } }
 
     // SPEC: A1 — done = a completed ROTATION workout today (projectWeek); a standalone cardio log (A2) leaves the day planned
     private func todayState(restDay: Bool, postedToday: Bool, hasEverPosted: Bool, pause: LocalPause?, todayKey: String) -> TodayState {

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     await limitAuthByIp(req);
     const body = appleSignInSchema.parse(await req.json());
     const identity = await verifyAppleIdentityToken(body.identityToken);
-    const { user, created } = await signInOrCreateAppleUser({ identity, displayName: body.displayName, timezone: body.timezone, eulaAccepted: body.eulaAccepted, birthYear: body.birthYear });
+    const { user, created } = await signInOrCreateAppleUser({ identity, displayName: body.displayName, timezone: body.timezone, eulaAccepted: body.eulaAccepted, birthYear: body.birthYear, measurementSystem: body.measurementSystem });
     return await signedInResponse(req, user._id, publicUser(user), created ? HttpStatus.created : HttpStatus.ok);
   } catch (error) {
     return errorResponse(error);

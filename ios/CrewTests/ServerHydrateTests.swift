@@ -51,7 +51,7 @@ final class ServerHydrateTests: XCTestCase {
 
     func testSessionsArriveWithTheirSnapshotsAndCountToday() throws {
         let store = Store(inMemory: true)
-        let set = SetLogDTO(targetReps: 10, actualReps: 10, weight: nil, holdSeconds: nil, distanceMeters: nil, isWarmup: false, done: true)
+        let set = SetLogDTO(targetReps: 10, actualReps: 10, weight: nil, holdSeconds: nil, distanceMeters: nil, weightUnit: nil, isWarmup: false, done: true)
         let exercise = SessionExerciseDTO(exerciseId: "push-up", name: "Push-Up", equipment: "bodyweight", type: "strength", targetSets: 1, targetReps: 10, holdSeconds: nil, order: 0, skipped: false, sets: [set])
         let item = session("sc1", workoutName: "Push day", workoutKind: "push", exercise: exercise)
         try ServerHydrate.writeSessions([item, item], userId: userId, store: store)
@@ -68,7 +68,7 @@ final class ServerHydrateTests: XCTestCase {
     // A2: a cardio log arrives with its kind and distance; A1: it never moves the rotation pointer
     func testACardioLogArrivesWithItsDistanceAndStaysOutsideTheRotation() throws {
         let store = Store(inMemory: true)
-        let set = SetLogDTO(targetReps: 0, actualReps: 0, weight: nil, holdSeconds: 1500, distanceMeters: 2100, isWarmup: false, done: true)
+        let set = SetLogDTO(targetReps: 0, actualReps: 0, weight: nil, holdSeconds: 1500, distanceMeters: 2100, weightUnit: nil, isWarmup: false, done: true)
         let exercise = SessionExerciseDTO(exerciseId: "walk", name: "Walk", equipment: "bodyweight", type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: 1500, order: 0, skipped: false, sets: [set])
         try ServerHydrate.writeSessions([session("sc2", workoutName: "Walk", workoutKind: "cardio", exercise: exercise)], userId: userId, store: store)
         let local = try XCTUnwrap(store.session(clientId: "sc2"))

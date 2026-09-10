@@ -10,7 +10,9 @@ struct UserDTO: Codable, Equatable {
     let authProvider: String
     let displayName: String
     let profilePhotoKey: String?
-    let units: String
+    let units: String                 // A9: the legacy mirror of weightUnit; the server keeps the two consistent
+    let weightUnit: String?           // A9: absent from an older server reply — read through weightUnitOrLegacy
+    let distanceUnit: String?         // A9: absent from an older server reply — read through distanceUnitOrLegacy
     let timezone: String
     let reminderTime: String?
     let notificationPrefs: NotificationPrefsDTO?   // A7: absent on an older reply = every toggle on (read `prefs`)
@@ -18,6 +20,11 @@ struct UserDTO: Codable, Equatable {
     let createdAt: Date
 
     var prefs: NotificationPrefsDTO { notificationPrefs ?? NotificationPrefsDTO.allOn }
+
+    // SPEC: A9 — an older reply carries only `units`, which drove BOTH quantities (kg implied km); that is exactly what
+    // these derive. Twin of weightUnitOf / distanceUnitOf in web/src/lib/users.ts.
+    var weightUnitOrLegacy: String { weightUnit ?? units }
+    var distanceUnitOrLegacy: String { distanceUnit ?? (units == "kg" ? "km" : "mi") }
 }
 
 // SPEC: A7 (owner-directed 2026-09-08) — per-row notification toggles, server-backed; the server fills defaults (all true)
@@ -51,6 +58,7 @@ struct RegisterRequestDTO: Codable {
     let timezone: String
     let eulaAccepted: Bool
     let birthYear: Int
+    var measurementSystem: String? = nil // A9: the device setting, so the first unit defaults fit this phone
 }
 
 struct LoginRequestDTO: Codable {
@@ -68,6 +76,7 @@ struct AppleSignInRequestDTO: Codable {
     let timezone: String
     let eulaAccepted: Bool
     let birthYear: Int?
+    var measurementSystem: String? = nil // A9
 }
 
 struct ResetRequestDTO: Codable {

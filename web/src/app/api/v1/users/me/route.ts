@@ -39,6 +39,10 @@ export async function PATCH(req: Request) {
     const changes: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) if (value !== undefined) changes[key] = value;
     if (body.notificationPrefs !== undefined) changes.notificationPrefs = { ...notificationPrefsOf(current), ...body.notificationPrefs };
+    // SPEC: A9 — the two fields and the legacy mirror stay consistent whichever one the client sent, so an older build
+    // switching `units` and a new build switching `weightUnit` never leave the account disagreeing with itself
+    if (body.units !== undefined && body.weightUnit === undefined) changes.weightUnit = body.units;
+    if (body.weightUnit !== undefined) changes.units = body.weightUnit;
     await (await users()).updateOne({ _id: new ObjectId(userId) }, { $set: changes });
     const user = await findUserById(userId);
     if (user === null) throw notFound("User");

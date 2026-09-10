@@ -1,6 +1,6 @@
 // SPEC: A2 (owner-directed 2026-09-08) — a cardio block inside a planned workout: "{Activity} · Target {min} min", a minutes
 // stepper (±cardioMinutesStep, pre-filled with the target, bounds cardioMinutesMin…cardioMinutesMax), an optional distance in
-// the user's units (kg → km, lb → mi; stored in meters, capped at cardioDistanceMaxMeters), Done → the set is done with
+// the user's distanceUnit (A9: km or mi, chosen independently of the weight unit; stored in meters, capped at cardioDistanceMaxMeters), Done → the set is done with
 // holdSeconds = minutes × 60 and distanceMeters, a haptic tick. Skippable like any exercise (the card's Skip). Part of the +100,
 // never extra XP; no pace, effort or targets beyond the planned minutes, ever. Ink controls only (Part III law ①).
 // WRITTEN — UNVERIFIED (needs Mac).
@@ -11,21 +11,21 @@ struct CardioRow: View {
     let name: String
     let setLog: LocalSetLog // not `set`: inside a computed property `{ set... }` reads as a setter accessor
     let targetSeconds: Int
-    let units: String
+    let distanceUnit: String // A9: km or mi — a distance never reads the weight unit
     let onDone: (Int, Int?) -> Void // minutes, distanceMeters
     @State private var minutes: Int
     @State private var distanceEntry = ""
 
-    init(name: String, setLog: LocalSetLog, targetSeconds: Int, units: String, onDone: @escaping (Int, Int?) -> Void) {
+    init(name: String, setLog: LocalSetLog, targetSeconds: Int, distanceUnit: String, onDone: @escaping (Int, Int?) -> Void) {
         self.name = name
         self.setLog = setLog
         self.targetSeconds = targetSeconds
-        self.units = units
+        self.distanceUnit = distanceUnit
         self.onDone = onDone
         _minutes = State(initialValue: CardioRow.bounded(targetSeconds / TimeUnits.secondsPerMinute))
     }
 
-    private var metric: Bool { units == "kg" }
+    private var metric: Bool { distanceUnit == "km" }
     private var targetMinutes: Int { targetSeconds / TimeUnits.secondsPerMinute }
 
     // SPEC: A2 — cardioMinutesMin … cardioMinutesMax; invalid values impossible (Flow 3 smart steppers)
@@ -44,7 +44,7 @@ struct CardioRow: View {
     private var doneLine: String {
         let logged = (setLog.holdSeconds ?? 0) / TimeUnits.secondsPerMinute
         guard let distance = setLog.distanceMeters else { return "\(logged) min" }
-        return "\(logged) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, units: units))"
+        return "\(logged) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, distanceUnit: distanceUnit))"
     }
 
     var body: some View {

@@ -15,7 +15,9 @@ export interface PublicUser {
   authProvider: "email" | "apple";
   displayName: string;
   profilePhotoKey: string | null;
-  units: "lb" | "kg";
+  units: "lb" | "kg"; // A9: kept as a mirror of weightUnit so the shipped TestFlight build keeps reading it (debt)
+  weightUnit: "lb" | "kg";
+  distanceUnit: "mi" | "km";
   timezone: string;
   reminderTime: string | null;
   notificationPrefs: NotificationPrefs; // always present — defaults filled (A7)
@@ -28,6 +30,17 @@ export function notificationPrefsOf(doc: { notificationPrefs?: NotificationPrefs
   return { workoutReminder: true, streakRisk: true, crewActivity: true, ...doc.notificationPrefs };
 }
 
+// SPEC: A9 — the two unit fields, derived on read for any account written before the split. An older document carries only
+// `units`, which drove BOTH quantities (kg implied km), so that is exactly what it backfills to — no bulk write, and no
+// account can be caught half-migrated. Twin rule in the iOS AuthStore.
+export function weightUnitOf(doc: { weightUnit?: "lb" | "kg"; units: "lb" | "kg" }): "lb" | "kg" {
+  return doc.weightUnit ?? doc.units;
+}
+
+export function distanceUnitOf(doc: { distanceUnit?: "mi" | "km"; units: "lb" | "kg" }): "mi" | "km" {
+  return doc.distanceUnit ?? (doc.units === "kg" ? "km" : "mi");
+}
+
 export function publicUser(doc: UserDoc): PublicUser {
   return {
     id: doc._id.toHexString(),
@@ -35,7 +48,9 @@ export function publicUser(doc: UserDoc): PublicUser {
     authProvider: doc.authProvider,
     displayName: doc.displayName,
     profilePhotoKey: doc.profilePhotoKey,
-    units: doc.units,
+    units: weightUnitOf(doc), // A9: the mirror the shipped build reads
+    weightUnit: weightUnitOf(doc),
+    distanceUnit: distanceUnitOf(doc),
     timezone: doc.timezone,
     reminderTime: doc.reminderTime,
     notificationPrefs: notificationPrefsOf(doc),
@@ -65,9 +80,22 @@ interface NewUser {
   passwordHash?: string;
   displayName: string;
   timezone: string;
+  measurementSystem?: MeasurementSystem; // A9: the device's own setting, sent at signup; absent = the us default
+}
+
+// SPEC: A9 — the device measurement system, named exactly as iOS 16+ reports it (Locale.MeasurementSystem)
+export type MeasurementSystem = "us" | "uk" | "metric";
+
+// SPEC: A9 — the per-quantity default. `.uk` is the case a single field cannot express: metric plates, imperial roads.
+// The user confirms this once, in context, on their first Session screen; nothing here is a silent final answer.
+export function unitsForMeasurementSystem(system: MeasurementSystem | undefined): { weightUnit: "lb" | "kg"; distanceUnit: "mi" | "km" } {
+  if (system === "metric") return { weightUnit: "kg", distanceUnit: "km" };
+  if (system === "uk") return { weightUnit: "kg", distanceUnit: "mi" };
+  return { weightUnit: "lb", distanceUnit: "mi" };
 }
 
 export async function createUserWithState(input: NewUser, now: Date = new Date()): Promise<UserDoc> {
+  const units = unitsForMeasurementSystem(input.measurementSystem); // A9: defaulted from the device, confirmed once in context
   const doc: UserDoc = {
     _id: new ObjectId(),
     email: input.email,
@@ -75,7 +103,9 @@ export async function createUserWithState(input: NewUser, now: Date = new Date()
     authProvider: input.authProvider,
     displayName: input.displayName,
     profilePhotoKey: null,
-    units: "lb",
+    units: units.weightUnit, // A9: the legacy mirror an older build still reads
+    weightUnit: units.weightUnit,
+    distanceUnit: units.distanceUnit,
     timezone: input.timezone,
     reminderTime: null,
     eulaAcceptedAt: now,
