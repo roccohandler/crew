@@ -1,13 +1,17 @@
 // Swift cross-reference check — the compile errors this repo has actually shipped to the macOS runner, caught on a machine
 // without a compiler. The Swift files are never compiled here (Windows, no Xcode; the Linux toolchain has no SwiftUI or
 // SwiftData), so a screen edited in one file and called from another meets the compiler only on GitHub's macOS job, ten
-// minutes later. Every diagnostic that job has produced so far was one of three kinds, and all three are visible from the
+// minutes later. Every diagnostic that job has produced so far was one of four kinds, and all four are visible from the
 // source text alone:
 //   1. `Type.member` where the type is declared in ios/ and has no such member (an enum case removed, a static renamed)
 //   2. `Type(...)` / `Type.f(...)` whose argument labels match none of the type's initializers or functions (a parameter
 //      added, removed or renamed — including a struct's memberwise initializer, derived here by Swift's rules)
 //   3. a module type that shadows a SwiftUI one (the module's `Stepper`), so an unqualified call meant for SwiftUI's init
 //      matches nothing — the finding says so
+//   4. `Type.shared.method(...)` — an INSTANCE call through the type's singleton — whose labels match none of the type's
+//      functions. The reference scan used to stop at `.shared` (a member that exists) and never looked at the call after
+//      it; run 34491587098 died on exactly that: OnboardingModelAuth passed AuthStore.shared.signInWithApple a label the
+//      function does not take, and this check said "clean"
 // Precision over recall: only types declared under ios/ are checked, a reference passes when ANY declaration of that name
 // accepts it, closure parameters may be supplied as trailing closures, and enum-case payloads are not label-checked.
 // Strings and comments are blanked before scanning. Run: node shared/scripts/swift-xref.mjs [ios-dir]   Exits 1 on a finding.
@@ -322,6 +326,28 @@ for (const { file, code } of files) {
     if (!entry.members.has(member)) {
       if (/^(init|self|Type|Protocol)$/.test(member)) continue;
       findings.push(`${where(at)}: ${name}.${member} — ${name} (${entry.declaredAt.join(", ") || "extension only"}) declares no member "${member}"`);
+      continue;
+    }
+    // 4. `Type.shared.method(...)` — the regex ends at `.shared`; look one member further and label-check the instance call
+    //    exactly the way a static call is checked. Only a direct `.shared.name(` is examined: a property chain after
+    //    `.shared` (`.shared.currentUser?.id`, `.shared.context.insert(`) is left alone, so precision holds.
+    if (memberCall !== "(" && member === "shared") {
+      const via = code.slice(hit.index + whole.length).match(/^\s*\.\s*([A-Za-z_]\w*)\s*\(/);
+      if (via) {
+        const method = via[1];
+        if (!entry.members.has(method)) {
+          findings.push(`${where(at)}: ${name}.shared.${method} — ${name} (${entry.declaredAt.join(", ")}) declares no member "${method}"`);
+        } else {
+          const candidates = entry.funcs.get(method);
+          if (candidates && candidates.length > 0) {
+            const viaOpen = hit.index + whole.length + via[0].length - 1;
+            const close = matching(code, viaOpen);
+            const args = parseArgs(code.slice(viaOpen + 1, close));
+            const hasTrailing = /^\s*\{/.test(code.slice(close + 1, close + 40));
+            if (!candidates.some((params) => matches(params, args, hasTrailing))) findings.push(`${where(at)}: ${name}.shared.${method}(${describe(args)}) matches none of ${candidates.map((p) => `(${describe(p.map((q) => q.label))})`).join(" / ")}`);
+          }
+        }
+      }
       continue;
     }
     if (memberCall !== "(") continue;

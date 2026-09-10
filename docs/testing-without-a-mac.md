@@ -87,9 +87,14 @@ git push
 3. When the `ios` job fails, read the log, fix in the repo here, push again. Behaviour must not change — the tests are the
    contract. (Getting here took four one-line compile fixes, one wrong test expectation, one server rule the simulator's
    "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) Since 2026-09-09 the job runs the unit suite AND the
-   journeys even when the first fails, and its **verdict** step writes the compile errors, failed assertions and suite
-   totals from both to the run's summary page (Actions → the run → the `ios` job's summary at the top) — one run reports
-   every failure, not one layer per push. The agent reads the log itself:
+   journeys even when the first fails, and its **verdict** step (`ios/scripts/verdict.sh` since 2026-09-10) is the ONE
+   step that goes red. **Read that step's own log first.** Its first line is the headline (`## ios — unit: failure ·
+   journeys: failure`); then, per log, the error count, the first error, and the salient lines — compile errors,
+   assertion failures, the "Failing tests:" block, suite totals. The same text is on the run's summary page, and every
+   error is also a GitHub annotation (a clickable `file:line` at the top of the run and on the commit). Before 2026-09-10
+   the verdict wrote only to the summary page, so the red step's own log said nothing but "exit code 1" and the two
+   xcodebuild steps above it showed ✓ (they are `continue-on-error`) — run 34491587098, one compile error hidden under
+   3,000 lines of warnings. One run reports every failure, not one layer per push. The agent reads the log itself:
    `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
    `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
    **Reading a UI-test failure from Windows:** the artifact's `.xcresult/Data` files are zstd-compressed (magic `28 B5 2F FD`);

@@ -34,7 +34,9 @@ extension OnboardingModel {
 
     func saveWithApple(credential: ASAuthorizationAppleIDCredential, birthYear: Int?) async {
         await finishSignup {
-            try await AuthStore.shared.signInWithApple(credential: credential, timezone: TimeZone.current, eulaAccepted: true, birthYear: birthYear, measurementSystem: MeasurementSystemHint.current())
+            // A9: the measurement system is read inside signInWithApple (it builds the DTO), not passed here — run 34491587098
+            // failed on an extra `measurementSystem:` label at this call, the one shape swift-xref could not see until F35
+            try await AuthStore.shared.signInWithApple(credential: credential, timezone: TimeZone.current, eulaAccepted: true, birthYear: birthYear)
         }
     }
 

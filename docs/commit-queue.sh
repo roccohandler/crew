@@ -17,7 +17,8 @@ cd "$(dirname "$0")/.."
 
 commit_task() {
   local message="$1"; shift
-  if [ -n "$(git log --fixed-strings --grep="$message" --format=%H -n 1)" ]; then echo "skip   (in history) $message"; return 0; fi
+  local subject="${message%%$'\n'*}" # the in-history guard matches the FIRST LINE: git --grep is line-based, so a trailer (Co-Authored-By) on line 3 must not defeat it
+  if [ -n "$(git log --fixed-strings --grep="$subject" --format=%H -n 1)" ]; then echo "skip   (in history) $subject"; return 0; fi
   git add -- "$@" 2>/dev/null
   if git diff --cached --quiet; then echo "skip   (nothing to commit) $message"; else git commit -q -m "$message" && echo "commit $message"; fi
 }
@@ -176,6 +177,13 @@ commit_task "feat(home): A14 — Home shows the week and the work; Workout · Ca
   ios/CrewTests/HomeModelTests.swift ios/CrewTests/HomeLinesTests.swift ios/CrewTests/HomeVectorSlotsTests.swift ios/Package.swift \
   web/src/lib web/src/components web/src/app web/tests \
   docs/ux-plan-2026-09-09.md docs/progress.md docs/debt.md docs/commit-queue.sh
+
+# --- F35 (run 34491587098: one compile error under 3,000 lines of warnings; the verdict step's own log said only "exit code 1") ---
+commit_task "fix(ios): OnboardingModelAuth passed signInWithApple a measurementSystem label it does not take — the one call shape swift-xref could not see (an instance call through .shared), which it now label-checks; the ios verdict moves to ios/scripts/verdict.sh and prints its findings to its own step log, the summary page and file:line annotations, because run 34491587098's red step said only exit code 1 [SPEC: A9; 5.3; 8.4; XI T008/T022]
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" \
+  ios/Crew/Features/Onboarding/OnboardingModelAuth.swift shared/scripts/swift-xref.mjs ios/scripts/verdict.sh .github/workflows/ci.yml \
+  docs/testing-without-a-mac.md docs/progress.md docs/commit-queue.sh
 
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
