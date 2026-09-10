@@ -1,42 +1,152 @@
 {
   "spec": "Part III — the Ember color system (six laws: ink acts, ember rewards) + 6.4 motion & haptic language. Feedback is haptics only, never sound. Gap resolutions G4/G5/G8 logged in Appendix A 2026-09-04.",
   "colors": {
-    "canvas": { "light": "#FAF8F5", "dark": "#171412", "role": "70% Canvas — every page background (Bone)", "spec": "Part III table" },
-    "card": { "light": "#FFFFFF", "dark": "#211D19", "role": "70% Canvas — cards", "spec": "Part III table" },
-    "hairline": { "light": "#E9E4DD", "dark": "#2E2822", "role": "70% Canvas — hairlines", "spec": "Part III table" },
-    "inkText": { "light": "#211D19", "dark": "#F5F1EB", "role": "20% Ink — ALL text and structure", "spec": "Part III table; law ①" },
-    "primaryButtonFill": { "light": "#211D19", "dark": "#F5F1EB", "role": "20% Ink — primary button fill (ink acts; ≈15:1 on canvas)", "spec": "Part III table; law ①" },
-    "primaryButtonLabel": { "light": "#FAF8F5", "dark": "#171412", "role": "20% Ink — primary button label", "spec": "Part III table; law ①" },
-    "secondaryButtonOutline": { "light": "#E9E4DD", "dark": "#2E2822", "role": "20% Ink — secondary button = hairline outline", "spec": "Part III table (composed from hairline)" },
-    "secondaryButtonLabel": { "light": "#211D19", "dark": "#F5F1EB", "role": "20% Ink — secondary button = ink label", "spec": "Part III table (composed from ink text)" },
-    "secondaryText": { "light": "#6F6860", "dark": "#A69E94", "role": "20% Ink — secondary text", "spec": "Part III table" },
-    "missedGray": { "light": "#A8A29A", "dark": "#5E574F", "role": "20% Ink — missed = warm gray, never red; recedes on dark", "spec": "Part III table + semantics; dark = Decision Registry G4 (2026-09-04)" },
-    "ember": { "light": "#FF6600", "dark": "#FF7A1F", "role": "≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts", "spec": "Part III table; laws ③ ④ ⑤" },
-    "emberText": { "light": "#B84D00", "dark": "#FF7A1F", "role": "≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark)", "spec": "Part III table; law ③; 6.5; dark = Decision Registry G4 (2026-09-04)" },
-    "emberTint": { "light": "#FFEFE3", "dark": "#33241A", "role": "≤10% Ember — tints & ring tracks", "spec": "Part III table" },
-    "success": { "light": "#3E8E5A", "dark": "#3E8E5A", "role": "Semantic — success (single value in spec; both modes)", "spec": "Part III semantics; law ⑥" },
-    "danger": { "light": "#D64550", "dark": "#D64550", "role": "Semantic — danger (berry, never near orange; single value in spec; both modes)", "spec": "Part III semantics; law ⑥" }
+    "canvas": {
+      "light": "#FAF8F5",
+      "dark": "#171412",
+      "role": "70% Canvas — every page background (Bone)",
+      "spec": "Part III table"
+    },
+    "card": {
+      "light": "#FFFFFF",
+      "dark": "#211D19",
+      "role": "70% Canvas — cards",
+      "spec": "Part III table"
+    },
+    "hairline": {
+      "light": "#E9E4DD",
+      "dark": "#2E2822",
+      "role": "70% Canvas — hairlines",
+      "spec": "Part III table"
+    },
+    "inkText": {
+      "light": "#211D19",
+      "dark": "#F5F1EB",
+      "role": "20% Ink — ALL text and structure",
+      "spec": "Part III table; law ①"
+    },
+    "primaryButtonFill": {
+      "light": "#211D19",
+      "dark": "#F5F1EB",
+      "role": "20% Ink — primary button fill (ink acts; ≈15:1 on canvas)",
+      "spec": "Part III table; law ①"
+    },
+    "primaryButtonLabel": {
+      "light": "#FAF8F5",
+      "dark": "#171412",
+      "role": "20% Ink — primary button label",
+      "spec": "Part III table; law ①"
+    },
+    "secondaryButtonOutline": {
+      "light": "#E9E4DD",
+      "dark": "#2E2822",
+      "role": "20% Ink — secondary button = hairline outline",
+      "spec": "Part III table (composed from hairline)"
+    },
+    "secondaryButtonLabel": {
+      "light": "#211D19",
+      "dark": "#F5F1EB",
+      "role": "20% Ink — secondary button = ink label",
+      "spec": "Part III table (composed from ink text)"
+    },
+    "secondaryText": {
+      "light": "#6F6860",
+      "dark": "#A69E94",
+      "role": "20% Ink — secondary text",
+      "spec": "Part III table"
+    },
+    "missedGray": {
+      "light": "#A8A29A",
+      "dark": "#5E574F",
+      "role": "20% Ink — missed = warm gray, never red; recedes on dark",
+      "spec": "Part III table + semantics; dark = Decision Registry G4 (2026-09-04)"
+    },
+    "ember": {
+      "light": "#FF6600",
+      "dark": "#FF7A1F",
+      "role": "≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts",
+      "spec": "Part III table; laws ③ ④ ⑤"
+    },
+    "emberText": {
+      "light": "#B84D00",
+      "dark": "#FF7A1F",
+      "role": "≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark)",
+      "spec": "Part III table; law ③; 6.5; dark = Decision Registry G4 (2026-09-04)"
+    },
+    "emberTint": {
+      "light": "#FFEFE3",
+      "dark": "#33241A",
+      "role": "≤10% Ember — tints & ring tracks",
+      "spec": "Part III table"
+    },
+    "success": {
+      "light": "#3E8E5A",
+      "dark": "#3E8E5A",
+      "role": "Semantic — success (single value in spec; both modes)",
+      "spec": "Part III semantics; law ⑥"
+    },
+    "danger": {
+      "light": "#D64550",
+      "dark": "#D64550",
+      "role": "Semantic — danger (berry, never near orange; single value in spec; both modes)",
+      "spec": "Part III semantics; law ⑥"
+    }
   },
   "spacing": {
-    "spec": "Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web)",
-    "scale": { "space4": 4, "space8": 8, "space12": 12, "space16": 16, "space24": 24, "space32": 32 }
+    "spec": "Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web). A14 (2026-09-09) adds two ROLE aliases onto that same scale so macro and micro rhythm can diverge without a new number: sectionGap (24) is the gap BETWEEN groups, rowGap (8) the gap WITHIN one — a uniform 16 pt everywhere is why Home read as empty rather than composed.",
+    "scale": {
+      "space4": 4,
+      "space8": 8,
+      "space12": 12,
+      "space16": 16,
+      "space24": 24,
+      "space32": 32,
+      "sectionGap": 24,
+      "rowGap": 8
+    }
   },
   "sizes": {
     "spec": "GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web",
-    "scale": { "avatar": 40, "avatarLarge": 96, "ringDiameter": 64, "ringStartAngleDegrees": -90, "skeletonRow": 64, "skeletonHero": 128, "cornerRadius": 16, "hairline": 1 }
+    "scale": {
+      "avatar": 40,
+      "avatarLarge": 96,
+      "ringDiameter": 64,
+      "ringStartAngleDegrees": -90,
+      "skeletonRow": 64,
+      "skeletonHero": 128,
+      "cornerRadius": 16,
+      "hairline": 1
+    }
   },
   "opacity": {
     "spec": "GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline",
-    "scale": { "disabled": 0.5 }
+    "scale": {
+      "disabled": 0.5
+    }
   },
   "motion": {
     "spec": "6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04)",
-    "spring": { "response": 0.35, "dampingFraction": 0.8 }
+    "spring": {
+      "response": 0.35,
+      "dampingFraction": 0.8
+    }
   },
   "haptics": {
-    "tick": { "meaning": "set done", "spec": "Flow 3 haptic language; 6.4" },
-    "double": { "meaning": "exercise done", "spec": "Flow 3 haptic language; 6.4" },
-    "thump": { "meaning": "workout complete", "spec": "Flow 3 haptic language; 6.4" },
-    "softTap": { "meaning": "reaction received", "spec": "6.4; Decision Registry G8 (2026-09-04)" }
+    "tick": {
+      "meaning": "set done",
+      "spec": "Flow 3 haptic language; 6.4"
+    },
+    "double": {
+      "meaning": "exercise done",
+      "spec": "Flow 3 haptic language; 6.4"
+    },
+    "thump": {
+      "meaning": "workout complete",
+      "spec": "Flow 3 haptic language; 6.4"
+    },
+    "softTap": {
+      "meaning": "reaction received",
+      "spec": "6.4; Decision Registry G8 (2026-09-04)"
+    }
   }
 }

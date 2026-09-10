@@ -9,7 +9,7 @@ export function HeatMap({ days, selected, todayKey }: { days: DayCell[]; selecte
   return (
     <div className="heatmap" role="list" aria-label="Days">
       {days.map((day) => (
-        <Link key={day.dayKey} role="listitem" href={`/progress?day=${day.dayKey}`} className={day.workout ? "heatmap__day heatmap__day--workout" : day.posted ? "heatmap__day heatmap__day--posted" : "heatmap__day"} aria-label={`${dayLabel(day.dayKey, todayKey)}${day.workout ? ", workout" : day.posted ? ", posted" : ""}`} aria-current={selected === day.dayKey ? "date" : undefined} />
+        <Link key={day.dayKey} role="listitem" href={`/progress?day=${day.dayKey}`} className={`heatmap__day${day.workout ? " heatmap__day--workout" : day.cardio ? " heatmap__day--cardio" : day.posted ? " heatmap__day--posted" : ""}`} aria-label={`${dayLabel(day.dayKey, todayKey)}${day.workout ? ", workout" : day.cardio ? ", cardio" : day.posted ? ", posted" : ""}`} aria-current={selected === day.dayKey ? "date" : undefined} />
       ))}
     </div>
   );

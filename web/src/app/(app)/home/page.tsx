@@ -10,7 +10,9 @@ import { QuickCompleteButton } from "@/components/QuickCompleteButton";
 import { StaleSessionPrompt } from "@/components/StaleSessionPrompt";
 import { WelcomeBack } from "@/components/WelcomeBack";
 import { StreakFlame } from "@/components/StreakFlame";
+import { VectorRow } from "@/components/VectorRow";
 import { WeeklyRing } from "@/components/WeeklyRing";
+import { WeekStrip } from "@/components/WeekStrip";
 import { memberDots } from "@/lib/crew-stream";
 import { crewMemberships, crews } from "@/lib/db";
 import { storedState } from "@/lib/gamification-store";
@@ -40,6 +42,22 @@ async function CrewToday({ userId, todayKey }: { userId: ObjectId; todayKey: str
   );
 }
 
+// SPEC: A14 — one group: the flame, the ring and the week strip belong together, separated from what follows by the section
+// gap rather than by the same 16 px that separated everything from everything (F09).
+function WeekHeader({ facts, streak, isBridge }: { facts: HomeFacts; streak: number; isBridge: boolean }) {
+  return (
+    <div className="stack stack--tight">
+      <div className="row row--between">
+        <StreakFlame streak={streak} paused={facts.today.kind === "paused"} />
+        {/* W043 — the ring is gone from the BRIDGE: there it read "0/3", which is a competing prompt on the one screen §1D
+            says must have none, an ember element that is not a reward (law ④), and a zero used as a verdict (A8). */}
+        {facts.ringPlanned > 0 && !isBridge ? <WeeklyRing done={facts.ringDone} planned={facts.ringPlanned} /> : null}
+      </div>
+      {!isBridge ? <WeekStrip week={facts.week} todayKey={facts.todayKey} /> : null}
+    </div>
+  );
+}
+
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ earned?: string }> }) {
   const session = await readSession();
   const unlocked = earnedIds((await searchParams).earned);
@@ -52,7 +70,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const bonusKind = await bonusKindFor(userId, facts);
   const isBridge = facts.today.kind === "bridge";
   return (
-    <div className="stack">
+    <div className="stack stack--page">
       <div className="row row--between">
         <h1>Today</h1>
         {!isBridge ? <Link className="button button--text" href="/post" aria-label="Post a meal"><span aria-hidden="true">📷</span></Link> : null}
@@ -60,14 +78,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <EarnedAchievements ids={unlocked} />
       {facts.openSessionId && facts.openSessionStale ? <StaleSessionPrompt id={facts.openSessionId} workoutName={facts.openSessionName ?? "Your workout"} timezone={session.user.timezone} /> : null}
       {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
-      <div className="row row--between">
-        <StreakFlame streak={state?.currentStreak ?? 0} paused={facts.today.kind === "paused"} />
-        {facts.ringPlanned > 0 ? <WeeklyRing done={facts.ringDone} planned={facts.ringPlanned} /> : null}
-      </div>
+      <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} isBridge={isBridge} />
       <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} nextUpLine={facts.nextUpLine} bonusKind={bonusKind} />
       {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
-      {facts.today.kind === "workout" ? <Link className="button button--secondary" href="/log-cardio">Log cardio</Link> : null}
-      {facts.inCrew && !isBridge ? <CrewToday userId={userId} todayKey={facts.todayKey} /> : null}
+      {/* A14 — the three vectors as peers, bottom-anchored into the thumb zone (6.7). The standalone "Log cardio" button
+          that used to sit here on a workout day IS the Cardio slot now, at a position that no longer moves between states. */}
+      {!isBridge ? (
+        <div className="stack stack--tight stack--bottom">
+          <VectorRow slots={facts.vectors} workoutHref={facts.todayWorkoutKind === null ? "/plan" : facts.openSessionId ? `/session/${facts.openSessionId}` : "/session/new"} />
+          {facts.inCrew ? <CrewToday userId={userId} todayKey={facts.todayKey} /> : null}
+        </div>
+      ) : null}
     </div>
   );
 }

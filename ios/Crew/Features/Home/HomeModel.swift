@@ -27,6 +27,7 @@ final class HomeModel {
     var welcomeBack = false          // E4 / S18: 14+ quiet days
     var staleSession: LocalSession?  // S01: in progress for more than a day
     var heldUploads: [OpRecord] = [] // E19: held for more than 24 h — the user chooses
+    var vectors = VectorSlots(workoutDone: false, cardioMinutes: nil, meals: 0) // A14: today's Workout · Cardio · Meals row
     var nextUpLine: String?                        // A3: nil on an undone training day, when paused, and on a workout-day bridge
     var bonusWorkouts: [LocalWorkoutTemplate] = [] // A3: the plan's workouts, the next rotation workout first
     private var todayWorkout: LocalWorkoutTemplate? // A1: the rotation workout due today; nil on rest, done, paused, no plan
@@ -70,6 +71,7 @@ final class HomeModel {
             quickCompleteAvailable = todayWorkout != nil && resumeSession == nil && !isPaused
             nextUpLine = whatsNext(plan: plan, rotation: rotation, todayKey: todayKey)
             bonusWorkouts = NextUp.bonusOrder(plan?.workouts ?? [], nextKind: rotation?.nextKind)
+            vectors = try HomeModel.slots(userId: userId, dayKey: todayKey, store: store) // A14
             try refreshRing(plan: plan, todayKey: todayKey)
             crewStrip = try crewStripFromSnapshot()
             try refreshEdges(lastPostDay: lastPostDay, todayKey: todayKey, now: now)
@@ -87,7 +89,9 @@ final class HomeModel {
         if !hasEverPosted { return .bridge(todayWorkout == nil ? .rest : .workout) } // 1D: the bridge persists until the first post exists
         if restDay { return .rest(posted: postedToday) }
         guard let workout = todayWorkout else { return .allDone }
-        return .workout(name: workout.name, exerciseCount: NextUp.strengthCount(workout), hasCardio: NextUp.hasCardio(workout))
+        // A14: the card carries the day's rows, built by the HomeLines twin so the web card reads word-for-word the same
+        let rows = HomeModel.homeExercises(workout)
+        return .workout(name: workout.name, exerciseCount: NextUp.strengthCount(workout), hasCardio: NextUp.hasCardio(workout), lines: HomeLines.strengthLines(rows), tail: HomeLines.tailLine(rows))
     }
 
     // SPEC: A3 — nothing on an undone training day or while paused; the bridge shows it only on a rest-day install (1D)

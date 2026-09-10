@@ -90,7 +90,9 @@ enum SessionActions {
         session.dayKey = DayKey.dayKey(for: now, tz: TimeZone(identifier: session.timezone) ?? .current)
         session.updatedAt = now
         let postClientId = UUID().uuidString.lowercased()
-        let post = LocalPost(clientId: postClientId, userId: session.userId, type: "workout", sessionClientId: session.clientId, caption: "", mealTag: nil, shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, earlierToday: false, createdAt: now)
+        // A14: a standalone cardio log is its own post type — the server writes the same value from the session kind
+        // (sessions.ts). The ENGINE call below still passes .workout: to XP and the streak a walk is a workout (V30/V31).
+        let post = LocalPost(clientId: postClientId, userId: session.userId, type: session.workoutKind == "cardio" ? "cardio" : "workout", sessionClientId: session.clientId, caption: "", mealTag: nil, shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, earlierToday: false, createdAt: now)
         post.summary = JournalFacts.summaryLine(session, distanceUnit: AuthStore.shared.distanceUnit) // A6: the one line the celebration, the journal and the day card read — server rounding (JournalFacts)
         store.context.insert(post)
         try store.save()

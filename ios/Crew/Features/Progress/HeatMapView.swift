@@ -15,13 +15,17 @@ struct HeatMapView: View {
         LazyVGrid(columns: columns, spacing: EmberTokens.Spacing.space4) {
             ForEach(days) { day in
                 Button { onSelect(day.dayKey) } label: {
+                    // A14: three marks in ONE hue — a workout is a solid ember cell, a cardio day the same ember as an
+                    // outline, a posted-only day the ember tint. Fill treatment is the third channel, so law ⑥ gains no
+                    // second colour and the marks stay distinguishable in grayscale.
                     RoundedRectangle(cornerRadius: EmberTokens.Spacing.space4, style: .continuous)
                         .fill(day.workout ? EmberColors.ember : (day.posted ? EmberColors.emberTint : EmberColors.hairline))
+                        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space4, style: .continuous).stroke(EmberColors.ember, lineWidth: day.cardio && !day.workout ? EmberTokens.Size.hairline + EmberTokens.Size.hairline : 0))
                         .aspectRatio(1, contentMode: .fit)
                         .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space4, style: .continuous).stroke(EmberColors.inkText, lineWidth: selected == day.dayKey ? EmberTokens.Size.hairline + EmberTokens.Size.hairline : 0))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(DayLabel.dayLabel(day.dayKey, todayKey: todayKey))\(day.workout ? ", workout" : (day.posted ? ", posted" : ""))")
+                .accessibilityLabel("\(DayLabel.dayLabel(day.dayKey, todayKey: todayKey))\(day.workout ? ", workout" : (day.cardio ? ", cardio" : (day.posted ? ", posted" : "")))")
             }
         }
     }

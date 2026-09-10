@@ -84,7 +84,7 @@ async function completeSession(userId: ObjectId, doc: SessionDoc, input: PatchSe
   doc.completedAt = input.completedAt ? new Date(input.completedAt) : now;
   doc.dayKey = serverDayKey(doc.completedAt, input.timezone, now);
   await createPost(userId, {
-    clientId: input.post?.clientId ?? `${doc.clientId}-post`, type: "workout", sessionId: doc._id, caption: input.post?.caption, photoKey: input.post?.photoKey,
+    clientId: input.post?.clientId ?? `${doc.clientId}-post`, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, // A14: a standalone cardio log is not a workout caption: input.post?.caption, photoKey: input.post?.photoKey,
     shareToCrew: input.post?.shareToCrew ?? false, timezone: input.timezone, isPlannedDay: doc.isPlannedDay, workoutCompleted: true, createdAt: doc.completedAt, dayKey: doc.dayKey,
     summary: await summaryFor(userId, doc, doc.completedAt),
   }, now);

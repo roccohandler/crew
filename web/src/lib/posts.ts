@@ -8,7 +8,7 @@ import { serverDayKey } from "@/lib/server-clock";
 
 export interface NewPost {
   clientId: string;
-  type: "workout" | "meal" | "text";
+  type: "workout" | "cardio" | "meal" | "text"; // A14: "cardio" is written by session completion only, never by a client
   sessionId?: ObjectId;
   photoKey?: string;
   caption?: string;

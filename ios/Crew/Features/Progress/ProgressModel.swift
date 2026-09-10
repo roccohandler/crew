@@ -7,9 +7,11 @@ import Foundation
 import Observation
 import SwiftData
 
+// A14: three marks — a standalone cardio log is not a workout. Same ember hue, different fill treatment (law ⑥).
 struct DayCell: Equatable, Identifiable {
     let dayKey: String
     let workout: Bool
+    let cardio: Bool
     let posted: Bool
     var id: String { dayKey }
 }
@@ -88,11 +90,14 @@ final class ProgressModel {
     // LAYER 1 — one cell per day across progressHeatMapWeeks, Monday-aligned (E20)
     private func heatMapCells(completed: [LocalSession], posts: [LocalPost]) -> [DayCell] {
         let from = DayKey.addDays(DayKey.weekKey(for: todayKey), -(heatMapWeeks - 1) * TimeUnits.daysPerWeek)
-        let workoutDays = Set(completed.map(\.dayKey))
+        // A14: a standalone cardio session is its own mark — it used to land in workoutDays, so a week of walks read as
+        // a week of workouts on the one screen whose question is "did I show up?"
+        let workoutDays = Set(completed.filter { $0.workoutKind != "cardio" }.map(\.dayKey))
+        let cardioDays = Set(completed.filter { $0.workoutKind == "cardio" }.map(\.dayKey))
         let postDays = Set(posts.map(\.dayKey))
         var cells: [DayCell] = []
         var day = from
-        while day <= todayKey { cells.append(DayCell(dayKey: day, workout: workoutDays.contains(day), posted: postDays.contains(day))); day = DayKey.addDays(day, 1) }
+        while day <= todayKey { cells.append(DayCell(dayKey: day, workout: workoutDays.contains(day), cardio: cardioDays.contains(day), posted: postDays.contains(day))); day = DayKey.addDays(day, 1) }
         return cells
     }
 

@@ -7,7 +7,11 @@ export interface PostDoc {
   _id: ObjectId;
   clientId: string;
   userId: ObjectId;
-  type: "workout" | "meal" | "text";
+  // A14 (2026-09-09): a standalone cardio log is its OWN post type. Before this it wrote "workout", so every count of
+  // workouts silently included walks. This is a DISPLAY/ANALYSIS type only — the gamification engine's PostKind stays
+  // "workout" | "meal" | "text" and a cardio post maps to "workout" at the boundary (gamification-store.ts), so XP, the
+  // streak and V24/V25/V26/V30/V31 are byte-identical to before. Ritual equality, not magnitude equality (§5).
+  type: "workout" | "cardio" | "meal" | "text";
   sessionId: ObjectId | null;
   photoKey: string | null; // never editable (E3)
   caption: string; // ≤ captionMaxChars

@@ -26,15 +26,20 @@ export function summaryFromSession(session: SessionDoc, distanceUnit: string): s
 // SPEC: A6 — workout: "{summary}"; meal: "{Meal} · {time}" (+ " · earlier today" for a same-day backfill, Flow 4; the same
 // backfill read on a later day says "earlier that day"); a caption-less, tag-less plate is still "Meal · {time}"
 export function postLine(post: PostDoc, timeZone: string, sessionLine: string | null, isToday: boolean): string {
+  // A14: workout and cardio are two row types now; both read the server summary the completion wrote ("Push day · 12/12
+  // sets · 44 min" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into.
   if (post.type === "workout") return post.summary ?? sessionLine ?? "Workout ✓";
+  if (post.type === "cardio") return post.summary ?? sessionLine ?? "Cardio ✓";
   const meal = post.mealTag ? mealNames[post.mealTag] : "Meal";
   const backfill = post.earlierToday ? (isToday ? " · earlier today" : " · earlier that day") : "";
   return `${meal} · ${clockTime(post.createdAt, timeZone)}${backfill}`;
 }
 
 // SPEC: A6 — "Rest day" tags a day that was not a training day and holds no workout (A1: rest = weekday ∉ trainingWeekdays)
+// A14: cardio counts here exactly as it did when it WAS a "workout" post — a day you walked is not tagged "Rest day".
+// The tag describes what you did, not what the plan scheduled, and this keeps the pre-A14 reading byte-identical.
 export function isRestDay(dayKey: string, dayPosts: PostDoc[], trainingWeekdays: number[]): boolean {
-  return !trainingWeekdays.includes(isoWeekday(dayKey)) && !dayPosts.some((post) => post.type === "workout");
+  return !trainingWeekdays.includes(isoWeekday(dayKey)) && !dayPosts.some((post) => post.type === "workout" || post.type === "cardio");
 }
 
 // The days that hold posts, newest first (a backfilled post sorts by its dayKey, not by when it was written)

@@ -86,7 +86,7 @@ last-time line in a unit, and macro targets are computed from a bodyweight in a 
 | 4 · weight tape (A10) | W030–W034 | **DONE** (WRITTEN-UNVERIFIED on device) — WeightTape on the open row + keypad + ± ; web gets a number field; 6 new constants; all local gates green |
 | 5 · remove a set (A11) | W035–W038 | **DONE** (WRITTEN-UNVERIFIED on device) — SetRemoval twin + V54/V55 both engines, swipe-to-reveal + accessibility action + Undo, server floor guard |
 | 7 · change today's workout (A15) | W047–W052 | NOT STARTED — unblocked, follows Stage 6 |
-| 6 · Home + three vectors (A14) | W039–W046 | **IN PROGRESS** — unblocked by the 2026-09-10 ratification |
+| 6 · Home + three vectors (A14) | W039–W046 | **DONE** (WRITTEN-UNVERIFIED on device) — week strip, the day's rows on the card, three-vector row, bridge ring removed, bottom anchor, cardio post type; HomeLines twin both engines; web 377→389 tests, Swift 63→70, no vector changed |
 | 8 · exercise media (A13) | W053–W059, W068–W069 | GATED on ⏳ W053 (lawyer). Art ruled: **vendor** bryllim/workout-guide; prep allowed behind a flag, no TestFlight ship |
 | 9 · nutrition (A16) | W060–W067, W070–W073 | A16 RATIFIED (W060 ✓). GATED on ⏳ W070 (age questionnaire) |
 

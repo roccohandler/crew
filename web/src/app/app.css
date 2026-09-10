@@ -93,6 +93,19 @@ a {
   gap: var(--ember-space-8);
 }
 
+/* A14 — macro rhythm. Home was a uniform 16 px between every element, so nothing was grouped and the whitespace read as
+   absence rather than composition (F09). The two role tokens (sectionGap / rowGap) sit ON the G5 scale — no new number. */
+.stack--page {
+  gap: var(--ember-section-gap);
+  min-height: 100%;
+}
+
+/* 6.7 — the primary controls bottom-anchor into the thumb zone; on a short page the auto margin pushes this group down,
+   on a long one it collapses and the page scrolls normally. Twin of the iOS minHeight + Spacer. */
+.stack--bottom {
+  margin-top: auto;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -369,6 +382,13 @@ a {
   background: var(--ember-ember);
 }
 
+/* A14: the third mark — a standalone cardio day. Same hue, different FILL TREATMENT (outline, not solid), so Ember law ⑥
+   gains no second colour and the three marks stay apart in grayscale. Twin of HeatMapView's stroke overlay. */
+.heatmap__day--cardio {
+  background: var(--ember-canvas);
+  box-shadow: inset 0 0 0 calc(var(--ember-hairline) * 2) var(--ember-ember);
+}
+
 .members {
   display: flex;
   gap: var(--ember-space-12);
@@ -496,4 +516,129 @@ a {
   .crew-header {
     top: calc(var(--crew-min-touch-target) + var(--ember-space-8));
   }
+}
+
+/* SPEC: A14 — the seven-day strip. Home computed these states all along and rendered none of them (F12). Ember marks the
+   done days (law ④: progress IS the message here); every other mark is ink or the missed gray, and each carries a SHAPE as
+   well as a colour so the strip survives grayscale and every CVD model (6.5). Twin of ios WeekStrip. */
+.weekstrip {
+  display: flex;
+  align-items: flex-end;
+}
+
+.weekstrip__day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ember-row-gap);
+}
+
+.weekstrip__initial {
+  font-size: 0.75rem;
+  color: var(--ember-secondary-text);
+}
+
+.weekstrip__mark {
+  width: var(--ember-space-12);
+  height: var(--ember-space-12);
+  border-radius: 50%;
+}
+
+.weekstrip__mark--done {
+  background: var(--ember-ember);
+}
+
+/* today = an ink ring: you are here, nothing has happened yet */
+.weekstrip__mark--today {
+  box-shadow: inset 0 0 0 calc(var(--ember-size-hairline) * 2) var(--ember-ink-text);
+}
+
+/* missed = a hollow gray outline, never red (Part III semantics) */
+.weekstrip__mark--missed {
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-missed-gray);
+}
+
+/* rest and upcoming = one small neutral tick */
+.weekstrip__mark--rest {
+  width: var(--ember-space-4);
+  height: var(--ember-space-4);
+  background: var(--ember-hairline);
+}
+
+/* SPEC: A14 — Workout · Cardio · Meals as peers (F10). Every slot is an OUTLINE control: the day's workout keeps the single
+   filled primary in the card above, so "one primary action per view" still holds (6.1 · §1B · S07). No slot ever wears
+   ember — a filled INK dot marks a logged vector (law ① · law ④). Twin of ios VectorRow. */
+.vectorrow {
+  display: flex;
+  gap: var(--ember-space-12);
+}
+
+.vectorslot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ember-row-gap);
+  min-height: var(--crew-min-touch-target);
+  padding: var(--ember-space-8);
+  background: var(--ember-card);
+  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border-radius: var(--ember-size-corner-radius);
+  color: var(--ember-ink-text);
+  text-decoration: none;
+}
+
+.vectorslot__title {
+  font-size: 0.75rem;
+  color: var(--ember-secondary-text);
+}
+
+.vectorslot__value {
+  display: flex;
+  align-items: center;
+  gap: var(--ember-space-4);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the redundant encoder: the shape says logged-or-not without asking anyone to read the number (6.5) */
+.vectorslot__dot {
+  width: var(--ember-space-8);
+  height: var(--ember-space-8);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-hairline);
+}
+
+.vectorslot__dot--logged {
+  background: var(--ember-ink-text);
+  box-shadow: none;
+}
+
+/* SPEC: A14 — the day's ACTUAL work on the card, not a count of it. Read-only rows; the card keeps one action.
+   Twin of ios TodayCard.workRows. */
+.worklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ember-row-gap);
+}
+
+.worklist__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ember-space-8);
+}
+
+.worklist__detail {
+  color: var(--ember-secondary-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.worklist__tail {
+  font-size: 0.875rem;
+  color: var(--ember-secondary-text);
 }

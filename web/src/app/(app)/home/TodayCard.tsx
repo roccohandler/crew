@@ -57,10 +57,20 @@ export function TodayCard({ today, todayKey, openSessionId, nextUpLine, bonusKin
       </section>
     );
   }
+  // A14 — the identity line now OUTRANKS the count line (it was a whisper while the SIZE of the workout was the heading),
+  // and the card lists the day's actual work. Read-only rows: the card still has exactly one action (6.1 · §1B · S07).
   return (
-    <section className="card stack stack--tight">
-      <p className="whisper">{today.name.toUpperCase()}</p>
-      <h2>{today.exerciseCount} {today.exerciseCount === 1 ? "exercise" : "exercises"} + mobility{today.hasCardio ? " + cardio" : ""}</h2>
+    <section className="card stack">
+      <div className="stack stack--tight">
+        <h2>{today.name.toUpperCase()}</h2>
+        <p className="whisper">{today.exerciseCount} {today.exerciseCount === 1 ? "exercise" : "exercises"} + mobility{today.hasCardio ? " + cardio" : ""}</p>
+      </div>
+      <ul className="worklist">
+        {today.lines.map((line) => (
+          <li key={line.name} className="worklist__row"><span>{line.name}</span><span className="worklist__detail">{line.detail}</span></li>
+        ))}
+        {today.tail === null ? null : <li className="worklist__tail">{today.tail}</li>}
+      </ul>
       <Link className="button button--primary" href={openSessionId ? `/session/${openSessionId}` : "/session/new"}>{openSessionId ? "Resume workout" : "Start workout"}</Link>
       <NextUpLine line={nextUpLine} />
     </section>

@@ -12,7 +12,9 @@ import { SpecConstants } from "@/generated/spec-constants";
 const HEATMAP_WEEKS = SpecConstants.progressHeatMapWeeks;
 const RING_WEEKS = SpecConstants.progressRingHistoryWeeks;
 
-export interface DayCell { dayKey: string; workout: boolean; posted: boolean }
+// A14: three marks, not two — a walk is no longer counted as a workout (it used to write a "workout" post, so every
+// count of workouts silently included cardio). Same hue, different fill treatment: law ⑥ gains no second colour.
+export interface DayCell { dayKey: string; workout: boolean; cardio: boolean; posted: boolean }
 export interface WeekRecord { weekKey: string; done: number; planned: number; sets: number; meals: number; cardioMinutes: number; mobilityMinutes: number }
 export interface ExerciseTrend { exerciseId: string; name: string; points: { dayKey: string; best: number }[] }
 
@@ -54,13 +56,17 @@ export async function progressFacts(userId: ObjectId, timezone: string, plannedW
     (await posts()).find({ userId, deletedAt: null, dayKey: { $gte: from } }, { projection: { dayKey: 1, type: 1 } }).toArray(),
     (await gamificationStates()).findOne({ userId }),
   ]);
-  const workoutDays = new Set(completed.map((session) => session.dayKey));
+  const workoutDays = new Set(completed.filter((session) => session.workoutKind !== "cardio").map((session) => session.dayKey));
+  const cardioDays = new Set(completed.filter((session) => session.workoutKind === "cardio").map((session) => session.dayKey));
   const postDays = new Set(ownPosts.map((post) => post.dayKey));
   const days: DayCell[] = [];
-  for (let day = from; day <= todayKey; day = addDays(day, 1)) days.push({ dayKey: day, workout: workoutDays.has(day), posted: postDays.has(day) });
+  for (let day = from; day <= todayKey; day = addDays(day, 1)) days.push({ dayKey: day, workout: workoutDays.has(day), cardio: cardioDays.has(day), posted: postDays.has(day) });
   const weeks: WeekRecord[] = [];
   for (let offset = RING_WEEKS - 1; offset >= 0; offset -= 1) weeks.push(weekRecord(addDays(weekKeyFor(todayKey), -offset * TimeUnits.daysPerWeek), completed, ownPosts, plannedWeekdays));
-  return { todayKey, days, weeks, balance: balanceOf(completed), totals: { workouts: completed.length, posts: ownPosts.length, longestStreak: state?.longestStreak ?? 0, currentStreak: state?.currentStreak ?? 0 }, strength: strengthTrends(completed) };
+  // A14: `workouts` counts workouts — a standalone cardio session is not one. It used to be, because a cardio log wrote a
+  // post of type "workout"; the totals line on Progress therefore reported walks as workouts.
+  const workoutTotal = completed.filter((session) => session.workoutKind !== "cardio").length;
+  return { todayKey, days, weeks, balance: balanceOf(completed), totals: { workouts: workoutTotal, posts: ownPosts.length, longestStreak: state?.longestStreak ?? 0, currentStreak: state?.currentStreak ?? 0 }, strength: strengthTrends(completed) };
 }
 
 // LAYER 3 — only where weights were logged: never logged weight → politely doesn't exist

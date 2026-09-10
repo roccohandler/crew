@@ -65,9 +65,10 @@ enum JournalFacts {
 
     // SPEC: A6 — the one line under a journal row: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km" · "Dinner · 4:31 PM"
     static func line(for post: LocalPost, store: Store = .shared, distanceUnit: String) -> String {
-        if post.type == "workout" {
+        // A14: workout and cardio are two row types; both read the summary completion wrote, so the WORDS are unchanged
+        if post.type == "workout" || post.type == "cardio" {
             if let summary = post.summary, !summary.isEmpty { return summary }
-            return session(for: post, store: store).map { summaryLine($0, distanceUnit: distanceUnit) } ?? "Workout ✓"
+            return session(for: post, store: store).map { summaryLine($0, distanceUnit: distanceUnit) } ?? (post.type == "cardio" ? "Cardio ✓" : "Workout ✓")
         }
         let meal = MealTag(rawValue: post.mealTag ?? "").map { $0.rawValue.capitalized } ?? "Meal"
         let time = post.createdAt.formatted(date: .omitted, time: .shortened)

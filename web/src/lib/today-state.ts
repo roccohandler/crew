@@ -6,13 +6,16 @@ import { crewMemberships, pauses, posts, sessions } from "@/lib/db";
 import type { PlanDoc, WorkoutTemplateDoc } from "@/lib/documents";
 import { addDays, dayKeyFor, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { lastRotationKind, nextTrainingDayKey, nextWorkoutKind, projectWeek, workoutKindFromName, type DayProjection } from "@/lib/engine/plan-rotation";
+import { strengthLines, tailLine, type HomeExercise, type HomeLine } from "@/lib/engine/home-lines";
 import { isStaleSession } from "@/lib/lapsed-user";
 import { findPlan } from "@/lib/plans";
 import { TimeUnits } from "@/lib/time-units";
 
 export type TodayState =
   | { kind: "bridge"; workoutDay: boolean }
-  | { kind: "workout"; name: string; workoutKind: string; exerciseCount: number; hasCardio: boolean }
+  // A14: the card carries the day's ACTUAL rows and the mobility/cardio tail, built by the HomeLines twin so the two
+  // platforms print the same words. The count stays — it just stops being the loudest thing on the card.
+  | { kind: "workout"; name: string; workoutKind: string; exerciseCount: number; hasCardio: boolean; lines: HomeLine[]; tail: string | null }
   | { kind: "rest"; posted: boolean }
   | { kind: "paused"; until: string }
   | { kind: "allDone" };
@@ -32,9 +35,14 @@ export interface HomeFacts {
   nextUpLine: string | null; // A3: "Tomorrow: Pull day · 5 exercises" / "Next workout: Wed · Pull day"; null on an undone training day
   todayWorkoutKind: string | null; // A1: the rotation kind due today (null on rest, done, paused, no plan)
   week: DayProjection[]; // A1: this week's projection, Mon..Sun
+  vectors: VectorSlots; // A14: today's Workout · Cardio · Meals row
 }
 
 export interface Rotation { cycle: string[]; nextKind: string | null; week: DayProjection[] }
+
+// SPEC: A14 — today's state for each of the three logging vectors. A measurement or nothing: `null`/false renders as "—",
+// never as a zero and never as "0/3" (A8, the same rule that strips the ring off the bridge). Twin of ios VectorSlots.
+export interface VectorSlots { workoutDone: boolean; cardioMinutes: number | null; meals: number }
 
 // SPEC: A1 — the pointer is DERIVED from history: the latest completed session whose kind is in the plan's cycle; the week
 // projection assigns kinds sequentially from the next one. Shared by Home, the cron reminder and the plan week map.
@@ -95,7 +103,10 @@ export async function homeFacts(userId: ObjectId, timezone: string, now: Date = 
   else if (lastPost === null) today = { kind: "bridge", workoutDay: workout !== null };
   else if (todayEntry === null || todayEntry.state === "rest") today = { kind: "rest", posted: todayPosts > 0 };
   else if (workout === null) today = { kind: "allDone" };
-  else today = { kind: "workout", name: workout.name, workoutKind: workout.kind, exerciseCount: strengthCount(workout), hasCardio: workout.exercises.some((row) => row.type === "cardio") };
+  else {
+    const rows: HomeExercise[] = workout.exercises.map((row) => ({ name: row.name, type: row.type, targetSets: row.targetSets, targetReps: row.targetReps, targetRepsMax: row.targetRepsMax ?? null, holdSeconds: row.holdSeconds ?? null, order: row.order }));
+    today = { kind: "workout", name: workout.name, workoutKind: workout.kind, exerciseCount: strengthCount(workout), hasCardio: workout.exercises.some((row) => row.type === "cardio"), lines: strengthLines(rows), tail: tailLine(rows) };
+  }
   const ring = await weeklyRing(userId, plan?.trainingWeekdays ?? [], todayKey);
   const showsNext = plan !== null && today.kind !== "workout" && today.kind !== "paused" && !(today.kind === "bridge" && today.workoutDay);
   return {
@@ -104,6 +115,26 @@ export async function homeFacts(userId: ObjectId, timezone: string, now: Date = 
     quickCompleteAvailable: workout !== null && open === null,
     nextUpLine: showsNext && plan !== null ? whatsNext(todayKey, plan, rotation, today.kind === "bridge") : null,
     todayWorkoutKind: workout?.kind ?? null, week: rotation.week,
+    vectors: await vectorSlots(userId, todayKey),
+  };
+}
+
+// SPEC: A14 — today per vector, the server twin of ios HomeModel.slots. A completed session of kind `cardio` is CARDIO,
+// not a workout: the same split A14 gives the post type, the journal row and the heat map. Ritual equality, never a score.
+async function vectorSlots(userId: ObjectId, todayKey: string): Promise<VectorSlots> {
+  const [completed, mealCount] = await Promise.all([
+    (await sessions()).find({ userId, status: "completed", dayKey: todayKey }, { projection: { workoutKind: 1, exercises: 1 } }).toArray(),
+    (await posts()).countDocuments({ userId, dayKey: todayKey, type: "meal", deletedAt: null }),
+  ]);
+  const cardioSeconds = completed
+    .filter((session) => session.workoutKind === "cardio")
+    .flatMap((session) => session.exercises.filter((row) => row.type === "cardio").flatMap((row) => row.sets))
+    .filter((set) => set.done && !set.isWarmup)
+    .reduce((total, set) => total + (set.holdSeconds ?? 0), 0);
+  return {
+    workoutDone: completed.some((session) => session.workoutKind !== "cardio"),
+    cardioMinutes: cardioSeconds > 0 ? Math.round(cardioSeconds / TimeUnits.secondsPerMinute) : null,
+    meals: mealCount,
   };
 }
 

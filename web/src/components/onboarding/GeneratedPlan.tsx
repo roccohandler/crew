@@ -5,12 +5,14 @@
 import { useState } from "react";
 import { WEEKDAY_NAMES } from "@/components/onboarding/DaysQuestion";
 import { weekKeyFor } from "@/lib/engine/day-key";
+import { setsByReps } from "@/lib/engine/home-lines";
 import type { PlanDraft, PlanDraftExercise, PlanDraftWorkout } from "@/lib/engine/plan-generator";
 import { projectWeek, type DayProjection } from "@/lib/engine/plan-rotation";
 import type { SeedExercise } from "@/generated/seed";
 
+// C5 — the sets×reps phrase reached its third occurrence with A14's Home card, so it lives in one plain function now
 export function targetsLabel(row: PlanDraftExercise): string {
-  return row.targetRepsMax !== undefined ? `${row.targetSets}×${row.targetReps}–${row.targetRepsMax}` : `${row.targetSets}×${row.targetReps}`;
+  return setsByReps(row.targetSets, row.targetReps, row.targetRepsMax ?? null);
 }
 
 // SPEC: A1 — the projection for this week from an empty history: the first planned day gets the cycle's first workout

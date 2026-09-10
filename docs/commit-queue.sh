@@ -169,6 +169,14 @@ commit_task "feat(session): A9–A12 + A11 — weightUnit/distanceUnit split wit
   shared/spec-constants.json shared/scripts/vector-shapes.mjs shared/vectors/weight-units.vectors.json shared/vectors/set-removal.vectors.json \
   web/src/generated web/src/lib web/src/components web/src/app web/tests ios/Crew ios/CrewTests ios/Package.swift
 
+# --- S6 (Stage 6 of docs/ux-plan-2026-09-09.md — A14 Home: the week, the work, the three vectors) ---
+commit_task "feat(home): A14 — Home shows the week and the work; Workout · Cardio · Meals become peers. The seven-day strip finally renders the states HomeModel always computed and WeeklyRing ignored; the card lists the day's actual rows with the identity line outranking the count line (new HomeLines twin, C5's third occurrence of sets×reps); a three-slot outline vector row bottom-anchors into the thumb zone; the bridge loses its ember 0/3 ring; and a standalone cardio log gets its own post type, journal row, heat-map mark and workout count — mapped to workout at the gamification boundary so PostKind, every XP rule and all 56 vectors are untouched [SPEC: A14; A2; A3; A8; F09/F10/F12/F13; 6.1; 6.3; 6.5; 6.7; G5; C5; Ember ① ④ ⑥; XI T024/T036/T040]" \
+  shared/design-tokens.json ios/Crew/Generated/EmberTokens.swift web/src/generated/ember.css \
+  ios/Crew/Engine/HomeLines.swift ios/Crew/Features/Home ios/Crew/Features/Progress ios/Crew/Features/Session/SessionActions.swift \
+  ios/CrewTests/HomeModelTests.swift ios/CrewTests/HomeLinesTests.swift ios/CrewTests/HomeVectorSlotsTests.swift ios/Package.swift \
+  web/src/lib web/src/components web/src/app web/tests \
+  docs/ux-plan-2026-09-09.md docs/progress.md docs/debt.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

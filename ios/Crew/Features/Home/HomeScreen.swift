@@ -50,22 +50,47 @@ struct HomeScreen: View {
         }
     }
 
+    // SPEC: A14 — three groups with real rhythm (sectionGap between, rowGap within) instead of a uniform 16 pt between every
+    // element. F09 measured Home at 24–66% dead canvas with its whole interactive surface ending ~385 pt from the top: the
+    // emptiness read as absence rather than confidence precisely BECAUSE nothing was grouped. The fix is content and rhythm,
+    // not less whitespace. 6.7 already requires the controls to bottom-anchor into the thumb zone at Pro Max — the
+    // minHeight + Spacer does that here without stealing the scroll when the day is a long one.
     private var content: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                if loadState == .offline { OfflineBanner(lastSyncedLine: "Showing what you had — syncing when you're back.") }
-                if let session = model.resumeSession { SecondaryButton(title: "Resume workout · \(session.workoutName)") { activeSession = session } }
-                HStack(alignment: .center, spacing: EmberTokens.Spacing.space16) {
-                    StreakFlame(streak: model.streak, paused: isPaused)
-                    Spacer()
-                    if model.ringPlanned > 0 { WeeklyRing(done: model.ringDone, planned: model.ringPlanned, days: model.weeklyRing) }
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
+                    if loadState == .offline { OfflineBanner(lastSyncedLine: "Showing what you had — syncing when you're back.") }
+                    if let session = model.resumeSession { SecondaryButton(title: "Resume workout · \(session.workoutName)") { activeSession = session } }
+                    VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+                        HStack(alignment: .center, spacing: EmberTokens.Spacing.space16) {
+                            StreakFlame(streak: model.streak, paused: isPaused)
+                            Spacer()
+                            // W043 — the ring is gone from the BRIDGE. There it read "0/3": a competing prompt on the one
+                            // screen §1D says must have none, an ember element that is not a reward (law ④), and a zero
+                            // used as a verdict (A8) — three rules at once, on a user's first ever screen.
+                            if model.ringPlanned > 0, !isBridge { WeeklyRing(done: model.ringDone, planned: model.ringPlanned, days: model.weeklyRing) }
+                        }
+                        if !isBridge, !model.weeklyRing.isEmpty { WeekStrip(days: model.weeklyRing) } // A14: the states HomeModel already computed (F12)
+                    }
+                    TodayCard(state: model.today, nextUpLine: model.nextUpLine, onStart: { activeSession = model.startWorkout() }, onPost: { posting = true }, onLogCardio: { loggingCardio = true }, onBonus: { choosingBonus = true })
+                    if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete(shareToCrew: true) } }
+                    Spacer(minLength: EmberTokens.Spacing.sectionGap) // 6.7: what follows sits in the thumb half on a long phone
+                    if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
+                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+                            // A14 — the three vectors as peers. The standalone "Log cardio" button that used to sit here on
+                            // a workout day is gone: it IS the Cardio slot now, at a position that no longer moves between
+                            // states (F10). The card's own Log cardio / Bonus workout pair (A3) stays on rest and all-done.
+                            VectorRow(slots: model.vectors,
+                                      onWorkout: { if let session = model.startWorkout() { activeSession = session } else { choosingBonus = true } },
+                                      onCardio: { loggingCardio = true },
+                                      onMeal: { posting = true })
+                            if let members = model.crewStrip { CrewStrip(members: members) } // absent (not empty) for solo
+                        }
+                    }
                 }
-                TodayCard(state: model.today, nextUpLine: model.nextUpLine, onStart: { activeSession = model.startWorkout() }, onPost: { posting = true }, onLogCardio: { loggingCardio = true }, onBonus: { choosingBonus = true })
-                if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete(shareToCrew: true) } }
-                if isWorkoutDay { SecondaryButton(title: "Log cardio") { loggingCardio = true } } // A3: the card keeps its one primary; extras sit under it
-                if let members = model.crewStrip, !isBridge { CrewStrip(members: members) } // absent (not empty) for solo
+                .padding(EmberTokens.Spacing.space16)
+                .frame(minHeight: proxy.size.height, alignment: .top)
             }
-            .padding(EmberTokens.Spacing.space16)
         }
     }
 
@@ -83,7 +108,6 @@ struct HomeScreen: View {
 
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }
     private var isBridge: Bool { if case .bridge = model.today { return true } else { return false } } // 1D: nothing else competes
-    private var isWorkoutDay: Bool { if case .workout = model.today { return true } else { return false } }
 
     private func load() {
         model.refresh()

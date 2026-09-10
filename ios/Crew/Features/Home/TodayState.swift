@@ -11,7 +11,10 @@ enum BridgeKind: Equatable {
 
 enum TodayState: Equatable {
     case bridge(BridgeKind)
-    case workout(name: String, exerciseCount: Int, hasCardio: Bool)   // A2: "+ cardio" when the workout carries a cardio block
+    // A2: "+ cardio" when the workout carries a cardio block. A14: `lines` is the day's ACTUAL work (HomeLines) and `tail`
+    // the mobility/cardio summary — the card shows what you are doing, not how big it is; the count line stays but drops
+    // to a whisper (the identity line outranks it).
+    case workout(name: String, exerciseCount: Int, hasCardio: Bool, lines: [HomeLine], tail: String?)
     case rest(posted: Bool)
     case paused(until: String)                                        // A3: a DayLabel ("Sat Sep 12"), never raw ISO
     case allDone

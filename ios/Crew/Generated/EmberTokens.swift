@@ -5,7 +5,7 @@
 import SwiftUI
 
 enum EmberTokens {
-    /// Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web)
+    /// Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web). A14 (2026-09-09) adds two ROLE aliases onto that same scale so macro and micro rhythm can diverge without a new number: sectionGap (24) is the gap BETWEEN groups, rowGap (8) the gap WITHIN one — a uniform 16 pt everywhere is why Home read as empty rather than composed.
     enum Spacing {
         static let space4: CGFloat = 4
         static let space8: CGFloat = 8
@@ -13,6 +13,8 @@ enum EmberTokens {
         static let space16: CGFloat = 16
         static let space24: CGFloat = 24
         static let space32: CGFloat = 32
+        static let sectionGap: CGFloat = 24
+        static let rowGap: CGFloat = 8
     }
 
     /// GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web

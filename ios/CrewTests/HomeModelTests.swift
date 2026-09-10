@@ -24,6 +24,18 @@ final class HomeModelTests: XCTestCase {
         return store
     }
 
+    // A14: TodayState.workout now carries the day's ACTUAL rows, so a literal comparison would pin the seed's exercise names
+    // into three unrelated tests. These assert what the state MEANS: which workout, how big, and that a row exists per lift.
+    private func expectWorkout(_ state: TodayState, named name: String, file: StaticString = #filePath, line: UInt = #line) {
+        guard case .workout(let actual, let count, let hasCardio, let lines, _) = state else {
+            return XCTFail("expected a workout day, got \(state)", file: file, line: line)
+        }
+        XCTAssertEqual(actual, name, file: file, line: line)
+        XCTAssertEqual(count, SpecConstants.beginnerExerciseCount, file: file, line: line)
+        XCTAssertFalse(hasCardio, file: file, line: line)
+        XCTAssertEqual(lines.count, SpecConstants.beginnerExerciseCount, file: file, line: line) // one row per strength exercise
+    }
+
     private func post(_ store: Store, id: String, dayKey: String) throws {
         store.context.insert(LocalPost(clientId: id, userId: userId, type: "meal", sessionClientId: nil, caption: "eggs", mealTag: "breakfast", shareToCrew: false, dayKey: dayKey, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: friday))
         try store.save()
@@ -40,7 +52,7 @@ final class HomeModelTests: XCTestCase {
         try post(store, id: "p1", dayKey: "2026-09-03")
         model.refresh(now: friday)
         // Nothing completed yet, so the rotation starts at the cycle's first workout whatever the weekday (A1)
-        XCTAssertEqual(model.today, .workout(name: "Push day", exerciseCount: SpecConstants.beginnerExerciseCount, hasCardio: false))
+        expectWorkout(model.today, named: "Push day")
         XCTAssertNil(model.nextUpLine) // an undone training day says nothing about tomorrow (A3)
         XCTAssertTrue(model.quickCompleteAvailable)
         XCTAssertEqual(model.ringPlanned, 3)
@@ -61,7 +73,7 @@ final class HomeModelTests: XCTestCase {
         XCTAssertEqual(model.nextUpLine, "Next workout: Mon · Pull day") // A3: the day after a done day is not tomorrow
         XCTAssertEqual(model.bonusWorkouts.map(\.kind), ["pull", "legs", "push"]) // next up first
         model.refresh(now: monday)
-        XCTAssertEqual(model.today, .workout(name: "Pull day", exerciseCount: SpecConstants.beginnerExerciseCount, hasCardio: false))
+        expectWorkout(model.today, named: "Pull day")
     }
 
     func testRestDayLinesPausedAndResume() throws {
@@ -107,7 +119,7 @@ final class HomeModelTests: XCTestCase {
         try store.save()
         let model = HomeModel(store: store, userId: userId, timeZone: tz)
         model.refresh(now: friday)
-        XCTAssertEqual(model.today, .workout(name: "Push day", exerciseCount: SpecConstants.beginnerExerciseCount, hasCardio: false))
+        expectWorkout(model.today, named: "Push day")
         XCTAssertTrue(model.quickCompleteAvailable)
         XCTAssertEqual(model.ringDone, 0)
         XCTAssertEqual(model.bonusWorkouts.first?.kind, "push")

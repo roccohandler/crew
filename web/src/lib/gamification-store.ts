@@ -28,7 +28,10 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
   const todayKey = dayKeyFor(now, timezone);
   const full = recomputeState(
     sessionDocs.map((doc) => ({ id: doc._id.toHexString(), dayKey: doc.dayKey, completed: doc.status === "completed" })),
-    postDocs.map((doc) => ({ dayKey: doc.dayKey, kind: doc.type, isPlannedDay: doc.isPlannedDay, sessionId: doc.sessionId?.toHexString() })),
+    // SPEC: A14 · V25/V30/V31 — the engine knows three post kinds and always has; a cardio post is a WORKOUT to it, so a
+    // walk still earns +25, still sustains the streak, and every gamification vector stays green without being re-expected.
+    // The new "cardio" type exists for the journal, the heat map and Home's vector row — never for XP.
+    postDocs.map((doc) => ({ dayKey: doc.dayKey, kind: doc.type === "cardio" ? "workout" : doc.type, isPlannedDay: doc.isPlannedDay, sessionId: doc.sessionId?.toHexString() })),
     reactionDocs.map((doc) => ({ dayKey: doc.dayKey })),
     await pausesFor(userId),
     todayKey,

@@ -22,7 +22,7 @@ async function DayDetail({ userId, dayKey, todayKey, timeZone, distanceUnit }: {
     <section className="card stack stack--tight" aria-live="polite">
       <h2><time dateTime={dayKey}>{dayLabel(dayKey, todayKey)}</time></h2>
       {daySessions.map((session) => <p key={session._id.toHexString()}>{summaryFromSession(session, distanceUnit)}</p>)}
-      {dayPosts.filter((post) => post.type !== "workout").map((post) => <p key={post._id.toHexString()}>{post.photoKey ? <img className="photo" src={`/api/v1/photos/${post.photoKey}`} alt={post.caption || "Your plate"} /> : null}{postLine(post, timeZone, null, dayKey === todayKey)}{post.caption ? ` — ${post.caption}` : ""}</p>)}
+      {dayPosts.filter((post) => post.type !== "workout" && post.type !== "cardio").map((post) => <p key={post._id.toHexString()}>{post.photoKey ? <img className="photo" src={`/api/v1/photos/${post.photoKey}`} alt={post.caption || "Your plate"} /> : null}{postLine(post, timeZone, null, dayKey === todayKey)}{post.caption ? ` — ${post.caption}` : ""}</p>)}
       {daySessions.length === 0 && dayPosts.length === 0 ? <p className="muted">{"Nothing that day. Tomorrow's a fresh one."}</p> : null}
     </section>
   );

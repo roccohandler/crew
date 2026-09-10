@@ -34,13 +34,15 @@
   --ember-success: #3E8E5A;
   /* Semantic — danger (berry, never near orange; single value in spec; both modes) */
   --ember-danger: #D64550;
-  /* Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web) */
+  /* Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web). A14 (2026-09-09) adds two ROLE aliases onto that same scale so macro and micro rhythm can diverge without a new number: sectionGap (24) is the gap BETWEEN groups, rowGap (8) the gap WITHIN one — a uniform 16 pt everywhere is why Home read as empty rather than composed. */
   --ember-space-4: 4px;
   --ember-space-8: 8px;
   --ember-space-12: 12px;
   --ember-space-16: 16px;
   --ember-space-24: 24px;
   --ember-space-32: 32px;
+  --ember-section-gap: 24px;
+  --ember-row-gap: 8px;
   /* GAP (agent, 2026-09-04): component sizes the spec never states, named once so no layout number is typed inline (C7 spirit); points on iOS, px on web */
   --ember-size-avatar: 40px;
   --ember-size-avatar-large: 96px;
