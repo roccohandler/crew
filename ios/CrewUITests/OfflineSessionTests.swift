@@ -59,7 +59,11 @@ final class OfflineSessionTests: XCTestCase {
         // 1C / S01: the session outlives the kill because the Keychain holds it, not memory. An UNSIGNED simulator build cannot write
         // the Keychain at all (errSecMissingEntitlement, -34018) and wakes on the hero — run 34367618719 landed exactly there, so
         // the CI job signs simulator builds ad hoc. This assertion names that state instead of a missing banner.
-        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 20), "signed out after a kill — the Keychain did not keep the session; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        // "Today" is deliberate and is the BRIDGE, not a stale constant: this member finished onboarding and checked one set
+        // but never POSTED, and 1D holds the bridge until the first post exists — so this is the one state where A17.4 still
+        // titles Home "Today". Journey ② asserts the opposite for the same reason, and both are right. Do not "align" them:
+        // if this ever starts failing, the member reached Home in some OTHER state, which is itself the bug worth seeing.
+        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 20), "signed out after a kill, or Home is no longer the bridge — the Keychain may not have kept the session; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         let resume = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resume workout'")).firstMatch
         XCTAssertTrue(resume.waitForExistence(timeout: 20), "Home shows no Resume banner after a kill — the open session was lost")
         shoot(app, "S07 Home — Resume banner after a kill")

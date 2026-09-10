@@ -9,61 +9,106 @@
 # summary page, and GitHub annotations (::error file=…,line=…) so every compile error, assertion failure and failing test
 # is clickable at the top of the run and inline on the commit.
 #
-# Usage: bash ios/scripts/verdict.sh <unit-outcome> <ui-outcome> [dir holding unit.log and ui.log, default ios]
-# Testable from Windows against a saved log: GITHUB_WORKSPACE=/Users/runner/work/crew/crew bash ios/scripts/verdict.sh failure failure /tmp/fixture/ios
+# What run 34540455856 then taught (2026-09-10, second pass). A single failing UI assertion was reported as
+# "1 error(s) · 0 failing test(s)", under a "Failing tests:" heading with nothing beneath it. Two bugs, one cause — the
+# script did not know the difference between a COMPILE ERROR and an ASSERTION FAILURE:
+#   1. xcodebuild prints an XCTest assertion in the compiler's own shape, `file:line: error: -[Class test] : XCTAssert…`,
+#      so it was counted as a compile error. A green build was reported as having an error in it.
+#   2. The failing-test count came from the trailing "Failing tests:" block, whose real format is
+#      `\tJourney2_FastLogTests.testReturningUserFastLogs…()` — no bundle prefix, a DIGIT in the class name, and a `.`
+#      separator. The regex wanted `[A-Za-z]+Tests\.[A-Za-z_]+/test`, which matches none of those three things.
+# Failing tests are now counted off `Test Case '-[…]' failed (`, which xcodebuild prints per failure and has not changed
+# shape across Xcode versions, and the two kinds of finding are counted, headlined and annotated separately.
+#
+# And the last-resort rule, because a verdict that finds nothing must not print nothing: if a step failed but no error and
+# no failing test could be parsed out of its log (a simulator that never booted, a linker error, a timeout), the tail of
+# that log is printed. Silence is the one thing this step is not allowed to do.
+#
+# Usage: bash ios/scripts/verdict.sh <build-outcome> <unit-outcome> <ui-outcome> [dir holding the logs, default ios]
+# Testable from Windows against saved logs:
+#   GITHUB_WORKSPACE=/Users/runner/work/crew/crew bash ios/scripts/verdict.sh success success failure /tmp/fixture/ios
 set -uo pipefail
-unit_outcome="${1:-unknown}"
-ui_outcome="${2:-unknown}"
-dir="${3:-ios}"
+build_outcome="${1:-unknown}"
+unit_outcome="${2:-unknown}"
+ui_outcome="${3:-unknown}"
+dir="${4:-ios}"
 workspace="${GITHUB_WORKSPACE:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
-# file:line(:col): error: … — a compiler error and an XCTest assertion failure share this shape
+# file:line(:col): error: … — the shape a compiler error AND an XCTest assertion failure share. What separates them is that
+# the assertion names the test it came from: `error: -[CrewUITests.Journey2_FastLogTests testFoo] : XCTAssertTrue failed`.
 ERROR_LINE='^/.+\.swift:[0-9]+(:[0-9]+)?: error: '
-# the "Failing tests:" block xcodebuild prints at the end: one indented Suite.Class/test() per failure
-FAILING_LINE='^[[:space:]]+[A-Za-z]+Tests\.[A-Za-z_]+/test'
+ASSERT_MARK=': error: -\['
+# One per failure, printed as each test finishes. Version-stable, unlike the trailing "Failing tests:" summary block.
+FAILED_CASE="^Test Case '-\[.*\]' failed \("
 
-# The lines worth reading, once each, in order of appearance: errors, failing tests, per-suite totals, the BUILD/TEST verdicts
+compile_errors() { grep -E "$ERROR_LINE" "$1" 2>/dev/null | grep -v "$ASSERT_MARK" | awk '!seen[$0]++'; }
+assert_failures() { grep -E "$ERROR_LINE" "$1" 2>/dev/null | grep -E "$ASSERT_MARK" | awk '!seen[$0]++'; }
+failed_cases() { grep -E "$FAILED_CASE" "$1" 2>/dev/null | awk '!seen[$0]++'; }
+count() { local n; n=$("$1" "$2" | grep -c . ); echo "${n:-0}"; }
+
+# The lines worth reading, once each, in order of appearance: errors, failing tests, per-suite totals, the BUILD/TEST verdicts.
+# `Failing tests:` is followed by one indented `Class.test()` per failure — matched loosely enough to survive Xcode renaming it.
 salient() {
-  grep -E "error: |Failing tests:|$FAILING_LINE|Test Case .* failed \(|Executed [0-9]+ tests, with|\*\* (BUILD|TEST) (FAILED|SUCCEEDED)" "$1" 2>/dev/null \
+  grep -E "error: |Failing tests:|^[[:space:]]+[A-Za-z0-9_]+[./][A-Za-z0-9_./]*[Tt]est[A-Za-z0-9_]*\(?\)?$|$FAILED_CASE|Executed [0-9]+ tests, with|\*\* (BUILD|TEST) (FAILED|SUCCEEDED)" "$1" 2>/dev/null \
     | grep -v "CoreData: error" | awk '!seen[$0]++' | head -80
 }
 
-unique_count() { grep -E "$1" "$2" 2>/dev/null | awk '!seen[$0]++' | wc -l | tr -d ' '; }
+# `/Users/runner/work/crew/crew/ios/X.swift:12:3: error: msg` → `ios/X.swift`, `12`, `3`, `msg`
+split_error() { # sets file lineno col message
+  local line="$1"
+  file="${line%%:*}"; local rest="${line#*:}"
+  lineno="${rest%%:*}"; rest="${rest#*:}"
+  col=""
+  if [[ "$rest" =~ ^[0-9]+: ]]; then col="${rest%%:*}"; rest="${rest#*:}"; fi
+  message="${rest# error: }"
+  file="${file#"$workspace"/}"
+}
 
-# One GitHub annotation per error (repo-relative path, so it lands on the file) and one per failing test
+# One annotation per finding, at the file:line it happened — a compile error and an assertion failure are both clickable.
 annotate() {
-  grep -E "$ERROR_LINE" "$1" 2>/dev/null | awk '!seen[$0]++' | head -40 | while IFS= read -r line; do
-    file="${line%%:*}"; rest="${line#*:}"
-    lineno="${rest%%:*}"; rest="${rest#*:}"
-    col=""
-    if [[ "$rest" =~ ^[0-9]+: ]]; then col="${rest%%:*}"; rest="${rest#*:}"; fi
-    message="${rest# error: }"
-    file="${file#"$workspace"/}"
+  compile_errors "$1" | head -40 | while IFS= read -r line; do
+    split_error "$line"
     if [ -n "$col" ]; then printf '::error file=%s,line=%s,col=%s::%s\n' "$file" "$lineno" "$col" "$message"
     else printf '::error file=%s,line=%s::%s\n' "$file" "$lineno" "$message"; fi
   done
-  grep -E "$FAILING_LINE" "$1" 2>/dev/null | awk '!seen[$0]++' | head -40 | sed -E 's/^[[:space:]]+//' | while IFS= read -r test; do
-    printf '::error title=Failing test::%s\n' "$test"
+  assert_failures "$1" | head -40 | while IFS= read -r line; do
+    split_error "$line"
+    printf '::error file=%s,line=%s,title=Failing test::%s\n' "$file" "$lineno" "$message"
   done
 }
 
-# The headline first — what failed, how many, and the first error — then the salient lines under it
+# The headline per log — what failed, how many of each kind, and the first one — then the salient lines under it.
+section() {
+  local log="$1" outcome="$2"
+  echo
+  if [ ! -f "$log" ]; then
+    echo "### $log — not written (the step never ran; outcome: $outcome)"
+    return
+  fi
+  local errors failures first
+  errors=$(count compile_errors "$log")
+  failures=$(count failed_cases "$log")
+  echo "### $log — $errors compile error(s) · $failures failing test(s) · outcome: $outcome"
+  first=$(compile_errors "$log" | head -1 | sed -E "s#^$workspace/##")
+  [ -n "$first" ] && echo "first compile error: $first"
+  first=$(assert_failures "$log" | head -1 | sed -E "s#^$workspace/##")
+  [ -n "$first" ] && echo "first failing assertion: $first"
+  echo '```'; salient "$log"; echo '```'
+  # A step that failed with nothing parseable in it must still say something — the tail is better than silence.
+  if [ "$outcome" = failure ] && [ "$errors" = 0 ] && [ "$failures" = 0 ]; then
+    echo "NO compile error and NO failing test could be parsed out of a log whose step FAILED — the last 30 lines:"
+    echo '```'; tail -30 "$log"; echo '```'
+  fi
+}
+
 report() {
-  echo "## ios — unit: $unit_outcome · journeys: $ui_outcome"
-  for log in "$dir/unit.log" "$dir/ui.log"; do
-    echo
-    if [ ! -f "$log" ]; then echo "### $log — not written (the step never ran)"; continue; fi
-    local errors failing first
-    errors=$(unique_count "$ERROR_LINE" "$log")
-    failing=$(unique_count "$FAILING_LINE" "$log")
-    first=$(grep -E "$ERROR_LINE" "$log" 2>/dev/null | head -1 | sed -E "s#^$workspace/##")
-    echo "### $log — $errors error(s) · $failing failing test(s)"
-    [ -n "$first" ] && echo "first error: $first"
-    echo '```'; salient "$log"; echo '```'
-  done
+  echo "## ios — build: $build_outcome · unit: $unit_outcome · journeys: $ui_outcome"
+  section "$dir/build.log" "$build_outcome"
+  section "$dir/unit.log" "$unit_outcome"
+  section "$dir/ui.log" "$ui_outcome"
 }
 
 report | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
-# One annotation per DISTINCT error: a compile error appears in both logs (each scheme compiles the app), so dedupe across them
-{ for log in "$dir/unit.log" "$dir/ui.log"; do [ -f "$log" ] && annotate "$log"; done; } | awk '!seen[$0]++'
-[ "$unit_outcome" = success ] && [ "$ui_outcome" = success ]
+# One annotation per DISTINCT finding across the three logs
+{ for log in "$dir/build.log" "$dir/unit.log" "$dir/ui.log"; do [ -f "$log" ] && annotate "$log"; done; } | awk '!seen[$0]++'
+[ "$build_outcome" = success ] && [ "$unit_outcome" = success ] && [ "$ui_outcome" = success ]

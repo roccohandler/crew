@@ -262,3 +262,31 @@ The owner opened the shipped Home on the phone and said: *"I am looking at it an
 **Counts:** vectors **56 → 56** (A17 adds no vector and changes no engine rule, by design) · web **389 → 429** tests (41 files) · Swift **70 → 76** · e2e **23 → 29** passed (the two new Home layout assertions across all three viewports).
 
 **NEXT: the owner's phone review (D20).** Stage 7 of the previous plan (A15, change today's workout) is **held** until Home is confirmed on the device — A15 routes "do a different day" to the same bonus list, which would become a fourth control for that destination if Home is not settled first.
+
+---
+
+## 2026-09-10 · CI — the ios job compiles the app once instead of twice, and the verdict can count
+
+Run 34540455856 was red on **one line**. `Journey2_FastLogTests.swift:33` waited for `app.navigationBars["Today"]`, and A17.4 had just made Home's title name the state. Journey ②'s member trains every day and has already posted, so that screen is titled with the workout's name and can never say "Today" again. The other four journeys passed. `OfflineSessionTests.swift:62` asserts the same string and passed — correctly, but by luck of state: its member never posts, so Home is still the BRIDGE, the one state where "Today" survives. Both assertions now say in-comment which state they are in, because they look contradictory and are not.
+
+Two things around the failure cost more than the failure did.
+
+**The verdict could not tell a compile error from a failing test.** It reported `1 error(s) · 0 failing test(s)` — both numbers wrong — and printed a `Failing tests:` heading with nothing beneath it. One cause: xcodebuild prints an XCTest assertion in the compiler's own `file:line: error:` shape, so the assertion was counted as a compile error; and the failing-test count came from the trailing summary block, whose real format is `\tJourney2_FastLogTests.testReturningUserFastLogs…()` — no bundle prefix, a **digit** in the class name, a `.` separator — against a regex wanting `[A-Za-z]+Tests\.[A-Za-z_]+/test`, which matches none of those three things. Failing tests are now counted off `Test Case '-[…]' failed (`, which xcodebuild prints per failure and has not changed shape across Xcode versions, and the two kinds of finding are counted, headlined and annotated separately. Added rule: **a failed step whose log yields no finding at all prints its tail** — a simulator that never boots was previously a red step whose log said only `** TEST FAILED **`. All three paths were run against the real saved logs and against fixtures before pushing.
+
+**The job compiled the 151-file app twice**, because two `xcodebuild test` invocations meant two schemes, and the `Crew` scheme carried `gatherCoverageData: true` while `CrewUITests` did not — different flags on the same target, so nothing could be reused. Coverage data was produced on every run and read by nothing: no `xccov`, no gate, no report.
+
+| | before (run 34540455856) | after |
+|---|---|---|
+| setup · npm ci · dev server · warm-up · sim pick | 35 s serial | ~10 s (npm + next detached, overlapping the build) |
+| unit step | **95 s** = 92 s build + 3.1 s test | — |
+| journeys step | **231 s** = 82 s build + 149 s test | — |
+| build (once, both bundles, no coverage) | — | ~95 s |
+| unit (`test-without-building`) | — | ~10 s |
+| journeys (`test-without-building`) | — | ~155 s |
+| **job** | **6m 11 s** | **~4¾ min expected** |
+
+**Shipped:** a CI-only `CrewAll` scheme carrying both test bundles, so one `build-for-testing` feeds two `test-without-building` runs and the unit/journeys split survives as `-only-testing:` · `gatherCoverageData` dropped · `npm ci` + the dev server detached so they come up during the build, with the wait moved after it and made to print `dev-server.log` instead of timing out mute · the unit suite reordered ahead of the harness wait, since 127 tests against bundled vectors need no server · `verdict.sh` taking three outcomes and three logs · the two `navigationBars["Today"]` assertions corrected and explained. `-scheme Crew` and `-scheme CrewUITests` are untouched: `CrewAll` exists only so CI pays for the app once.
+
+**Verified locally before the push:** `check-drift` · `check-vectors` (56) · `check-seeds` · `doctrine-lint` (185 Swift files) · `swift-xref` (185 files, 371 types) · `ios/scripts/doctrine-lint.sh` · docker `swift test` **76** · web `npm test` **429** (41 files) · `tsc --noEmit` · `eslint` — all clean. `verdict.sh` run against run 34540455856's real `unit.log` and `ui.log` (now: `0 compile error(s) · 1 failing test(s)`, first failing assertion named, annotation at `Journey2_FastLogTests.swift:33`, exit 1) and against fixtures for the compile-error and unbootable-simulator paths. Web e2e not re-run: no web source changed in this pass.
+
+**NEXT:** the runner is the only oracle for `build-for-testing`/`test-without-building` — push and read the verdict. The owner's phone review of Home (D20) and the held Stage 7 (A15) are unchanged by this pass.

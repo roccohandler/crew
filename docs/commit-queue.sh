@@ -195,6 +195,14 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/CrewTests/WeekSummaryTests.swift ios/CrewTests/HomeModelTests.swift ios/CrewTests/ShellStatesTests.swift ios/Package.swift \
   web/src/lib web/src/components web/src/app web/tests
 
+# --- F36 (run 34540455856: red on one A17-stale assertion, 6m11s of which half was the same compile done twice) ---
+commit_task "perf(ci): the ios job compiled the 151-file app TWICE — once per scheme, because the Crew scheme gathered coverage data that nothing reads and CrewUITests did not, so the same target could never be reused. A CI-only CrewAll scheme carries both test bundles, one build-for-testing feeds two test-without-building runs, and the unit/journeys split survives as -only-testing:. npm ci and the dev server now come up DURING the build instead of before it, and the unit suite (127 tests, 3.1 s, no server) runs ahead of the wait. 6m11s of build+test was 174 s of compiling and 152 s of testing; the compiling is now paid once. Journey 2 asserted navigationBars[Today] and A17.4 had just made Home's title name the state — OfflineSession asserts the same string and is right, because its member never posts and Home is still the bridge; both now say which state they are in. And the verdict could not count: it called one failing assertion 1 error(s) - 0 failing test(s) under an empty Failing tests: heading, because xcodebuild prints an XCTest failure in the compiler's own file:line: error: shape and the summary-block regex wanted a class name with no digit in it. Compile errors and failing tests are now counted apart, and a failed step that yields no finding at all prints its tail instead of nothing [SPEC: 8.4; 5.3; A17.4; 1D; S01; Part X Phase 1; XI T008/T025/T027/T043]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  .github/workflows/ci.yml ios/project.yml ios/scripts/verdict.sh \
+  ios/CrewUITests/Journey2_FastLogTests.swift ios/CrewUITests/OfflineSessionTests.swift \
+  docs/testing-without-a-mac.md docs/progress.md docs/debt.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

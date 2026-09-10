@@ -88,13 +88,25 @@ git push
    contract. (Getting here took four one-line compile fixes, one wrong test expectation, one server rule the simulator's
    "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) Since 2026-09-09 the job runs the unit suite AND the
    journeys even when the first fails, and its **verdict** step (`ios/scripts/verdict.sh` since 2026-09-10) is the ONE
-   step that goes red. **Read that step's own log first.** Its first line is the headline (`## ios — unit: failure ·
-   journeys: failure`); then, per log, the error count, the first error, and the salient lines — compile errors,
-   assertion failures, the "Failing tests:" block, suite totals. The same text is on the run's summary page, and every
-   error is also a GitHub annotation (a clickable `file:line` at the top of the run and on the commit). Before 2026-09-10
-   the verdict wrote only to the summary page, so the red step's own log said nothing but "exit code 1" and the two
-   xcodebuild steps above it showed ✓ (they are `continue-on-error`) — run 34491587098, one compile error hidden under
-   3,000 lines of warnings. One run reports every failure, not one layer per push. The agent reads the log itself:
+   step that goes red. **Read that step's own log first.** Its first line is the headline (`## ios — build: success ·
+   unit: success · journeys: failure`); then, per log, the counts, the first finding of each kind, and the salient lines
+   — compile errors, assertion failures, the "Failing tests:" block, suite totals. The same text is on the run's summary
+   page, and every finding is also a GitHub annotation (a clickable `file:line` at the top of the run and on the commit).
+   Before 2026-09-10 the verdict wrote only to the summary page, so the red step's own log said nothing but "exit code 1"
+   and the two xcodebuild steps above it showed ✓ (they are `continue-on-error`) — run 34491587098, one compile error
+   hidden under 3,000 lines of warnings. One run reports every failure, not one layer per push.
+
+   Three logs, because the job **builds once and tests twice**: one `build-for-testing` on the CI-only `CrewAll` scheme
+   (`build.log`), then two `test-without-building` runs that share its products (`unit.log`, `ui.log`). Until 2026-09-10
+   it ran `xcodebuild test` twice, once per scheme, and each invocation recompiled the whole 151-file app — 92 s in the
+   unit step and 82 s again in the journeys step, 47% of a 6m11s job. `-scheme Crew` and `-scheme CrewUITests` are
+   untouched and are still what you open in Xcode; `CrewAll` exists only so CI pays for the app once. Two more rules
+   the verdict learned from run 34540455856, where a single failing UI assertion was reported as "1 error(s) · 0 failing
+   test(s)" under an empty "Failing tests:" heading: **a compile error and an assertion failure are counted separately**
+   (xcodebuild prints an XCTest failure in the compiler's own `file:line: error:` shape, but only the assertion carries
+   `-[Class test]`, which is what tells them apart), and **a failed step whose log yields no finding at all prints its
+   tail** — a simulator that never boots is otherwise a red step whose log says only `** TEST FAILED **`. The agent reads
+   the log itself:
    `gh api repos/roccohandler/crew/actions/runs/<run>/attempts/<n>/jobs` lists the job ids, and
    `gh api repos/roccohandler/crew/actions/jobs/<id>/logs` is the raw log — job ids differ per attempt.
    **Reading a UI-test failure from Windows:** the artifact's `.xcresult/Data` files are zstd-compressed (magic `28 B5 2F FD`);

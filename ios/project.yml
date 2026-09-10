@@ -110,7 +110,6 @@ schemes:
       config: Debug
       targets:
         - CrewTests
-      gatherCoverageData: true
   CrewUITests:
     build:
       targets:
@@ -119,4 +118,21 @@ schemes:
     test:
       config: Debug
       targets:
+        - CrewUITests
+  # CI ONLY (2026-09-10). The two schemes above are what a developer opens in Xcode: `-scheme Crew` runs the fast
+  # unit + vector suite and nothing else. CI wants both bundles, and running the two schemes back to back compiled the
+  # 151-file Crew target TWICE — 92 s in the unit step and 82 s again in the journeys step, 47% of a 6m11s job (run
+  # 34540455856). One scheme carrying both test targets means one `build-for-testing`, then two
+  # `test-without-building` runs that share it. The unit/journeys split survives as -only-testing:, so the job still
+  # reports the two layers separately.
+  CrewAll:
+    build:
+      targets:
+        Crew: all
+        CrewTests: [test]
+        CrewUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - CrewTests
         - CrewUITests
