@@ -183,11 +183,17 @@ the chat.
    `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_PRIVATE_KEY` (the whole `.p8`),
    `APPLE_TEAM_ID`; variables `CREW_BUNDLE_ID` (the record's bundle id) and `CREW_API_HOST` (the Vercel host — no
    scheme, no trailing slash).
-7. Actions → **testflight** → Run workflow, build number higher than the last upload (1 for this codebase;
-   `manageAppVersionAndBuildNumber` in `ios/ExportOptions.plist` lets Xcode raise it if App Store Connect already holds a
-   higher one). `.github/workflows/testflight.yml` archives, signs (the API key lets Xcode issue the certificate and
-   profile itself — no `.p12` to export from a Mac you do not have; the App ID's capabilities — Sign in with Apple, Push,
-   Associated Domains — are registered the same way) and uploads straight to App Store Connect.
+7. **Nothing to do — since 2026-09-11 a TestFlight build is automatic.** `.github/workflows/testflight.yml` triggers on
+   `workflow_run` from `ci`, so every commit that lands on master and goes green becomes a build; it archives, signs (the
+   API key lets Xcode issue the certificate and profile itself — no `.p12` to export from a Mac you do not have; the App
+   ID's capabilities — Sign in with Apple, Push, Associated Domains — are registered the same way) and uploads straight to
+   App Store Connect. The build number is `git rev-list --count HEAD`, the commit count, which only ever goes up — App
+   Store Connect rejects anything not higher than the last upload for the same version string, and that is not something a
+   human should have to remember. Before this, the two workflows were unconnected and a green CI run shipped nothing: the
+   entire A17 Home pass sat on master while TestFlight served the build from before it, which is exactly how the owner
+   found out. Actions → **testflight** → Run workflow still works for a one-off, and its `build_number` input overrides the
+   commit count (leave it blank to use the count); `manageAppVersionAndBuildNumber` in `ios/ExportOptions.plist` lets Xcode
+   raise the number anyway if App Store Connect already holds a higher one.
 8. App Store Connect → TestFlight → Internal Testing → a group with yourself in it. Install the TestFlight app on the
    iPhone; the build appears there once processing finishes (usually minutes).
 

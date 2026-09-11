@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-09 afternoon (CI green on every job incl. all five iPhone journeys; TestFlight build 3 started) — earlier: 2026-09-08 evening (cold-start full audit, then gap closures Q01–Q10) · Current phase: 5 → 6 (everything runnable
+Updated: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -118,6 +118,146 @@ manifest as the machine-checked ShareAlike boundary — Stage 8 still gated on t
    `requireSignupGates` already uses), and an **absent birth year reads as under 18** — the surface is hidden, nothing is
    asked, and no existing account is re-prompted. Recorded here because it lands inside the same owner task as item 1.
 
+## 2026-09-10 (night) — A18, THE FOURTH HOME REVIEW (owner-directed; Appendix A entry A18.1–A18.13; contract docs/home-plan-a18-2026-09-10.md)
+
+The owner looked at the rest-day Home that the A17 pass produced and asked four questions: **what is the 1/3 · why is
+there a big blank space · why does the card saying rest day have a Post a meal CTA · why are there three strange divs
+at the bottom**. The lead sentence matters more than any of them: *"the next action isn't clear."* A17 answered "what
+are the colours for" and did not answer "what do I do now", and its reordered stack is the void in the screenshot.
+
+Evidence: a 45-agent review (7 repo lenses + 6 outside-research lenses, 124 findings, 10 load-bearing claims through 3
+adversarial verifiers each, a synthesis and a completeness critic). The owner then answered **sixteen** questions; every
+answer is carried in the registry entry and in §0 of the plan.
+
+**What shipped** — all thirteen clauses, on both engines:
+
+| Clause | Change |
+|---|---|
+| A18.1 | every numeral is NAMED where it sits: "day streak" under the flame, "workouts this week" under the ring |
+| A18.2 | the ring renders only above zero done — it printed "0/3" on every non-bridge **Monday**, the same A8 violation that got it removed from the bridge, on six states nobody checked |
+| A18.3 | the what's-next fact is a titled BLOCK above the card on rest/all-done (not on a workout day: that card IS what is next, and it is the tallest state) |
+| A18.4 | the rest card states its PREMISE — "Rest days count too — post anything and your N-day streak holds" |
+| A18.5 | the three vectors become three FULL-WIDTH VERB rows ("Log workout"), not three equal-width noun cells wearing the silhouette of a segmented control |
+| A18.6 | paused: pause-aware week marks, no ring, **"End the pause now"** on the card, and the **web pause guard** iOS had and web never mirrored |
+| A18.7 | every planned day gets a mark (A17.4 marked only the next one, so a 4-day plan's ring said "of 4" over a strip that could account for 3) |
+| A18.8 | the bridge carries ONE CTA even with a session open — it absorbs the resume instead of a second banner beside it |
+| A18.9 | the all-done card reports the day in the journal's own sentence and carries no control |
+| A18.10 | the toolbar camera is dropped wherever the card already offers a meal CTA |
+| A18.11 | **`controlOutline`** #938C83 / #726A61 — every outline control in the app drew its boundary at 1.26:1 against a 3:1 gate; the debt is repaid at the token, not per-site |
+| A18.12 | Home's `.offline` state is REACHABLE (it was declared and assigned nowhere; the banner had never rendered) |
+| A18.13 | the streak's daily-vs-weekly cadence is RECORDED as an open owner decision, not changed |
+
+Plus **twelve pure defects** (J021–J032): the web pause guard, a bonus workout marking the week differently on the two
+engines, web's Workout row going to /plan on a paused day, the flame's ARIA on a bare `<div>`, next-up ink-vs-grey
+parity, ring geometry diverging by a third, and two false source comments that would have been quoted against the next
+decision (one said rest carries no filled primary twelve lines above the code that renders one; one said a bonus while
+paused earns +25 when V20 says it earns zero).
+
+**Commands run here, 2026-09-10 night:**
+
+| Command | Result |
+|---|---|
+| `generate.mjs && check-drift.mjs` | all 7 Generated files match shared/ |
+| `check-vectors.mjs` · `check-seeds.mjs` | 56 vectors across 9 files · 15 achievements / 110 exercises / 45 lists |
+| `doctrine-lint.mjs` · `swift-xref.mjs` | clean — 192 Swift files · 192 files, 377 types, clean |
+| web: `npm run typecheck` · `npm run lint` | exit 0 · exit 0 |
+| web: `npm test` | **42 files, 446 tests** (436 → 446: J028 adds the first-ever tests for `today-state.ts`) |
+| web: `npm run vectors` | 56 passed |
+| web: `npm run e2e` | **32 passed, 1 skipped (by design), 0 failed** — the layout gate now runs at 375×667, 393×852 AND 440×956 |
+| web: `npm run build` | green |
+| `docker swift test` (Linux engine + vectors) | **76 tests, 0 failures** |
+
+**A18 ADDED NO VECTOR, and that is a ruling, not an omission** — the vector suite is the gamification fixture contract
+and A18 changes no rule that engine runs; the pause-aware week marks are a reporting function that awards nothing.
+V57–V64 stay reserved for A16 (nutrition); the next free id is still V57.
+
+**WRITTEN-UNVERIFIED, stated plainly:** every iOS view file in this pass. The full-width log rows, the two captions,
+the next-up block, the paused control, the bridge's absorbed resume and the reachable offline banner have never
+rendered on a simulator or a device from this machine. The macOS CI job compiles them and now **photographs all four
+non-bridge Home states into the run artifact** (J034, `CrewUITests/HomeStatesTests.swift`) — before this, the only
+non-bridge Home CI had ever rendered was a workout day, which is how a rest-day defect and a paused state that
+contradicted its own copy both reached TestFlight with every job green.
+
+**The one measurement this pass made that it did NOT fix**, because it is outside A18's ratified scope: Home's bottom
+anchor is a `Spacer` inside scrolling content, which collapses to zero the moment content exceeds the viewport. The
+new gate measured the rest-day Home at **24 px gap on 375×667 (the spacer is already fully collapsed and the page
+overflows), 108 px on 393×852, 212 px on 440×956**. So 6.7's "primary actions stay bottom-anchored regardless of how
+much canvas exists above" holds on the smallest phone by accident rather than by mechanism, and every element A18
+added moves that collapse onto more devices. Logged in debt.md; it is the first item of the next pass.
+
+## 2026-09-11 — A19 RATIFIED, AND STAGES A / B / D LANDED (Appendix A entry A19.1–A19.6; contract docs/ios-ux-audit-2026-09-10.md; handoff docs/a19-handoff-prompt.md)
+
+The owner ratified the app-wide interaction-ergonomics audit **as drafted** and ruled on the three gate items:
+**R4 → shape (b)** (the celebration's inert share toggle becomes two buttons — primary "Share to crew", text "Keep it
+private" — which removes a control and, unlike shape (a), keeps post visibility out of the completion inputs so it
+needs **no new vector**); **Journal → a segment inside Progress** (Charts / Journal; the five-tab set is unchanged);
+and the **ordering**: A18 tail → A19 Stage A → Stages B/D → **A15** → Stages C/E/F.
+
+**THE FINDING THAT MADE STAGE A FIRST.** `safeAreaInset` had ZERO uses in the app. Every "bottom-anchored" primary was
+a `Spacer` inside scrolling content (which collapses to zero the moment content exceeds the viewport), a `VStack`
+sibling (which just scrolls away), or an `overlay` with hand-computed padding that guessed the home indicator's
+height differently in each file. A18's own new layout gate measured it: the rest-day Home's largest gap is 212 px at
+440×956 and **24 px at 375×667 — small there precisely BECAUSE the page already overflows and the anchor has already
+collapsed.** So 6.7's "primary actions stay bottom-anchored regardless of how much canvas exists above" has never been
+mechanically true anywhere; it has been true only while each screen happened to fit.
+
+**Stage A — the mechanism.** New `ios/Crew/Shared/BottomBar.swift`: one `.crewBottomBar { }` modifier over
+`safeAreaInset(edge: .bottom)`, `controlOutline` top edge, `@ScaledMetric` metrics, and **conditional** — a screen with
+no primary gets no bar, because A17.3 and A18.9 both rule that a day asking nothing carries no filled primary.
+Adopted, lowest-risk first: **GeneratedPlanScreen · NutritionPostScreen · CardioLogScreen · SessionScreen ·
+LoginScreen · SaveAuthScreen**.
+
+**Stage B — the dead ends.** `ToolbarItemGroup(placement: .keyboard)` Done on every numeric pad — `.numberPad` and
+`.decimalPad` ship no return key, so the cardio distance field and the birth-year field could be focused with no way
+to dismiss the keyboard and no way to reach the button beneath it; the only escape was the back gesture, which throws
+the entry away. (R3 Apple-failure and R6 VoiceOver-react were already in the tree.)
+
+**Stage D — the ergonomic inversions.** R9: the `Spacer` moved ABOVE the options in `SingleSelectQuestion` and above
+Save in `EditProfileScreen` — the only action on the onboarding questions sat at the top of the screen with ~400 pt of
+dead canvas beneath it, the exact defect A17.2 fixed on Home and never applied anywhere else. R10: `ScrollView`
+overflow valves on `IntroScreen` and both question screens (6.7 makes this non-negotiable at accessibility-XXL).
+R5: **"Discard workout" is out of the session's scroll tail**, where it sat immediately above the Complete primary —
+6.3 forbids a destructive control adjacent to a primary, and that adjacency happened at the exact moment the user
+reached for Complete. It is a nav-bar item now, still two-step, at the other end of the screen.
+
+**A18.11's token sweep finished on iOS.** A18 moved SecondaryButton and Home's log rows onto `controlOutline`; A19
+found **nine more control boundaries** still drawing at 1.26:1 — the day toggle, the onboarding option cards, the
+meal-tag chips, the activity tiles, the set ±, the cardio Done, the bonus-workout rows, the plan week rows (which
+switch to the surface colour when the row is NOT interactive) and the signup text fields. `contrast.test.ts` now
+sweeps **every** Swift file with an explicit five-entry allowlist of the surfaces still entitled to a hairline (the
+Card, the EquipmentChip label, the "Sending ↻" status chip, the unit banner, the Undo snackbar), so a new control that
+reaches for the old token fails the suite rather than shipping invisible.
+
+**NOT DONE, and deliberately:**
+- **Home has NOT adopted the bar.** A19.1 ratifies "Home last … let A18's tests land first", and A18's iOS half has
+  never compiled on a Mac. Home's adoption follows the first green CI run on it.
+- **WorkoutEditorScreen has NOT adopted the bar.** Its primary lives in the nav bar, so moving it IS R11 — Stage E,
+  which the ratified ordering puts after A15.
+- **Stage C (R4)** is ruled but not built: the ordering places it after A15.
+- **No web twins are owed for these stages** (6.8): web has no session Discard, its Apple sign-in is a server-side
+  callback rather than `ASAuthorization`, and browsers provide their own keyboard dismissal. R4's and R13's twins move
+  with Stages C and E.
+
+**Commands run here, 2026-09-11:**
+
+| Command | Result |
+|---|---|
+| `generate.mjs && check-drift.mjs` · `check-vectors.mjs` · `check-seeds.mjs` | Generated files match · 56 vectors / 9 files · seeds consistent |
+| `doctrine-lint.mjs` · `swift-xref.mjs` | clean — 193 Swift files · 193 files, 379 types, clean |
+| web: `typecheck` · `lint` | exit 0 · exit 0 |
+| web: `npm test` | **42 files, 445 tests** |
+| web: `npm run vectors` | 56 passed |
+| web: `npm run e2e` | **32 passed, 1 skipped (by design), 0 failed** |
+| `docker swift test` | **76 tests, 0 failures** |
+
+Every iOS change in A19 so far is **WRITTEN-UNVERIFIED**: `safeAreaInset`, `ToolbarItemGroup(placement: .keyboard)`
+and the re-parented scroll views have never rendered from this machine. swift-xref checks call shapes, doctrine-lint
+checks structure; neither compiles SwiftUI. **The macOS CI job is the first real verification**, and the next thing to
+do with A19 is read it.
+
+**NEXT:** A15 (Stage 7, "change today's workout") per the ratified ordering — after the CI run that compiles A18 + A19
+Stages A/B/D, so Home's bar adoption and the editor's R11 can follow on proven ground.
+
 ## Ledger
 
 Phase 0 — contracts
@@ -148,7 +288,7 @@ Phase 2 — core loop
 - [~] T021 Onboarding S02–S04 — WRITTEN-UNVERIFIED (CI: journey ① walks S02→S04 on the simulator; screenshots reviewed R-052/R-053)
 - [~] T022 SaveAuthScreen + Login (S05; S06 removed v1.9) — WRITTEN-UNVERIFIED (CI: journey ① saves with email)
 - [x] T023 plans/sessions/sync API — DONE-VERIFIED (plans.test.ts, sessions.test.ts, sync.test.ts in `npm test`, incl. the iPhone batch replay)
-- [~] T024 Home S07 — REBUILT for A3 on 2026-09-09 (rest-day and all-done CTAs, next-up line, bonus workout sheet, cardio log, camera toolbar button; HomeModelTests rewritten, 6 tests) — WRITTEN-UNVERIFIED (CI: HomeModelTests + HomeModelEdgeTests green; bridge and post-state screenshots reviewed R-053)
+- [~] T024 Home S07 — **A18 (2026-09-10 night): thirteen clauses + twelve defects on both engines; every numeral named, the ring off a zero week, the next-up block, the rest-day premise, full-width verb log rows, the paused state freed of its contradiction, the bridge back to one CTA, the all-done card reporting the day, the controlOutline token, a reachable offline state. Tests J028–J035 green HERE (web 446, e2e 32, Swift 76); every iOS VIEW is WRITTEN-UNVERIFIED — contract docs/home-plan-a18-2026-09-10.md**. Earlier: A17 (2026-09-10), and REBUILT for A3 on 2026-09-09 (rest-day and all-done CTAs, next-up line, bonus workout sheet, cardio log, camera toolbar button; HomeModelTests rewritten, 6 tests) — WRITTEN-UNVERIFIED (CI: HomeModelTests + HomeModelEdgeTests green; bridge and post-state screenshots reviewed R-053)
 - [~] T025 Session S09 — CardioRow + live summary line + "Counted." added for A2 on 2026-09-09 (SessionModelTests +3) — WRITTEN-UNVERIFIED (CI: SessionModelTests green; journey ② logs 3/3 sets)
 - [~] T026 Celebration + workout post + Posts API (S10) — PARTIAL: Posts API DONE-VERIFIED (posts.test.ts); web celebration DONE-VERIFIED (e2e journey ④); iOS half WRITTEN-UNVERIFIED (CI: journey ② reaches the celebration)
 - [~] T027 Nutrition posting S11 + lib/blob.ts — PARTIAL: photos API DONE-VERIFIED (photos.test.ts: EXIF/GPS fixture stripped, ≤ budget, owner-only read); web posting DONE-VERIFIED (e2e journey ①, when it does not flake — Q02); iOS half WRITTEN-UNVERIFIED
@@ -339,3 +479,21 @@ All five jobs green, including the five iPhone journeys. The two test fixes and 
 **Where the time actually is, for whoever picks this up:** the journeys are **181 s of the 396 s step**, and simulator preparation is another 170 s. Compiling is 38 s — it is not the problem and never was. The one lever left with a clear mechanism is the `debt.md` entry on `OfflineSessionTests` and `CameraDeniedTests` re-driving the whole onboarding flow through the UI purely as setup (~20 s each), which Journey ① already covers as its subject; it is the owner's call because it weakens what OfflineSession proves about the Keychain. **Do not attempt another CI-shape optimisation without reading the counter across three runs** — two attempts from one run's numbers produced one 86% regression and one no-op.
 
 **NEXT:** unchanged by all of this — the owner's phone review of Home (D20), with Stage 7 (A15) held behind it.
+
+---
+
+## 2026-09-11 · TestFlight builds itself now — a green CI run had never shipped anything
+
+The owner asked why the app on their phone had not changed. It had not changed because **nothing connected `ci.yml` to `testflight.yml`**: TestFlight was `workflow_dispatch` only, so a build happened when, and only when, somebody clicked "Run workflow". The last upload was commit `4ef2096` at 21:12 on 2026-09-10 — **before A17 landed**. The whole Home redesign, and both CI passes after it, had gone green on master and reached no phone. Four commits deep, and the only symptom was the app looking the same.
+
+**Shipped:** `testflight.yml` gains a `workflow_run` trigger on `ci` completion, gated to `conclusion == 'success' && head_branch == 'master'` — `workflow_run` fires on every completion including failures and pull-request runs, so the gate is the whole safety. Three things that are easy to get wrong and are now right:
+
+- **It checks out the triggering commit, not the branch tip.** A `workflow_run` job defaults to the default branch's HEAD, which would silently ship whatever landed while the build was queued. `ref: github.event.workflow_run.head_sha` makes the TestFlight build the code that actually went green.
+- **The build number is `git rev-list --count HEAD`** (116 next), not a human-supplied input. App Store Connect rejects any number not higher than the last upload for the same version string; the commit count only ever goes up. `fetch-depth: 0`, because a depth-1 clone reports the count as 1.
+- **`concurrency: { group: testflight, cancel-in-progress: true }`** so two quick pushes cannot race two uploads. Latest commit wins, which is the point of the whole thing.
+
+`workflow_dispatch` survives with `build_number` now optional — blank uses the commit count, a value forces one. A final step writes the build number, the commit and **"App Store Connect now PROCESSES it, which takes a few minutes; until that finishes TestFlight still shows the previous build"** to the job summary, because that delay is the other half of "why don't I see the update yet".
+
+**The cost, stated plainly:** every commit that lands on master now spends ~7 min of macOS CI plus ~5 min of macOS archive-and-upload, both at the 10× minutes multiplier — documentation-only commits included. That is the price of never having to remember, and it is the owner's to revisit. `workflow_run` cannot filter by path, so skipping docs commits would need a job-level diff check; not built, because the ask was "I always want to see the update".
+
+**NEXT:** the first automatic build is the proof — it should appear as build 116 under version 0.1.0. Then the owner's phone review of Home (D20), with Stage 7 (A15) held behind it.

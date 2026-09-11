@@ -1,5 +1,7 @@
 # Build the iPhone app on GitHub's macOS runners and deliver it to TestFlight — the whole path from a machine that is not
-# a Mac. Run it by hand: Actions → "testflight" → Run workflow.
+# a Mac. It runs ITSELF after every green `ci` run on master (see `on:` below); Actions → "testflight" → Run workflow is
+# still there for a manual build. Note that a green CI run costs ~7 min of macOS runner time and this adds ~5 more, on
+# every commit that lands — including documentation-only ones, which is the price of never having to remember.
 # SPEC: XI T045 (TestFlight + web beta) · Part X Phases 6–7 · docs/testing-without-a-mac.md (the owner's step list).
 #
 # Secrets it needs (Settings → Secrets and variables → Actions), all from App Store Connect:
@@ -16,19 +18,52 @@
 name: testflight
 
 on:
+  # EVERY commit that lands on master and goes green in ci.yml becomes a TestFlight build. Until 2026-09-11 this
+  # workflow was `workflow_dispatch` only, so nothing connected a green CI run to a build on the owner's phone — the
+  # whole A17 Home redesign sat green on master while TestFlight still served the build from before it, and the owner
+  # had no way to know except by noticing the app had not changed.
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+  # Still runnable by hand — for a build from a branch, or to force a specific number after a rejected upload.
   workflow_dispatch:
     inputs:
       build_number:
-        description: "Build number (must be higher than the last upload)"
-        required: true
-        default: "1"
+        description: "Build number — leave blank to use the commit count (must be higher than the last upload)"
+        required: false
+
+# Two pushes in quick succession must not race two uploads at App Store Connect. Latest commit wins: an in-flight
+# build for an older commit is cancelled, because the point of this workflow is that the phone has the newest code.
+concurrency:
+  group: testflight
+  cancel-in-progress: true
 
 jobs:
   upload:
     name: archive · sign · upload to TestFlight
     runs-on: macos-latest
+    # `workflow_run` fires on EVERY ci completion — failures, cancellations, and pull-request runs included. Only a
+    # GREEN run on master earns a build; a manual dispatch carries no workflow_run payload and is always allowed.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master')
     steps:
+      # A workflow_run job checks out the DEFAULT BRANCH's tip by default, NOT the commit whose CI run triggered it —
+      # which would silently ship whatever landed while this build was queued. Naming the sha is what makes the
+      # TestFlight build the code that actually went green. `fetch-depth: 0` because the build number below is the
+      # commit count, and a depth-1 clone reports that as 1.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      # App Store Connect rejects a build number that is not higher than the last one for this version string, so it
+      # cannot be a constant and must not need a human to remember it. The commit count only ever goes up.
+      - name: Decide the build number
+        run: |
+          N="${{ inputs.build_number }}"
+          [ -n "$N" ] || N=$(git rev-list --count HEAD)
+          echo "Build $N from $(git rev-parse --short HEAD) — $(git log -1 --format=%s | cut -c1-72)"
+          echo "CREW_BUILD=$N" >> "$GITHUB_ENV"
       - run: brew install xcodegen
 
       # The bundle id and the server come from repository variables, so nothing in the repo names your account.
@@ -52,7 +87,7 @@ jobs:
           -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
-          CURRENT_PROJECT_VERSION=${{ inputs.build_number }}
+          CURRENT_PROJECT_VERSION=$CREW_BUILD
           CREW_API_HOST=${{ vars.CREW_API_HOST }}
 
       - name: Export and upload
@@ -64,6 +99,18 @@ jobs:
           -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
           -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+      # The upload is not the arrival. App Store Connect processes a build for a few minutes before TestFlight offers
+      # it, and the phone shows it only after that — which is the other half of "why don't I see the update yet".
+      - name: What to expect on the phone
+        run: |
+          echo "### Build $CREW_BUILD uploaded" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit \`$(git rev-parse --short HEAD)\` — $(git log -1 --format=%s | cut -c1-100)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "App Store Connect now PROCESSES it, which takes a few minutes. Until that finishes TestFlight still" >> "$GITHUB_STEP_SUMMARY"
+          echo "shows the previous build and the phone has nothing to update to — that is normal, not a failure." >> "$GITHUB_STEP_SUMMARY"
+          echo "When it lands, the build is numbered **$CREW_BUILD** under version 0.1.0." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Forget the key
         if: always()
