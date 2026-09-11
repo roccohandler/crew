@@ -252,6 +252,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/CrewTests/OnboardingModelTests.swift
 
 
+# --- F43 (run 34586326598: ONE compile error across the A18 + A19 push, and a test that was right on a Thursday and wrong on a Friday) ---
+commit_task "fix(ios): SettingsModel.endPause referenced userId as though it were a property — it is a LOCAL inside pause(until:), so the A18.6c line that clears the LocalPause after the API call could not compile. This is the shape swift-xref cannot see: it label-checks CALL SHAPES, and this is a scope resolution, so the file passed every local gate and failed on the runner. Read the same way the neighbouring function reads it. And the web pause test asserted that a frozen week reports no misses while building its pause from THREE DAYS AGO — on a Friday that leaves Monday outside the window, and a planned Monday before a pause began is a genuine miss, so the engine was right and the fixture was wrong (it passed locally on a Thursday and went red on the Friday it first ran). The window now starts at the ISO week key, which makes the assertion true on every weekday — the point of deriving fixtures from the calendar rather than from an offset [SPEC: A18.6c; Flow 7; V20; 5.3; 8.4; XI T024/T041]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  ios/Crew/Features/Settings/SettingsModel.swift web/tests/api/today-state.test.ts docs/progress.md docs/commit-queue.sh
+
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

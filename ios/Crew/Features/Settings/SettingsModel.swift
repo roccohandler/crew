@@ -92,7 +92,9 @@ final class SettingsModel {
     func endPause() async {
         do {
             _ = try await Api.shared.endPause()
-            try? store.clearPauses(for: userId)
+            // `userId` is a LOCAL inside pause(until:), not a property of this model — read it the same way that
+            // function does. (Run 34586326598: "cannot find 'userId' in scope", the one diagnostic in the A18/A19 push.)
+            try? store.clearPauses(for: AuthStore.shared.currentUser?.id ?? "local")
             pause = nil
         } catch let error as AppError { errorLine = error.userLine } catch {}
     }

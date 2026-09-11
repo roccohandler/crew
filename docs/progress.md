@@ -255,6 +255,26 @@ and the re-parented scroll views have never rendered from this machine. swift-xr
 checks structure; neither compiles SwiftUI. **The macOS CI job is the first real verification**, and the next thing to
 do with A19 is read it.
 
+### CI run 34586326598 (push = F40–F42, 2026-09-11 09:51Z) — RED on ONE compile error, and TestFlight correctly refused to ship
+
+`shared contracts` ✓ · `web` ✓ · `ios engine (Linux)` ✓ · **`ios` ✗** · `testflight` **skipped in 1 s** — which is the
+new `workflow_run` gate doing exactly its job: `conclusion == success` was false, so nothing was uploaded. That is the
+first proof the F39 wiring is safe as well as automatic.
+
+The one diagnostic: `SettingsModel.swift:95: cannot find 'userId' in scope` — A18.6c's line clearing the LocalPause
+after the API call referenced `userId` as a property when it is a LOCAL inside `pause(until:)`. **This is the shape
+swift-xref cannot catch**: it label-checks call shapes, and this is scope resolution, so the file passed every local
+gate and failed on the runner. Twenty-six never-compiled Swift files across A18 and A19 produced exactly one error.
+
+A second defect the run did not see, found re-running the suite locally afterwards: `today-state.test.ts`'s pause
+fixture built its window from THREE DAYS AGO, which on a **Friday** leaves Monday outside it — and a planned Monday
+*before* a pause began is a genuine miss, so the engine was right and the fixture was wrong. It passed on the Thursday
+it was written and went red the next morning. The window now starts at the ISO week key, true on every weekday.
+
+Fix = F43. Local gates re-run after it: swift-xref clean · doctrine-lint clean · check-drift clean · check-vectors 56 ·
+`swift test` 76/0 · web typecheck + lint clean · `npm test` 42 files / 445 tests · `npm run vectors` 56 · `npm run e2e`
+32 passed, 1 skipped.
+
 **NEXT:** A15 (Stage 7, "change today's workout") per the ratified ordering — after the CI run that compiles A18 + A19
 Stages A/B/D, so Home's bar adoption and the editor's R11 can follow on proven ground.
 

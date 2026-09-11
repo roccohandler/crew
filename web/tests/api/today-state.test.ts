@@ -23,7 +23,7 @@ import { POST as createSession } from "@/app/api/v1/sessions/route";
 import { PATCH as patchSession } from "@/app/api/v1/sessions/[id]/route";
 import { POST as createPost } from "@/app/api/v1/posts/route";
 import { closeDb, resetDbForTests } from "@/lib/db";
-import { dayKeyFor, isoWeekday } from "@/lib/engine/day-key";
+import { dayKeyFor, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { createPause } from "@/lib/pauses";
 import { homeFacts, nextUpLineOf } from "@/lib/today-state";
 import { createUser, type TestUser } from "./fixtures";
@@ -149,10 +149,15 @@ describe("today-state — the pause (Flow 7 · V20 · A18.6)", () => {
     const user = await createUser("ts-paused", TZ);
     await savePlan(user, [1, 2, 3, 4, 5, 6, 7]); // every day trains, so every past day this week would be a miss
     await postMeal(user);
-    // A pause that STARTED three days ago and is still running — created the only way the API allows, by being
-    // created when its start day was today. (A retroactive pause is refused; this is how a live one actually exists.)
-    const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
-    await createPause(oid(user), dayKeyFor(threeDaysAgo, TZ), dayKeyFor(new Date(today.getTime() + 4 * 24 * 60 * 60 * 1000), TZ), TZ, threeDaysAgo);
+    // A pause covering this ISO week from its MONDAY, still running. The window has to start at the week boundary,
+    // not "three days ago": on a Friday a three-day lookback leaves Monday OUTSIDE the pause, and a planned Monday
+    // before a pause began is a genuine miss — the code was right and the first version of this test was wrong
+    // (it passed on a Thursday and failed on the Friday it first ran in CI). Starting at the week key makes the
+    // assertion below true on every weekday, which is the whole point of deriving fixtures from the calendar.
+    // Created with `now` a week back so the start is SCHEDULED rather than retroactive, which is what the API allows.
+    const weekStart = weekKeyFor(dayKeyFor(today, TZ));
+    const created = new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000);
+    await createPause(oid(user), weekStart, dayKeyFor(new Date(today.getTime() + 4 * 24 * 60 * 60 * 1000), TZ), TZ, created);
 
     const facts = await homeFacts(oid(user), TZ, today);
     expect(facts.today.kind).toBe("paused");
