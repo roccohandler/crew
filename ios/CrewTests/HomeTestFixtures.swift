@@ -17,7 +17,7 @@ enum HomeTestFixtures {
     static let timeZone = TimeZone(identifier: "America/Los_Angeles")!
 
     @MainActor
-    static func storeWithPlan(userId: String, days: [Int] = [1, 3, 5], now: Date = friday) throws -> Store {
+    static func storeWithPlan(userId: String, days: Set<Int> = [1, 3, 5], now: Date = friday) throws -> Store {
         let store = Store(inMemory: true)
         let draft = PlanGenerator.generatePlan(days: days, experience: "brandNew", access: "fullGym", seed: .shared)
         try PlanLocal.replace(draft, userId: userId, updatedAt: now, store: store)

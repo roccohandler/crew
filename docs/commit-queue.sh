@@ -259,6 +259,12 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/Crew/Features/Settings/SettingsModel.swift web/tests/api/today-state.test.ts docs/progress.md docs/commit-queue.sh
 
 
+# --- F44 (run 34589239435: the SECOND runner-only type error in a row, and again a shape swift-xref cannot see) ---
+commit_task "fix(ios): HomeTestFixtures forwarded days as [Int] into PlanGenerator.generatePlan, which takes Set<Int>. The C5 extraction is what introduced it: the three call sites it replaced each passed an array LITERAL, and an array literal coerces to a Set while a variable explicitly typed [Int] does not — so consolidating three correct calls into one typed parameter created an error none of them had. Second consecutive red from the same blind spot (34586326598 was a scope resolution, this one a type conversion) because swift-xref label-checks call SHAPES and neither error was a shape. The app target itself compiled clean this time, so A18 and A19's twenty-six new files are sound and the only red was a test fixture. Swept every helper the two passes added for the same forwarding pattern: HomeVectorSlotsTests.plan(_:days:) passes [Int] into LocalPlan.trainingWeekdays which IS [Int], and SeedClient carries String/Int/Bool into JSON dictionaries, so that surface is clean. Q14 queues the narrow swift-xref rule that would have caught this one [SPEC: C5; A1; 5.3; 8.4; XI T024/T008]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  ios/CrewTests/HomeTestFixtures.swift docs/progress.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
