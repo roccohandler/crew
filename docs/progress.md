@@ -275,18 +275,45 @@ Two things around the failure cost more than the failure did.
 
 **The job compiled the 151-file app twice**, because two `xcodebuild test` invocations meant two schemes, and the `Crew` scheme carried `gatherCoverageData: true` while `CrewUITests` did not — different flags on the same target, so nothing could be reused. Coverage data was produced on every run and read by nothing: no `xccov`, no gate, no report.
 
+> ⚠️ **The two lines below that read "92 s build" and "82 s build" are WRONG, and the pass built on them made the job 86% slower. They are left here because the next section is the correction and it only makes sense against them.** They were arrived at by subtracting test time from step time — which silently attributes the simulator's ~60 s preparation phase to the compiler. The real split is in the 23:35 entry.
+
 | | before (run 34540455856) | after |
 |---|---|---|
 | setup · npm ci · dev server · warm-up · sim pick | 35 s serial | ~10 s (npm + next detached, overlapping the build) |
-| unit step | **95 s** = 92 s build + 3.1 s test | — |
-| journeys step | **231 s** = 82 s build + 149 s test | — |
+| unit step | **95 s** = ~~92 s build~~ + 3.1 s test | — |
+| journeys step | **231 s** = ~~82 s build~~ + 149 s test | — |
 | build (once, both bundles, no coverage) | — | ~95 s |
 | unit (`test-without-building`) | — | ~10 s |
 | journeys (`test-without-building`) | — | ~155 s |
-| **job** | **6m 11 s** | **~4¾ min expected** |
+| **job** | **6m 11 s** | ~~**~4¾ min expected**~~ → **11m 31 s actual** |
 
 **Shipped:** a CI-only `CrewAll` scheme carrying both test bundles, so one `build-for-testing` feeds two `test-without-building` runs and the unit/journeys split survives as `-only-testing:` · `gatherCoverageData` dropped · `npm ci` + the dev server detached so they come up during the build, with the wait moved after it and made to print `dev-server.log` instead of timing out mute · the unit suite reordered ahead of the harness wait, since 127 tests against bundled vectors need no server · `verdict.sh` taking three outcomes and three logs · the two `navigationBars["Today"]` assertions corrected and explained. `-scheme Crew` and `-scheme CrewUITests` are untouched: `CrewAll` exists only so CI pays for the app once.
 
 **Verified locally before the push:** `check-drift` · `check-vectors` (56) · `check-seeds` · `doctrine-lint` (185 Swift files) · `swift-xref` (185 files, 371 types) · `ios/scripts/doctrine-lint.sh` · docker `swift test` **76** · web `npm test` **429** (41 files) · `tsc --noEmit` · `eslint` — all clean. `verdict.sh` run against run 34540455856's real `unit.log` and `ui.log` (now: `0 compile error(s) · 1 failing test(s)`, first failing assertion named, annotation at `Journey2_FastLogTests.swift:33`, exit 1) and against fixtures for the compile-error and unbootable-simulator paths. Web e2e not re-run: no web source changed in this pass.
 
 **NEXT:** the runner is the only oracle for `build-for-testing`/`test-without-building` — push and read the verdict. The owner's phone review of Home (D20) and the held Stage 7 (A15) are unchanged by this pass.
+
+---
+
+## 2026-09-10 · CI — the correction: the duplicate compile was ~21 s, the duplicate SIMULATOR PREPARATION was ~60 s, and splitting the build made both worse
+
+Run 34542854485 took the pass above to the runner and came back **86% slower: 6m11s → 11m31s**, red on `CameraDeniedTests.swift:32`. Both halves of that are the same mistake.
+
+**The measurement was wrong.** "92 s build + 82 s build" came from subtracting test time from step time. But an `xcodebuild test` step is three things, not two — compile, then the simulator's preparation (boot, install, automation session), then the tests — and xcodebuild reports the middle one itself, as `IDETestOperationsObserverDebug: N elapsed` around the test phase. Reading that counter in both runs gives the real split:
+
+| | 2× `xcodebuild test` (34540455856) | `build-for-testing` + 2× `test-without-building` (34542854485) |
+|---|---|---|
+| compiling | 30.3 s + 20.8 s = **51 s** | **46 s** |
+| simulator preparation | 60.5 s + 61.2 s = **122 s** | 149.5 s + 189.4 s = **339 s** |
+| tests | 4.2 s + 149 s = **153 s** | 7.5 s + 218.5 s = **226 s** |
+| **job** | **6m 11 s** | **11m 31 s** |
+
+So the duplicate compile was worth ~21 s, not 82 s. The expensive duplicate was the **simulator preparation** — and separating the build did not remove it. It made each preparation ~3× slower and still paid it twice, because `test-without-building` has no build phase to run alongside it. The ubuntu jobs moved <10% between the two runs, so this is the change, not the runner.
+
+**The red followed from the same slowdown.** With the machine 47% slower, CameraDenied's `waitForExistence(timeout: 2)` for "Your week, built." expired on a run where synthesizing one tap took 10 s. That wait was always a coin flip — it is a 2-second budget for a screen transition on a shared runner — and this is precisely the failure mode `debt.md` predicted for parallel UI testing hours earlier. The old ordering had been landing it heads.
+
+**Shipped:** `ci.yml` back to ONE `xcodebuild test`, but on the `CrewAll` scheme, which is the only shape that pays for the compile once AND the simulator preparation once (the old two-scheme job paid both twice; the split paid preparation twice and worse). `-only-testing:`, `-derivedDataPath` and the detached harness are gone with it — the harness is serial again, keeping only its new failure message, which prints `dev-server.log` instead of timing out mute. **Sixteen positive `waitForExistence` timeouts raised 2–3 s → 15 s**; a positive wait returns the instant the element appears, so this costs a fast run nothing. The three NEGATIVE waits and the `share || done` either/or stay tight, because those burn their whole timeout on success — the rule is written at the top of `JourneySteps.swift`. `verdict.sh` reads the one `test.log`. Expected ~5 min, but the runner is the oracle and the estimate above was wrong once already.
+
+**Kept from the previous pass, both proven on the runner:** the `CrewAll` scheme (built and ran both bundles correctly), the Journey ② / OfflineSession title assertions (both passed), and the verdict's compile-error-vs-failing-test split, which reported this run as `0 compile error(s) · 1 failing test(s)` with the first failing assertion named and a clickable annotation — the thing it got wrong the run before.
+
+**Verified locally:** `check-drift` · `doctrine-lint` (185 files) · `swift-xref` (371 types) · `ios/scripts/doctrine-lint.sh` · `bash -n verdict.sh` · both YAML files parse · brace balance on all five UI test files · `verdict.sh` against a `test.log` built by concatenating this run's real build+unit+ui logs (`0 compile error(s) · 1 failing test(s)`, annotation at `CameraDeniedTests.swift:32`, exit 1), against the green path (exit 0), and against an unbootable-simulator log (prints the tail, exit 1).

@@ -4,6 +4,14 @@
 // accessibility dump showed the session's rows 484 pt wide and its Complete button 516 pt wide on a 402 pt window — a layout
 // no screenshot of a passing test would have flagged, so the journeys now measure the elements they are about to use.
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
+//
+// TIMEOUT CONVENTION (2026-09-10, run 34542854485). A POSITIVE wait — `XCTAssertTrue(x.waitForExistence(timeout:))` —
+// returns the moment the element appears, so a generous timeout costs a fast run NOTHING and is the only thing standing
+// between a loaded runner and a false red. Sixteen of them sat at 2–3 s; CameraDenied's wait for "Your week, built."
+// blew one on a run where synthesizing a single tap took 10 s, and the suite was only 47% slower overall. They are 15 s.
+// A NEGATIVE wait — `XCTAssertFalse(x.waitForExistence(timeout:))` — is the opposite: it burns its WHOLE timeout every
+// time it passes, so those three stay at 2–3 s, and `share || done` stays too (a solo member waits out the first branch
+// before the second is checked). Raise positives freely; never raise a negative.
 
 import XCTest
 

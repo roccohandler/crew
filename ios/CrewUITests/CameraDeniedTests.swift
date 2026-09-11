@@ -19,7 +19,7 @@ final class CameraDeniedTests: XCTestCase {
     func testNoCameraMeansTextFirstPostingStillCounts() {
         XCTAssertTrue(app.staticTexts["One plan. Every week. Your crew sees you show up."].waitForExistence(timeout: 5))
         app.buttons["Build my week"].tap()
-        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 15))
 
         // Mon/Wed/Fri arrive pre-selected (1B): switch them off, then switch on tomorrow alone, so today is a rest day
         for preselected in [0, 2, 4] { app.dayToggle(preselected).tap() }
@@ -27,12 +27,12 @@ final class CameraDeniedTests: XCTestCase {
         app.dayToggle((mondayFirstToday + 1) % 7).tap()
         app.buttons["Continue"].tap()
         app.buttons["Brand new"].tap()
-        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 15))
         app.buttons["Full gym"].tap()
-        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 15))
         app.buttons["Looks good"].tap()
 
-        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 15))
         let name = app.textFields["Name"]
         name.tap(); name.typeText("Camera Denied")
         let email = app.textFields["Email"]
@@ -50,7 +50,7 @@ final class CameraDeniedTests: XCTestCase {
         postMeal.tap()
 
         // S11 permission-denied state: one calm line, no Snap button, the library and text still offered
-        XCTAssertTrue(app.staticTexts["Camera's off for Crew — text posts count just the same. Turn it on in Settings whenever."].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Camera's off for Crew — text posts count just the same. Turn it on in Settings whenever."].waitForExistence(timeout: 15))
         XCTAssertFalse(app.buttons["Snap"].exists)
         XCTAssertTrue(app.buttons["Library"].exists)
         shoot(app, "S11 post — camera off")

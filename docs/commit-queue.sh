@@ -203,6 +203,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/CrewUITests/Journey2_FastLogTests.swift ios/CrewUITests/OfflineSessionTests.swift \
   docs/testing-without-a-mac.md docs/progress.md docs/debt.md docs/commit-queue.sh
 
+# --- F37 (run 34542854485: the previous block's optimisation was a pessimisation, and the measurement behind it was inferred, not read) ---
+commit_task "perf(ci): revert the build/test split — it made the ios job 86% SLOWER (6m11s to 11m31s), and the number it was reasoned from had never been measured. 92 s build + 82 s build came from subtracting test time from step time, but an xcodebuild test step is three phases: compile, the simulator's preparation, then the tests — and xcodebuild reports the middle one itself as IDETestOperationsObserverDebug. Read in both runs it says the duplicate COMPILE was 30.3 + 20.8 s and the duplicate PREPARATION was 60.5 + 61.2 s; build-for-testing plus two test-without-building runs did not remove the preparation, it tripled each one (149.5 + 189.4) and still paid it twice, because there is no build phase left to overlap it with. One xcodebuild test on the CrewAll scheme is the only shape that pays for both once. The red followed from the same slowdown: with the machine 47% slower CameraDenied blew a 2-second wait for a screen transition on a run where synthesizing one tap took 10 s, so the sixteen POSITIVE waitForExistence timeouts go to 15 s — a positive wait returns the instant the element appears and costs a fast run nothing — while the three NEGATIVE ones stay tight because they burn their whole timeout when they pass. Kept from the reverted pass, all three proven green on the runner: the CrewAll scheme, journey 2's title assertion, and the verdict counting compile errors apart from failing tests [SPEC: 8.4; 5.3; Part X Phase 1; XI T008/T025/T027/T043]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  .github/workflows/ci.yml ios/project.yml ios/scripts/verdict.sh ios/CrewUITests \
+  docs/testing-without-a-mac.md docs/progress.md docs/debt.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

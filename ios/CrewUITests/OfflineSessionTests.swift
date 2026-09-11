@@ -19,16 +19,16 @@ final class OfflineSessionTests: XCTestCase {
     func testACheckedSetSurvivesAKillAndHomeOffersResume() {
         XCTAssertTrue(app.staticTexts["One plan. Every week. Your crew sees you show up."].waitForExistence(timeout: 5))
         app.buttons["Build my week"].tap()
-        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 15))
         for unselected in [1, 3, 5, 6] { app.dayToggle(unselected).tap() } // Mon/Wed/Fri are pre-selected; now all seven
         app.buttons["Continue"].tap()
         app.buttons["Brand new"].tap()
-        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 15))
         app.buttons["Full gym"].tap()
-        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 15))
         app.buttons["Looks good"].tap()
 
-        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 15))
         let name = app.textFields["Name"]
         name.tap(); name.typeText("Kill Survivor")
         let email = app.textFields["Email"]
@@ -49,7 +49,7 @@ final class OfflineSessionTests: XCTestCase {
         XCTAssertTrue(firstSet.waitForExistence(timeout: 5))
         expectOnScreen(firstSet, in: app, "the first set row") // 6.7 (JourneySteps.swift)
         firstSet.tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of' AND label CONTAINS 'done'")).firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of' AND label CONTAINS 'done'")).firstMatch.waitForExistence(timeout: 15))
         shoot(app, "S09 session — set 1 done, about to be killed")
 
         // The kill: no warning, no save button. A relaunch (signed in, nothing reset) must offer the open session back.

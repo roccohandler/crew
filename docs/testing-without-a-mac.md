@@ -88,19 +88,22 @@ git push
    contract. (Getting here took four one-line compile fixes, one wrong test expectation, one server rule the simulator's
    "GMT" timezone tripped, and one clipped layout: R-050 to R-053.) Since 2026-09-09 the job runs the unit suite AND the
    journeys even when the first fails, and its **verdict** step (`ios/scripts/verdict.sh` since 2026-09-10) is the ONE
-   step that goes red. **Read that step's own log first.** Its first line is the headline (`## ios — build: success ·
-   unit: success · journeys: failure`); then, per log, the counts, the first finding of each kind, and the salient lines
+   step that goes red. **Read that step's own log first.** Its first line is the headline (`## ios — 0 compile error(s)
+   · 1 failing test(s) · outcome: failure`); then the first finding of each kind, and the salient lines
    — compile errors, assertion failures, the "Failing tests:" block, suite totals. The same text is on the run's summary
    page, and every finding is also a GitHub annotation (a clickable `file:line` at the top of the run and on the commit).
    Before 2026-09-10 the verdict wrote only to the summary page, so the red step's own log said nothing but "exit code 1"
    and the two xcodebuild steps above it showed ✓ (they are `continue-on-error`) — run 34491587098, one compile error
    hidden under 3,000 lines of warnings. One run reports every failure, not one layer per push.
 
-   Three logs, because the job **builds once and tests twice**: one `build-for-testing` on the CI-only `CrewAll` scheme
-   (`build.log`), then two `test-without-building` runs that share its products (`unit.log`, `ui.log`). Until 2026-09-10
-   it ran `xcodebuild test` twice, once per scheme, and each invocation recompiled the whole 151-file app — 92 s in the
-   unit step and 82 s again in the journeys step, 47% of a 6m11s job. `-scheme Crew` and `-scheme CrewUITests` are
-   untouched and are still what you open in Xcode; `CrewAll` exists only so CI pays for the app once. Two more rules
+   ONE log (`test.log`), because the job is ONE `xcodebuild test` on the CI-only `CrewAll` scheme, which carries both
+   test bundles. Until 2026-09-10 it ran `xcodebuild test` twice, once per scheme, and paid for everything twice: the
+   151-file compile (30 s + 21 s) and the simulator's preparation (60.5 s + 61.2 s — the gap between "Testing started"
+   and the first test case, which xcodebuild reports as `IDETestOperationsObserverDebug: N elapsed`). **Splitting it
+   into `build-for-testing` + two `test-without-building` runs made the job 86% slower** (6m11s → 11m31s, run
+   34542854485): separating the build did not remove the preparation, it made each one ~3× worse and still paid it
+   twice. One invocation pays each once. `-scheme Crew` and `-scheme CrewUITests` are untouched and are still what you
+   open in Xcode. Two more rules
    the verdict learned from run 34540455856, where a single failing UI assertion was reported as "1 error(s) · 0 failing
    test(s)" under an empty "Failing tests:" heading: **a compile error and an assertion failure are counted separately**
    (xcodebuild prints an XCTest failure in the compiler's own `file:line: error:` shape, but only the assertion carries

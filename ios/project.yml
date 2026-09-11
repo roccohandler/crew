@@ -120,11 +120,14 @@ schemes:
       targets:
         - CrewUITests
   # CI ONLY (2026-09-10). The two schemes above are what a developer opens in Xcode: `-scheme Crew` runs the fast
-  # unit + vector suite and nothing else. CI wants both bundles, and running the two schemes back to back compiled the
-  # 151-file Crew target TWICE — 92 s in the unit step and 82 s again in the journeys step, 47% of a 6m11s job (run
-  # 34540455856). One scheme carrying both test targets means one `build-for-testing`, then two
-  # `test-without-building` runs that share it. The unit/journeys split survives as -only-testing:, so the job still
-  # reports the two layers separately.
+  # unit + vector suite and nothing else. CI wants both bundles, and running the two schemes back to back paid for
+  # EVERYTHING twice — the 151-file compile (30 s + 21 s) and, far more expensively, the simulator's preparation
+  # (60.5 s + 61.2 s), which is what xcodebuild is doing between "Testing started" and the first test case. One scheme
+  # carrying both test targets lets `ci.yml` run ONE `xcodebuild test`, which pays each of those once.
+  #
+  # Do not split this back into `build-for-testing` + `test-without-building`: run 34542854485 tried exactly that and
+  # the job went 6m11s → 11m31s, because separating the build did not remove the simulator preparation — it made each
+  # one ~3× slower (149.5 s + 189.4 s) and still paid it twice. The numbers are in ci.yml and docs/debt.md.
   CrewAll:
     build:
       targets:

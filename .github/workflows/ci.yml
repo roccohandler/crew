@@ -85,61 +85,13 @@ jobs:
       - run: cd ios && xcodegen generate
       - run: bash ios/scripts/doctrine-lint.sh
       # 8.4: the XCUITest journeys talk to the same local harness Playwright uses (in-memory Mongo + next dev on :3000);
-      # journey ① registers a fresh account and journey ② seeds itself through the API (SeedClient). NOTHING IN THE BUILD
-      # NEEDS IT, so npm and next are started detached here and WAITED FOR after the build instead of before it: the ~17 s
-      # this job used to spend on `npm ci` and next booting is now spent compiling (run 34540455856). Warming the routes
-      # still costs its own ~6 s — that is next compiling each one, and it has to happen before the journeys either way.
-      - name: local API harness — npm ci + dev server, detached (overlaps the build)
-        run: cd web && nohup bash -c 'npm ci && node tests/e2e/dev-server.mjs' > dev-server.log 2>&1 &
-      # The runner image decides which simulators exist (first run, 2026-09-08: Xcode 26.6 ships iPhone 16e / 17 / 17 Pro
-      # and no "iPhone 16"), so the device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time.
-      - run: |
-          CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
-          test -n "$CREW_SIM"
-          echo "Simulator: $CREW_SIM"
-          echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
-      # ONE build for BOTH test bundles (scheme CrewAll, ios/project.yml). Until 2026-09-10 this job ran `xcodebuild test`
-      # twice — once per scheme — and each invocation compiled the whole 151-file Crew target: 92 s in the unit step and
-      # 82 s again in the journeys step. Half the job was the same compile, done twice. `build-for-testing` once and
-      # `test-without-building` twice keeps the unit/journeys split (it is now -only-testing:) and pays for the app once.
-      #
-      # Simulator builds are signed AD HOC (`-`: no certificate, no team, no profile) with the entitlements embedded. Unsigned
-      # (CODE_SIGNING_ALLOWED=NO, until 2026-09-09) the app had no entitlements at all, and on a simulator that makes every
-      # Keychain write fail with errSecMissingEntitlement (-34018): the session lived in memory only, so a kill-and-relaunch
-      # woke on the hero and the offline journey could never pass (run 34367618719, Q09). Raw xcodebuild output into a log —
-      # `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
-      # `-continue-building-after-errors` belongs to the BUILD alone now, so one run still reports every compile error at
-      # once — and reports it ONCE, in one log, instead of the same error twice because both schemes compiled the app.
-      - id: build
-        name: build both test bundles (build-for-testing · scheme CrewAll)
-        continue-on-error: true
-        shell: bash
-        run: >
-          cd ios && xcodebuild build-for-testing -project Crew.xcodeproj -scheme CrewAll
-          -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
-          -derivedDataPath DerivedData
-          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
-          OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee build.log
-      # The unit + vector suite talks to no server (127 tests in 3.1 s against bundled vectors), so it runs FIRST and gives
-      # the detached harness the whole of its runtime to finish coming up. Both suites still run even when the other fails
-      # (continue-on-error), so ONE run reports every failure; the verdict step below is where the job passes or fails.
-      - id: unit
-        name: unit + vectors (test-without-building · -only-testing:CrewTests)
-        if: steps.build.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: >
-          cd ios && xcodebuild test-without-building -project Crew.xcodeproj -scheme CrewAll
-          -only-testing:CrewTests
-          -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
-          -derivedDataPath DerivedData -resultBundlePath TestResults.xcresult
-          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO 2>&1 | tee unit.log
-      # Only the journeys need the server. By here it has had the whole build plus the unit suite to come up, so this is
-      # normally instant — and when it is not, the failure says so and prints the harness log instead of timing out mute.
+      # journey ① registers a fresh account and journey ② seeds itself through the API (SeedClient).
+      - run: cd web && npm ci
+      - run: cd web && nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
       # `next dev` compiles each API route on its first hit; the journeys' waits assume a warm server (the same list the
-      # Playwright warm-up fetches — web/tests/e2e/warm-up.ts). Any status is fine, the compile is the point.
+      # Playwright warm-up fetches — web/tests/e2e/warm-up.ts). Any status is fine, the compile is the point. When the
+      # server never comes up, say so and print its log — a bare 180 s `wait-on` timeout tells the reader nothing.
       - name: wait for the harness · warm every route the journeys hit
-        if: steps.build.outcome == 'success'
         shell: bash
         run: |
           if ! npx --yes wait-on http://localhost:3000/login --timeout 180000; then
@@ -150,17 +102,44 @@ jobs:
           for route in auth/register auth/login auth/logout auth/refresh auth/reset users/me plans sessions sessions/warm-up posts posts/warm-up posts/warm-up/reactions crews "crews/join?token=warm-up" crews/warm-up/stream crews/warm-up/messages crews/warm-up/members sync pause photos; do
             curl -s -o /dev/null "http://localhost:3000/api/v1/$route" || true
           done
-      - id: ui
-        name: journeys ①② (test-without-building · -only-testing:CrewUITests)
-        if: steps.build.outcome == 'success'
+      # The runner image decides which simulators exist (first run, 2026-09-08: Xcode 26.6 ships iPhone 16e / 17 / 17 Pro
+      # and no "iPhone 16"), so the device is not hard-coded: the newest plain "iPhone NN" on the image is picked at run time.
+      - run: |
+          CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
+          test -n "$CREW_SIM"
+          echo "Simulator: $CREW_SIM"
+          echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
+      # ONE xcodebuild invocation, on a scheme (CrewAll, ios/project.yml) that carries BOTH test bundles.
+      #
+      # This job used to run `xcodebuild test` twice, once per scheme, which compiled the 151-file app twice AND paid the
+      # simulator's ~60 s preparation twice. Run 34542854485 tried to fix that with `build-for-testing` +
+      # 2× `test-without-building` and made the job **86% slower** — 6m11s → 11m31s. xcodebuild's own
+      # `IDETestOperationsObserverDebug` counters say why, and they are the numbers to trust here:
+      #
+      #                        compiling   simulator prep   tests     job
+      #   2× xcodebuild test    30 + 21     60.5 + 61.2      153 s    6m11s
+      #   build + 2× t-w-b      46          149.5 + 189.4    226 s    11m31s
+      #
+      # The duplicate COMPILE was only ~21 s — the expensive duplicate was the simulator preparation, and splitting the
+      # build out did not remove it, it made each one ~3× worse and still paid it twice. So: one invocation, which is the
+      # only shape that pays for the app once AND prepares the simulator once. `-only-testing:` is gone with it; both
+      # bundles run in one pass, so a failure in either is still reported by the same run.
+      #
+      # Simulator builds are signed AD HOC (`-`: no certificate, no team, no profile) with the entitlements embedded. Unsigned
+      # (CODE_SIGNING_ALLOWED=NO, until 2026-09-09) the app had no entitlements at all, and on a simulator that makes every
+      # Keychain write fail with errSecMissingEntitlement (-34018): the session lived in memory only, so a kill-and-relaunch
+      # woke on the hero and the offline journey could never pass (run 34367618719, Q09). Raw xcodebuild output into a log —
+      # `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
+      - id: test
+        name: build · unit + vectors · journeys ①② (xcodebuild test · scheme CrewAll)
         continue-on-error: true
         shell: bash
         run: >
-          cd ios && xcodebuild test-without-building -project Crew.xcodeproj -scheme CrewAll
-          -only-testing:CrewUITests
+          cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewAll
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
-          -derivedDataPath DerivedData -resultBundlePath UITestResults.xcresult
-          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO 2>&1 | tee ui.log
+          -resultBundlePath TestResults.xcresult
+          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
+          OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee test.log
       # The verdict: the ONE step that passes or fails this job, and the first thing to read when it is red. It prints the
       # compile errors, failed assertions and suite totals to ITS OWN LOG (the headline is the first line under the ✗), to
       # the job summary page, and as GitHub annotations (clickable file:line at the top of the run and on the commit).
@@ -169,7 +148,7 @@ jobs:
       - name: verdict — read this first (compile errors · failing tests · totals)
         if: always()
         shell: bash
-        run: bash ios/scripts/verdict.sh "${{ steps.build.outcome }}" "${{ steps.unit.outcome }}" "${{ steps.ui.outcome }}"
+        run: bash ios/scripts/verdict.sh "${{ steps.test.outcome }}"
       # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
       - uses: actions/upload-artifact@v4

@@ -22,7 +22,7 @@ final class Journey1_NewUserTests: XCTestCase {
         app.buttons["Build my week"].tap()
 
         // S03 days: Mon/Wed/Fri pre-selected, the encouragement line reads live
-        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 15))
         shoot(app, "S03 days")
         // Every day trains, so today is a workout day whatever the calendar says and the journey always logs a set (the
         // meal-first bridge is CameraDeniedTests' path). Until 2026-09-09 this ran Mon/Wed/Fri and took a different branch
@@ -32,17 +32,17 @@ final class Journey1_NewUserTests: XCTestCase {
 
         // single-selects auto-advance
         app.buttons["Brand new"].tap()
-        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 15))
         app.buttons["Full gym"].tap()
 
         // S04 reveal
-        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["Tap any exercise to swap it."].exists)
         shoot(app, "S04 the week, built")
         app.buttons["Looks good"].tap()
 
         // S05 save with email (Sign in with Apple needs a device)
-        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 15))
         shoot(app, "S05 save your plan")
         let name = app.textFields["Name"]
         name.tap(); name.typeText("Journey One")
@@ -79,7 +79,7 @@ final class Journey1_NewUserTests: XCTestCase {
         } else {
             postMeal.tap()
             let caption = app.textFields["Say something (or don't)"]
-            XCTAssertTrue(caption.waitForExistence(timeout: 3))
+            XCTAssertTrue(caption.waitForExistence(timeout: 15))
             caption.tap(); caption.typeText("protein shake post-gym")
             app.buttons["Post"].tap()
         }
