@@ -75,7 +75,7 @@ jobs:
     # owner opens it on a Mac. Continuous-build rule 3a: every iOS task is WRITTEN — UNVERIFIED until this job is green.
     name: ios (xcodegen · build · unit + vectors · journeys ①②)
     runs-on: macos-latest
-    timeout-minutes: 45 # a hung simulator must not burn the six-hour default; a green run is about 4¾ minutes since 2026-09-10
+    timeout-minutes: 45 # a hung simulator must not burn the six-hour default; a green run is 6–7½ minutes, most of it the journeys
     needs: contracts
     steps:
       - uses: actions/checkout@v4
@@ -111,19 +111,24 @@ jobs:
           echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
       # ONE xcodebuild invocation, on a scheme (CrewAll, ios/project.yml) that carries BOTH test bundles.
       #
-      # This job used to run `xcodebuild test` twice, once per scheme, which compiled the 151-file app twice AND paid the
-      # simulator's ~60 s preparation twice. Run 34542854485 tried to fix that with `build-for-testing` +
-      # 2× `test-without-building` and made the job **86% slower** — 6m11s → 11m31s. xcodebuild's own
-      # `IDETestOperationsObserverDebug` counters say why, and they are the numbers to trust here:
+      # This job used to run `xcodebuild test` twice, once per scheme, which compiled the 151-file app twice. Run
+      # 34542854485 tried to fix that with `build-for-testing` + 2× `test-without-building` and made the job **86%
+      # slower** — 6m11s → 11m31s. Three measured runs, from xcodebuild's own `IDETestOperationsObserverDebug` counter
+      # (the gap between "Testing started" and the first test case) rather than from subtracting test time out of step
+      # time, which silently hands that gap to the compiler:
       #
-      #                        compiling   simulator prep   tests     job
-      #   2× xcodebuild test    30 + 21     60.5 + 61.2      153 s    6m11s
-      #   build + 2× t-w-b      46          149.5 + 189.4    226 s    11m31s
+      #                        compiling   simulator prep   tests     job       run
+      #   2× xcodebuild test    30 + 21     60.5 + 61.2      153 s    6m11s     34540455856
+      #   build + 2× t-w-b      46          149.5 + 189.4    226 s    11m31s    34542854485
+      #   1× xcodebuild test    38          169.6            188 s    7m34s     34544705389  ← green
       #
-      # The duplicate COMPILE was only ~21 s — the expensive duplicate was the simulator preparation, and splitting the
-      # build out did not remove it, it made each one ~3× worse and still paid it twice. So: one invocation, which is the
-      # only shape that pays for the app once AND prepares the simulator once. `-only-testing:` is gone with it; both
-      # bundles run in one pass, so a failure in either is still reported by the same run.
+      # Read that third row honestly: one invocation saves ONE COMPILE (~13–21 s) and nothing else. It does NOT prepare
+      # the simulator once — preparation still contains two install cycles, the host app for CrewTests and then the UI
+      # runner app for CrewUITests, and no scheme arrangement can merge those. The remaining spread between 6m11s and
+      # 7m34s is macOS runner variance, which is ±60 s and swamps the compile saving. So this shape is kept because it
+      # is the simplest thing that is not wasteful, NOT because it is measurably faster. Before changing it again, read
+      # the counter in three runs, not one. `-only-testing:` is gone with it; both bundles run in one pass, so a failure
+      # in either is still reported by the same run.
       #
       # Simulator builds are signed AD HOC (`-`: no certificate, no team, no profile) with the entitlements embedded. Unsigned
       # (CODE_SIGNING_ALLOWED=NO, until 2026-09-09) the app had no entitlements at all, and on a simulator that makes every

@@ -317,3 +317,25 @@ So the duplicate compile was worth ~21 s, not 82 s. The expensive duplicate was 
 **Kept from the previous pass, both proven on the runner:** the `CrewAll` scheme (built and ran both bundles correctly), the Journey ② / OfflineSession title assertions (both passed), and the verdict's compile-error-vs-failing-test split, which reported this run as `0 compile error(s) · 1 failing test(s)` with the first failing assertion named and a clickable annotation — the thing it got wrong the run before.
 
 **Verified locally:** `check-drift` · `doctrine-lint` (185 files) · `swift-xref` (371 types) · `ios/scripts/doctrine-lint.sh` · `bash -n verdict.sh` · both YAML files parse · brace balance on all five UI test files · `verdict.sh` against a `test.log` built by concatenating this run's real build+unit+ui logs (`0 compile error(s) · 1 failing test(s)`, annotation at `CameraDeniedTests.swift:32`, exit 1), against the green path (exit 0), and against an unbootable-simulator log (prints the tail, exit 1).
+
+---
+
+## 2026-09-10 · CI GREEN (run 34544705389, commit 91c9604) — and the speed work netted approximately nothing
+
+All five jobs green, including the five iPhone journeys. The two test fixes and the verdict fix are proven on the runner. The speed work is not, and this entry says so plainly so the next session does not re-litigate it.
+
+**Three measured runs**, from xcodebuild's own `IDETestOperationsObserverDebug` counter rather than from subtraction:
+
+| shape | compiling | simulator prep | tests | job | run |
+|---|---|---|---|---|---|
+| 2× `xcodebuild test` (baseline) | 30.3 + 20.8 | 60.5 + 61.2 | 153 s | **6m 11 s** | 34540455856 |
+| `build-for-testing` + 2× `test-without-building` | 46 | 149.5 + 189.4 | 226 s | **11m 31 s** | 34542854485 |
+| 1× `xcodebuild test` (now) | 38.2 | 169.6 | 188 s | **7m 34 s** | 34544705389 ✅ |
+
+**The honest reading of row 3: one invocation saves ONE COMPILE, ~13–21 s, and nothing else.** It does NOT prepare the simulator once — I assumed that too, and the counter says preparation still contains two install cycles (the host app for `CrewTests`, then the UI runner app for `CrewUITests`), which no scheme arrangement can merge. The remaining spread between 6m11s and 7m34s is macOS runner variance: the four ubuntu jobs moved <15% across all three runs while the macOS job moved 83 s, and ±60 s swamps a 20 s saving. **The current shape is kept because it is the simplest thing that is not wasteful, not because it is measurably faster.**
+
+**The raised timeouts earned their place.** CameraDenied went 44.0 s → **72.2 s and PASSED**; at its old 2-second waits it would have gone red again on this runner. A positive `waitForExistence` returns the instant the element appears, so the 15 s ceiling costs a fast run nothing and converted a red into a slower green. Journey ① 35.2 s, Journey ② 22.9 s, Launch 7.4 s, OfflineSession 43.1 s.
+
+**Where the time actually is, for whoever picks this up:** the journeys are **181 s of the 396 s step**, and simulator preparation is another 170 s. Compiling is 38 s — it is not the problem and never was. The one lever left with a clear mechanism is the `debt.md` entry on `OfflineSessionTests` and `CameraDeniedTests` re-driving the whole onboarding flow through the UI purely as setup (~20 s each), which Journey ① already covers as its subject; it is the owner's call because it weakens what OfflineSession proves about the Keychain. **Do not attempt another CI-shape optimisation without reading the counter across three runs** — two attempts from one run's numbers produced one 86% regression and one no-op.
+
+**NEXT:** unchanged by all of this — the owner's phone review of Home (D20), with Stage 7 (A15) held behind it.

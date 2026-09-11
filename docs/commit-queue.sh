@@ -210,6 +210,12 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   .github/workflows/ci.yml ios/project.yml ios/scripts/verdict.sh ios/CrewUITests \
   docs/testing-without-a-mac.md docs/progress.md docs/debt.md docs/commit-queue.sh
 
+# --- F38 (run 34544705389 green: the measured verdict on two passes of CI speed work, so the next session does not re-litigate it) ---
+commit_task "docs(ci): record what the green run actually measured — one xcodebuild test saves ONE COMPILE (~13-21 s) and nothing else. It does NOT prepare the simulator once, which the previous commit's comment claimed: run 34544705389's counter puts preparation at 169.6 s and it still contains two install cycles, the host app for CrewTests and then the UI runner app for CrewUITests, which no scheme arrangement can merge. The spread between the 6m11s baseline and this 7m34s green run is macOS runner variance — the four ubuntu jobs moved under 15% across all three runs while the macOS job moved 83 s — so the shape is kept for being the simplest thing that is not wasteful, not for being faster. Compiling is 38 s of a 396 s step; the journeys are 181 s and simulator preparation 170 s, which is where any real saving has to come from. The raised waits earned their place: CameraDenied took 72.2 s and PASSED where its old 2-second waits would have gone red again. Three runs of the counter before the next attempt, not one [SPEC: 8.4; 5.3; Part X Phase 1; XI T008/T043]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  .github/workflows/ci.yml docs/progress.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
