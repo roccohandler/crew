@@ -9,6 +9,7 @@ import SwiftUI
 struct CardioLogScreen: View {
     let onLogged: (CelebrationOutcome) -> Void
     @State private var model = CardioLogModel()
+    @FocusState private var distanceFocused: Bool // A19.2: the Done item needs something to clear
 
     var body: some View {
         ScrollView {
@@ -33,6 +34,7 @@ struct CardioLogScreen: View {
                         HStack(spacing: EmberTokens.Spacing.space8) {
                             TextField("Distance", text: $model.distanceText)
                                 .keyboardType(.decimalPad)
+                                .focused($distanceFocused)
                                 .padding(EmberTokens.Spacing.space12)
                                 .background(EmberColors.canvas, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
                                 .accessibilityLabel("Distance in \(model.unitSuffix)")
@@ -42,11 +44,25 @@ struct CardioLogScreen: View {
                     }
                 }
                 if let error = model.submitError { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
-                PrimaryButton(title: model.activity.map { "Log \($0.name)" } ?? "Log cardio") { model.submit() }
-                    .disabled(!model.canSubmit)
-                    .opacity(model.canSubmit ? 1 : EmberTokens.Opacity.disabled)
             }
             .padding(EmberTokens.Spacing.space16)
+        }
+        // SPEC: A19.1 / A19.2 — this screen was the worst of the dead ends. The primary sat below a `.decimalPad`
+        // field, and a decimal pad ships NO RETURN KEY, so once the distance field had focus there was no way to
+        // dismiss the keyboard and no way to reach the button underneath it: the only escape was the back gesture,
+        // which throws the log away. The bar rises above the keyboard; the Done item below dismisses it.
+        .crewBottomBar {
+            PrimaryButton(title: model.activity.map { "Log \($0.name)" } ?? "Log cardio") { model.submit() }
+                .disabled(!model.canSubmit)
+                .opacity(model.canSubmit ? 1 : EmberTokens.Opacity.disabled)
+        }
+        // SPEC: A19.2 — `.decimalPad` and `.numberPad` carry no return key, and Apple's documented remedy is a
+        // keyboard toolbar item. One Done, on the trailing side, dismissing the field that has focus.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { distanceFocused = false }
+            }
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle("Log cardio")
@@ -69,7 +85,9 @@ struct ActivityTile: View {
                 .foregroundStyle(selected ? EmberColors.primaryButtonLabel : EmberColors.inkText)
                 .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt))
                 .background(selected ? EmberColors.primaryButtonFill : EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+                // A18.11 — the activity tiles: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
+                // the 1.26:1 hairline family, which is for the seam between two surfaces.
+                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

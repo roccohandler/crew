@@ -175,7 +175,9 @@ struct StepButton: View {
             .font(.body.weight(.semibold))
             .foregroundStyle(EmberColors.inkText)
             .frame(width: minTarget, height: minTarget)
-            .overlay(Circle().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+            // A18.11 — StepButton — the plus/minus on every set: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
+            // the 1.26:1 hairline family, which is for the seam between two surfaces.
+            .overlay(Circle().stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
             .contentShape(Circle()) // the whole 44 pt circle is the target, not the glyph inside it
             .onTapGesture(perform: action)
             .onLongPressGesture(minimumDuration: Double(SpecConstants.autoAdvanceDelayMs) / Double(TimeUnits.msPerSecond), pressing: { pressing in

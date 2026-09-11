@@ -25,11 +25,17 @@ struct NutritionPostScreen: View {
                     }
                     PostComposer(model: model, hasCrew: hasCrew)
                     if let error = model.submitError { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
-                    PrimaryButton(title: "Post") { model.submit() }
-                        .disabled(!model.canSubmit)
-                        .opacity(model.canSubmit ? 1 : EmberTokens.Opacity.disabled)
                 }
                 .padding(EmberTokens.Spacing.space16)
+            }
+            // SPEC: A19.1 / A19.2 — "Post" sat UNDER the caption field inside the scroll, which is the shape 6.7 names
+            // twice: a bottom CTA that is neither above the home indicator nor reachable while the keyboard is up.
+            // `safeAreaInset` fixes both at once — the bar rises above the keyboard rather than being covered by it,
+            // so the caption and the button it enables are on screen together for the first time.
+            .crewBottomBar {
+                PrimaryButton(title: "Post") { model.submit() }
+                    .disabled(!model.canSubmit)
+                    .opacity(model.canSubmit ? 1 : EmberTokens.Opacity.disabled)
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Post")

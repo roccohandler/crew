@@ -39,7 +39,8 @@ struct PostCard: View {
                         }
                     }
                 }
-                Button("React") { showsReactions = true }.font(.caption).foregroundStyle(EmberColors.secondaryText) // 6.7: every gesture has a visible button
+                // 6.7: every gesture has a visible button · 6.3: at caption size that button was ~40×16 pt
+                TextActionButton(title: "React", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: "React to \(authorName)'s post") { showsReactions = true }
             }
         }
         .onLongPressGesture { showsReactions = true }
@@ -50,8 +51,23 @@ struct PostCard: View {
                 Button("Block \(authorName)", role: .destructive) { onBlock() }
             }
         }
+        // SPEC: 6.5 — "session, posting, reacting, chat fully completable non-visually" is a RELEASE-BLOCKING gate, and
+        // reacting was not completable. `children: .combine` merges the card into one element, which is right for reading a
+        // post as a single passage — but it also swallows the inner `React` button, so the only non-visual route to a
+        // reaction was a long-press gesture VoiceOver never delivers. The reactions become accessibility ACTIONS on the
+        // merged element: reachable from the rotor in one gesture, no extra stop while reading the stream, and the
+        // gesture/button pair above is untouched for sighted users (6.3).
         .accessibilityElement(children: .combine)
-        .accessibilityHint("Long-press or use React to add a reaction")
+        .accessibilityActions {
+            ForEach(SpecConstants.reactionEmojis, id: \.self) { emoji in
+                Button(emoji) { onReact(emoji) }
+            }
+            if !isMine {
+                Button("Report post") { onReport() }
+                Button("Block \(authorName)") { onBlock() }
+            }
+        }
+        .accessibilityHint("Actions available for reactions")
     }
 }
 

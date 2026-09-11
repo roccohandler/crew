@@ -62,7 +62,11 @@ struct WeekRow: View {
         .padding(.horizontal, EmberTokens.Spacing.space16)
         .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt), alignment: .leading)
         .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+        // A18.11 — the row is a CONTROL when it opens a workout and a read-only surface when it does not (the
+        // generated-plan preview passes `interactive: false`), and `opensWorkout` already draws that line for the
+        // Button, the chevron and the a11y hint. The boundary follows it: controlOutline at 3.32:1 where a finger
+        // acts, hairline where it is only a card edge.
+        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(opensWorkout ? EmberColors.controlOutline : EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
         .contentShape(Rectangle())
     }
 }

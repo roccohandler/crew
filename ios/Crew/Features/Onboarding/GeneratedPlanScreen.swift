@@ -32,9 +32,16 @@ struct GeneratedPlanScreen: View {
                     .opacity(index < revealed ? 1 : 0)
                 }
                 if let line = model.authError { Text(line).font(.footnote).foregroundStyle(EmberColors.inkText) }
-                PrimaryButton(title: "Looks good", isLoading: model.isSaving) { model.acceptPlan(); onLooksGood() }
             }
             .padding(EmberTokens.Spacing.space24)
+        }
+        // SPEC: A19.1 — the first adoption of `.crewBottomBar`, and the lowest-risk of the six: this screen sits
+        // outside journeys ①② and has exactly one primary. "Looks good" used to be the last row INSIDE the scroll, so
+        // on a seven-workout plan at accessibility-XXL the only way out of onboarding was below the fold. The bar
+        // holds it above the home indicator whatever the plan's length, and the scroll view insets itself so the last
+        // workout card is never trapped underneath it.
+        .crewBottomBar {
+            PrimaryButton(title: "Looks good", isLoading: model.isSaving) { model.acceptPlan(); onLooksGood() }
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .onAppear { reveal() }

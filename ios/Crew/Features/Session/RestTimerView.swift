@@ -15,11 +15,15 @@ struct RestTimerView: View {
         HStack(spacing: EmberTokens.Spacing.space8) {
             if timer.isRunning {
                 Text("rest \(clock(timer.remaining(at: now)))").font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
-                Button("Skip") { timer.stop() }.font(.subheadline).foregroundStyle(EmberColors.inkText)
+                // SPEC: 6.3 — the `minHeight` below sizes this HStack, not the buttons inside it, so both of these were
+                // hit-tested at their text box. The comment at the top of this file already claimed "every control here is
+                // its own ≥ 44 pt target"; that is now true rather than asserted.
+                TextActionButton(title: "Skip", horizontalPadding: 0, accessibilityLabel: "Skip the rest timer") { timer.stop() }
             } else {
-                Button(timer.enabled ? "Rest \(clock(timer.lengthSeconds))" : "Rest timer off") { timer.enabled.toggle() }
-                    .font(.subheadline)
-                    .foregroundStyle(EmberColors.secondaryText)
+                TextActionButton(title: timer.enabled ? "Rest \(clock(timer.lengthSeconds))" : "Rest timer off",
+                                 color: EmberColors.secondaryText,
+                                 horizontalPadding: 0,
+                                 accessibilityLabel: timer.enabled ? "Rest timer on, \(clock(timer.lengthSeconds)). Turn it off." : "Rest timer off. Turn it on.") { timer.enabled.toggle() }
                 if timer.enabled {
                     StepButton(symbol: "minus", noun: "rest") { timer.lengthSeconds = max(SpecConstants.restTimerAdjustStepSeconds, timer.lengthSeconds - SpecConstants.restTimerAdjustStepSeconds) }
                     StepButton(symbol: "plus", noun: "rest") { timer.lengthSeconds += SpecConstants.restTimerAdjustStepSeconds }

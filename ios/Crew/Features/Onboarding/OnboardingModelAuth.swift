@@ -40,6 +40,35 @@ extension OnboardingModel {
         }
     }
 
+    // SPEC: 6.1 ("Error: what happened + what to do, one sentence, no codes, always a retry path. Never a dead end.") · S05 ·
+    // 1C (the email path is the recovery, and it is already on screen beneath the button).
+    //
+    // Both auth screens handled ONLY `case .success`, so every Apple failure was indistinguishable from a button that does
+    // nothing. That is worst for the user who has no Apple credential to offer: `ASAuthorizationError.canceled` is returned
+    // BOTH when the person cancels AND when the system finds no credential — Apple returns one code for both deliberately, so
+    // as not to reveal what is on the device — and that user could tap forever and never learn why. Because the two cases are
+    // indistinguishable the line must serve both: it states the fact without blaming anyone who cancelled on purpose, and it
+    // names the two ways forward. No code, no "sorry", no exclamation (6.6).
+    func appleAuthFailed(_ error: Error) {
+        isSaving = false
+        guard (error as? ASAuthorizationError)?.code != .unknown else { authError = nil; return } // dismissed before the sheet drew anything
+        authError = appleAuthLine(for: error)
+    }
+
+    // Credentials that are not an Apple ID credential (a password credential from the Keychain, say) reach the same dead end
+    func appleAuthReturnedNoCredential() {
+        isSaving = false
+        authError = "Nothing came back from Apple. Try again, or use email below."
+    }
+
+    private func appleAuthLine(for error: Error) -> String {
+        guard let authorizationError = error as? ASAuthorizationError else { return "Apple couldn't sign you in. Try again, or use email below." }
+        switch authorizationError.code {
+        case .canceled: return "Nothing came back from Apple. Try again, or use email below."
+        default: return "Apple couldn't sign you in. Try again, or use email below."
+        }
+    }
+
     func logIn(email: String, password: String) async {
         await finishSignup {
             AuthStore.shared.store(try await Api.shared.login(LoginRequestDTO(email: email, password: password)))

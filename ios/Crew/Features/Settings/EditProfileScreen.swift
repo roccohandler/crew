@@ -23,7 +23,8 @@ struct EditProfileScreen: View {
             .accessibilityLabel("Change photo")
             if model.cameraDenied {
                 Text("Camera's off for Crew. Library photos still work.").font(.footnote).foregroundStyle(EmberColors.secondaryText).multilineTextAlignment(.center)
-                Button("Open Settings") { model.openSettings() }.font(.footnote).foregroundStyle(EmberColors.inkText)
+                // 6.3 — the one route out of a denied camera (E5), at footnote size it was the smallest target on the screen
+                TextActionButton(title: "Open Settings", font: .footnote, horizontalPadding: 0, accessibilityLabel: "Open Settings to turn the camera on") { model.openSettings() }
             }
             TextField("Name", text: Binding(get: { model.displayName }, set: { model.setName($0) }))
                 .textContentType(.name)
@@ -31,10 +32,13 @@ struct EditProfileScreen: View {
                 .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
                 .accessibilityLabel("Name")
             if let error = model.errorLine { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
+            // SPEC: A19.5 / R9 — THE SPACER MOVED ABOVE THE SAVE. It was below it, so the only action on the screen sat
+            // directly under a one-line name field with the rest of the canvas empty beneath it — the same defect A17.2
+            // fixed on Home and R9 fixes everywhere else. 6.7: primary actions stay bottom-anchored.
+            Spacer(minLength: 0)
             PrimaryButton(title: "Save", isLoading: model.isSaving) { Task { await model.save(); if model.saved { dismiss() } } }
                 .disabled(!model.canSave)
                 .opacity(model.canSave ? 1 : EmberTokens.Opacity.disabled)
-            Spacer()
         }
         .padding(EmberTokens.Spacing.space24)
         .background(EmberColors.canvas.ignoresSafeArea())

@@ -20,11 +20,21 @@ struct SaveAuthScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 Text("Save your plan").font(.title.weight(.bold)).foregroundStyle(EmberColors.inkText)
                 Text("The plan is yours. An account is how you keep it.").font(.body).foregroundStyle(EmberColors.secondaryText)
-                SignInWithAppleButton(.signIn) { request in
+                // SPEC: S05 · 6.1 — `.signUp` because this screen CREATES the account ("Sign up with Apple"); `.signIn` stays
+                // on LoginScreen, which recovers one. Every branch of the result is handled: with only `case .success` a
+                // cancel, a device carrying no Apple credential and a network failure were one indistinguishable silence, on
+                // the screen the whole funnel converges on.
+                SignInWithAppleButton(.signUp) { request in
                     request.requestedScopes = [.fullName, .email]
                 } onCompletion: { result in
-                    if case .success(let authorization) = result, let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                    switch result {
+                    case .success(let authorization):
+                        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                            model.appleAuthReturnedNoCredential(); return
+                        }
                         Task { await model.saveWithApple(credential: credential, birthYear: Int(birthYear)) }
+                    case .failure(let error):
+                        model.appleAuthFailed(error)
                     }
                 }
                 .signInWithAppleButtonStyle(.black)
@@ -40,11 +50,24 @@ struct SaveAuthScreen: View {
                 AuthField(title: "Birth year", text: $birthYear, error: fieldErrors["birthYear"], contentType: .birthdateYear, focus: $focused, key: "birthYear", keyboard: .numberPad) { validateBirthYear() }
                 Text("By saving you agree to the terms. Crew is for people \(SpecConstants.minimumAgeYears) and up.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }
-                PrimaryButton(title: "Save your plan", isLoading: model.isSaving) { submit() }
             }
             .padding(EmberTokens.Spacing.space24)
         }
         .scrollDismissesKeyboard(.interactively)
+        // SPEC: A19.1 — the signup screen's primary, out of the scroll. Five fields plus a legal line at
+        // accessibility-XXL put "Save your plan" below the fold on an SE, on the one screen where losing the user
+        // costs the account.
+        .crewBottomBar {
+            PrimaryButton(title: "Save your plan", isLoading: model.isSaving) { submit() }
+        }
+        // SPEC: A19.2 — the birth-year field is a `.numberPad`, which ships NO RETURN KEY. `scrollDismissesKeyboard`
+        // helps only if there is somewhere to scroll; a Done item is the documented remedy and always works.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focused = nil }
+            }
+        }
         .background(EmberColors.canvas.ignoresSafeArea())
     }
 
@@ -84,7 +107,7 @@ struct AuthField: View {
             .padding(EmberTokens.Spacing.space12)
             .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
             .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(error == nil ? EmberColors.hairline : EmberColors.danger, lineWidth: EmberTokens.Size.hairline))
+            .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(error == nil ? EmberColors.controlOutline : EmberColors.danger, lineWidth: EmberTokens.Size.hairline)) // A18.11: a text field is a control — 3.32:1, never the 1.26:1 hairline
             .onChange(of: focus.wrappedValue) { _, now in if now != key { onExit() } } // validation on field-exit, never per keystroke
             if let error { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
         }

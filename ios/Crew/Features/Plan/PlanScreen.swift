@@ -86,7 +86,9 @@ struct BoneToast: View {
                 .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
                 .padding(.horizontal, EmberTokens.Spacing.space16)
                 .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+                // A18.11 — the BoneToast, whose whole surface is a Button (tap dismisses): a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
+                // the 1.26:1 hairline family, which is for the seam between two surfaces.
+                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
         }
         .buttonStyle(.plain)
         .padding(EmberTokens.Spacing.space16)

@@ -3,6 +3,7 @@
 // rest days named, every planned day carries a workout of the cycle) · S05 (the draft survives abandon and resumes at the
 // save screen). WRITTEN — UNVERIFIED (needs Mac).
 
+import AuthenticationServices
 import XCTest
 @testable import Crew
 
@@ -67,6 +68,33 @@ final class OnboardingModelTests: XCTestCase {
             XCTAssertEqual(saturday.detail, "\(SpecConstants.someExperienceExerciseCount) exercises + mobility")
         } else {
             XCTAssertEqual(saturday.title, "Sat · —") // already past this week: open, no word
+        }
+    }
+
+    // SPEC: 6.1 ("never a dead end") — before this, both auth screens handled only `case .success`, so every Apple failure
+    // was silence. `.canceled` is the load-bearing case: Apple returns it BOTH for a deliberate cancel and for a device
+    // carrying no credential, so the line has to serve a user who chose to back out and a user who cannot proceed at all.
+    func testAppleFailureAlwaysLeavesALineAndAWayForward() {
+        let model = OnboardingModel(draftStore: temporaryStore())
+        XCTAssertNil(model.authError)
+
+        model.appleAuthFailed(ASAuthorizationError(.canceled))
+        let canceled = try! XCTUnwrap(model.authError)
+        XCTAssertEqual(canceled, "Nothing came back from Apple. Try again, or use email below.")
+
+        model.appleAuthFailed(ASAuthorizationError(.failed))
+        let failed = try! XCTUnwrap(model.authError)
+        XCTAssertEqual(failed, "Apple couldn't sign you in. Try again, or use email below.")
+
+        // a credential that is not an Apple ID credential reached the same silence
+        model.appleAuthReturnedNoCredential()
+        XCTAssertEqual(model.authError, "Nothing came back from Apple. Try again, or use email below.")
+
+        // 6.6: no code, no "sorry", no exclamation — and every line names the recovery that is on screen beneath the button
+        for line in [canceled, failed] {
+            XCTAssertFalse(line.contains("!"), line)
+            XCTAssertTrue(line.contains("email"), line)
+            XCTAssertFalse(model.isSaving)
         }
     }
 

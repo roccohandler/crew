@@ -71,7 +71,9 @@ struct CardioRow: View {
                     .font(.headline)
                     .foregroundStyle(EmberColors.inkText)
                     .frame(minWidth: EmberTokens.Size.ringDiameter, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                    .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+                    // A18.11 — the cardio block's Done: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
+                    // the 1.26:1 hairline family, which is for the seam between two surfaces.
+                    .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
                     .accessibilityLabel("Mark \(name) done, \(minutes) minutes")
             }
             HStack(spacing: EmberTokens.Spacing.space8) {
