@@ -40,25 +40,49 @@ extension HomeModel {
 
     // SPEC: Flow 2 — one mark per ISO weekday from trainingWeekdays (A1); missed = warm gray, never red;
     // A2 — a standalone cardio log never fills a planned slot.
-    // A17.4 — the FIRST upcoming training day becomes `.nextUp` and gets its own mark. Before that, `.upcoming` and
-    // `.rest` rendered byte-identically, so a plan training Mon/Wed/Sun drew Sunday exactly like Friday while the card
-    // said "Next workout: Sun". Only the first: marking every future training day would answer a question nobody asked
-    // and put three identical marks where one fact belongs.
-    static func weekMarks(userId: String, plan: LocalPlan?, todayKey: String, store: Store) throws -> WeekMarks {
+    //
+    // A18.7 — EVERY planned day is marked, and the FIRST upcoming one keeps its own mark. A17.4 marked only the next
+    // one, so every planned day after it rendered byte-identically to a rest day: on a four-day plan the ring said
+    // "of 4" while the strip could account for at most three of them. A18.1 puts the word "workouts" beside the ring,
+    // which turns that mismatch into a visible contradiction — so the strip has to be readable AGAINST the ring.
+    //
+    // A18.6a — PAUSE-AWARE. A planned day inside an active pause window is never `.missed` and never counts toward
+    // `planned`: Flow 7 and spec:460 promise "pauses without penalty", and A17.1 turned these grey dots into the
+    // English sentence "This week: Mon missed" — printed directly above a card that says the streak is frozen. The
+    // day reads exactly as a rest day reads, because under a pause that is what it is.
+    //
+    // The `trainingWeekdays` guard stays FIRST, before any session is read (A18.7): a bonus workout completed on a
+    // non-training day is not a planned-day completion, the ring does not count it, and a strip that marked it could
+    // not be read against the ring. The web twin tested the completion first and emitted "done" — one user, two
+    // answers, two different summary sentences. This is the rule both engines now follow.
+    static func weekMarks(userId: String, plan: LocalPlan?, todayKey: String, pause: LocalPause?, store: Store) throws -> WeekMarks {
         let weekKey = DayKey.weekKey(for: todayKey)
         var done = 0
         var planned = 0
         var days: [DayRingState] = try (0..<TimeUnits.daysPerWeek).map { offset in
             let dayKey = DayKey.addDays(weekKey, offset)
-            guard plan?.trainingWeekdays.contains(offset + 1) ?? false else { return dayKey == todayKey ? .today : .rest }
+            let isToday = dayKey == todayKey
+            let frozen = pause.map { dayKey >= $0.startDay && dayKey < $0.endDay } ?? false
+            guard plan?.trainingWeekdays.contains(offset + 1) ?? false, !frozen else { return isToday ? .today : .rest }
             planned += 1
             let completed = try store.sessions(for: userId, dayKey: dayKey).contains { $0.status == "completed" && $0.workoutKind != "cardio" }
             if completed { done += 1; return .done }
-            if dayKey == todayKey { return .today }
+            if isToday { return .today }
             return dayKey < todayKey ? .missed : .upcoming
         }
         if let first = days.firstIndex(of: .upcoming) { days[first] = .nextUp }
         return WeekMarks(days: days, done: done, planned: planned)
+    }
+
+    // SPEC: A18.9 · A6 — what today actually held, in the sentence the journal already prints. The all-done card was
+    // the one state with no filled control and nothing to report, so the day you did everything right was the day the
+    // screen looked least finished. Built by the SessionSummaryLine twin, so this adds no copy and no engine rule:
+    // one line per completed session, in completion order ("Push day · 12/12 sets · 44 min", "Walk · 25 min · 2.1 km").
+    static func todaySummary(userId: String, dayKey: String, distanceUnit: String, store: Store) throws -> [String] {
+        try store.sessions(for: userId, dayKey: dayKey)
+            .filter { $0.status == "completed" }
+            .sorted { ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast) }
+            .map { JournalFacts.summaryLine($0, distanceUnit: distanceUnit) } // C5: the journal's line, reused, not a second one
     }
 
     // SPEC: A14 · A2 — a completed session of kind `cardio` is CARDIO, not a workout; every other completed session is

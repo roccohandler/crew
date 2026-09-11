@@ -28,10 +28,16 @@ struct WeeklyRing: View {
 
     private var fraction: Double { planned == 0 ? 0 : Double(done) / Double(planned) }
 
+    // J027 (A18) — both circles are INSET by half the line width (space4 IS half of space8 on the G5 scale, so the
+    // inset is a token rather than an arithmetic literal), so the stroke's outer edge lands exactly on the
+    // frame instead of overflowing it by 4 pt. SwiftUI strokes a path down its centre and `.frame` does not clip, so
+    // the shipped ring was 72 pt wide inside a 64 pt box — which is also why the web twin (drawn to fit its viewBox)
+    // could never match it. The two engines now draw one ring: outer diameter `ringDiameter`, stroke `space8`.
     var body: some View {
         ZStack {
-            Circle().stroke(EmberColors.emberTint, lineWidth: EmberTokens.Spacing.space8)
+            Circle().inset(by: EmberTokens.Spacing.space4).stroke(EmberColors.emberTint, lineWidth: EmberTokens.Spacing.space8)
             Circle()
+                .inset(by: EmberTokens.Spacing.space4)
                 .trim(from: 0, to: fraction)
                 .stroke(EmberColors.ember, style: StrokeStyle(lineWidth: EmberTokens.Spacing.space8, lineCap: .round))
                 .rotationEffect(.degrees(EmberTokens.Size.ringStartAngleDegrees))

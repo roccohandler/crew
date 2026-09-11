@@ -6,14 +6,6 @@
 
 import SwiftUI
 
-enum HomeLoadState: Equatable {
-    case loading
-    case ready
-    case empty
-    case failed(String)
-    case offline
-}
-
 struct HomeScreen: View {
     @State private var model = HomeModel(welcomeBackAckDay: AuthStore.shared.currentUser?.welcomeBackAckDay) // E4: the account remembers the answer (as ProgressScreen and SettingsScreen read units)
     @State private var loadState: HomeLoadState = .loading
@@ -37,7 +29,11 @@ struct HomeScreen: View {
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle(title)
-            .toolbar { if !isBridge { ToolbarItem(placement: .primaryAction) { postButton } } } // A3: a way to post a meal on every non-bridge state
+            // A3 gave every non-bridge state a camera. A18.10 NARROWS it: not on a state whose CARD already offers a
+            // meal CTA. On the rest day the owner photographed, posting was reachable three ways at three weights —
+            // an unlabelled nav glyph, an ink-filled card primary and a slot — and the glyph was the screen's only
+            // unlabelled control. Apple's own navigation guidance names that redundancy as a cause of confusion.
+            .toolbar { if showsCameraButton { ToolbarItem(placement: .primaryAction) { postButton } } }
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
             .sheet(item: $celebration) { outcome in CelebrationScreen(outcome: outcome) { celebration = nil; model.refresh() } }
@@ -60,35 +56,35 @@ struct HomeScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
                     if loadState == .offline { OfflineBanner(lastSyncedLine: "Showing what you had — syncing when you're back.") }
-                    if let session = model.resumeSession { SecondaryButton(title: "Resume workout · \(session.workoutName)") { activeSession = session } }
-                    VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                        HStack(alignment: .center, spacing: EmberTokens.Spacing.space16) {
-                            StreakFlame(streak: model.streak, paused: isPaused)
-                            Spacer()
-                            // W043 — the ring is gone from the BRIDGE. There it read "0/3": a competing prompt on the one
-                            // screen §1D says must have none, an ember element that is not a reward (law ④), and a zero
-                            // used as a verdict (A8) — three rules at once, on a user's first ever screen.
-                            if model.ringPlanned > 0, !isBridge { WeeklyRing(done: model.ringDone, planned: model.ringPlanned) }
-                        }
-                        if !isBridge, !model.weeklyRing.isEmpty { WeekStrip(days: model.weeklyRing) } // A14: the states HomeModel already computed (F12)
-                        // A17.1 / H020 — the shield, which HomeModel has computed since day one and iOS rendered
-                        // nowhere. A user holding two shields and a user holding none saw an identical screen and an
-                        // identical "One post keeps it lit." Stated as reassurance, never as a countdown (spec:452).
-                        // A8: rendered only above zero, so a shieldless user is never told they have none.
-                        if !isBridge, model.shields > 0 {
-                            Text(model.shields == 1 ? "1 shield ready — one missed day won't break the streak." : "\(model.shields) shields ready — a missed day won't break the streak.")
-                                .font(.caption).foregroundStyle(EmberColors.secondaryText)
-                                .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
-                        }
-                    }
+                    // A18.8 — NOT on the bridge. The bridge lasts until the first POST and starting a workout is not a
+                    // post, so an abandoned first workout put this banner beside the bridge's own CTA: two prompts on
+                    // the one screen §1D says carries none. The bridge's single button resumes instead (TodayCard).
+                    if let session = model.resumeSession, !isBridge { SecondaryButton(title: "Resume workout · \(session.workoutName)") { activeSession = session } }
+                    HomeHeader(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, week: model.weeklyRing, isBridge: isBridge, isPaused: isPaused)
                     // A17.2 / H019 — the flexible space moved from BELOW the card to ABOVE it. Under A14 it sat after
                     // the card, so on every short state (rest, all-done, paused) the day's ink-filled primary was
                     // stranded in the upper half and the slack became one contiguous hole — ~29% of the screen on
                     // `.paused`, where the card renders no controls at all. Here the slack is a section break under
                     // the header group, and the card, its primary and the vector row all sit in the thumb zone.
                     // This is the first time 6.7's "primary actions stay bottom-anchored" is literally true on Home.
+                    // A18.3 — THE SPACE GETS CONTENT. A17.2 named the right cause ("this was never too much
+                    // whitespace, it was too few content elements to justify the whitespace") and then filled it with
+                    // two facts that do not render for an ordinary user: the miss, which is in the header group ABOVE
+                    // this spacer, and the shield, which is perfect-week-earned. The owner's screenshot had ~40% of
+                    // the screen empty. The what's-next fact is what Home already computes and a rest day actually
+                    // asks about, and NN/g names a large inter-section gap as a cause of the illusion of completeness.
+                    // Idle states only (rest · all-done): on a workout day the card IS what is next, and that state is
+                    // the tallest on the smallest phone (H009). Paused renders none either — see HomeModel.whatsNext.
+                    if let nextUp = model.nextUp, !isBridge { NextUpBlock(facts: nextUp) }
                     Spacer(minLength: 0)
-                    TodayCard(state: model.today, nextUpLine: model.nextUpLine, streak: model.streak, onStart: { activeSession = model.startWorkout() }, onPost: { posting = true })
+                    TodayCard(state: model.today,
+                              streak: model.streak,
+                              nextUpLine: model.nextUpLine,
+                              todaySummaryLines: model.todaySummaryLines,
+                              resuming: model.resumeSession != nil,
+                              onStart: { activeSession = model.startWorkout() },
+                              onPost: { posting = true },
+                              onEndPause: { Task { await model.endPause() } })
                     if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete(shareToCrew: true) } }
                     if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
                         // A17.1 / H034 — sectionGap, not rowGap. These were bound at 8 pt, the gap design-tokens.json
@@ -149,31 +145,21 @@ struct HomeScreen: View {
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }
     private var isBridge: Bool { if case .bridge = model.today { return true } else { return false } } // 1D: nothing else competes
 
+    // A18.10 — no camera where the card already asks for a meal. Rest is the state that asks (a filled "Post a meal"
+    // before the day counts, an outline "Post another" after); every other state keeps the glyph, because there the
+    // camera is the only nav-level route and "Log a meal" is a row rather than a screen-level action.
+    private var showsCameraButton: Bool {
+        if isBridge { return false } // §1D
+        if case .rest = model.today { return false }
+        return true
+    }
+
+    // A18.12 — the branch lives in HomeLoadState.of (5.6.6: a screen holds zero logic), which is also what makes
+    // `.offline` — declared since T013 and assigned nowhere — testable as REACHABLE rather than merely declared.
     private func load() {
         model.refresh()
-        if let line = model.loadError { loadState = .failed(line) } else { loadState = model.hasPlan ? .ready : .empty }
+        loadState = HomeLoadState.of(loadError: model.loadError, hasPlan: model.hasPlan, offline: model.offline)
         Signposts.endLaunchIfNeeded() // 8.8: launch → Home interval closes on the first real state
-    }
-}
-
-// SPEC: T042 — the three edge prompts, in priority order: welcome back (E4, full screen) → stale session (S01) → held uploads (E19).
-// Screens branch only on view state; every trigger and every consequence lives in HomeModel (5.6.6).
-struct EdgePrompts: ViewModifier {
-    let model: HomeModel
-    let onKeepGoing: () -> Void
-    let onRebuild: () -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .fullScreenCover(isPresented: Binding(get: { model.welcomeBack }, set: { _ in })) {
-                WelcomeBackScreen(longestStreak: model.longestStreak, onKeep: { Task { await model.acknowledgeWelcomeBack() } }, onRebuild: { Task { await model.acknowledgeWelcomeBack(); onRebuild() } })
-            }
-            .sheet(isPresented: Binding(get: { !model.welcomeBack && model.staleSession != nil }, set: { _ in })) {
-                StaleSessionPrompt(workoutName: model.staleSession?.workoutName ?? "Your workout", onKeepGoing: onKeepGoing, onDiscard: { model.discardStaleSession() })
-            }
-            .sheet(isPresented: Binding(get: { !model.welcomeBack && model.staleSession == nil && !model.heldUploads.isEmpty }, set: { _ in })) {
-                FailedUploadSheet(records: model.heldUploads) { model.resolveUpload($0, choice: $1) }
-            }
     }
 }
 

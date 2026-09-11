@@ -49,6 +49,12 @@
       "role": "20% Ink — secondary button = ink label",
       "spec": "Part III table (composed from ink text)"
     },
+    "controlOutline": {
+      "light": "#938C83",
+      "dark": "#726A61",
+      "role": "20% Ink — the visible boundary of every OUTLINE control (secondary buttons, the Home log rows). A18.11 (2026-09-10): outline controls drew their boundary with `hairline`/`secondaryButtonOutline` #E9E4DD, which measures 1.26:1 on a card and 1.19:1 on the canvas against 6.5's 3:1 non-text gate — so the thing that says \"this is a control\" was invisible and the owner read three buttons as three dead containers. #938C83 measures 3.32:1 on card and 3.13:1 on canvas; #726A61 measures 3.15:1 on the dark card and 3.45:1 on the dark canvas. `hairline` keeps its own value: a boundary between two SURFACES is not a control, and darkening dividers would be a different change.",
+      "spec": "Part III table; law ①; 6.5; A18.11"
+    },
     "secondaryText": {
       "light": "#6F6860",
       "dark": "#A69E94",

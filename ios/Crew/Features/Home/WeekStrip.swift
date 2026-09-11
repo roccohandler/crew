@@ -51,10 +51,16 @@ struct WeekStrip: View {
         .accessibilityLabel(lines.spoken)
     }
 
-    // done = a filled ember dot · today = an ink ring (you are here, nothing has happened yet) · missed = a hollow gray
-    // ring · nextUp = a small filled tick, the NEXT training day · rest and upcoming = a hollow tick. A17.4 gives the
-    // next training day its own mark: before it, `.upcoming` and `.rest` were byte-identical, so a plan training
-    // Mon/Wed/Sun drew Sunday exactly like Friday while the card said "Next workout: Sun".
+    // done = a filled ember dot · today = an ink ring (you are here, nothing has happened yet) · missed = a large hollow
+    // gray ring · nextUp = a small filled ink dot, the NEXT training day · upcoming = a small HOLLOW gray ring, every
+    // planned day after that · rest = the smallest gray tick, a day the plan asks nothing of.
+    //
+    // A18.7 — `.upcoming` stops sharing a case with `.rest`. A17.4 marked the next training day only, so on a plan
+    // training four days a week the ring said "of 4" while the strip could account for at most three of them: a
+    // planned Friday was drawn exactly like a rest Saturday. A18.1 now prints the word "workouts" beside the ring,
+    // which makes that a contradiction a reader can SEE, so the strip has to be countable against the ring.
+    // `.upcoming` and `.missed` share a colour and differ in size and in position (past against future); the summary
+    // sentence names the misses in words, so nothing rests on the size difference alone (6.5 / 1.4.1).
     @ViewBuilder
     private func mark(_ state: DayRingState) -> some View {
         switch state {
@@ -69,7 +75,9 @@ struct WeekStrip: View {
             Circle().stroke(EmberColors.secondaryText, lineWidth: EmberTokens.Size.hairline).frame(width: EmberTokens.Spacing.space12, height: EmberTokens.Spacing.space12)
         case .nextUp:
             Circle().fill(EmberColors.inkText).frame(width: EmberTokens.Spacing.space8, height: EmberTokens.Spacing.space8)
-        case .rest, .upcoming:
+        case .upcoming:
+            Circle().stroke(EmberColors.secondaryText, lineWidth: EmberTokens.Size.hairline).frame(width: EmberTokens.Spacing.space8, height: EmberTokens.Spacing.space8)
+        case .rest:
             Circle().fill(EmberColors.secondaryText).frame(width: EmberTokens.Spacing.space4, height: EmberTokens.Spacing.space4)
         }
     }

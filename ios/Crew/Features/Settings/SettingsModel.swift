@@ -86,8 +86,15 @@ final class SettingsModel {
         } catch let error as AppError { errorLine = error.userLine } catch {}
     }
 
+    // A18.6c — the local LocalPause is deleted too. Without this the API call succeeded, Settings showed the pause
+    // gone, and Home (which reads `activePause` from the Store, never the network) still rendered "Plan paused"
+    // until the next server hydrate. Home now offers the same action, so both callers clear both halves.
     func endPause() async {
-        do { _ = try await Api.shared.endPause(); pause = nil } catch let error as AppError { errorLine = error.userLine } catch {}
+        do {
+            _ = try await Api.shared.endPause()
+            try? store.clearPauses(for: userId)
+            pause = nil
+        } catch let error as AppError { errorLine = error.userLine } catch {}
     }
 
     // SPEC: E9 — JSON data export in MVP; saved to a temporary file for the share sheet; every tap fetches afresh (re-exportable)

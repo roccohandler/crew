@@ -9,10 +9,7 @@ import { EarnedAchievements, earnedIds } from "@/components/EarnedAchievements";
 import { QuickCompleteButton } from "@/components/QuickCompleteButton";
 import { StaleSessionPrompt } from "@/components/StaleSessionPrompt";
 import { WelcomeBack } from "@/components/WelcomeBack";
-import { StreakFlame } from "@/components/StreakFlame";
 import { VectorRow } from "@/components/VectorRow";
-import { WeeklyRing } from "@/components/WeeklyRing";
-import { WeekStrip } from "@/components/WeekStrip";
 import { memberDots } from "@/lib/crew-stream";
 import { crewMemberships, crews } from "@/lib/db";
 import { storedState } from "@/lib/gamification-store";
@@ -20,13 +17,21 @@ import { shouldShowWelcomeBack } from "@/lib/lapsed-user";
 import { findPlan } from "@/lib/plans";
 import { readSession } from "@/lib/session";
 import { SpecConstants } from "@/generated/spec-constants";
-import { homeFacts, rotationFor, type HomeFacts } from "@/lib/today-state";
+import { homeFacts, nextUpLineOf, rotationFor, type HomeFacts } from "@/lib/today-state";
 import { TodayCard } from "@/app/(app)/home/TodayCard";
+import { NextUpBlock, WeekHeader } from "@/app/(app)/home/HomeHeader";
 
-// SPEC: A3 · Flow 5 — Bonus workout starts the NEXT rotation workout (+25, never expected); the pointer is derived from
-// history (A1), so it is read from the same rotation Home used, and only where the card offers the button (rest / all-done)
+// SPEC: A3 · Flow 5 — Bonus workout starts the NEXT rotation workout; the pointer is derived from history (A1), so it
+// is read from the same rotation Home used.
+//
+// J023 (A18) — PAUSED is in this list now. It was rest and allDone only, so on a paused day `todayWorkoutKind` was
+// null, no bonus kind existed, and the Workout row fell through to "/plan" — a destination this file's own comment
+// below already calls wrong ("answers a question the user did not ask and leaves the screen entirely"), while iOS
+// opened the bonus sheet. Note what a paused bonus actually pays: ZERO, not +25 — V20 expects [] for a workout
+// completed inside a pause window, and gamification-post.ts implements it. It is allowed, it simply earns nothing,
+// which is what "pauses without penalty" means in both directions.
 async function bonusKindFor(userId: ObjectId, facts: HomeFacts): Promise<string | null> {
-  if (facts.today.kind !== "rest" && facts.today.kind !== "allDone") return null;
+  if (facts.today.kind !== "rest" && facts.today.kind !== "allDone" && facts.today.kind !== "paused") return null;
   const plan = await findPlan(userId);
   return plan === null ? null : (await rotationFor(userId, plan, facts.todayKey)).nextKind;
 }
@@ -72,27 +77,6 @@ function title(today: HomeFacts["today"]): string {
   return "Today";
 }
 
-// SPEC: A14 — one group: the flame, the ring and the week strip belong together, separated from what follows by the section
-// gap rather than by the same 16 px that separated everything from everything (F09).
-function WeekHeader({ facts, streak, shields, isBridge }: { facts: HomeFacts; streak: number; shields: number; isBridge: boolean }) {
-  return (
-    <div className="stack stack--tight">
-      <div className="row row--between">
-        <StreakFlame streak={streak} paused={facts.today.kind === "paused"} />
-        {/* W043 — the ring is gone from the BRIDGE: there it read "0/3", which is a competing prompt on the one screen §1D
-            says must have none, an ember element that is not a reward (law ④), and a zero used as a verdict (A8). */}
-        {facts.ringPlanned > 0 && !isBridge ? <WeeklyRing done={facts.ringDone} planned={facts.ringPlanned} /> : null}
-      </div>
-      {!isBridge ? <WeekStrip week={facts.week} todayKey={facts.todayKey} /> : null}
-      {/* A17.1 / H020 — the shield, computed since day one and rendered nowhere. Reassurance, never a countdown
-          (spec:452); shown only above zero, so a shieldless user is never told they have none (A8). */}
-      {!isBridge && shields > 0 ? (
-        <p className="muted">{shields === 1 ? "1 shield ready — one missed day won't break the streak." : `${shields} shields ready — a missed day won't break the streak.`}</p>
-      ) : null}
-    </div>
-  );
-}
-
 // SPEC: A17.2 / H019 — everything from the card down is ONE bottom-anchored group, so the slack lands as a section
 // break under the header rather than as a hole between the card and the vector row. Twin of the iOS Spacer moving
 // above TodayCard: the day's ink-filled primary is now in the thumb zone on every state.
@@ -105,7 +89,7 @@ function BottomGroup({ facts, streak, bonusKind, userId, isBridge }: { facts: Ho
     : bonusKind !== null ? `/session/new?bonus=${bonusKind}` : "/plan";
   return (
     <div className="stack stack--sections stack--bottom">
-      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} nextUpLine={facts.nextUpLine} streak={streak} />
+      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} bridgeLine={nextUpLineOf(facts.nextUp)} streak={streak} todaySummaryLines={facts.todaySummaryLines} />
       {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
       {/* A14 — the three vectors as peers; every standalone duplicate that used to sit here or in the card is gone
           (A17.3). A17.1 / H034 — sectionGap, not the 8 px "within one group" stack: the layout used to assert the
@@ -135,12 +119,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <div className="stack stack--page">
       <div className="row row--between">
         <h1>{title(facts.today)}</h1>
-        {!isBridge ? <Link className="button button--text" href="/post" aria-label="Post a meal"><span aria-hidden="true">📷</span></Link> : null}
+        {/* A3 gave every non-bridge state a camera. A18.10 NARROWS it: not on a state whose CARD already offers a meal
+            CTA. On the rest day the owner photographed, posting was reachable three ways at three weights — an
+            unlabelled glyph, a filled card primary and a slot — and Apple's own navigation guidance names that
+            redundancy as a cause of confusion. Twin of ios HomeScreen.showsCameraButton. */}
+        {!isBridge && facts.today.kind !== "rest" ? <Link className="button button--text" href="/post" aria-label="Post a meal"><span aria-hidden="true">📷</span></Link> : null}
       </div>
       <EarnedAchievements ids={unlocked} />
       {facts.openSessionId && facts.openSessionStale ? <StaleSessionPrompt id={facts.openSessionId} workoutName={facts.openSessionName ?? "Your workout"} timezone={session.user.timezone} /> : null}
-      {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
+      {/* A18.8 — NOT on the bridge. The bridge lasts until the first POST and starting a workout is not a post, so an
+          abandoned first workout put this banner beside the bridge's own single CTA — two prompts on the one screen
+          §1D says carries none, and a CI test asserted both at once. The bridge's own button resumes instead. */}
+      {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" && !isBridge ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
       <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} shields={state?.shields ?? 0} isBridge={isBridge} />
+      <NextUpBlock facts={facts} />
       <BottomGroup facts={facts} streak={state?.currentStreak ?? 0} bonusKind={bonusKind} userId={userId} isBridge={isBridge} />
     </div>
   );

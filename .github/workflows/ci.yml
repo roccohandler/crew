@@ -154,8 +154,12 @@ jobs:
         if: always()
         shell: bash
         run: bash ios/scripts/verdict.sh "${{ steps.test.outcome }}"
-      # Always, not only on failure: UITestResults.xcresult carries the journeys' screenshots (CrewUITests/Screenshots.swift),
+      # Always, not only on failure: TestResults.xcresult carries every test's screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
+      # J034 (A18, 2026-09-10) — that bundle now contains Home's four non-bridge states by name, from HomeStatesTests:
+      # "S07 Home — rest day (the screen the owner photographed)" · "— workout day" · "— all done" · "— plan paused".
+      # Before it, the only non-bridge Home any run had ever rendered was a workout day, which is why a rest-day defect
+      # and a paused state that contradicted its own copy both shipped to TestFlight with every job green.
       - uses: actions/upload-artifact@v4
         if: always()
         with:

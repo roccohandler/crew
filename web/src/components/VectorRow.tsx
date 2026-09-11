@@ -1,40 +1,43 @@
-// SPEC: A14 (owner-directed 2026-09-09) — Workout · Cardio · Meals, three co-equal slots. The owner named these as the three
-// primary logging vectors; F10 measured how far Home was from treating them that way (one filled primary, one outline button
-// whose position MOVED between states, one nav-bar glyph that vanished on the bridge), so logging a 45-minute walk changed
-// Home not at all.
+// SPEC: A14 (owner-directed 2026-09-09) — Workout · Cardio · Meals, three co-equal logging vectors. The owner named
+// these as the three primary vectors; F10 measured how far Home was from treating them that way, so logging a
+// 45-minute walk changed Home not at all.
 //
-// Why this is legal under "one primary action per view" (6.1 · §1B · S07 · §1D): every slot is an OUTLINE control and the
-// day's workout keeps the single filled primary inside the card above. Position makes them peers; weight still says which
-// one the plan is asking for today.
+// A18.5 (owner-directed 2026-09-10) — THE GEOMETRY AND THE GRAMMAR MOVE; A14's content does not. The owner's report
+// was "three strange divs at the bottom with workout, cardio, and meals", and there were three reasons for it: three
+// equal-width bordered cells in a row is Apple's own definition of a SEGMENTED CONTROL (a one-of-three picker) rather
+// than three independent buttons; the grammar was a stat readout, a caption NOUN over a value carrying the verb, while
+// 6.6 requires verb-first control labels; and the border measured 1.26:1 against 6.5's 3:1 gate, so the one mark that
+// says "this is a control" could not be seen (A18.11 gives it its own `controlOutline` token).
 //
-// Part III law ① — no slot ever wears ember, even when done: a filled INK dot marks a logged vector, and law ④ keeps ember
-// scarce for the flame, the ring and the strip. A8 — a slot with nothing to report reads "—", never "0" and never "0/3".
-// Keyboard-complete: every slot is a link. Mirrors ios Features/Home/VectorRow.
+// Full-width rows: ink verb leading, today's status trailing when there is one. A8 — an unlogged row REPORTS NOTHING
+// rather than reporting a zero or an em dash (H028 established that "—" reads as disabled); the verb is the invitation.
+// Part III law ① — no row ever wears ember: a filled INK dot marks a logged vector, and law ④ keeps ember scarce for
+// the flame, the ring and the strip. Keyboard-complete: every row is a link.
+// Mirrors ios Features/Home/VectorRow.
 import Link from "next/link";
-import type { VectorSlots } from "@/lib/today-state";
+import type { VectorSlots } from "@/lib/home-facts";
 
-function Slot({ title, value, isLogged, href }: { title: string; value: string; isLogged: boolean; href: string }) {
+function LogRow({ verb, status, href }: { verb: string; status: string | null; href: string }) {
   return (
-    <Link className="vectorslot" href={href} aria-label={`${title}, ${isLogged ? `${value} today` : "nothing logged today"}`}>
-      <span className="vectorslot__title" aria-hidden="true">{title}</span>
-      <span className="vectorslot__value" aria-hidden="true">
-        {/* the dot is the redundant encoder: the shape says logged-or-not without asking anyone to read the number (6.5) */}
-        <span className={isLogged ? "vectorslot__dot vectorslot__dot--logged" : "vectorslot__dot"} />
-        {value}
-      </span>
+    <Link className="logrow" href={href} aria-label={`${verb}, ${status === null ? "nothing logged today" : `${status} today`}`}>
+      <span className="logrow__verb" aria-hidden="true">{verb}</span>
+      {status === null ? null : (
+        <span className="logrow__status" aria-hidden="true">
+          {/* the dot is the redundant encoder (6.5 / WCAG 1.4.1): the shape says logged without anyone reading the number */}
+          <span className="logrow__dot" />
+          {status}
+        </span>
+      )}
     </Link>
   );
 }
 
 export function VectorRow({ slots, workoutHref }: { slots: VectorSlots; workoutHref: string }) {
   return (
-    <div className="vectorrow">
-      {/* A17 / H028 — an unlogged slot says "Log", not "—". The em dash is spec-blessed on an INPUT surface (spec:203)
-          but was never ratified on a STATUS surface, and beside a near-invisible hollow ring it read as the universal
-          idiom for DISABLED — exactly what the owner reported. A verb turns three dead cells into three invitations. */}
-      <Slot title="Workout" value={slots.workoutDone ? "Done" : "Log"} isLogged={slots.workoutDone} href={workoutHref} />
-      <Slot title="Cardio" value={slots.cardioMinutes === null ? "Log" : `${slots.cardioMinutes} min`} isLogged={slots.cardioMinutes !== null} href="/log-cardio" />
-      <Slot title="Meals" value={slots.meals > 0 ? `${slots.meals}` : "Log"} isLogged={slots.meals > 0} href="/post" />
+    <div className="logrows">
+      <LogRow verb="Log workout" status={slots.workoutDone ? "Done" : null} href={workoutHref} />
+      <LogRow verb="Log cardio" status={slots.cardioMinutes === null ? null : `${slots.cardioMinutes} min`} href="/log-cardio" />
+      <LogRow verb="Log a meal" status={slots.meals > 0 ? `${slots.meals}` : null} href="/post" />
     </div>
   );
 }

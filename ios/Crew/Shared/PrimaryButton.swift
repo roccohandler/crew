@@ -1,5 +1,11 @@
 // SPEC: Part III law ① — ink acts: primary buttons are #211D19 fill with #FAF8F5 label (dark: inverted ink), never
 // orange; 6.3 targets ≥ 44 pt; 6.6 verb-first labels. WRITTEN — UNVERIFIED (needs Mac).
+//
+// A18.11 (2026-09-10) — the secondary button's boundary moves from `secondaryButtonOutline` (#E9E4DD, 1.26:1 on a
+// card and 1.19:1 on the canvas) to `controlOutline` (3.32:1 / 3.13:1). 6.5's non-text gate governs "the visual
+// information required to identify user interface components", and the outline IS that information on a control
+// with no fill: at 1.26:1 the thing saying "this is a button" was invisible, which is exactly what the owner
+// reported about Home's three log rows. This is app-wide: every SecondaryButton in Crew draws through this line.
 
 import SwiftUI
 
@@ -36,7 +42,7 @@ struct SecondaryButton: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
                 .foregroundStyle(EmberColors.secondaryButtonLabel)
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space16, style: .continuous).stroke(EmberColors.secondaryButtonOutline, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space16, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
         }
         .buttonStyle(.plain)
     }

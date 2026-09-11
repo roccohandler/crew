@@ -185,10 +185,13 @@ a {
   border: none;
 }
 
+/* A18.11 — the boundary moves off the 1.26:1 hairline family onto `controlOutline` (3.32:1 on a card, 3.13:1 on the
+   canvas). On a control with no fill the outline IS "the visual information required to identify the component"
+   that 6.5 / WCAG 1.4.11 governs. Twin of ios Shared/PrimaryButton.swift's SecondaryButton. */
 .button--secondary {
   background: transparent;
   color: var(--ember-secondary-button-label);
-  border: var(--ember-size-hairline) solid var(--ember-secondary-button-outline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
 }
 
 .button--text {
@@ -216,7 +219,7 @@ a {
   font: inherit;
   color: var(--ember-ink-text);
   background: var(--ember-card);
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   border-radius: var(--ember-space-12);
   padding: var(--ember-space-12);
   min-height: var(--crew-min-touch-target);
@@ -243,7 +246,7 @@ a {
   width: var(--ember-size-ring-diameter);
   height: var(--ember-size-ring-diameter);
   border-radius: 50%;
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   background: var(--ember-card);
   color: var(--ember-ink-text);
   font: inherit;
@@ -262,7 +265,7 @@ a {
   min-height: var(--crew-min-touch-target);
   padding: var(--ember-space-4) var(--ember-space-12);
   border-radius: var(--ember-size-corner-radius);
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   background: var(--ember-card);
   color: var(--ember-ink-text);
   font: inherit;
@@ -297,9 +300,12 @@ a {
   height: var(--ember-size-ring-diameter);
 }
 
+/* J027 — px, not em. The viewBox is now the ring's diameter (one unit = one pixel), and `1.4em` resolved against an
+   unset body font-size while the iOS twin used `.headline` at 17 pt, so the two engines printed the fraction at
+   different sizes inside identically sized rings. */
 .ring__label {
   fill: var(--ember-ink-text);
-  font-size: 1.4em;
+  font-size: 17px;
   font-weight: 600;
 }
 
@@ -347,7 +353,7 @@ a {
   font: inherit;
   color: var(--ember-ink-text);
   background: var(--ember-card);
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   border-radius: var(--ember-space-12);
   padding: var(--ember-space-8);
   min-height: var(--crew-min-touch-target);
@@ -364,7 +370,7 @@ a {
   width: var(--crew-min-touch-target);
   height: var(--crew-min-touch-target);
   border-radius: 50%;
-  border: var(--ember-size-hairline) solid var(--ember-hairline);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   background: var(--ember-card);
   color: var(--ember-ink-text);
   font: inherit;
@@ -590,12 +596,21 @@ a {
   box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-secondary-text);
 }
 
-/* rest and upcoming = one small neutral tick, centred in the same 12 px box. H014: was --ember-hairline at 1.19:1. */
-.weekstrip__dot--rest,
-.weekstrip__dot--upcoming {
+/* rest = one small neutral tick, centred in the same 12 px box — a day the plan asks nothing of.
+   H014: was --ember-hairline at 1.19:1. */
+.weekstrip__dot--rest {
   width: var(--ember-space-4);
   height: var(--ember-space-4);
   background: var(--ember-secondary-text);
+}
+
+/* A18.7 — every OTHER planned day, hollow: same colour as a miss, smaller, and in the future rather than the past.
+   A17.4 marked only the next one, so a plan training four days a week gave a ring reading "of 4" above a strip that
+   could account for at most three of them — and A18.1 now prints the word "workouts" beside that ring. */
+.weekstrip__dot--upcoming {
+  width: var(--ember-space-8);
+  height: var(--ember-space-8);
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-secondary-text);
 }
 
 /* A17.4 — the NEXT training day, and only that one: bigger than a rest tick, ink rather than gray, but not the
@@ -606,39 +621,44 @@ a {
   background: var(--ember-ink-text);
 }
 
-/* SPEC: A14 — Workout · Cardio · Meals as peers (F10). Every slot is an OUTLINE control: the day's workout keeps the single
-   filled primary in the card above, so "one primary action per view" still holds (6.1 · §1B · S07). No slot ever wears
-   ember — a filled INK dot marks a logged vector (law ① · law ④). Twin of ios VectorRow. */
-.vectorrow {
-  display: flex;
-  gap: var(--ember-space-12);
-}
-
-.vectorslot {
-  flex: 1;
+/* SPEC: A14 · A18.5 — Workout · Cardio · Meals as peers (F10), as three FULL-WIDTH rows rather than three
+   equal-width cells. Three equal bordered segments in a row is the platform's definition of a segmented control — a
+   one-of-three picker — and these are three independent buttons; the owner read them as "divs". Every row is still an
+   OUTLINE control, so the day's workout keeps the single filled primary in the card above and "one primary action per
+   view" holds (6.1 · §1B · S07). No row ever wears ember: a filled INK dot marks a logged vector (law ① · law ④).
+   Twin of ios VectorRow. */
+.logrows {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--ember-row-gap);
-  min-height: var(--crew-min-touch-target);
-  padding: var(--ember-space-8);
-  /* H028 — the card FILL is gone. With it, the slot was character-for-character the chrome of the read-only .card
-     (same fill, same 1 px hairline), so the eye had no way to tell a control from a container. It now wears what
-     every other secondary control wears: no fill, a hairline outline, an ink label. The outline is only 1.26:1 —
-     a known app-wide debt with its own repair — and what carries the affordance is the ink verb inside. */
-  background: transparent;
-  border: var(--ember-size-hairline) solid var(--ember-secondary-button-outline);
+  /* A18.11 — controlOutline (3.32:1 on a card, 3.13:1 on the canvas), never the 1.26:1 hairline family: on a control
+     with no fill the boundary IS the thing that identifies the component (6.5 / WCAG 1.4.11). One boundary around the
+     group rather than three, so no pair of rows carries two adjacent hairlines. */
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
   border-radius: var(--ember-size-corner-radius);
+  overflow: hidden;
+}
+
+.logrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ember-space-8);
+  min-height: var(--crew-min-touch-target);
+  padding: var(--ember-space-12) var(--ember-space-16);
   color: var(--ember-ink-text);
   text-decoration: none;
 }
 
-.vectorslot__title {
-  font-size: 0.75rem;
-  color: var(--ember-secondary-text);
+/* a divider BETWEEN two surfaces is not a control, so it keeps --ember-hairline — the exact distinction A18.11 rests on */
+.logrow + .logrow {
+  border-top: var(--ember-size-hairline) solid var(--ember-hairline);
 }
 
-.vectorslot__value {
+.logrow__verb {
+  font-weight: 600;
+}
+
+.logrow__status {
   display: flex;
   align-items: center;
   gap: var(--ember-space-4);
@@ -646,18 +666,27 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* the redundant encoder: the shape says logged-or-not without asking anyone to read the number (6.5).
-   H014: the unlogged ring was --ember-hairline at 1.26:1 on a card — invisible against the 3:1 gate. */
-.vectorslot__dot {
+/* the redundant encoder (6.5 / WCAG 1.4.1): the shape says logged without anyone reading the number */
+.logrow__dot {
   width: var(--ember-space-8);
   height: var(--ember-space-8);
   border-radius: 50%;
-  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-secondary-text);
+  background: var(--ember-ink-text);
 }
 
-.vectorslot__dot--logged {
-  background: var(--ember-ink-text);
-  box-shadow: none;
+/* SPEC: A18.3 — the what's-next fact as a titled block, in the space that used to be empty. Ink detail under a
+   secondary caption; never a control (law ①), never orange (law ③). Twin of ios NextUpBlock. */
+.nextup__heading {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ember-secondary-text);
+}
+
+.nextup__detail {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ember-ink-text);
 }
 
 /* SPEC: A14 — the day's ACTUAL work on the card, not a count of it. Read-only rows; the card keeps one action.

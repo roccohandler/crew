@@ -22,6 +22,8 @@ enum EmberColors {
     static let secondaryButtonOutline = emberColor(light: 0xE9E4DD, dark: 0x2E2822)
     /// 20% Ink — secondary button = ink label · light #211D19 · dark #F5F1EB
     static let secondaryButtonLabel = emberColor(light: 0x211D19, dark: 0xF5F1EB)
+    /// 20% Ink — the visible boundary of every OUTLINE control (secondary buttons, the Home log rows). A18.11 (2026-09-10): outline controls drew their boundary with `hairline`/`secondaryButtonOutline` #E9E4DD, which measures 1.26:1 on a card and 1.19:1 on the canvas against 6.5's 3:1 non-text gate — so the thing that says "this is a control" was invisible and the owner read three buttons as three dead containers. #938C83 measures 3.32:1 on card and 3.13:1 on canvas; #726A61 measures 3.15:1 on the dark card and 3.45:1 on the dark canvas. `hairline` keeps its own value: a boundary between two SURFACES is not a control, and darkening dividers would be a different change. · light #938C83 · dark #726A61
+    static let controlOutline = emberColor(light: 0x938C83, dark: 0x726A61)
     /// 20% Ink — secondary text · light #6F6860 · dark #A69E94
     static let secondaryText = emberColor(light: 0x6F6860, dark: 0xA69E94)
     /// 20% Ink — missed = warm gray, never red; recedes on dark · light #A8A29A · dark #5E574F

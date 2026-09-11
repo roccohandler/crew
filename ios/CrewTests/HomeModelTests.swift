@@ -10,19 +10,14 @@ import XCTest
 @MainActor
 final class HomeModelTests: XCTestCase {
     private let userId = "home-user"
-    private let tz = TimeZone(identifier: "America/Los_Angeles")!
-    private let friday = ISO8601DateFormatter().date(from: "2026-09-04T18:00:00-07:00")! // Friday — a training day (Mon/Wed/Fri)
+    private let tz = HomeTestFixtures.timeZone
+    private let friday = HomeTestFixtures.friday // Friday — a training day (Mon/Wed/Fri)
     private var saturday: Date { friday.addingTimeInterval(TimeInterval(TimeUnits.secondsPerDay)) }
     private var sunday: Date { friday.addingTimeInterval(TimeInterval(2 * TimeUnits.secondsPerDay)) }
     private var monday: Date { friday.addingTimeInterval(TimeInterval(3 * TimeUnits.secondsPerDay)) }
 
-    // A1: every generated plan is Push day → Pull day → Leg day in stored order, at any frequency
-    private func storeWithPlan() throws -> Store {
-        let store = Store(inMemory: true)
-        let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
-        try PlanLocal.replace(draft, userId: userId, updatedAt: friday, store: store)
-        return store
-    }
+    // C5 — the third occurrence of this fixture is extracted (HomeTestFixtures); this is the call, not a copy
+    private func storeWithPlan() throws -> Store { try HomeTestFixtures.storeWithPlan(userId: userId) }
 
     // A14: TodayState.workout now carries the day's ACTUAL rows, so a literal comparison would pin the seed's exercise names
     // into three unrelated tests. These assert what the state MEANS: which workout, how big, and that a row exists per lift.
@@ -36,10 +31,7 @@ final class HomeModelTests: XCTestCase {
         XCTAssertEqual(lines.count, SpecConstants.beginnerExerciseCount, file: file, line: line) // one row per strength exercise
     }
 
-    private func post(_ store: Store, id: String, dayKey: String) throws {
-        store.context.insert(LocalPost(clientId: id, userId: userId, type: "meal", sessionClientId: nil, caption: "eggs", mealTag: "breakfast", shareToCrew: false, dayKey: dayKey, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: friday))
-        try store.save()
-    }
+    private func post(_ store: Store, id: String, dayKey: String) throws { try HomeTestFixtures.post(store, userId: userId, id: id, dayKey: dayKey) }
 
     func testBridgeUntilTheFirstPostThenWorkoutState() throws {
         let store = try storeWithPlan()

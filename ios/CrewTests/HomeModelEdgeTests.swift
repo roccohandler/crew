@@ -9,15 +9,11 @@ import XCTest
 @MainActor
 final class HomeModelEdgeTests: XCTestCase {
     private let userId = "edge-user"
-    private let tz = TimeZone(identifier: "America/Los_Angeles")!
-    private let friday = ISO8601DateFormatter().date(from: "2026-09-04T18:00:00-07:00")!
+    private let tz = HomeTestFixtures.timeZone
+    private let friday = HomeTestFixtures.friday
 
-    private func storeWithPlan() throws -> Store {
-        let store = Store(inMemory: true)
-        let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
-        try PlanLocal.replace(draft, userId: userId, updatedAt: friday, store: store)
-        return store
-    }
+    // C5 — the third occurrence of this fixture is extracted (HomeTestFixtures); this is the call, not a copy
+    private func storeWithPlan() throws -> Store { try HomeTestFixtures.storeWithPlan(userId: userId) }
 
     private func queue(_ store: Store) -> SyncQueue {
         SyncQueue(store: store, send: { _ in throw AppError.invalidResponse })

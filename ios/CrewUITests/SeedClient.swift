@@ -58,6 +58,33 @@ struct SeedClient {
         guard status == 201 else { throw SeedError.unexpected("posts → \(status)") }
     }
 
+    // SPEC: A18 / J034 — the seeds Home's four non-bridge states need, so CI can PHOTOGRAPH each one. Before this the
+    // only non-bridge Home any test ever rendered was a workout day (journey ②, whose member trains every day) and a
+    // rest day that asserted one string's absence. The owner reported a rest day; nothing in CI had ever looked at it.
+
+    // A plan with ONE training day, chosen relative to today, so a state is deterministic on any day of the week.
+    // `offsetFromToday` 0 → today trains (workout / all-done); 1 → tomorrow trains (today is a rest day).
+    func putPlan(oneTrainingDayOffsetFromToday offset: Int, as session: SeedSession) async throws {
+        let weekday = (Calendar.current.component(.weekday, from: Date().addingTimeInterval(TimeInterval(offset * 86_400))) + 5) % 7 + 1 // Foundation Sun=1 → ISO Mon=1
+        let workouts: [[String: Any]] = [
+            ["name": "Push day", "kind": "push", "exercises": [["exerciseId": "push-up", "name": "Push-Up", "pattern": "horizontalPush", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]]],
+            ["name": "Pull day", "kind": "pull", "exercises": [["exerciseId": "inverted-row", "name": "Inverted Row", "pattern": "horizontalPull", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]]],
+            ["name": "Leg day", "kind": "legs", "exercises": [["exerciseId": "bodyweight-squat", "name": "Bodyweight Squat", "pattern": "squat", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]]],
+        ]
+        let (_, status) = try await call("PUT", "plans", body: ["trainingWeekdays": [weekday], "workouts": workouts], token: session.accessToken)
+        guard status == 200 else { throw SeedError.unexpected("plans → \(status)") }
+    }
+
+    // Flow 7 — a live pause, so Home renders `.paused`. Never retroactive: it starts today (pause-validation.ts).
+    func pause(untilDaysFromNow days: Int, as session: SeedSession) async throws {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+        let body: [String: Any] = ["startDay": formatter.string(from: Date()), "endDay": formatter.string(from: Date().addingTimeInterval(TimeInterval(days * 86_400))), "timezone": TimeZone.current.identifier]
+        let (_, status) = try await call("POST", "pause", body: body, token: session.accessToken)
+        guard status == 201 || status == 200 else { throw SeedError.unexpected("pause → \(status)") }
+    }
+
     func createCrew(as session: SeedSession) async throws -> (id: String, token: String) {
         let (data, status) = try await call("POST", "crews", body: ["name": "Night Shift", "emoji": "🌙"], token: session.accessToken)
         guard status == 201, let reply = try JSONSerialization.jsonObject(with: data) as? [String: Any], let crew = reply["crew"] as? [String: Any],

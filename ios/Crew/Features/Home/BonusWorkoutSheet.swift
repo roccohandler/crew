@@ -44,7 +44,9 @@ struct BonusWorkoutSheet: View {
                     .foregroundStyle(EmberColors.inkText)
                     .padding(.horizontal, EmberTokens.Spacing.space8)
                     .padding(.vertical, EmberTokens.Spacing.space4)
-                    .overlay(Capsule().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
+                    // A18.11 — a workout row inside a Button — picking one starts a session: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
+                    // the 1.26:1 hairline family, which is for the seam between two surfaces.
+                    .overlay(Capsule().stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
             }
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(EmberColors.secondaryText)
         }

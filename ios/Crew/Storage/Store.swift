@@ -102,6 +102,15 @@ final class Store {
         return try context.fetch(descriptor).first
     }
 
+    // SPEC: Flow 7 · A18.6c — ending a pause has to remove it from the PHONE, not only from the server. Settings'
+    // "End the pause now" called the API and left the LocalPause in place, and Home reads `activePause` from the
+    // Store and never from the network (S07: today-state < 500 ms warm), so the plan stayed visibly frozen until the
+    // next server hydrate. A18.6c puts the same control on Home, so the local half can no longer be skipped.
+    func clearPauses(for userId: String) throws {
+        for pause in try context.fetch(FetchDescriptor<LocalPause>(predicate: #Predicate { $0.userId == userId })) { context.delete(pause) }
+        try save()
+    }
+
     func crewSnapshot() throws -> LocalCrewSnapshot? {
         var descriptor = FetchDescriptor<LocalCrewSnapshot>(sortBy: [SortDescriptor(\.syncedAt, order: .reverse)])
         descriptor.fetchLimit = 1

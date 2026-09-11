@@ -2,7 +2,7 @@
 // substitute: every page has one main landmark and one h1, every image has alt, every button/link has a name, every
 // field has a label, and (8.9) nothing scrolls horizontally from 360 to 1920 · 6.5 semantic landmarks, keyboard-complete · T043
 import { expect, test, type Page } from "@playwright/test";
-import { buildWeekAndSave, expectNoHorizontalScroll } from "./helpers";
+import { buildWeekAndSave, expectNoHorizontalScroll, fillWhenHydrated } from "./helpers";
 
 interface Audit { mains: number; h1s: number; unnamedImages: number; unnamedControls: string[]; unlabelledFields: string[] }
 
@@ -49,6 +49,30 @@ test("signed-in pages: landmarks, names, labels, no sideways scroll", async ({ p
   await buildWeekAndSave(page, { label: "a11y" });
   await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
   for (const path of ["/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio"]) await expectAccessible(page, path);
+});
+
+// J033 (A18) — THE AUDIT ABOVE HAS ONLY EVER SEEN THE BRIDGE. `buildWeekAndSave` leaves a brand-new account with no
+// post, and §1D gates the strip, the ring, the log rows, the crew strip and the next-up block off that one screen —
+// so every element A14, A17 and A18 added to Home has been invisible to the accessibility pass since it was written.
+// One post is the whole difference between auditing an empty screen and auditing the screen the owner photographed.
+test("the real Home — not the bridge — carries landmarks, names and labels", async ({ page }) => {
+  await buildWeekAndSave(page, { label: "a11y-real-home" });
+  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
+  await page.goto("/post");
+  await fillWhenHydrated(page, "Say something (or don't)", "eggs", "Post");
+  await page.getByRole("button", { name: "Post" }).click();
+  await expect(page).toHaveURL(/\/home(\?earned=.+)?$/, { timeout: 15_000 });
+
+  await expectAccessible(page, "/home");
+
+  // The elements the bridge hid, each with the accessible name its iOS twin speaks (E20). These are exactly the
+  // surfaces A17.1 found rendering a complete sentence to VoiceOver and a glyph to the eye — and J024 found the
+  // flame naming a bare <div>, which ARIA prohibits and the audit above cannot see (it collects buttons and links).
+  await expect(page.locator(".flame[role='img']")).toHaveAttribute("aria-label", /^Streak \d+$/);
+  await expect(page.locator(".weekstrip[role='img']")).toHaveAttribute("aria-label", /^This week:.*\.$/);
+  for (const verb of ["Log workout", "Log cardio", "Log a meal"]) {
+    await expect(page.getByRole("link", { name: new RegExp(`^${verb}, (nothing logged today|.* today)$`) })).toBeVisible();
+  }
 });
 
 // 8.9: 360 → 1920, nothing scrolls sideways; 6.7 single column stays a column

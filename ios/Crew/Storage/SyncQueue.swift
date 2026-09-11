@@ -59,6 +59,12 @@ final class SyncQueue {
 
     let store: Store
     var isDraining = false           // one drain pass at a time (SyncDriver.swift)
+    // SPEC: A18.12 / E6 / 6.1 — the queue is the only thing in the app that TOUCHES the network on a normal loop, so
+    // it is the only thing that knows whether there is one. It already distinguished "offline" from "failed" and
+    // then threw the distinction away, which is why HomeScreen declared a `.offline` state it could never enter and
+    // its OfflineBanner had never rendered on any device. Published here rather than probed by the screen: a screen
+    // holds zero logic (5.6.6), and a reachability probe would be a second, disagreeing source of truth.
+    private(set) var offline = false
     private let send: (SyncOpDTO) async throws -> SyncResponseDTO
     private let autoDrain: Bool      // the app's queue goes out after every enqueue; a test's queue is stepped by hand
 
@@ -83,18 +89,22 @@ final class SyncQueue {
         record.state = OpState.inFlight.rawValue
         do {
             let response = try await send(SyncOpDTO(opId: record.id, kind: record.kind, payload: try JSONValue.from(record.payload)))
+            offline = false // A18.12: an answer from the server is the end of the offline state, whatever the answer says
             let outcome = settle(record, response: response, now: now) // the op's own fate first: the reconcile guard reads the queue after it
             try reconcile(response)
             return outcome
         } catch AppError.offline {
             record.state = OpState.pending.rawValue // E6: no attempt is counted — the op waits for the network exactly as it was
+            offline = true                          // A18.12: the fact Home renders as its thin banner
             try? store.save()
             return .offline
         } catch AppError.unauthorized {
             record.state = OpState.pending.rawValue // not the op's fault either: it goes out after the next sign-in (validAccessToken signed out)
+            offline = false                         // A18.12: a 401 came FROM the server, so the network is there
             try? store.save()
             return .signedOut
         } catch let error as AppError {
+            offline = false // A18.12: every AppError but `.offline` is an answer, which means the network was reachable
             if case .server(_, let message, let status) = error, HttpStatus.badRequest..<HttpStatus.tooManyRequests ~= status {
                 return hold(record, error: message) // poison: the server will never accept it
             }
