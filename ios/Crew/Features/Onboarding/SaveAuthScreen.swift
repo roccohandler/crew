@@ -62,10 +62,17 @@ struct SaveAuthScreen: View {
         }
         // SPEC: A19.2 — the birth-year field is a `.numberPad`, which ships NO RETURN KEY. `scrollDismissesKeyboard`
         // helps only if there is somewhere to scroll; a Done item is the documented remedy and always works.
+        // A20 (2026-09-11) — SCOPED TO THE FIELD THAT NEEDS IT. A19.2 is a rule about pads that ship NO RETURN KEY, and
+        // `Birth year` is the only one on this screen; Name, Email and Password all carry one. Shown unconditionally,
+        // the bar animated in and out on every field change on the screen with the most field changes in the app, and
+        // it laid out against the same edge as A19.1's `safeAreaInset` bottom bar. Three UI tests began failing at this
+        // field in the push that added both (run 34590287373). The dismissal A19.2 promises is unchanged.
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { focused = nil }
+                if focused == "birthYear" {
+                    Spacer()
+                    Button("Done") { focused = nil }
+                }
             }
         }
         .background(EmberColors.canvas.ignoresSafeArea())

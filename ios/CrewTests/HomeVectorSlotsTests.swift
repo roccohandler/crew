@@ -60,6 +60,24 @@ final class HomeVectorSlotsTests: XCTestCase {
         XCTAssertEqual(slots.cardioMinutes, 10) // both vectors, same day, independently
     }
 
+    // SPEC: A20.10 (2026-09-11) — CARDIO DONE INSIDE A WORKOUT COUNTS ON THE CARDIO ROW.
+    //
+    // The test above is named "…AndItsCardioBlockCountsAsCardio" and never tested that: its second session is a
+    // SEPARATE `kind: "cardio"` log, so the name promised the rule and the body exercised a different one. Under the
+    // shipped `workoutKind == "cardio"` filter this case returned nil — Home's Cardio row read "nothing logged today"
+    // for a user who had just done twenty minutes of it, while ProgressModel (which counts cardio sets from every
+    // session) reported the minutes on the next tab. One device, one day, two answers.
+    //
+    // `workoutDone` stays true and is the point of the split: the session is still a workout, so the week strip and the
+    // ring are untouched (A2 — only a standalone cardio log fails to fill a planned slot).
+    func testACardioBlockInsideAWorkoutFillsTheCardioRow() throws {
+        let store = Store(inMemory: true)
+        try session(store, id: "w2", kind: "push", cardioSeconds: 1200) // a push day carrying a 20-minute cardio block
+        let slots = try HomeModel.slots(userId: userId, dayKey: dayKey, store: store)
+        XCTAssertTrue(slots.workoutDone, "a push day is still a workout")
+        XCTAssertEqual(slots.cardioMinutes, 20, "A20.10 — the Cardio row said nothing logged while Progress reported the minutes")
+    }
+
     // ---------------------------------------------------------------------------------------------------------
     // A18.7 — the week's marks. These are the twin of web/src/lib/home-facts.ts weekMarks; the two engines disagreed
     // about a bonus workout on a non-training day until A18.7 put the trainingWeekdays guard first on both.

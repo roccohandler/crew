@@ -6,6 +6,7 @@
 // facts) is SyncDelivery.swift; the moments the queue runs are SyncDriver.swift. WRITTEN — UNVERIFIED (needs Mac). T014
 
 import Foundation
+import Observation
 import SwiftData
 
 enum OpKind: String, Codable, CaseIterable {
@@ -53,20 +54,29 @@ enum ProcessOutcome: Equatable {
     case held(opId: String)
 }
 
+// SPEC: A20.9 (2026-09-11) — THE QUEUE IS OBSERVED, NOT SAMPLED. HomeModel copied `offline` inside `refresh()`, which
+// runs BEFORE the drain that discovers the network is gone — so the banner could not appear as a result of the action
+// that found out, and once set it stayed set until some later refresh happened to follow a successful send. Stale and
+// sticky in both directions. `@Observable` makes the three facts live for whoever reads them.
 @MainActor
+@Observable
 final class SyncQueue {
-    static let shared = SyncQueue(store: Store.shared, send: SyncTransport.send, autoDrain: true)
+    @ObservationIgnored static let shared = SyncQueue(store: Store.shared, send: SyncTransport.send, autoDrain: true)
 
-    let store: Store
-    var isDraining = false           // one drain pass at a time (SyncDriver.swift)
+    @ObservationIgnored let store: Store
+    @ObservationIgnored var isDraining = false // one drain pass at a time (SyncDriver.swift) — machinery, not a fact any view reports
     // SPEC: A18.12 / E6 / 6.1 — the queue is the only thing in the app that TOUCHES the network on a normal loop, so
     // it is the only thing that knows whether there is one. It already distinguished "offline" from "failed" and
     // then threw the distinction away, which is why HomeScreen declared a `.offline` state it could never enter and
     // its OfflineBanner had never rendered on any device. Published here rather than probed by the screen: a screen
     // holds zero logic (5.6.6), and a reachability probe would be a second, disagreeing source of truth.
     private(set) var offline = false
-    private let send: (SyncOpDTO) async throws -> SyncResponseDTO
-    private let autoDrain: Bool      // the app's queue goes out after every enqueue; a test's queue is stepped by hand
+    // SPEC: A20.9 — 6.1 asks for "last-synced + one thin banner" and the banner never had a last-synced to show; Home
+    // carried no delivery signal at all (the only "Sending ↻" in the app is on Progress). These are those two facts.
+    private(set) var lastSyncedAt: Date?
+    private(set) var pendingCount = 0
+    @ObservationIgnored private let send: (SyncOpDTO) async throws -> SyncResponseDTO
+    @ObservationIgnored private let autoDrain: Bool // the app's queue goes out after every enqueue; a test's queue is stepped by hand
 
     init(store: Store, send: @escaping (SyncOpDTO) async throws -> SyncResponseDTO, autoDrain: Bool = false) {
         self.store = store
@@ -78,7 +88,15 @@ final class SyncQueue {
         let record = OpRecord(id: UUID().uuidString, kind: kind, payload: try JSONEncoder.crew.encode(payload), createdAt: now)
         store.context.insert(record)
         try store.save()
+        refreshQueueFacts() // A20.9: the count changes the instant something is queued, not at the next drain
         if autoDrain { Task { await drain() } } // E6: what was just logged goes out now if it can
+    }
+
+    // A20.9 — recomputed at the moments the queue actually changes (enqueue · delivery · drain pass · recover), never
+    // polled. A fetchCount, not a fetch: the banner needs the number, not the rows.
+    func refreshQueueFacts() {
+        let pending = OpState.pending.rawValue
+        pendingCount = (try? store.context.fetchCount(FetchDescriptor<OpRecord>(predicate: #Predicate { $0.state == pending }))) ?? pendingCount
     }
 
     // SPEC: 5.6.3 — FIFO: the oldest pending op goes next and, while its backoff runs, nothing behind it overtakes it (8.3
@@ -125,6 +143,8 @@ final class SyncQueue {
         try? markDelivered(record, now: now)
         store.context.delete(record)
         try? store.save()
+        lastSyncedAt = now // A20.9: the banner's "last synced" is the last op the server actually took
+        refreshQueueFacts()
         return .sent(opId: record.id)
     }
 
@@ -143,30 +163,6 @@ final class SyncQueue {
         local.lastCountedDayKey = serverState.lastCountedDayKey
         local.earnedAchievementIds = serverState.earnedAchievementIds
         local.updatedAt = Date()
-        try store.save()
-    }
-
-    // SPEC: E19 — after ~24 h a held op needs the user's choice: Retry · Post without photo · Delete
-    func heldOver24h(now: Date = Date()) throws -> [OpRecord] {
-        let held = OpState.held.rawValue
-        let cutoff = now.addingTimeInterval(-TimeInterval(SpecConstants.failedUploadChoiceAfterHours * TimeUnits.secondsPerHour))
-        return try store.context.fetch(FetchDescriptor<OpRecord>(predicate: #Predicate { $0.state == held && $0.createdAt < cutoff }, sortBy: [SortDescriptor(\.createdAt)]))
-    }
-
-    func resolve(_ record: OpRecord, choice: UserChoice, now: Date = Date()) throws {
-        switch choice {
-        case .retry:
-            record.state = OpState.pending.rawValue
-            record.attempts = 0
-            record.nextAttemptAt = now
-        case .postWithoutPhoto:
-            record.payload = try PostPayloadPhotoStripper.strip(record.payload)
-            record.state = OpState.pending.rawValue
-            record.attempts = 0
-            record.nextAttemptAt = now
-        case .delete:
-            store.context.delete(record)
-        }
         try store.save()
     }
 

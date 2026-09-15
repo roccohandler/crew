@@ -87,4 +87,27 @@ final class ServerHydrateTests: XCTestCase {
         XCTAssertEqual(local.shields, 2)
         XCTAssertEqual(local.earnedAchievementIds, ["first-flame"])
     }
+
+    // SPEC: A20.10 (2026-09-11) · Flow 7 — A PAUSE IS A SERVER FACT AND THE PHONE MUST BE ABLE TO LEARN IT.
+    //
+    // `LocalPause` had exactly ONE writer in the whole app — SettingsModel.pause(until:) — and this file pulled every
+    // other server truth and not this one. So a pause created on the web, or any pause predating a reinstall, never
+    // reached the Store: Settings read `me.pause` off the network and said "Plan paused" while Home, which reads
+    // `store.activePause` and nothing else, rendered a training day and offered Start workout. Two surfaces, one
+    // device, opposite answers. HomeStatesTests.testPausedFreezesTheReportAndOffersTheWayOut had been failing on
+    // exactly this since the day it was written (run 34590287373: "expected Home's title to name the state (Plan
+    // paused); the screen says: Push day").
+    func testAServerPauseArrivesAndAnEndedOneLeaves() throws {
+        let store = Store(inMemory: true)
+        let today = "2026-09-04"
+        XCTAssertNil(try store.activePause(for: userId, today: today))
+
+        try ServerHydrate.writePause(PauseDTO(startDay: "2026-09-03", endDay: "2026-09-10"), userId: userId, store: store, now: when)
+        XCTAssertEqual(try store.activePause(for: userId, today: today)?.endDay, "2026-09-10")
+
+        // The server is the truth in BOTH directions: a pause ended elsewhere has to be able to leave this phone too,
+        // or ending it on the web would freeze this device forever.
+        try ServerHydrate.writePause(nil, userId: userId, store: store, now: when)
+        XCTAssertNil(try store.activePause(for: userId, today: today))
+    }
 }

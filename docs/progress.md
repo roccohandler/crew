@@ -278,6 +278,105 @@ Fix = F43. Local gates re-run after it: swift-xref clean · doctrine-lint clean 
 **NEXT:** A15 (Stage 7, "change today's workout") per the ratified ordering — after the CI run that compiles A18 + A19
 Stages A/B/D, so Home's bar adoption and the editor's R11 can follow on proven ground.
 
+## 2026-09-12 — A20, THE FIFTH HOME REVIEW (owner-directed; contract docs/home-plan-a20-2026-09-11.md)
+
+The owner reviewed the shipped Home and reported **"it looks too complicated and things don't look like they're
+syncing"**, with a mockup from another agent that he liked. Evidence: an **87-agent investigation** (7 repo lenses +
+6 outside-research lenses, 200 findings, 24 load-bearing claims through 3 adversarial verifiers each — **6 survived,
+18 were refuted**). He then answered **28 questions across 7 rounds**; every ruling is §1 of the plan.
+
+**THE FINDING THAT REFRAMED THE BRIEF.** The mockup's dark palette is not a new design — **it is Crew's existing dark
+theme**. `shared/design-tokens.json` carries a light AND a dark hex for all 16 colour tokens, `EmberColors.swift`
+builds each as a dynamic `UIColor`, `ember.css` has the `prefers-color-scheme` block, and `project.yml` is
+`UIUserInterfaceStyle: Automatic`. The owner was comparing a **light-mode screenshot** against a **dark-mode mockup**.
+Dark costs zero engineering — but **no test, e2e spec, layout gate or CI screenshot on either engine has ever rendered
+a dark screen**, so it is mechanically correct and visually unverified. Ruling: keep system-following; photograph it.
+
+**"Too complicated" is a TREATMENT problem, not a fact problem** — Home renders **13 distinct `.font()` expressions
+across 9 sizes**, and `design-tokens.json` has **no typography key at all**, so every size in the app is a per-file
+decision and web sets its own inline with no parity test. Four Home passes have walked past this. Plus the state name
+renders **twice verbatim** on three of four states, the week is encoded **three ways**, and today's workout is
+reachable from **three controls at three weights**.
+
+**"Doesn't look like it's syncing" is LITERALLY TRUE — four bugs, none of which a layout change fixes.** All four are
+fixed in Build A below.
+
+### Build A — DONE, QUEUED AS F45, NOT YET PUSHED (owner runs the queue)
+
+| Fix | What it was |
+|---|---|
+| **S2 / A20.10** | `LocalPause` had ONE writer in the app (`SettingsModel.pause`); `ServerHydrate` pulled every other server truth and not this one. A pause made on web, or predating a reinstall, never reached the phone — Settings said "Plan paused" while Home offered Start workout. **`HomeStatesTests.testPausedFreezes…` has been failing on exactly this since it was written.** |
+| **S1** | `loadState` was `@State` assigned in ONE place while **eight** paths call `refresh()` directly — so the offline/error layer was whatever it had been at the last foreground. Now computed over the `@Observable` model (the pattern `CrewScreen.swift:21-26` already used). |
+| **S3** | `SyncQueue` is `@Observable`; `offline` stops being a snapshot taken BEFORE the drain that discovers the network is gone, and sticky after. |
+| **S4 / A20.10** | Home's cardio row counted only `workoutKind == "cardio"` while Progress sums cardio from every session — a bike block inside a push day read "nothing logged today" on one tab and reported minutes on the next. Fixed on **both** engines. |
+| **A20.9** | The offline banner drew `#FFFFFF` on `#FAF8F5` — **1.06:1** — behind a 1.19:1 edge, no glyph, a constant sentence. It now carries 6.1's real "last synced" time and the queued count Home never had. |
+| **T-A1** | `testRestDayNames…` demanded the UNPOSTED premise line on a state that must post to leave the bridge (§1D), so only "Today counts." is reachable — the engine was right, the assertion was wrong. |
+| **T-A3** | The other three reds are one race at one field: `Birth year` is the only `.numberPad` on S05 and the last of five, and A19.1's `safeAreaInset` + A19.2's Done bar both animate against that edge. Step synchronised (`typeInto`); Done bar scoped to the one field with no return key. **Hypothesis — see debt.md.** |
+
+**A20 ADDS NO VECTOR, and that is a ruling.** The 56 vectors are the gamification fixture contract; the pause is an
+existing server fact moving onto the phone and the cardio row is a reporting function that awards nothing — the same
+reasoning A18 recorded and A19 followed. V57–V64 stay reserved for A16; next free id is still **V57**.
+
+**Commands run here, 2026-09-12:**
+
+| Command | Result |
+|---|---|
+| `generate.mjs` · `check-drift.mjs` | all 7 Generated files match shared/ |
+| `check-vectors.mjs` · `check-seeds.mjs` | 56 vectors / 9 files · 15 achievements / 110 exercises / 45 lists |
+| `doctrine-lint.mjs` · `swift-xref.mjs` | clean — **194** Swift files · 194 files, 379 types, clean |
+| web: `typecheck` · `lint` | exit 0 · exit 0 |
+| web: `npm test` | **42 files, 446 tests** (445 → 446: the A20.10 cardio-in-a-workout twin) |
+| web: `npm run vectors` | 56 passed |
+| web: `npm run e2e` | **32 passed, 1 skipped, 0 failed** |
+| `docker swift test` | **76 tests, 0 failures** |
+
+`SyncQueue.swift` and `HomeModel.swift` both crossed the C9 200-line cap; the E19 held-op half split into
+`SyncQueueHeld.swift`, the way `HomeModel+Edges.swift` already splits HomeModel. **Note for the next session:
+`doctrine-lint` splits on `\n`, so a file with 200 real lines reports 201 — the effective cap is 199.**
+
+**STILL WRITTEN-UNVERIFIED:** every Swift change here. No Mac. CI is the first real verification, and the two Home UI
+tests are the acceptance gate for the two product fixes.
+
+### Build B — DONE, QUEUED AS F46, **DO NOT PUSH UNTIL F45's CI IS GREEN** (owner ruling #4)
+
+| Clause | Change |
+|---|---|
+| **A20.12** | **The app gets typography tokens.** Part III specified colour, spacing, motion and haptics and never TYPE — Home alone rendered **13 distinct `.font()` expressions across 9 semantic sizes**, and web set its own inline with no parity test. Five roles now generate to both engines on the spacing scale's own path; iOS names SEMANTIC styles so Dynamic Type still scales them. This is the measured driver of "looks complicated", and four Home passes had walked past it. |
+| **A20.1** | The day's card becomes **row one of TODAY'S LOG**. Kills three duplicate routes to one intent (card primary, Quick complete, log row) — four with a session open. |
+| **A20.2** | Verb title + status subtitle. Three workout grammars: plan fact → live fraction → done summary. **No branch prints a zero** (A8). |
+| **A20.3** | One target per row, chevron, no inner pill. The **one named exception** is the workout row's quick-complete mark. |
+| **A20.4** | The ring becomes a named fraction, carrying A18.2's above-zero gate verbatim. `WeeklyRing` stays for Progress. |
+| **A20.5** | The open session is the row's subtitle. The Resume banner is gone — and with it a live iOS/web disagreement. |
+| **A20.6** | Crew strip leaves Home; the shield **folds into the streak line** rather than being dropped (it is the one fact here with no neighbour). The week leads, the streak demotes. |
+| **A20.7** | A date line above the title. **A17.4(c) reaffirmed** — what's deleted is the card headline that repeated the title verbatim. New `todayHeader` twin on both engines, reading the day `refresh()` judged and never the wall clock. |
+| **A20.8** | Home adopts `.crewBottomBar`, **per state**. `Bar` is a compile-time type, so a ViewBuilder switching to `EmptyView` yields `_ConditionalContent` and the modifier would still have drawn a rule and an inset on the states A17.3/A18.9 cleared. **A19.1's paragraph claimed the modifier handled this and it did not** — corrected in the source. |
+| **A20.11** | Meal count only. No kcal: A16 clause ⑥ and the owner's still-open ⏳ W070. |
+| **A20.13** | **The dark appearance is photographed** — the first time any test on either engine renders it. |
+
+**Commands run here after Build B, 2026-09-12:**
+
+| Command | Result |
+|---|---|
+| `check-drift` · `check-vectors` · `check-seeds` | match · 56 / 9 files · consistent |
+| `doctrine-lint` · `swift-xref` | clean — **196** Swift files · 196 files, 383 types, clean |
+| web: `typecheck` · `lint` · `build` | exit 0 · exit 0 · green |
+| web: `npm test` | **42 files, 448 tests** (446 → 448: the `todayHeader` twin + the type-parity check) |
+| web: `npm run vectors` | 56 passed |
+| web: `npm run e2e` | **32 passed, 1 skipped, 0 failed** |
+| `docker swift test` | **77 tests, 0 failures** (76 → 77: `DayLabel.todayHeader`, compiled and passing on Linux) |
+
+**Two Swift-only traps were caught here rather than by a 13-minute CI round trip:** `enum Type` inside `EmberTokens`
+would have been ambiguous with Swift's metatype syntax (`EmberTokens.Type`) — the generator emits `Typography`, and
+`token-parity.test.ts` now asserts it; and `dateLine` initially read `Date()` instead of the day `refresh()` judged,
+which would have made its test date-dependent and the screen able to state a different day than the state beneath it.
+
+**Also note for the next session:** `doctrine-lint` counts `split("\n").length`, so a file of 200 real lines reports
+201 — **the effective C9 cap is 199.** Three files were re-split under it this pass (`SyncQueueHeld.swift`,
+`HomeModel+Rows.swift`, `HomeLogRowsTests.swift`).
+
+**NEXT:** push F45, confirm the auto-TestFlight trigger fires for the first time ever, smoke-test Build A on the phone,
+then push F46. After A20: **A15** (Stage 7, "change today's workout"), per A20.8's amended ordering.
+
 ## Ledger
 
 Phase 0 — contracts

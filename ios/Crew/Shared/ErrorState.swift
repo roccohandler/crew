@@ -17,16 +17,57 @@ struct ErrorState: View {
     }
 }
 
+// SPEC: 6.1 Offline ("core loop unaffected; social shows last-synced + one thin banner") · A18.12 (the state became
+// reachable) · A20.9 (2026-09-11 — it became LEGIBLE, and it started saying something true).
+//
+// What was wrong with it. It rendered `EmberColors.card` on `EmberColors.canvas` — #FFFFFF on #FAF8F5, which measures
+// **1.06:1** — behind a `hairline` edge at 1.19:1, with no glyph and a hard-coded sentence that named no time. So the
+// one element in the entire app whose job is to explain why the screen is behind was, in practice, invisible; and even
+// when it was seen it could not answer "behind by how much". The owner's second complaint — "things don't look like
+// they're syncing" — is about exactly this surface, and the mockup that prompted this pass deleted it altogether.
+//
+// What it does now: draws on `emberTint` behind a `controlOutline` edge (3.13:1) with an SF Symbol, and states the two
+// facts SyncQueue now publishes — when the server last took something, and how much is still waiting. `lastSyncedLine`
+// stays the caller's sentence so nothing else that renders this has to change. Ember TINT, not ember: law ④ keeps the
+// ember SHAPES for the reward layer, and a tint is a surface (the same distinction A18.11 drew for hairline vs control).
 struct OfflineBanner: View {
     let lastSyncedLine: String
+    var pending: Int = 0
+    var lastSyncedAt: Date?
 
     var body: some View {
-        Text(lastSyncedLine)
-            .font(.footnote)
-            .foregroundStyle(EmberColors.secondaryText)
-            .frame(maxWidth: .infinity, minHeight: EmberTokens.Spacing.space32)
-            .background(EmberColors.card)
-            .overlay(Rectangle().frame(height: 1).foregroundStyle(EmberColors.hairline), alignment: .bottom)
-            .accessibilityLabel("Offline. \(lastSyncedLine)")
+        HStack(spacing: EmberTokens.Spacing.space8) {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.footnote)
+                .foregroundStyle(EmberColors.secondaryText)
+            Text(line)
+                .font(.footnote)
+                .foregroundStyle(EmberColors.inkText)
+                .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, EmberTokens.Spacing.space12)
+        .padding(.vertical, EmberTokens.Spacing.space8)
+        .frame(maxWidth: .infinity, minHeight: EmberTokens.Spacing.space32, alignment: .leading)
+        .background(EmberColors.emberTint, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
+        // E20 — one stop, the whole sentence, with the word "Offline" leading so a screen reader states the condition first
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Offline. \(line)")
     }
+
+    // A8 — never a zero as a verdict: with nothing waiting the banner reports the condition and the time, and says
+    // nothing about a queue that is empty.
+    private var line: String {
+        let waiting = pending > 0 ? " \(pending) waiting to send." : ""
+        guard let lastSyncedAt else { return lastSyncedLine + waiting }
+        return "Offline — last synced \(Self.clock.string(from: lastSyncedAt))." + waiting
+    }
+
+    private static let clock: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
 }

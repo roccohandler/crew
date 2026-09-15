@@ -31,8 +31,11 @@ export async function vectorSlots(userId: ObjectId, todayKey: string): Promise<V
     (await sessions()).find({ userId, status: "completed", dayKey: todayKey }, { projection: { workoutKind: 1, exercises: 1 } }).toArray(),
     (await posts()).countDocuments({ userId, dayKey: todayKey, type: "meal", deletedAt: null }),
   ]);
+  // A20.10 (2026-09-11) — cardio done ANYWHERE counts on this row. The `workoutKind === "cardio"` filter meant only a
+  // standalone log filled it, so a cardio block inside a push day read "nothing logged today" on Home while Progress
+  // reported the minutes. Twin of ios HomeModel.slots, changed in the same pass so the two cannot drift.
+  // `workoutDone` keeps its own split: a standalone cardio log is still not a workout (A2).
   const cardioSeconds = completed
-    .filter((session) => session.workoutKind === "cardio")
     .flatMap((session) => session.exercises.filter((row) => row.type === "cardio").flatMap((row) => row.sets))
     .filter((set) => set.done && !set.isWarmup)
     .reduce((total, set) => total + (set.holdSeconds ?? 0), 0);

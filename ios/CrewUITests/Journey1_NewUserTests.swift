@@ -50,8 +50,8 @@ final class Journey1_NewUserTests: XCTestCase {
         email.tap(); email.typeText("journey1-\(Int(Date().timeIntervalSince1970))@example.com")
         let password = app.secureTextFields["Password"]
         password.tap(); password.typeText("journey password 1")
-        let year = app.textFields["Birth year"]
-        year.tap(); year.typeText("1994")
+        // A20 — synchronised: the numberPad is the last of five fields and its keyboard animates in (JourneySteps)
+        typeInto(app.textFields["Birth year"], "1994", in: app)
         app.buttons["Save your plan"].tap()
 
         // S07 bridge state on Home: unlit flame, one oversized CTA (the wait covers a cold dev server hashing the first password)

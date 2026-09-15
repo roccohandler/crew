@@ -87,9 +87,16 @@ extension HomeModel {
 
     // SPEC: A14 · A2 — a completed session of kind `cardio` is CARDIO, not a workout; every other completed session is
     // a workout. This is the same split A14 gives the post type, the journal row and the heat map, applied to Home.
+    // A20.10 (2026-09-11) — THE CARDIO ROW COUNTS CARDIO DONE ANYWHERE. The `workoutKind == "cardio"` filter meant only
+    // a STANDALONE cardio log filled the row, so a 20-minute row inside a push day left Home's Cardio row reading
+    // "nothing logged today" while ProgressModel — which counts cardio sets from EVERY session — reported the minutes on
+    // the next tab. One device, one day, two answers, and the tab that says you did nothing is the one the user opens
+    // first. A2 says a cardio BLOCK inside a workout is cardio; nothing in A14 said the row should disagree.
+    // `workoutDone` keeps its own split and is unchanged: a standalone cardio log is still not a workout (A2), which is
+    // what keeps the week strip and the ring honest.
     static func slots(userId: String, dayKey: String, store: Store) throws -> VectorSlots {
         let completed = try store.sessions(for: userId, dayKey: dayKey).filter { $0.status == "completed" }
-        let cardioSeconds = completed.filter { $0.workoutKind == "cardio" }.flatMap { JournalFacts.doneSets($0, type: "cardio") }.reduce(0) { $0 + ($1.holdSeconds ?? 0) }
+        let cardioSeconds = completed.flatMap { JournalFacts.doneSets($0, type: "cardio") }.reduce(0) { $0 + ($1.holdSeconds ?? 0) }
         let meals = try store.posts(for: userId, dayKey: dayKey).filter { $0.type == "meal" }.count
         return VectorSlots(
             workoutDone: completed.contains { $0.workoutKind != "cardio" },

@@ -35,6 +35,30 @@ extension XCTestCase {
         }
     }
 
+    // SPEC: 8.4 · A20 (2026-09-11) — the third occurrence of "tap a field and type into it", extracted as a plain
+    // function (C5). Journey ①, CameraDenied and OfflineSession each walk S05's five fields.
+    //
+    // WHY IT IS NOT `field.tap(); field.typeText(…)`. Run 34590287373 failed those three tests on the identical
+    // diagnostic at the identical field — "Failed to synthesize event: Neither element nor any descendant has keyboard
+    // focus", on S05's `Birth year`. That field is the only `.numberPad` on the screen AND the last of five, so
+    // reaching it makes iOS tear down the alphabetic keyboard and build a numeric one; A19.2 then added a
+    // `ToolbarItemGroup(placement: .keyboard)` that animates in above it, and A19.1 added a `safeAreaInset` bottom bar
+    // that lays out against the same edge. `typeText` synthesises against whatever is focused AT THAT INSTANT, so it
+    // began racing an animation that A19 made longer. Nothing about the app is wrong; the step was never synchronised.
+    //
+    // Waiting for the DIGIT keyboard is what proves focus actually moved — `app.keyboards` stays up between two text
+    // fields and so proves nothing, while a `1` key exists only once the numberPad is the first responder. Positive
+    // waits cost a passing run nothing (the timeout convention above).
+    func typeInto(_ field: XCUIElement, _ text: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(field.waitForExistence(timeout: 15), "the field never appeared", file: file, line: line)
+        field.tap()
+        if text.allSatisfy(\.isNumber) && !app.keys["1"].waitForExistence(timeout: 5) {
+            field.tap() // one retry: a tap that lands while the previous keyboard is still dismissing is swallowed
+            XCTAssertTrue(app.keys["1"].waitForExistence(timeout: 10), "the numeric keyboard never came up", file: file, line: line)
+        }
+        field.typeText(text)
+    }
+
     // 6.7: the element lies inside the window — not beside it, not clipped by the edge
     func expectOnScreen(_ element: XCUIElement, in app: XCUIApplication, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
         let window = app.frame

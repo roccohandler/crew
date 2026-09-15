@@ -265,6 +265,45 @@ commit_task "fix(ios): HomeTestFixtures forwarded days as [Int] into PlanGenerat
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/CrewTests/HomeTestFixtures.swift docs/progress.md docs/commit-queue.sh
 
+# --- F45 (A20 BUILD A: green the tree, and fix the four bugs behind "things don't look like they're syncing") ---
+commit_task "fix(ios,web): A20 Build A — master's five red UI tests, and the four staleness bugs that ARE the owner's second complaint. The two Home failures were one real defect and one wrong assertion. testPausedFreezes… expected 'Plan paused' and got 'Push day' because LocalPause had exactly ONE writer in the whole app (SettingsModel.pause) and ServerHydrate pulled every other server truth and not this one — so a pause created on the web, or any pause predating a reinstall, never reached the phone, and Settings said 'Plan paused' while Home rendered a training day and offered Start workout. The test had been finding that since the day it was written. testRestDayNames… demanded the UNPOSTED premise line on a state that must post a meal to leave the bridge (§1D), so only 'Today counts.' is reachable and the engine was right — the same shape as the today-state pause fixture that was right on a Thursday and wrong on a Friday. The other three failures are one race at one field: Birth year is the only .numberPad on S05 and the LAST of five, so reaching it rebuilds the keyboard, and A19.2's Done bar plus A19.1's safeAreaInset both animate against that edge; typeText synthesises against whatever is focused at that instant. The step is synchronised now and the Done bar is scoped to the one field with no return key. Plus the three staleness bugs no layout change could fix: loadState was @State assigned in ONE place while EIGHT paths call refresh() directly, so the offline and error layers were whatever they had been at the last foreground — it is computed over the @Observable model now, the pattern CrewScreen already used; SyncQueue is @Observable so offline stops being a snapshot taken BEFORE the drain that discovers the network is gone; and Home's cardio row counted only standalone logs while Progress summed cardio from every session, so a bike block inside a push day read 'nothing logged today' on one tab and reported minutes on the next. The offline banner drew #FFFFFF on #FAF8F5 — 1.06:1, invisible — behind a 1.19:1 edge with no glyph and a constant sentence; it now carries a real last-synced time and the queued count that 6.1 asked for and Home never had. NO VECTOR CHANGES: the pause is an existing server fact moving onto the phone and the cardio row is a reporting function that awards nothing [SPEC: Appendix A A20.9; A20.10; S07; 6.1; E6; A2; A18.4; A18.12; A19.2; 5.6.3; 5.6.6; C9; 8.4; XI T024/T014]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  ios/Crew/Storage/ServerHydrate.swift ios/Crew/Storage/SyncDriver.swift ios/Crew/Storage/SyncQueue.swift \
+  ios/Crew/Storage/SyncQueueHeld.swift ios/Crew/Shared/ErrorState.swift \
+  ios/Crew/Features/Home/HomeModel.swift ios/Crew/Features/Home/HomeModel+Facts.swift ios/Crew/Features/Home/HomeScreen.swift \
+  ios/Crew/Features/Onboarding/SaveAuthScreen.swift \
+  ios/CrewTests/HomeVectorSlotsTests.swift ios/CrewTests/ServerHydrateTests.swift \
+  ios/CrewUITests/HomeStatesTests.swift ios/CrewUITests/JourneySteps.swift ios/CrewUITests/CameraDeniedTests.swift \
+  ios/CrewUITests/Journey1_NewUserTests.swift ios/CrewUITests/OfflineSessionTests.swift \
+  web/src/lib/home-facts.ts web/tests/api/today-state.test.ts \
+  docs/home-plan-a20-2026-09-11.md docs/debt.md docs/progress.md docs/commit-queue.sh
+
+# --- F46 (A20 BUILD B: one list, one grammar — and the type scale Part III never had) ---
+# HELD BY DEFAULT. The owner ruled TWO builds (docs/home-plan-a20-2026-09-11.md §1 ruling #4): Build A greens the tree
+# and fixes the four staleness bugs, Build B changes the layout. If they ship together and Home still feels unsynced,
+# nothing can be attributed to either. So a plain `bash docs/commit-queue.sh` commits F45 and STOPS.
+#   Once F45's CI is green and the TestFlight build is on the phone:  CREW_BUILD_B=1 bash docs/commit-queue.sh
+if [ "${CREW_BUILD_B:-}" != "1" ]; then
+  echo "hold   (Build B — re-run with CREW_BUILD_B=1 once F45 is green on CI) A20 Build B"
+else
+commit_task "feat(home,shared): A20 Build B — Home becomes one list, and the app gets typography tokens. The owner said Home 'looks too complicated' and liked a mockup from another agent; the finding that reframed the brief is that the mockup's dark palette IS CREW'S EXISTING DARK THEME — every token has carried a dark hex since 2026-09-04, EmberColors emits dynamic UIColors, project.yml is Automatic — so he was comparing a light-mode screenshot to a dark-mode mockup and the real difference is STRUCTURE. Nothing about the appearance changes; A20.13 photographs the dark half instead, which no test on either engine had EVER rendered. The structural cause was not fact count: Home rendered 13 distinct .font() expressions across 9 semantic sizes, design-tokens.json had NO typography key at all, and web set its own sizes inline with no parity test — so four Home passes that added and removed CONTENT never moved the thing that actually reads as busy. Five type roles now generate to both engines on the spacing scale's own path, iOS naming SEMANTIC styles so Dynamic Type still scales them. On top of that Home said the same thing two and three times: the state name rendered VERBATIM twice on three of four states ('Plan paused' 250 pt under 'Plan paused'), the week was encoded three ways, and the day's workout was reachable from three controls at three weights — four with a session open, where a Resume banner sat above a card whose own button said the same two words, and where the web twin suppressed that banner while iOS rendered both. The card is now row one of TODAY'S LOG; its primary moved to .crewBottomBar, Quick complete became the row's trailing mark (the ONE named exception to one-target-per-row — the mockup's tappable-row-plus-inner-pill is the pattern eBay's and Material's systems forbid), and the open session became the row's own subtitle. The ring became a named fraction carrying A18.2's above-zero gate verbatim, the crew strip left (a mirror of a tab one tap away) and the shield folded into the streak line rather than being dropped, because it is the one fact on Home with no neighbour. Home's bar adoption moves ahead of A15 by owner ruling, and it is applied PER STATE: Bar is a compile-time type, so a ViewBuilder switching to EmptyView yields _ConditionalContent and CrewBottomBar would still have drawn a rule and an inset on the states A17.3 and A18.9 cleared — A19.1's paragraph claimed the modifier handled that and it did not, which is corrected in the source. No kcal on the nutrition row: A16 clause ⑥ and the owner's own still-open W070 gate. NO VECTOR CHANGES [SPEC: Appendix A A20.1-A20.13; S07; Part III; 6.1; 6.3; 6.6; 6.7; A8; A14; A16; A17.3; A17.4; A18.2; A18.3; A18.5; A18.8; A18.9; A19.1; E20; Ember (1) (4); 5.6.6; C5; C9; XI T024]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  shared/design-tokens.json shared/scripts/generate.mjs shared/scripts/render-ember.mjs \
+  ios/Crew/Generated/EmberTokens.swift web/src/generated/ember.css \
+  ios/Crew/Engine/DayLabel.swift web/src/lib/engine/day-label.ts \
+  ios/Crew/Features/Home/LogRow.swift ios/Crew/Features/Home/HomeModel+Rows.swift \
+  ios/Crew/Features/Home/HomeScreen.swift ios/Crew/Features/Home/HomeHeader.swift \
+  ios/Crew/Features/Home/TodayCard.swift ios/Crew/Features/Home/NextUpLine.swift \
+  ios/Crew/Features/Home/HomeModel.swift ios/Crew/Features/Home/VectorRow.swift \
+  ios/Crew/Shared/BottomBar.swift \
+  ios/CrewTests/HomeLogRowsTests.swift ios/CrewTests/HomeModelTests.swift ios/CrewTests/DayLabelTests.swift \
+  ios/CrewUITests/HomeStatesTests.swift \
+  web/tests/token-parity.test.ts web/tests/engine/day-label.test.ts \
+  docs/crew-mvp-spec.md docs/home-plan-a20-2026-09-11.md docs/debt.md docs/progress.md docs/commit-queue.sh
+fi
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

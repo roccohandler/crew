@@ -23,8 +23,36 @@ enum ServerHydrate {
         await PlanLocal.pullFromServer(userId: userId, store: store)
         if let journal = try? await Api.shared.myPosts() { try? writeJournal(journal.items, userId: userId, store: store) }
         if let history = try? await Api.shared.mySessions() { try? writeSessions(history.items, userId: userId, store: store) }
-        if let me = try? await Api.shared.me() { try? replaceGamification(me.gamification, userId: userId, store: store) }
+        if let me = try? await Api.shared.me() {
+            try? replaceGamification(me.gamification, userId: userId, store: store)
+            try? writePause(me.pause, userId: userId, store: store) // A20.10: `me` already carries it — no second request
+        }
         await CrewModel(store: store).refresh() // the crew snapshot (6.1 offline: last-synced) through the writer the Crew tab uses
+    }
+
+    // SPEC: A20.10 (2026-09-11) · Flow 7 — A PAUSE IS A SERVER FACT AND THE PHONE MUST BE ABLE TO LEARN IT.
+    // `LocalPause` had exactly ONE writer in the whole app — SettingsModel.pause(until:) — and this file pulled every
+    // other server truth (plan, journal, sessions, gamification, crew) and not this one. So a pause created on the web,
+    // or any pause that predates a reinstall, never reached the Store: Settings read `me.pause` from the network and
+    // said "Plan paused" while Home, which reads `store.activePause` and nothing else, rendered a training day, offered
+    // Start workout and stamped `isPlannedDay: true` on the session. Two surfaces, one device, opposite answers — which
+    // is exactly the "things don't look like they're syncing" the owner reported. HomeStatesTests
+    // .testPausedFreezesTheReportAndOffersTheWayOut has been failing on this since the day it was written: it seeds a
+    // pause through the real API and then asserts Home names the state, and Home said "Push day".
+    static func writePause(_ pause: PauseDTO?, userId: String, store: Store, now: Date = Date()) throws {
+        try store.clearPauses(for: userId) // the server is the truth: an ended pause has to be able to leave too
+        guard let pause else { return }
+        store.context.insert(LocalPause(userId: userId, startDay: pause.startDay, endDay: pause.endDay, createdAt: now))
+        try store.save()
+    }
+
+    // The ongoing half: `pullIfEmpty` only fires on an EMPTY Store, so it cannot catch a pause created after this phone
+    // already held a plan. SyncDriver calls this on launch and on every foreground — the two moments the app is already
+    // allowed to touch the network. Home stays Store-only (S07: correct today-state < 500 ms warm, nothing waits on the
+    // network), which is why this writes the Store rather than being read by the screen.
+    static func pullPause(userId: String, store: Store) async {
+        guard let reply = try? await Api.shared.currentPause() else { return } // offline is not a failure (E6): keep what we have
+        try? writePause(reply.pause, userId: userId, store: store)
     }
 
     // 1A/6.1: RootView shows Home's skeleton while the pull runs, but never longer than hydrationMaxWaitSeconds — after that Home

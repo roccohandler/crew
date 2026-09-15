@@ -20,7 +20,9 @@ extension SyncQueue {
         isDraining = true
         defer { isDraining = false }
         while !Task.isCancelled {
-            switch await processNext() {
+            let outcome = await processNext()
+            refreshQueueFacts() // A20.9: a pass that held or rescheduled an op changes the pending count too
+            switch outcome {
             case .idle, .offline, .signedOut: return
             case .sent, .held, .retryScheduled: continue
             case .waiting(let until): try? await Task.sleep(for: .seconds(max(0, until.timeIntervalSinceNow)))
@@ -35,6 +37,7 @@ extension SyncQueue {
             record.state = OpState.pending.rawValue
         }
         try store.save()
+        refreshQueueFacts() // A20.9: ops recovered from a kill are pending again, and the banner should say so
     }
 }
 
@@ -55,7 +58,7 @@ enum SyncDriver {
             }
             monitor.start(queue: DispatchQueue(label: "com.yourteam.crew.sync-path"))
         }
-        Task { await SyncQueue.shared.drain() }
+        Task { await drainThenPullPause() }
     }
 
     // CrewApp: scenePhase → .active
@@ -68,6 +71,16 @@ enum SyncDriver {
     private static func releaseAndDrain() async {
         guard AuthStore.shared.isSignedIn else { return }
         try? SyncQueue.shared.releaseHeldForRetry()
+        await drainThenPullPause()
+    }
+
+    // SPEC: A20.10 — the pause comes home on the same two moments the queue goes out. `ServerHydrate.pullIfEmpty` only
+    // fires on an empty Store, so it cannot catch a pause created on the web after this phone already held a plan; and
+    // Home must not reach for the network itself (S07: < 500 ms warm, Store-only). The drain runs FIRST so a pause this
+    // phone just created goes up before this reads back down and the two cannot cross.
+    private static func drainThenPullPause() async {
         await SyncQueue.shared.drain()
+        guard let userId = AuthStore.shared.currentUser?.id else { return }
+        await ServerHydrate.pullPause(userId: userId, store: Store.shared)
     }
 }

@@ -188,6 +188,35 @@ describe("today-state — the vectors and the what's-next fact (A14 · A18.3)", 
     expect(facts.ringDone).toBe(0);
   });
 
+  // SPEC: A20.10 (2026-09-11) — CARDIO DONE INSIDE A WORKOUT FILLS THE CARDIO ROW. `vectorSlots` filtered
+  // `workoutKind === "cardio"`, so only a standalone log counted: a 20-minute bike block inside a push day left Home's
+  // Cardio row reading "nothing logged today" while the Progress tab — which sums cardio sets from EVERY session —
+  // reported the minutes. Twin of ios HomeVectorSlotsTests.testACardioBlockInsideAWorkoutFillsTheCardioRow.
+  it("A20.10 — a cardio block inside a workout fills the cardio row, and the day is still a workout", async () => {
+    const user = await createUser("ts-cardio-in-workout", TZ);
+    await savePlan(user, [todayIso]); // today IS a training day: the session is a planned workout
+    await postMeal(user);
+    const base = sampleSessionBody({ timezone: TZ });
+    const body = {
+      ...base,
+      workoutSnapshot: {
+        ...base.workoutSnapshot,
+        exercises: [
+          ...base.workoutSnapshot.exercises,
+          { exerciseId: "stationary-bike", name: "Stationary Bike", equipment: "machine", type: "cardio" as const, targetSets: 1, targetReps: 0, holdSeconds: 1200, order: 2, sets: [
+            { targetReps: 0, actualReps: 0, weight: null, holdSeconds: 1200, isWarmup: false, done: false },
+          ] },
+        ],
+      },
+    };
+    await completeSession(user, body as ReturnType<typeof sampleSessionBody>, 4); // 3 push work sets + the bike set
+
+    const facts = await homeFacts(oid(user), TZ, today);
+    expect(facts.vectors.cardioMinutes).toBe(20); // the row Home showed as empty
+    expect(facts.vectors.workoutDone).toBe(true); // and it is still a workout — the split A2 draws is untouched
+    expect(facts.weekMarks[todayIso - 1]).toBe("done");
+  });
+
   it("A18.3 — the what's-next fact comes in two halves, and the one-sentence form is byte-identical to A3's", async () => {
     const user = await createUser("ts-nextup", TZ);
     await savePlan(user, [1, 3, 5]);

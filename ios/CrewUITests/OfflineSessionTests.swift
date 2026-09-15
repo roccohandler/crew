@@ -35,8 +35,8 @@ final class OfflineSessionTests: XCTestCase {
         email.tap(); email.typeText("resume-\(Int(Date().timeIntervalSince1970))@example.com")
         let password = app.secureTextFields["Password"]
         password.tap(); password.typeText("journey password 1")
-        let year = app.textFields["Birth year"]
-        year.tap(); year.typeText("1994")
+        // A20 — synchronised: the numberPad is the last of five fields and its keyboard animates in (JourneySteps)
+        typeInto(app.textFields["Birth year"], "1994", in: app)
         app.buttons["Save your plan"].tap()
 
         XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20))

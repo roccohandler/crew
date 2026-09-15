@@ -39,8 +39,8 @@ final class CameraDeniedTests: XCTestCase {
         email.tap(); email.typeText("camera-denied-\(Int(Date().timeIntervalSince1970))@example.com")
         let password = app.secureTextFields["Password"]
         password.tap(); password.typeText("journey password 1")
-        let year = app.textFields["Birth year"]
-        year.tap(); year.typeText("1994")
+        // A20 — synchronised: the numberPad is the last of five fields and its keyboard animates in (JourneySteps)
+        typeInto(app.textFields["Birth year"], "1994", in: app)
         app.buttons["Save your plan"].tap()
 
         // Rest day → the bridge's meal path (1D)
