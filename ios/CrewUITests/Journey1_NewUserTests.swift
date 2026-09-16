@@ -50,7 +50,7 @@ final class Journey1_NewUserTests: XCTestCase {
         typeInto(app.textFields["Email"], "journey1-\(Int(Date().timeIntervalSince1970))@example.com", in: app)
         typeInto(app.secureTextFields["Password"], "journey password 1", in: app)
         typeInto(app.textFields["Birth year"], "1994", in: app)
-        app.buttons["Save your plan"].tap()
+        saveThePlan(in: app) // A20.11: Done first — the save must not read Birth year mid-keystroke (JourneySteps)
 
         // S07 bridge state on Home: unlit flame, one oversized CTA (the wait covers a cold dev server hashing the first password)
         XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20), "Home never showed the bridge — the save screen says: \(app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))")
@@ -65,7 +65,14 @@ final class Journey1_NewUserTests: XCTestCase {
             XCTAssertTrue(firstSet.waitForExistence(timeout: 5))
             // 6.7: the row, its Skip and the Complete button all lie inside the window (the iOS overflow check, JourneySteps.swift)
             expectOnScreen(firstSet, in: app, "the first set row")
-            expectOnScreen(app.buttons["Skip"].firstMatch, in: app, "the first Skip")
+            // A20.11 — A19 (cb84202) gave this button a REAL VoiceOver name, `Skip \(exercise.name)`
+            // (SessionScreen.swift:115), so `app.buttons["Skip"]` matched the bare title before A19 and matches
+            // nothing after it. The app is right — E20 wants a control that says what it skips — and the query was
+            // stale; it had simply never run, the last executed ios job (334ad67) predating A19 by a day.
+            // The rest timer's "Skip the rest timer" is excluded: it is a different control on a different surface.
+            let firstSkip = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Skip ' AND NOT (label CONTAINS 'rest timer')")).firstMatch
+            XCTAssertTrue(firstSkip.waitForExistence(timeout: 5), "the session offered no Skip for its first exercise")
+            expectOnScreen(firstSkip, in: app, "the first Skip")
             expectOnScreen(app.buttons["Complete workout"], in: app, "Complete workout")
             firstSet.tap()
             shoot(app, "S09 session")

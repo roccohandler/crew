@@ -75,6 +75,21 @@ extension XCTestCase {
         return XCTWaiter().wait(for: [focused], timeout: timeout) == .completed
     }
 
+    // SPEC: A19.2 · A20.11 (run 35073421853) — SAVE S05 THE WAY A PERSON DOES: dismiss the numberPad, then save.
+    // The three journeys tapped "Save your plan" 0.34 s after `typeText` began on `Birth year`, and the save read the
+    // binding before every digit had landed: the hierarchy dump shows the field holding `1994` beside the server's
+    // "birthYear: Too small: expected number to be >=1900", which is what `Int("19")` earns. The app is right —
+    // SaveAuthScreen:88 guards `let year = Int(birthYear) else { return }` and never sends a placeholder.
+    // Tapping A19.2's Done bar resigns first responder, which COMMITS the field, and it is the flow that bar exists
+    // for; it is also the only test anywhere that exercises it. Third occurrence, so it is a plain function (C5).
+    func saveThePlan(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let done = app.buttons["Done"] // A19.2: present only while a numberPad/decimalPad is up
+        if done.waitForExistence(timeout: 5) { done.tap() }
+        let save = app.buttons["Save your plan"]
+        XCTAssertTrue(save.waitForExistence(timeout: 15), "S05 never offered Save your plan", file: file, line: line)
+        save.tap()
+    }
+
     // 6.7: the element lies inside the window — not beside it, not clipped by the edge
     func expectOnScreen(_ element: XCUIElement, in app: XCUIApplication, _ what: String, file: StaticString = #filePath, line: UInt = #line) {
         let window = app.frame

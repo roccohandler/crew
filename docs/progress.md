@@ -470,9 +470,58 @@ Gates re-run against the F48 tree: `swift-xref` clean (194 files / 379 types), `
 `check-vectors` (56) · `check-seeds` clean. Web untouched (no web file changed). **NO VECTOR CHANGES** — five fixture
 pins and one test-helper wait award nothing.
 
-**NEXT:** push F48, confirm `ios` goes green and the auto-TestFlight trigger fires for the first time ever (build
-124), smoke-test Build A on the phone, then restore Build B from the scratchpad and run F46. After A20: **A15**
-(Stage 7), per A20.8's amended ordering.
+### 2026-09-16 — F48 WORKED. THE XCRESULT WAS READ INSTEAD OF GUESSED AT, AND IT NAMED ALL THREE REMAINING FAILURES.
+
+Run **35073421853** (HEAD `09e1960`): **140 unit tests, 0 failures** (F48's five `kind` pins did their job),
+**zero keyboard-focus errors anywhere** (the general `hasKeyboardFocus` wait did its job), and
+`HomeStatesTests.testAllDone…` **passed** — which retires the screenshot-timeout debt as collateral from a wedged
+simulator, exactly as the entry was opened to determine. Three UI tests still failed, all FURTHER along than before.
+
+**This time the xcresult was read rather than reasoned about** — T-A3's debt entry demanded it, and the 112 MB
+artifact was downloaded and its zstd blobs decompressed on Windows. The trace settles the old question outright: on
+`Password` the first tap never took focus (`hasKeyboardFocus` polled t=33.3 → t=37.3 and never went true), the retry
+tap at **t=37.59** logged `Scroll element to visible`, and focus arrived at t=40.17. **The race was real and the
+field was genuinely obscured.** A20.9's diagnosis had been right; its guard was just numeric-only.
+
+| # | Failure | Verdict |
+|---|---|---|
+| 1 | `CameraDenied` — Home never showed the bridge | **test race**, and it uncovered a REAL app defect (below) |
+| 2 | `Journey1` — no match for Button `Skip` | **test stale**: A19 gave the button a real VoiceOver name |
+| 3 | `OfflineSession` — "the open session was lost" | **test stale**: A18.8 designed that banner away, and the session was never lost |
+
+**(3) is the one worth reading twice.** The hierarchy dump shows the screen the test called a lost session:
+
+```
+StaticText, label: 'Today'                            <- the test's own line 64 passed here
+StaticText, label: 'Your first flame lights today.'   <- the bridge
+Button,     label: 'Resume your first workout'        <- the CTA, offering the session back
+```
+
+A18.8 says it in the source (`TodayCard.swift:24-26`): *the bridge lasts until the first POST, starting a workout is
+not a post, so an abandoned first workout used to put a Resume banner NEXT TO the bridge's CTA — two prompts on the
+one screen §1D says carries none. The bridge's single button resumes instead.* `HomeScreen.swift:65` suppresses the
+banner with `!isBridge`; `TodayCard.swift:110` renames the CTA. **The assertion was accusing the app of a bug A18 had
+deliberately designed away**, and its failure message said so in words a reader would have believed.
+
+**(1) IS A TEST RACE THAT FOUND A REAL DEFECT.** The journeys tapped Save **0.34 s** after `typeText` began on
+`Birth year`, and the save read the binding early: the dump shows the field holding `1994` beside the server's
+`birthYear: Too small: expected number to be >=1900`, which is what `Int("19")` earns. The app does NOT send a
+placeholder — `SaveAuthScreen.swift:88` guards `let year = Int(birthYear) else { return }`. But `:84` validates with
+`Int(birthYear) == nil ? "Four digits, like 1994." : nil`, so **`"19"` raises no client error at all**, passes the
+guard, and the user reads the server's raw sentence under the field. The message promises four digits and the check
+enforces neither four digits, nor the 1900 floor, nor E9's 13+ age floor. **Recorded in debt.md, not fixed here** — a
+signup validator is an app behaviour change and this pass exists to green the CI.
+
+The test fix is the flow A19.2 built the Done bar FOR: `saveThePlan(in:)` taps Done (which resigns first responder and
+COMMITS the field) before Save. Third occurrence, so it is a plain function (C5) — and it is the only test anywhere
+that exercises A19.2's bar.
+
+Gates: `swift-xref` clean (194 / 379), `doctrine-lint` clean, drift · vectors (56) · seeds clean. Four test files,
+**zero app files. NO VECTOR CHANGES.**
+
+**NEXT:** push F49, confirm `ios` goes green and the auto-TestFlight trigger fires for the first time ever (build
+125), smoke-test Build A on the phone, then restore Build B from the scratchpad and run F46. Repay the birth-year
+validator in its own commit. After A20: **A15** (Stage 7), per A20.8's amended ordering.
 
 
 ## Ledger

@@ -39,7 +39,7 @@ final class CameraDeniedTests: XCTestCase {
         typeInto(app.textFields["Email"], "camera-denied-\(Int(Date().timeIntervalSince1970))@example.com", in: app)
         typeInto(app.secureTextFields["Password"], "journey password 1", in: app)
         typeInto(app.textFields["Birth year"], "1994", in: app)
-        app.buttons["Save your plan"].tap()
+        saveThePlan(in: app) // A20.11: Done first — the save must not read Birth year mid-keystroke (JourneySteps)
 
         // Rest day → the bridge's meal path (1D)
         XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20))

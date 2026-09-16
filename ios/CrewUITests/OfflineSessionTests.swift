@@ -35,7 +35,7 @@ final class OfflineSessionTests: XCTestCase {
         typeInto(app.textFields["Email"], "resume-\(Int(Date().timeIntervalSince1970))@example.com", in: app)
         typeInto(app.secureTextFields["Password"], "journey password 1", in: app)
         typeInto(app.textFields["Birth year"], "1994", in: app)
-        app.buttons["Save your plan"].tap()
+        saveThePlan(in: app) // A20.11: Done first — the save must not read Birth year mid-keystroke (JourneySteps)
 
         XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20))
         let startFirst = app.buttons["Start your first workout"]
@@ -62,9 +62,15 @@ final class OfflineSessionTests: XCTestCase {
         // titles Home "Today". Journey ② asserts the opposite for the same reason, and both are right. Do not "align" them:
         // if this ever starts failing, the member reached Home in some OTHER state, which is itself the bug worth seeing.
         XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 20), "signed out after a kill, or Home is no longer the bridge — the Keychain may not have kept the session; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
-        let resume = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resume workout'")).firstMatch
-        XCTAssertTrue(resume.waitForExistence(timeout: 20), "Home shows no Resume banner after a kill — the open session was lost")
-        shoot(app, "S07 Home — Resume banner after a kill")
+        // A18.8 / A20.11 — THE BRIDGE ABSORBS AN OPEN SESSION (TodayCard.swift:24-26). Because this member never
+        // posted, Home is the bridge, and §1D lets it carry ONE CTA: HomeScreen.swift:65 suppresses the Resume
+        // BANNER with `!isBridge` and TodayCard.swift:110 turns the bridge's own button into "Resume your first
+        // workout". Run 35073421853's hierarchy dump shows exactly that button — so the session was never lost and
+        // this assertion's old message was accusing the app of a bug A18 had deliberately designed away. Matching on
+        // "Resume" alone covers both shapes: the bridge's CTA here, and "Resume workout · <name>" once a post exists.
+        let resume = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resume'")).firstMatch
+        XCTAssertTrue(resume.waitForExistence(timeout: 20), "the bridge offers no way back into the open session after a kill; Home says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        shoot(app, "S07 Home — the bridge resumes the open session after a kill")
         resume.tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of' AND label CONTAINS 'done'")).firstMatch.waitForExistence(timeout: 5), "the checked set did not survive the kill")
         XCTAssertTrue(app.buttons["Complete workout"].exists) // always visible (S09)
