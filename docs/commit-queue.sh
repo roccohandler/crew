@@ -304,6 +304,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   docs/crew-mvp-spec.md docs/home-plan-a20-2026-09-11.md docs/debt.md docs/progress.md docs/commit-queue.sh
 fi
 
+# --- F47 (run 34918410611 RED: F45 shipped half of Build B, because F45 named files Build B later rewrote) ---
+commit_task "fix(ios): F45 committed Build B's HomeScreen, HomeModel and HomeStatesTests inside Build A — restore them to Build-A-only content so master compiles again. The cause is the ordering rule this queue documents in its own header: a block stages every listed path that HAS CHANGES, so a later edit to a file lands in the FIRST block naming it. F45 named HomeScreen.swift, HomeModel.swift and HomeStatesTests.swift; Build B then rewrote all three before the queue was ever run; so the commit carried a HomeScreen referencing EmberTokens.Typography, LogRowList, StateBlock and NextUpRow while the files DEFINING them sat in the held F46 block. swift-xref reported it on the runner in 9 seconds (2 findings, both EmberTokens.Typography) and the ios job never started. It would have reported it here too — except that locally every one of those symbols EXISTED, because the working tree held both builds at once. That is the actual lesson and it is now in debt.md: a gate run against a tree containing un-queued work does not test what the commit contains. The fix snapshots Build B to the scratchpad, reverts the tree to HEAD plus Build A alone, and re-runs every gate against that: doctrine-lint and swift-xref clean at 194 files / 379 types, docker swift test 76/0, web 42 files / 446 tests, vectors 56, typecheck and lint clean. Build A is unchanged in substance — the pause hydration, the computed loadState, the observable SyncQueue, the cardio row and the legible banner are all still here; only the three contaminated files go back [SPEC: Appendix A A20.9; A20.10; S07; 6.1; 5.6.6; 8.4; XI T024/T008]
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
+  ios/Crew/Features/Home/HomeScreen.swift ios/Crew/Features/Home/HomeModel.swift \
+  ios/CrewUITests/HomeStatesTests.swift docs/debt.md docs/progress.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still

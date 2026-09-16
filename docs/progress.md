@@ -374,8 +374,64 @@ which would have made its test date-dependent and the screen able to state a dif
 201 — **the effective C9 cap is 199.** Three files were re-split under it this pass (`SyncQueueHeld.swift`,
 `HomeModel+Rows.swift`, `HomeLogRowsTests.swift`).
 
-**NEXT:** push F45, confirm the auto-TestFlight trigger fires for the first time ever, smoke-test Build A on the phone,
-then push F46. After A20: **A15** (Stage 7, "change today's workout"), per A20.8's amended ordering.
+### 2026-09-15 — F45 PUSHED AND WENT RED IN 9 SECONDS. F47 IS THE FIX.
+
+Run **34918410611** (HEAD 983ff87) failed the FIRST job, `shared contracts`, on `swift-xref`: 2 findings, both
+`EmberTokens.Typography — EmberTokens declares no member "Typography"`. The `ios` job never started.
+
+**The cause is this repo's own documented queue rule, and it was read and then violated.** `docs/commit-queue.sh`'s
+header says *"a block stages every listed path that has changes, so a later EDIT to a file lands in the FIRST block
+that names it."* F45 named `HomeScreen.swift`, `HomeModel.swift` and `HomeStatesTests.swift`; Build B rewrote all
+three before the queue was ever run; so F45 committed **Build B's HomeScreen** — referencing `EmberTokens.Typography`,
+`LogRowList`, `StateBlock`, `NextUpRow` — while the files defining them stayed in the held F46 block.
+
+**THE LESSON IS NOT THE ORDERING RULE — IT IS THE LOCAL GATE.** Every gate passed here before the push, and they were
+right about the tree they measured: the working tree held BOTH builds, so every symbol existed. **A gate run against a
+tree containing un-queued work does not test what the commit contains.** Recorded in debt.md with the rule for next
+time: no two queue blocks may name the same path, or the later build's content must not be on disk when the earlier
+block runs.
+
+**F47** snapshots Build B to the scratchpad (`scratchpad/buildB/` — three full files plus a 76 KB patch of the other
+seventeen), reverts the tree to HEAD-plus-Build-A alone, and re-runs every gate **against that tree**:
+
+| Command | Result |
+|---|---|
+| `doctrine-lint` · `swift-xref` | clean — **194** Swift files · 194 files, **379** types (the Build A counts) |
+| `docker swift test` | **76 tests, 0 failures** |
+| web: `npm test` · `vectors` · `typecheck` · `lint` | **42 files, 446 tests** · 56 · exit 0 · exit 0 |
+
+Build A is unchanged in substance: the pause hydration, the computed `loadState`, the observable `SyncQueue`, the
+cardio-row fix and the legible banner all remain. Only the three contaminated files go back.
+
+### 2026-09-16 — F47 RE-VERIFIED BEFORE THE PUSH, AND HEAD HAD A **THIRD** BREAK NOBODY HAD NAMED
+
+Every gate re-run against the F47 tree on the owner's machine, in a session that wrote no code — the point being that
+the tree measured is the tree the commit contains, which is the whole lesson of F45:
+
+| Gate | Result |
+|---|---|
+| `swift-xref` | **clean** — 194 Swift files, 379 types (run 34918410611 reported 2 findings here) |
+| `doctrine-lint` | **clean** — 194 Swift files, 1 hand-written CSS |
+| `check-drift` · `check-vectors` · `check-seeds` | Generated files match `shared/` · **56** vectors / 9 files · 15 achievements, 110 exercises, 45 lists |
+| web `lint` · `typecheck` | exit 0 · exit 0 |
+| web `npm test` · `vectors` · `build` | **42 files, 446 tests** · **56** · Next build exit 0 |
+| Linux `swift build` + `swift test` | **NOT RUN — Docker Desktop's daemon is down on this machine.** CI's `engine-swift` job is the only reading. The 76/0 in the table above is the earlier session's, not a re-run. |
+
+**HEAD (983ff87) had three independent compile failures, and the post-mortem above names only two.** The third:
+`HomeModel.swift` carried Build B's `todayKey` and *not* `nextUpLine`, while `TodayCard.swift:38` — a Build A file that
+F45 committed correctly — declares `let nextUpLine: String?` as a required init parameter. So the caller could not
+satisfy its own callee. Like the missing `LogRow.swift` symbols it is invisible to `swift-xref` (which label-checks
+call shapes), and it would have surfaced only on the macOS runner — which never started, because `contracts` failed
+first and every other job `needs: contracts`. **One red gate hid two further breaks.** That is the argument for the
+`contracts` job being cheap and first, and also the argument against reading a single red finding as the whole defect.
+
+Also confirmed for the push: TestFlight currently serves **build 121** from `2b5e904` (Sep 11), uploaded by a MANUAL
+`workflow_dispatch` — which bypasses the `conclusion == 'success'` gate, and `2b5e904`'s CI was red. F47 makes the
+next build **123**, and the first one that reaches the phone by the automatic path.
+
+**NEXT:** run the queue (F47), push, confirm the auto-TestFlight trigger fires for the first time ever, smoke-test
+Build A on the phone, then restore Build B from the scratchpad and run F46. After A20: **A15** (Stage 7), per A20.8's
+amended ordering.
 
 ## Ledger
 

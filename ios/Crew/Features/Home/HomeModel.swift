@@ -32,10 +32,13 @@ final class HomeModel {
     var todaySummaryLines: [String] = []           // A18.9: what today actually held, in the journal's own sentence
     // A20.9 — copied in `refresh()`, `offline` was a snapshot taken BEFORE the drain that finds the network gone, and
     // sticky after; read off the queue, Observation tracks it, and 6.1's "last-synced" and the queued count come too.
-    var todayKey = "" // A20.7: the day refresh() judged, which the date line states
     var offline: Bool { (syncQueue ?? .shared).offline }
     var pendingToSend: Int { (syncQueue ?? .shared).pendingCount }
     var lastSyncedAt: Date? { (syncQueue ?? .shared).lastSyncedAt }
+
+    // A3 — the one-sentence form the BRIDGE card renders (§1D: one CTA plus this line, nothing else). Derived, never
+    // stored beside `nextUp`, so the block and the line can never say different things.
+    var nextUpLine: String? { nextUp.map { "\($0.heading): \($0.detail)" } }
     var bonusWorkouts: [LocalWorkoutTemplate] = [] // A3: the plan's workouts, the next rotation workout first
     private var todayWorkout: LocalWorkoutTemplate? // A1: the rotation workout due today; nil on rest, done, paused, no plan
 
@@ -61,7 +64,7 @@ final class HomeModel {
     func refresh(now: Date = Date()) {
         do {
             lastAwards = try GamificationLocal.judgeElapsedDays(for: userId, store: store, now: now, timeZone: timeZone)
-            todayKey = DayKey.dayKey(for: now, tz: timeZone) // A20.7: stored, so the date line reads the judged day and not the wall clock
+            let todayKey = DayKey.dayKey(for: now, tz: timeZone)
             let plan = try store.plan(for: userId)
             let rotation = try plan.map { try NextUp.rotationFor(userId: userId, plan: $0, todayKey: todayKey, store: store) }
             let todayEntry = rotation?.week.first(where: { $0.dayKey == todayKey })
@@ -120,17 +123,16 @@ final class HomeModel {
         return .workout(name: workout.name, exerciseCount: NextUp.strengthCount(workout), hasCardio: NextUp.hasCardio(workout), lines: HomeLines.strengthLines(rows), tail: HomeLines.tailLine(rows))
     }
 
-    // SPEC: A3 · A18.3 · A20.1 — the what's-next fact, now the LAST row on every state that has one.
-    // PAUSED gets nothing, deliberately: `nextTrainingDayKey` would name a day INSIDE the pause window, so the row
-    // would promise a workout on a day the app has already frozen; the state block answers it with the return date.
-    // The workout-day BRIDGE is §1D (one CTA, nothing else). A WORKOUT day gets it now — A18.3 withheld it only
-    // because the block sat ABOVE the card and would have put tomorrow over today, and at the bottom that is moot.
+    // SPEC: A3 — nothing on an undone training day or while paused; the bridge shows it only on a rest-day install (1D).
+    // A18.3: on rest and all-done this is the titled BLOCK above the card rather than the card's last caption. PAUSED
+    // gets nothing, and deliberately: `nextTrainingDayKey` would name a day INSIDE the pause window, so the block
+    // would promise a workout on a day the app has already frozen.
     private func whatsNext(plan: LocalPlan?, rotation: Rotation?, todayKey: String) -> NextUpFacts? {
         guard let plan, let rotation else { return nil }
         switch today {
-        case .paused, .bridge(.workout): return nil
+        case .workout, .paused, .bridge(.workout): return nil
         case .bridge(.rest): return NextUp.nextUpFacts(todayKey: todayKey, plan: plan, rotation: rotation, bridge: true)
-        case .workout, .rest, .allDone: return NextUp.nextUpFacts(todayKey: todayKey, plan: plan, rotation: rotation, bridge: false)
+        case .rest, .allDone: return NextUp.nextUpFacts(todayKey: todayKey, plan: plan, rotation: rotation, bridge: false)
         }
     }
 
