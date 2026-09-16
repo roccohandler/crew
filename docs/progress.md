@@ -519,9 +519,44 @@ that exercises A19.2's bar.
 Gates: `swift-xref` clean (194 / 379), `doctrine-lint` clean, drift · vectors (56) · seeds clean. Four test files,
 **zero app files. NO VECTOR CHANGES.**
 
-**NEXT:** push F49, confirm `ios` goes green and the auto-TestFlight trigger fires for the first time ever (build
-125), smoke-test Build A on the phone, then restore Build B from the scratchpad and run F46. Repay the birth-year
-validator in its own commit. After A20: **A15** (Stage 7), per A20.8's amended ordering.
+### 2026-09-16 — BUILD 125 SHIPPED BY ITSELF, AND THE BUG THE RACE UNCOVERED IS PAID OFF
+
+Run **35077453300** (HEAD `6dba336`) green on **all five jobs** — the first fully green master since `334ad67`
+(2026-09-10) — and `testflight` run **35078973854** fired on `workflow_run`, not a manual dispatch: **Build 125 from
+6dba336**, the first build this repo has ever shipped to a phone without a human starting it. Every earlier upload
+(121 included) went out by `workflow_dispatch`, which bypasses the `conclusion == 'success'` gate.
+
+Across the four passes, **every one of the eight test failures was a test defect and none was an app defect.** The app
+compiled clean the moment F47 removed Build B's files from Build A's commit. The `ios` job had not executed a test
+since 2026-09-10, so A18, A19 and A20 had all landed unverified, and each fix peeled back the next never-run layer.
+
+**F50 repays the one REAL defect the diagnosis turned up**, in its own commit as the owner ruled. `SaveAuthScreen`
+asked only whether the birth year PARSED, so `"19"` raised no client error, passed `submit()`'s guard and was POSTed;
+the user then read the server's raw `birthYear: Too small: expected number to be >=1900` under a field whose own
+message promises four digits. Both clients now mirror the server's two bounds from the generated constants:
+
+| | before | after |
+|---|---|---|
+| iOS | `Int(birthYear) == nil` | `>= birthYearMin` **and** `utcYear - year >= minimumAgeYears` |
+| web | `/^\d{4}$/` only | the same two bounds on top of the shape check |
+
+**Measured, not assumed: each old validator disagreed with the server on 16 years** — 1898-1899 and 2014-2027 — and
+iOS additionally accepted `"19"`. `web/tests/onboarding-birth-year.test.ts` pins the **parity, not the wording**: it
+sweeps every year from before the floor to past today and asserts the client accepts exactly the set
+`requireSignupGates` accepts, so the two can never drift apart again. Web is now **43 files / 453 tests**.
+
+Two judgements worth keeping. **No new copy was invented** — both sentences were already approved and already on that
+screen, so this changed a check and not the voice. And **iOS reads the year from `DayKey` in UTC**, not the local
+calendar, because `requireSignupGates` counts against `getUTCFullYear()`: a local year running BEHIND UTC would make
+the client STRICTER than the server and refuse someone who had just turned 13.
+
+**NO VECTOR CHANGES.** The server's behaviour is untouched; this is a client mirroring a rule that already existed,
+the same shape as `validatePassword` mirroring `passwordMinChars`.
+
+**NEXT:** smoke-test build 125 on the phone — Home is deliberately UNCHANGED from 121, so what to check is the sync
+layer: the offline banner legible with a real last-synced time and queued count, a pause created on the web reaching
+the phone, and cardio inside a workout showing on Home's cardio row and matching Progress. Then restore Build B from
+the scratchpad and run F46 with `CREW_BUILD_B=1`. After A20: **A15** (Stage 7), per A20.8's amended ordering.
 
 
 ## Ledger

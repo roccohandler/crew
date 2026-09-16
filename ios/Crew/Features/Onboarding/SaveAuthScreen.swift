@@ -81,7 +81,22 @@ struct SaveAuthScreen: View {
     private func validateName() { fieldErrors["name"] = displayName.trimmingCharacters(in: .whitespaces).isEmpty ? "Add a name your crew will recognize." : nil }
     private func validateEmail() { fieldErrors["email"] = email.contains("@") && email.contains(".") ? nil : "That doesn't look like an email." }
     private func validatePassword() { fieldErrors["password"] = password.count < SpecConstants.passwordMinChars ? "At least \(SpecConstants.passwordMinChars) characters." : nil }
-    private func validateBirthYear() { fieldErrors["birthYear"] = Int(birthYear) == nil ? "Four digits, like 1994." : nil }
+    // SPEC: E9 (age floor) · the server's own two bounds, mirrored. `validate.ts` birthYearSchema is
+    // `.min(SpecConstants.birthYearMin)` and `requireSignupGates` rejects when `getUTCFullYear() - birthYear` is under
+    // `minimumAgeYears`. Until A20.11 this asked only whether the text PARSED, so "19" raised no error, passed
+    // submit()'s guard and was POSTed — and the user read the server's raw "birthYear: Too small: expected number to
+    // be >=1900" under a field whose own message promises four digits (run 35073421853, CameraDeniedTests).
+    // The year comes from DayKey in UTC, not the local calendar, for the reason the server counts in UTC: a local year
+    // running BEHIND UTC would make this check STRICTER than the server and refuse someone who just turned 13.
+    // No new copy — both sentences are already approved and already on this screen (the legal line below the fields).
+    private func validateBirthYear() {
+        let thisYear = DayKey.utcParts(DayKey.localDateOf(Date(), timeZone: TimeZone(identifier: "UTC")!)).year
+        guard let year = Int(birthYear), year >= SpecConstants.birthYearMin else {
+            fieldErrors["birthYear"] = "Four digits, like 1994."
+            return
+        }
+        fieldErrors["birthYear"] = thisYear - year < SpecConstants.minimumAgeYears ? "Crew is for people \(SpecConstants.minimumAgeYears) and up." : nil
+    }
 
     private func submit() {
         validateName(); validateEmail(); validatePassword(); validateBirthYear()

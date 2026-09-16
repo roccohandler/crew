@@ -8,11 +8,20 @@ import { SpecConstants } from "@/generated/spec-constants";
 type Fields = { displayName: string; email: string; password: string; birthYear: string };
 type FieldName = keyof Fields;
 
-function validateField(name: FieldName, value: string): string {
+export function validateField(name: FieldName, value: string, now: Date = new Date()): string {
   if (name === "displayName" && value.trim().length === 0) return "Add a name your crew will recognize.";
   if (name === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return "That doesn't look like an email.";
   if (name === "password" && value.length < SpecConstants.passwordMinChars) return `At least ${SpecConstants.passwordMinChars} characters.`;
-  if (name === "birthYear" && !/^\d{4}$/.test(value)) return "Four digits, like 1994.";
+  // SPEC: E9 (age floor) · the server's own two bounds, mirrored. `validate.ts` birthYearSchema is
+  // `.min(SpecConstants.birthYearMin)` and `requireSignupGates` rejects when `getUTCFullYear() - birthYear` is under
+  // `minimumAgeYears`. The four-digit SHAPE was already checked here; the two BOUNDS were not, on either client — so
+  // "0999" and a one-year-old both reached the server. iOS was worse still: it asked only whether the text parsed, so
+  // "19" got through and the user read the server's raw sentence (run 35073421853). Same UTC year the server counts
+  // in, taken from `now` the way requireSignupGates takes it, and the same two already-approved sentences.
+  if (name === "birthYear") {
+    if (!/^\d{4}$/.test(value) || Number(value) < SpecConstants.birthYearMin) return "Four digits, like 1994.";
+    if (now.getUTCFullYear() - Number(value) < SpecConstants.minimumAgeYears) return `Crew is for people ${SpecConstants.minimumAgeYears} and up.`;
+  }
   return "";
 }
 
