@@ -13,7 +13,9 @@ final class AchievementsLocalTests: XCTestCase {
         let userId = "achiever"
         let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
         try PlanLocal.replace(draft, userId: userId, updatedAt: Date(), store: store)
-        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first)
+        // A1 — pinned by kind: a SwiftData to-many has no order (NextUpLine.swift:75), and `again` below must
+        // quick-complete the SAME workout for the "first-flame fires once" assertion to mean anything.
+        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
         let outcome = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: false, store: store))
         XCTAssertEqual(Array(outcome.awards.suffix(2)), [.achievement(id: "first-flame"), .achievement(id: "showed-up")])
         XCTAssertEqual(try store.gamificationState(for: userId).earnedAchievementIds, ["first-flame", "showed-up"])

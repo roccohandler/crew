@@ -29,13 +29,11 @@ final class OfflineSessionTests: XCTestCase {
         app.buttons["Looks good"].tap()
 
         XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 15))
-        let name = app.textFields["Name"]
-        name.tap(); name.typeText("Kill Survivor")
-        let email = app.textFields["Email"]
-        email.tap(); email.typeText("resume-\(Int(Date().timeIntervalSince1970))@example.com")
-        let password = app.secureTextFields["Password"]
-        password.tap(); password.typeText("journey password 1")
-        // A20 — synchronised: the numberPad is the last of five fields and its keyboard animates in (JourneySteps)
+        // A20.11 — ALL FIVE fields go through the synchronised step. Run 35069768536 lost keyboard focus at Password,
+        // one field before Birth year, so the bare tap-then-type was never safe on any of them (JourneySteps).
+        typeInto(app.textFields["Name"], "Kill Survivor", in: app)
+        typeInto(app.textFields["Email"], "resume-\(Int(Date().timeIntervalSince1970))@example.com", in: app)
+        typeInto(app.secureTextFields["Password"], "journey password 1", in: app)
         typeInto(app.textFields["Birth year"], "1994", in: app)
         app.buttons["Save your plan"].tap()
 

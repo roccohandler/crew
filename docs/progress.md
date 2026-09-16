@@ -429,9 +429,51 @@ Also confirmed for the push: TestFlight currently serves **build 121** from `2b5
 `workflow_dispatch` — which bypasses the `conclusion == 'success'` gate, and `2b5e904`'s CI was red. F47 makes the
 next build **123**, and the first one that reaches the phone by the automatic path.
 
-**NEXT:** run the queue (F47), push, confirm the auto-TestFlight trigger fires for the first time ever, smoke-test
-Build A on the phone, then restore Build B from the scratchpad and run F46. After A20: **A15** (Stage 7), per A20.8's
-amended ordering.
+### 2026-09-16 — F47 PUSHED: THE APP COMPILES. FIVE TESTS FAILED AND ALL FIVE WERE TEST DEFECTS. F48 IS THE FIX.
+
+Run **35069768536** (HEAD `3786306`) — four of five jobs GREEN, including `web` and `ios engine (Linux)`, neither of
+which had run since Sep 10. The `ios` job went red with **0 compile errors and 140 unit tests executed**, which is the
+result that matters: **F47's revert worked, and A18 + A19 + A20 Build A compile on Xcode.** TestFlight correctly did
+not fire (the gate needs `success`), so build 123 never reached the phone.
+
+**This job had not executed a test since `334ad67` (2026-09-10).** A18, A19 and A20 Build A all landed in between. So
+the five failures are not a regression from F47 — they are the first time three passes' worth of test code has ever
+been run, and they are **five test defects and zero app defects**:
+
+| # | Failure | Cause |
+|---|---|---|
+| 1 | `HomeModelFactsTests.testTodaySummaryLines…` — expected `Push day · `, got `Leg day · 15/15 sets · 0 min` | the fixture read `store.plan(…)?.workouts.first` |
+| 2–4 | `CameraDenied`, `Journey1`, `OfflineSession` — `Neither element nor any descendant has keyboard focus` at `Password` | `typeInto`'s keyboard guard only ran for all-numeric text |
+| 5 | `HomeStatesTests.testAllDone…` — `Failed to get screenshot: Timed out` | simulator, not an assertion — deferred to debt |
+
+**(1) IS NOT A DATE BUG LIKE F04 — IT IS AN ORDER BUG, AND THE SOURCE ALREADY SAID SO.**
+`NextUpLine.swift:75` carries the sentence verbatim: *"A1: a SwiftData to-many keeps no order of its own."* Every
+production reader obeys it — `HomeModel.swift:71` and `PlanModel.swift:48` select by `kind`, `NextUpLine.swift:30`
+sorts by `order` — while five test sites called bare `.first` on `LocalPlan.workouts` and one of them then asserted a
+day NAME. It drew Leg day on this runner. It was never reliable; it had simply never been run. All five are pinned
+`.first { $0.kind == "push" }` now, the idiom `HomeModelEdgeTests.swift:24` already used.
+
+**(2–4) IS BUILD A FIXING ONE FIELD INSTEAD OF THE CLASS.** A20.9 diagnosed this race correctly — A19.1's
+`safeAreaInset` and A19.2's keyboard toolbar animate against the same edge `typeText` synthesises against — and then
+guarded it with `if text.allSatisfy(\.isNumber) && !app.keys["1"]…`, which covers `Birth year` and nothing else.
+`Password` is a `SecureTextField` that raises no digit to wait for, so it kept the bare `tap(); typeText()` and failed
+on all three journeys one field EARLIER than the field that was fixed. The helper's own note is right that
+`app.keyboards` proves nothing between two text fields — but `hasKeyboardFocus` **on the field itself** does,
+whatever keyboard it raises, so that is the general proof now and the digit wait stays for the numberPad's extra
+teardown. All five S05 fields and the nutrition caption route through `typeInto`.
+
+**The caption was included deliberately.** `NutritionPostScreen.swift:35` adopts `.crewBottomBar` (A19.1), so it has
+the identical animating edge, and since the last executed run predates A19 it had **never once run with the bar
+present** — it would have been the next red.
+
+Gates re-run against the F48 tree: `swift-xref` clean (194 files / 379 types), `doctrine-lint` clean, `check-drift` ·
+`check-vectors` (56) · `check-seeds` clean. Web untouched (no web file changed). **NO VECTOR CHANGES** — five fixture
+pins and one test-helper wait award nothing.
+
+**NEXT:** push F48, confirm `ios` goes green and the auto-TestFlight trigger fires for the first time ever (build
+124), smoke-test Build A on the phone, then restore Build B from the scratchpad and run F46. After A20: **A15**
+(Stage 7), per A20.8's amended ordering.
+
 
 ## Ledger
 

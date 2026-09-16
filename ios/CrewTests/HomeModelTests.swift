@@ -84,7 +84,8 @@ final class HomeModelTests: XCTestCase {
         model.refresh(now: saturday)
         XCTAssertEqual(model.today, .paused(until: "Sat Sep 12")) // A3: a DayLabel, never raw ISO
         XCTAssertNil(model.nextUpLine)
-        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first)
+        // A1 — pinned by kind; a SwiftData to-many has no order of its own (NextUpLine.swift:75)
+        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
         _ = try SessionActions.startSession(from: workout, kind: workout.kind, isPlannedDay: false, userId: userId, timeZone: tz, now: saturday, store: store)
         model.refresh(now: saturday)
         XCTAssertNotNil(model.resumeSession)
@@ -115,7 +116,8 @@ final class HomeModelTests: XCTestCase {
         XCTAssertFalse(model.quickCompleteAvailable)
         XCTAssertNil(model.startWorkout(now: friday), "a paused plan starts nothing from Home")
         // A bonus is still allowed while paused — "pauses without penalty" — but it is UNPLANNED (+25, V30/V31)
-        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first)
+        // A1 — pinned by kind; a SwiftData to-many has no order of its own (NextUpLine.swift:75)
+        let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
         let bonus = try XCTUnwrap(model.startBonus(workout, now: friday))
         XCTAssertFalse(bonus.isPlannedDay, "a workout during a pause never earns planned-day credit")
     }

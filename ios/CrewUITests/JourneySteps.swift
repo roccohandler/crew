@@ -56,7 +56,23 @@ extension XCTestCase {
             field.tap() // one retry: a tap that lands while the previous keyboard is still dismissing is swallowed
             XCTAssertTrue(app.keys["1"].waitForExistence(timeout: 10), "the numeric keyboard never came up", file: file, line: line)
         }
+        // A20.11 (run 35069768536) — THE DIGIT WAIT ABOVE ONLY COVERS A NUMBERPAD, and the race was never numeric.
+        // The same "Neither element nor any descendant has keyboard focus" failed `Password` on THREE journeys, one
+        // field earlier than Birth year. The note above is right that `app.keyboards` proves nothing between two text
+        // fields — but `hasKeyboardFocus` on the field ITSELF does, whatever keyboard it raises, and a SecureTextField
+        // offers no key to wait for. So the general proof runs for every field and the digit wait stays for the
+        // numberPad's extra teardown-and-rebuild.
+        if !waitForKeyboardFocus(field, timeout: 5) {
+            field.tap() // the same swallowed tap, on a field whose keyboard type gives no key worth waiting for
+            XCTAssertTrue(waitForKeyboardFocus(field, timeout: 10), "the field never took keyboard focus", file: file, line: line)
+        }
         field.typeText(text)
+    }
+
+    // The one probe that answers "is THIS element the first responder" rather than "is A keyboard up".
+    func waitForKeyboardFocus(_ field: XCUIElement, timeout: TimeInterval) -> Bool {
+        let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"), object: field)
+        return XCTWaiter().wait(for: [focused], timeout: timeout) == .completed
     }
 
     // 6.7: the element lies inside the window — not beside it, not clipped by the edge

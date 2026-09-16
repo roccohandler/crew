@@ -44,13 +44,11 @@ final class Journey1_NewUserTests: XCTestCase {
         // S05 save with email (Sign in with Apple needs a device)
         XCTAssertTrue(app.staticTexts["Save your plan"].waitForExistence(timeout: 15))
         shoot(app, "S05 save your plan")
-        let name = app.textFields["Name"]
-        name.tap(); name.typeText("Journey One")
-        let email = app.textFields["Email"]
-        email.tap(); email.typeText("journey1-\(Int(Date().timeIntervalSince1970))@example.com")
-        let password = app.secureTextFields["Password"]
-        password.tap(); password.typeText("journey password 1")
-        // A20 — synchronised: the numberPad is the last of five fields and its keyboard animates in (JourneySteps)
+        // A20.11 — ALL FIVE fields go through the synchronised step. Run 35069768536 lost keyboard focus at Password,
+        // one field before Birth year, so the bare tap-then-type was never safe on any of them (JourneySteps).
+        typeInto(app.textFields["Name"], "Journey One", in: app)
+        typeInto(app.textFields["Email"], "journey1-\(Int(Date().timeIntervalSince1970))@example.com", in: app)
+        typeInto(app.secureTextFields["Password"], "journey password 1", in: app)
         typeInto(app.textFields["Birth year"], "1994", in: app)
         app.buttons["Save your plan"].tap()
 
@@ -80,7 +78,8 @@ final class Journey1_NewUserTests: XCTestCase {
             postMeal.tap()
             let caption = app.textFields["Say something (or don't)"]
             XCTAssertTrue(caption.waitForExistence(timeout: 15))
-            caption.tap(); caption.typeText("protein shake post-gym")
+            // A20.11 — same animating edge as S05: NutritionPostScreen adopts .crewBottomBar (A19.1)
+            typeInto(caption, "protein shake post-gym", in: app)
             app.buttons["Post"].tap()
         }
         // Back on Home the bridge is gone forever; the flame is lit
