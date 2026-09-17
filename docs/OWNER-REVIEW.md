@@ -128,6 +128,8 @@ Open owner decision: Firebase Auth ⏳ (Appendix B) — custom auth proceeded by
    real allowlist, a verified Resend domain, log drains and alerts (debt entries name each).
 9. **App Store (T047)**: bundle id, capabilities, privacy labels, EULA link, 13+, review notes with a test account and an
    invite link, screenshots; final audit `node shared/scripts/doctrine-lint.mjs` + `grep -rn "GAP:" web/src ios/Crew`.
+10. **Test accounts**: `TEST_EMAIL_ALLOWLIST` unset in production before public launch (`docs/TEST_ACCOUNT_BYPASS.md`;
+    the plus-addressed test accounts are purged locally with `web/scripts/purge-test-accounts.ts` first).
 
 ## 7. The 8.6 offline matrix — first device pass checklist
 
