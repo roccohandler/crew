@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -583,6 +583,19 @@ Three owner-directed deliverables, all documents plus one local script; no app c
   move / rebuild / discard recommendation before anything moves; ruled the same day — see the next line.
 - A20 BUILD B ARCHIVED 2026-09-17 (owner: preserve, do not rebuild yet): branch `archive/a20-build-b`, folder `archive/a20-build-b/` (the scratch folder byte for byte, commit e509314); the rebuild decision waits for the MVP definition.
 
+## 2026-09-17 (evening) — A21 recorded; MVP definition; nutrition addendum draft (docs-only; no source changed)
+
+- Appendix A gains A21.1–A21.13 (the owner's rulings of 2026-09-17 — each dated, owner-approved, naming what it supersedes); every
+  overturned section carries a one-line "Superseded … by A21.x" marker at its head and its original text is never rewritten. Appendix B's
+  Firebase ⏳ is CLOSED (A21.7). A15 is removed (A21.1); A16's model is replaced by A21.5 (the clauses, palette and A16.a/b/c stand).
+- `docs/mvp-definition.md` — positioning, the five device-flawless flows, the A21 table, Not Building, the W1–W9 worklist (W1 = this session).
+- `docs/nutrition-addendum-draft.md` — A21.5's proposal, NOT ratified; ends with the three owner questions (goal / deficit, calories on Today, entry point).
+- Three agent readings recorded as GAP inside A21: the invited decision count stays 5 on the code path (A21.1); the invite code is the
+  existing inviteToken (A21.3); goal has no effect on the targets until question 1 is answered (A21.5).
+- Domain state for W7: the web app is at https://crew-eta-one.vercel.app (200 / 401 today); no custom domain anywhere in the repo or
+  its GitHub variables; no AASA served (404); `applinks:crew.example` still in project.yml.
+- This push touches docs/ only, so ci.yml skips it (paths-ignore) and no TestFlight build follows — expected.
+- NEXT: nothing is built until the owner says go; on go, W2 (gym-only, docs/GYM_ASSUMPTION_MAP.md) is the next session.
 ## Ledger
 
 Phase 0 — contracts
@@ -667,14 +680,14 @@ Phases 6–7 — beta & release
 
 - OPERATING MODE (Appendix A, 2026-09-04): CONTINUOUS BUILD — no 🛑 stops the line; former checkpoints are self-reviews in docs/ratification.md; gaps get the most conservative in-spec call tagged `// GAP:`; iOS is WRITTEN-UNVERIFIED (no Xcode here; GitHub's macOS job is the compiler); no real credentials in the repo or the chat.
 - BLOCKED-CREDENTIALS (owner steps, docs/testing-without-a-mac.md Stage 2): the Atlas password (production `MONGODB_URI` fails with "bad auth" — the owner is regenerating the `crew` user's password and replacing the variable; the Blob store `crew-photos` is still not connected) (T046) · the APNs key → Vercel (T033; the Team ID and bundle id are known) · a Services ID for web Sign in with Apple (T012) · an iPhone for the device pass (T028/T035/T043).
-- ⏳ STAGE 9 ENTRY GATE (A16.b, owner task): the App Store Connect age questionnaire is re-answered with A16 in mind and the resulting rating is recorded in the 2026-09-10 section above. Stage 9 does not start until then. Open alongside it: the A16.c birth-year GAP (absent birth year reads as under 18 unless the owner rules otherwise).
-- ⏳ STAGE 8 SHIP GATE (A13, owner task): lawyer confirmation on CC BY-SA 4.0 assets inside a FairPlay-protected binary. Vendoring, the hash test and the attribution screen may be prepared behind a feature flag; nothing reaches TestFlight until it clears.
-- OPEN OWNER DECISION (non-blocking): Firebase Auth ⏳ (Appendix B) — custom auth proceeds by default (12.5); nothing built against Firebase.
+- ⏳ W8 ENTRY GATE (A16.b, owner task; A21.5 replaces Stage 9's scope): the App Store Connect age questionnaire is re-answered with nutrition targets in mind and the rating recorded here before W8 starts; docs/nutrition-addendum-draft.md is ratified in W8's first session. The A16.c birth-year GAP is CLOSED by A21.5 — birth year is asked at the moment Nutrition is opened.
+- OUT OF MVP (A21.13, 2026-09-17) · ⏳ STAGE 8 SHIP GATE (A13, owner task, post-MVP): lawyer confirmation on CC BY-SA 4.0 assets inside a FairPlay-protected binary. Vendoring, the hash test and the attribution screen may be prepared behind a feature flag; nothing reaches TestFlight until it clears.
+- CLOSED 2026-09-17 by A21.7: Firebase Auth rejected; custom auth is the standing decision (Appendix B carries the marker).
 - Git: UNBLOCKED 2026-09-17 — the agent commits and pushes directly (never a force-push, a history rewrite or a branch deletion; the hook enforces exactly those). The commit queue is retired for new work; F46 (Build B) is the one block still held in it.
 
 ## Notes for next session
 
-- 2026-09-17: NOTHING IS TO BE BUILT until the owner says go — the iOS invite path (#1, blocking) and push registration (#2) wait for a decision; Build B is archived on `archive/a20-build-b` and its rebuild waits for the MVP definition; the gym-assumption map is the work order for the equipment removal once scheduled.
+- 2026-09-17 (evening): A21 is in Appendix A and the MVP definition exists (docs/mvp-definition.md, worklist W1–W9). NOTHING IS BUILT until the owner says go; on go the next session is W2 (gym-only — docs/GYM_ASSUMPTION_MAP.md is the work order), then W3 (crew surface), W4 (invite code + push + two-button share). Build B stays on `archive/a20-build-b` until the W6 walkthrough decides rebuild-or-drop (A21.12). The nutrition addendum draft awaits ratification (W8).
 - CI run 34351357853 (push 5374a2f, 2026-09-09 12:30Z): contracts ✓ · web ✓ · ios engine ✓ · ios ✗ with ONE diagnostic across the ~95 rewritten Swift files — `ShellStatesTests.swift:11: type 'PlanLoadState' has no member 'offline'` (the editor rewrite dropped the case); F23 restores it. The unit + UI test outcome is unknown until the next run. The web e2e job also failed on ONE check: the phone-375 a11y sweep measured 11 px of sideways scroll on a signed-in page under the Linux runner's fallback fonts (green here on Windows fonts). Reproduced locally by forcing a wide font: the Settings profile `<input type=file>` and the session exercise header (name · chip · Swap · Skip) overflowed; F23 makes the file input span the column and lets that header wrap, and the assertion now names the page.
 - CI run 34354352786 (push 178c1b4 = F23, 2026-09-09 13:00Z): contracts ✓ · web ✓ · web e2e ✓ (the wide-font overflow fix held on the runner) · ios engine ✓ · ios ✗ — the whole app compiled, 89 unit tests ran, 3 assertions failed in TWO tests of `SyncDeliveryTests`, both test bugs: they enqueued at `Date()` (2026) and stepped the queue at `Date(timeIntervalSince1970: 1_000_000)` (1970), so the op was `.waiting`, never `.sent`; and `attachPhotoKey` re-serialised the payload with JSONSerialization, which escapes `/` as `/`, so `contains("blob/abc")` was false. F24: the tests share one clock; the re-serialisation (SyncDelivery, PostPayloadPhotoStripper) uses `.withoutEscapingSlashes`. The journeys did not run (the unit step failed first) — Q09 is still unread.
 - The owner's ask after that run — "how can this be checked locally before it fails on GitHub?" — answered in F24 (docs/testing-without-a-mac.md Stage 0/1): (1) `node shared/scripts/swift-xref.mjs` — a compiler-free cross-reference check that reproduces every compile error the macOS job has ever reported (removed enum case, renamed parameter, removed struct field, shadowed SwiftUI type; a scratch copy with all four re-introduced reports all four; the real tree is clean) — first step of the `contracts` CI job and the command to run before every queue-and-push; (2) `expectNoHorizontalScroll` measures a second time under a wide fallback font (Verdana here, DejaVu Sans on the runner), so the e2e sweep on this machine sees what the runner sees — and names the overflowing element; its first full run caught a REAL one the runner would have found next: the crew header's name + pulse row pushed the pulse 9 px past a 375 edge in journeys ② and ③ (`CrewHeader.tsx` now wraps that row; journeys ② ③ 6/6 green on all viewports after the fix); (3) the `ios` job runs unit AND journeys even when unit fails and a `verdict` step writes both logs' error lines and suite totals to the run summary — one run, every failure. What no local check can do: run SwiftData/SwiftUI code — test logic against Foundation behaviour still meets the macOS job first.
