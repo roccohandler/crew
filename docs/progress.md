@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -559,6 +559,29 @@ the phone, and cardio inside a workout showing on Home's cardio row and matching
 the scratchpad and run F46 with `CREW_BUILD_B=1`. After A20: **A15** (Stage 7), per A20.8's amended ordering.
 
 
+## 2026-09-17 — read-only audit, the gym-assumption map, the test-account loop, and direct commits
+
+Three owner-directed deliverables, all documents plus one local script; no app code changed:
+
+- `docs/MVP_STATE_REPORT.md` — the read-only audit against spec v2.0 at `7fa7e52` (13 sections, every claim cited to file:line
+  or a command). Verified here the same day: typecheck and lint exit 0 · `npm test` 43 files / 453 tests · native `swift test`
+  76/0 · drift, vectors (56), seeds, doctrine-lint, swift-xref clean. Owner ruling on §12: the iOS invite path is #1 and
+  BLOCKING, push registration #2 — neither is to be built until the owner says go.
+- `docs/GYM_ASSUMPTION_MAP.md` — owner decision: every user has full commercial gym access. Every home/dumbbell assumption
+  (30 of 45 template lists, the equipment question, the access tiers in both engines, the tier inference in the editors and
+  swaps, the spec lines) is listed with delete / rewrite / no-op. Nothing removed yet; no exercise entry needs deleting.
+- `docs/TEST_ACCOUNT_BYPASS.md` — plus-addressed Gmail variants already register as distinct accounts (exact lower-cased
+  `emailLower`, no normalisation) and in-app deletion is a hard delete that frees the address at once, so no server change.
+  `web/scripts/purge-test-accounts.ts` (local only, refuses to run under Vercel) purges base+tag accounts through the app's own
+  `deleteAccount` cascade; launch gate: `TEST_EMAIL_ALLOWLIST` unset in production (OWNER-REVIEW §6 step 10; Appendix A entry).
+- GIT: the owner approved direct commits and pushes by the agent (2026-09-17). `~/.claude/hooks/block-dangerous-git.mjs` now
+  blocks only destructive git — force-push, history rewrite, branch/tag deletion, discarding uncommitted work — on the Bash
+  and PowerShell tools alike. `docs/commit-queue.sh` is retired for new work (F51 and F52 were committed directly and its
+  guard skips them); its F46 block (Build B) is still held there.
+- A20 BUILD B is still only in a session scratchpad (…/AppData/Local/Temp/claude/…/29f6db46-…/scratchpad/buildB: six full
+  Swift files dated 2026-09-12 plus a 76 KB patch of 16 other files, cut against the F45-era tree). The owner asked for a
+  move / rebuild / discard recommendation before anything moves; nothing has been moved.
+
 ## Ledger
 
 Phase 0 — contracts
@@ -646,10 +669,11 @@ Phases 6–7 — beta & release
 - ⏳ STAGE 9 ENTRY GATE (A16.b, owner task): the App Store Connect age questionnaire is re-answered with A16 in mind and the resulting rating is recorded in the 2026-09-10 section above. Stage 9 does not start until then. Open alongside it: the A16.c birth-year GAP (absent birth year reads as under 18 unless the owner rules otherwise).
 - ⏳ STAGE 8 SHIP GATE (A13, owner task): lawyer confirmation on CC BY-SA 4.0 assets inside a FairPlay-protected binary. Vendoring, the hash test and the attribution screen may be prepared behind a feature flag; nothing reaches TestFlight until it clears.
 - OPEN OWNER DECISION (non-blocking): Firebase Auth ⏳ (Appendix B) — custom auth proceeds by default (12.5); nothing built against Firebase.
-- Git is hook-blocked for the agent: commits are queued in `docs/commit-queue.sh` (FIX QUEUE section); the owner runs `& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh` then `git push`.
+- Git: UNBLOCKED 2026-09-17 — the agent commits and pushes directly (never a force-push, a history rewrite or a branch deletion; the hook enforces exactly those). The commit queue is retired for new work; F46 (Build B) is the one block still held in it.
 
 ## Notes for next session
 
+- 2026-09-17: NOTHING IS TO BE BUILT until the owner says go — the iOS invite path (#1, blocking) and push registration (#2) wait for a decision; Build B waits for the owner's move / rebuild / discard call; the gym-assumption map is the work order for the equipment removal once scheduled.
 - CI run 34351357853 (push 5374a2f, 2026-09-09 12:30Z): contracts ✓ · web ✓ · ios engine ✓ · ios ✗ with ONE diagnostic across the ~95 rewritten Swift files — `ShellStatesTests.swift:11: type 'PlanLoadState' has no member 'offline'` (the editor rewrite dropped the case); F23 restores it. The unit + UI test outcome is unknown until the next run. The web e2e job also failed on ONE check: the phone-375 a11y sweep measured 11 px of sideways scroll on a signed-in page under the Linux runner's fallback fonts (green here on Windows fonts). Reproduced locally by forcing a wide font: the Settings profile `<input type=file>` and the session exercise header (name · chip · Swap · Skip) overflowed; F23 makes the file input span the column and lets that header wrap, and the assertion now names the page.
 - CI run 34354352786 (push 178c1b4 = F23, 2026-09-09 13:00Z): contracts ✓ · web ✓ · web e2e ✓ (the wide-font overflow fix held on the runner) · ios engine ✓ · ios ✗ — the whole app compiled, 89 unit tests ran, 3 assertions failed in TWO tests of `SyncDeliveryTests`, both test bugs: they enqueued at `Date()` (2026) and stepped the queue at `Date(timeIntervalSince1970: 1_000_000)` (1970), so the op was `.waiting`, never `.sent`; and `attachPhotoKey` re-serialised the payload with JSONSerialization, which escapes `/` as `/`, so `contains("blob/abc")` was false. F24: the tests share one clock; the re-serialisation (SyncDelivery, PostPayloadPhotoStripper) uses `.withoutEscapingSlashes`. The journeys did not run (the unit step failed first) — Q09 is still unread.
 - The owner's ask after that run — "how can this be checked locally before it fails on GitHub?" — answered in F24 (docs/testing-without-a-mac.md Stage 0/1): (1) `node shared/scripts/swift-xref.mjs` — a compiler-free cross-reference check that reproduces every compile error the macOS job has ever reported (removed enum case, renamed parameter, removed struct field, shadowed SwiftUI type; a scratch copy with all four re-introduced reports all four; the real tree is clean) — first step of the `contracts` CI job and the command to run before every queue-and-push; (2) `expectNoHorizontalScroll` measures a second time under a wide fallback font (Verdana here, DejaVu Sans on the runner), so the e2e sweep on this machine sees what the runner sees — and names the overflowing element; its first full run caught a REAL one the runner would have found next: the crew header's name + pulse row pushed the pulse 9 px past a 375 edge in journeys ② and ③ (`CrewHeader.tsx` now wraps that row; journeys ② ③ 6/6 green on all viewports after the fix); (3) the `ios` job runs unit AND journeys even when unit fails and a `verdict` step writes both logs' error lines and suite totals to the run summary — one run, every failure. What no local check can do: run SwiftData/SwiftUI code — test logic against Foundation behaviour still meets the macOS job first.
