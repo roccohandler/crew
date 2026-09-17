@@ -335,6 +335,19 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>" \
   ios/Crew/Features/Onboarding/SaveAuthScreen.swift web/src/components/onboarding/SaveForm.tsx \
   web/tests/onboarding-birth-year.test.ts docs/debt.md docs/progress.md docs/commit-queue.sh
 
+# --- F51 (owner decision 2026-09-17: full commercial gym access for every user — the read-only map of what assumes otherwise) ---
+commit_task "docs: gym-assumption map — every place the code, seeds, tests and spec assume home or dumbbell-only training, with delete / rewrite / no-op per line. Read-only: 30 of 45 template lists, the equipment question, the access tiers in both engines and the tier inference in the editors and swaps; no exercise entry needs deleting because fullGym already admits all five tags [SPEC: Flow 1; S03; 5.6.1; 8.3; Appendix A]
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" \
+  docs/GYM_ASSUMPTION_MAP.md docs/commit-queue.sh
+
+# --- F52 (owner-approved 2026-09-17: the owner's plus-addressed Gmail test accounts — investigation, no code change, a local purge script) ---
+commit_task "docs(auth): test-account bypass — plus-addressed Gmail variants already register as distinct accounts (exact lower-cased emailLower, no normalisation), in-app deletion is a hard delete that frees the address at once, and the only signup gate is the per-IP auth limit; so NO server change. Adds web/scripts/purge-test-accounts.ts (local only: deletes base+tag@domain accounts for TEST_EMAIL_ALLOWLIST bases through the app's own deleteAccount cascade, prints what it deleted, refuses to run under Vercel) with the four-line @/ resolver plain node needs, the env var in .env.example (empty by default, read by the script alone), launch-gate step 10 in OWNER-REVIEW and the Appendix A entry [SPEC: E9; E18; G11; Appendix A 2026-09-17]
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" \
+  docs/TEST_ACCOUNT_BYPASS.md web/scripts/purge-test-accounts.ts web/scripts/alias-hooks.mjs web/.env.example \
+  docs/OWNER-REVIEW.md docs/crew-mvp-spec.md docs/commit-queue.sh
+
 # ===== HISTORY — kept for the record only; it never runs. 49 of the 62 blocks below are in git log (the guard would skip
 # them), the other 13 — S38 and twelve docs/test blocks — found nothing left to stage when their turn came, because an
 # earlier block naming the same files had already swept their changes in (the S38 class). Left live, those 13 would still
