@@ -5,6 +5,7 @@ name: ci
 on:
   push:
     branches: [master, main]
+    paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
 
 jobs:
