@@ -1,0 +1,866 @@
+﻿diff --git a/docs/crew-mvp-spec.md b/docs/crew-mvp-spec.md
+index 75b08d3..8e15249 100644
+--- a/docs/crew-mvp-spec.md
++++ b/docs/crew-mvp-spec.md
+@@ -1012,7 +1012,7 @@ The solo/crew choice screen is cut: invited users auto-join via carried token an
+ S07
+ Home
+ all five
+-First-day BRIDGE state until first post exists (oversized single CTA, unlit flame, zero competing prompts — and that CTA absorbs an open session rather than a second banner appearing beside it, A18.8); correct today-state (workout/rest/paused/done) < 500 ms warm; ≤3 taps launch→fast-logged; Quick Complete hidden once today counts; crew strip absent (not empty) for solo AND below crewMinMembers (A17.1); Resume banner when session open on every NON-bridge state (A18.8); the nav title NAMES THE STATE (A17.4 — "Rest day" / "Push day" / "Done for today" / "Plan paused"); one ink summary sentence under the week strip, and the day's single ink-filled primary in the thumb zone on every state that HAS one (A17.1/A17.2). EVERY NUMERAL IS NAMED where it sits — "day streak" under the flame, "workouts this week" under the ring (A18.1); the ring renders only above zero done and never while paused (A18.2); the week strip marks EVERY planned day and never a miss inside a pause window (A18.6a/A18.7); the what's-next fact is its own block above the card on rest/all-done/paused (A18.3); the three logging vectors are full-width VERB rows (A18.5); the paused card carries "End the pause now" (A18.6c); the all-done card reports today and carries no control (A18.9); the toolbar camera is absent wherever the card already offers a meal CTA (A18.10); and the offline state is REACHABLE, not merely declared (A18.12)
++First-day BRIDGE state until first post exists (oversized single CTA, unlit flame, zero competing prompts — and that CTA absorbs an open session rather than a second banner appearing beside it, A18.8); correct today-state (workout/rest/paused/done) < 500 ms warm; ≤3 taps launch→fast-logged; Quick Complete hidden once today counts; the nav title NAMES THE STATE (A17.4(c), reaffirmed by A20.7 — "Rest day" / "Push day" / "Done for today" / "Plan paused") under a DATE LINE naming the day in full (A20.7); one ink summary sentence under the week strip (A17.1); the week fraction is a NAMED FRACTION — "3 of 5 workouts" — rendered only above zero done and never while paused (A20.4, carrying A18.1/A18.2/A18.6b), with the streak and any shield demoted to one caption line beneath it (A20.6); the week strip marks EVERY planned day and never a miss inside a pause window (A18.6a/A18.7). TODAY'S LOG is ONE LIST of three rows — Workout · Cardio · Meal, always all three, always that order — each a VERB title over a status subtitle (A20.1/A20.2), each the single tap target for its row with a chevron and no inner pill, the ONE exception being the workout row's quick-complete mark (A20.3); the workout row carries the day's work and reports an open session rather than a Resume banner appearing beside it (A20.5), and NO ROW EVER PRINTS A ZERO (A8); the nutrition row shows a meal count and no calorie until A16 ships (A20.11). The what's-next fact is the LAST row, on every state that has one (A20.1). The day's single ink-filled primary is bottom-anchored in `.crewBottomBar`, and a state that asks nothing renders no bar at all (A20.8, carrying A17.3/A18.9); the paused state's bar carries "End the pause now" (A18.6c); the all-done state reports today and carries no control (A18.9). The crew strip is ABSENT from Home (A20.6). The offline state is REACHABLE (A18.12) and its banner is PINNED, states a real last-synced time and the queued count, and is legible against the canvas (A20.9). Both appearances render, and the dark one is captured in CI (A20.13)
+ S08
+ Workout preview
+ loading, empty
+@@ -1546,6 +1546,23 @@ A19 ADDS NO VECTOR. Every clause is positional, mechanical or a correctness fix
+ EVERY NEW CONTROL A19 CREATES DRAWS ITS BOUNDARY WITH `controlOutline` (A18.11), never `hairline` and never `secondaryButtonOutline`: `hairline` keeps #E9E4DD for card edges and dividers only, because a boundary between two SURFACES is not a UI component. `web/tests/contrast.test.ts` enforces this by source guard, so a new control that reaches for the old token fails the suite rather than shipping invisible.
+ UNTOUCHED BY A19: the gamification numbers and every streak/XP/shield rule, every rejected list (Flows 4, Part II, Part IV), Ember laws 1 2 3 4 5 6, the performance and accessibility budgets, minimumAgeYears 13, the five-tab set, the Concrete Doctrine C1-C14, every append-only vector, and every ratified A17 and A18 decision — including A18.10's ruling on Home's toolbar camera, which the audit listed as an open owner question and which is CLOSED.
+ 
++2026-09-12 — A20, THE FIFTH HOME REVIEW (owner-directed; the owner's 28 answers across 7 rounds are the direction, this entry is the record; contract docs/home-plan-a20-2026-09-11.md). The owner reviewed the shipped Home and reported "it looks too complicated and things don't look like they're syncing", with a mockup from another agent that he liked. THE FINDING THAT REFRAMED THE BRIEF: the mockup's dark palette IS CREW'S EXISTING DARK THEME — shared/design-tokens.json has carried a light AND a dark hex for all 16 colour tokens since 2026-09-04 (Decision Registry G4), EmberColors emits dynamic UIColors, ember.css carries the prefers-color-scheme block, and ios/project.yml is UIUserInterfaceStyle: Automatic. He was comparing a LIGHT-MODE SCREENSHOT to a DARK-MODE MOCKUP, and the real difference between them is STRUCTURE. Ruling: the appearance stays system-following (Part III law ⑤ and Apple's HIG both), and A20.13 photographs the dark half, which no test on either engine had ever rendered. Evidence: an 87-agent investigation (7 repo lenses + 6 outside-research lenses, 200 findings, 24 load-bearing claims through 3 adversarial verifiers each — 6 survived, 18 were refuted, and only survivors are built on).
++A20.1 THE DAY'S CARD BECOMES ROW ONE OF TODAY'S LOG. A14 made Workout · Cardio · Meals co-equal and A18.5 gave them a verb and a full-width row, but the day's WORKOUT still lived in a card above them with its own ink-filled primary — so one intent was reachable from THREE controls at THREE weights (the card's "Start workout", a "Quick complete" secondary beneath it, and a "Log workout" row whose handler was byte-identical to the card's), and FOUR when a session was open. The card's bottom control also changed identity, fill and height between states (56 pt ink → 44 pt outline → nothing), which is the single largest reason nothing on Home had a stable position. The card's work moves to row one, its primary to `.crewBottomBar` (A20.8), and the what's-next fact becomes the LAST row on every state that has one rather than a block ABOVE the card on three states out of four — A18.3 put tomorrow above today across the largest gap on the screen. OVERTURNS: A14's exercise rows inside the card, A17.2/A17.3's card position, A18.3's block placement and idle-only gating, A18.9's all-done card.
++A20.2 THE VECTORS KEEP THEIR VERB AND GAIN A SUBTITLE. The title stays the VERB (6.6; A18.5 REAFFIRMED, not overturned) and a subtitle reports what today holds. What changes is A18.5's SILENCE clause: an unlogged row rendered no trailing element at all, so a row nobody had touched and a row whose post failed to send looked identical. Three grammars on the workout row — plan fact ("Push day · 5 exercises + mobility"), live fraction ("Push day · 8 of 15 sets"), done summary (JournalFacts.summaryLine, the journal's own sentence) — and NO BRANCH EVER PRINTS A ZERO (A8): the mockup's "15/15 sets" has no pre-session grammar and the honest value there is "0/15", the same defect that removed "0/3" from the bridge (W043), from every Monday (A18.2) and from the paused header (A18.6b).
++A20.3 ONE TARGET PER ROW, WITH EXACTLY ONE NAMED EXCEPTION. The whole row is the button and a chevron says so. The mockup draws a tappable row AND an inner "Log" pill, which is the nested-target pattern eBay's and Material's design systems both forbid and which forces either two VoiceOver stops per row or one that swallows the pill. THE EXCEPTION IS THE WORKOUT ROW'S QUICK-COMPLETE MARK, named here so it cannot spread: it absorbs the "Quick complete" button S07 requires and Flow 3 has nowhere else, and it is the only inner control on any row in the app. Overturns nothing; it records a rule S07 implied and no clause stated.
++A20.4 THE RING BECOMES A NAMED FRACTION AND INHERITS ITS GATE UNCHANGED. An arc plus a caption underneath was two elements saying one thing, a second circular shape competing with the seven dots directly below it, and — because A18.2 had to hide it below zero — an element that appeared on Wednesday and vanished on Monday, which is itself a reason a screen reads as unreliable. "3 of 5 workouts" satisfies A18.1's "every numeral is NAMED where it sits" better than a numeral with its noun on the next line. THE ABOVE-ZERO GATE IS CARRIED VERBATIM, and A18.6b still hides it while the plan is frozen. Amends A18.1's and A18.2's WORDING, not their rules. `WeeklyRing` itself is untouched: ProgressScreen still renders it.
++A20.5 THE OPEN SESSION IS REPORTED ON THE WORKOUT ROW, NOT BESIDE IT. A "Resume workout · Push day" banner appeared at the top while the card below rendered "Resume workout" — one verb, two weights, one destination — and the web twin suppressed the banner on that state while iOS rendered both, so the two engines had silently disagreed since before A18.8 existed. The row carries the PROGRESS instead, which is the fact neither control had. OVERTURNS A18.8's "every other state keeps the banner" and the S07 clause "Resume banner when session open".
++A20.6 THE CREW STRIP LEAVES HOME AND THE SHIELD FOLDS INTO THE STREAK LINE. The strip was a mirror of the Crew tab one tab-tap away, rendered only for crews of three or more, and was one more element that appeared and disappeared. The shield is the ONE fact on Home with no neighbour — it renders nowhere else in the app — so it is KEPT, folded onto the streak caption rather than owning a paragraph that appears for some users and moves everything below it. And the week LEADS while the streak demotes: the owner's "what is the 1/3" was two counters of equal visual weight both reading "1" and counting different things; A18.1 answered by NAMING both and the owner reports it still reads confusing, which is the evidence that naming was not the fix. Exactly one number may lead, and it is the plan-truth. OVERTURNS A17.1's crew-strip placement and the S07 crew-strip clause.
++A20.7 HOME'S HEADER CARRIES A DATE LINE, AND THE NAV TITLE KEEPS NAMING THE STATE. "Saturday, Sep 12" above the title: the one place the app states which day it is reasoning about, and the cheapest check a user has against "is this up to date". A17.4(c) IS REAFFIRMED — the mockup's constant "Today" would reverse the fix that ended the only tab/title disagreement among the five screens. What A20.1 deletes instead is the CARD HEADLINE that repeated the nav title verbatim on three of four non-bridge states ("Plan paused" ~250 pt under "Plan paused"). New twin `DayLabel.todayHeader` / `todayHeader()` on both engines, reading the day `refresh()` judged and never the wall clock.
++A20.8 HOME ADOPTS THE BOTTOM BAR NOW RATHER THAN LAST. A19.1 ratified "Home last … let A18's tests land first"; the owner moved it here because this pass rewrites Home's layout anyway and doing the anchor twice is worse. The bar is applied PER STATE rather than once with a conditional body, because `Bar` is a compile-time type: a ViewBuilder switching between a button and `EmptyView` produces `_ConditionalContent`, which `CrewBottomBar` cannot tell from a real bar — so the states A17.3 and A18.9 cleared would still have drawn a hairline and an inset of empty canvas. A19.1's own paragraph claimed the modifier already handled this and IT DID NOT; the claim is corrected in the source. OVERTURNS A19.1's adoption order and, by consequence, A19.6's stage sequence, which now reads: A18 tail → A19 Stage A → Stages B/D → **A20** → A15 → Stages C/E/F.
++A20.9 THE OFFLINE BANNER IS PINNED, LIVE AND DATED — AND IS NOT DELETED. The mockup drops it, which is the single worst idea in it: 6.1's Five States Law is release-blocking, A18.12 made the state reachable three commits earlier, and it is the ONLY surface on Home that can answer the owner's own second complaint. It drew `card` on `canvas` — #FFFFFF on #FAF8F5, 1.06:1 — behind a 1.19:1 edge, with no glyph and a constant sentence naming no time. It now draws on `emberTint` behind `controlOutline`, carries a glyph, and states 6.1's "last-synced" plus the queued count Home never had. `SyncQueue` becomes `@Observable` and publishes `offline`, `lastSyncedAt` and `pendingCount`; `HomeScreen.loadState` becomes COMPUTED, because as `@State` it was assigned in one place while eight paths called `refresh()` directly.
++A20.10 HOME'S CARDIO ROW COUNTS CARDIO DONE ANYWHERE, AND A PAUSE IS A SERVER FACT. Two implementations corrected against A2 and Flow 7 as written, not two new rules. (a) `vectorSlots` filtered `workoutKind == "cardio"`, so only a standalone log filled the row while ProgressModel summed cardio from EVERY session — a bike block inside a push day read "nothing logged today" on one tab and reported minutes on the next. Fixed on both engines; `workoutDone` keeps its own split, so the week strip and the ring are untouched. (b) `LocalPause` had exactly ONE writer in the whole app (SettingsModel.pause) and `ServerHydrate` pulled every other server truth and not this one, so a pause created on the web or predating a reinstall never reached the phone: Settings said "Plan paused" while Home offered Start workout and stamped `isPlannedDay: true`. HomeStatesTests had been failing on exactly this since the day it was written.
++A20.11 NO NUMBER ON THE NUTRITION ROW UNTIL A16 SHIPS, AND NOT ON THAT LINE EVEN THEN. The mockup prints "2 meals · 1,240 kcal". No calorie field exists on either engine; A16 clause ⑥ says the plate journal carries "never a gram or a calorie"; A16.c gates the whole nutrition-target surface to 18+ with an absent birth year read as under-18; and Stage 9 cannot start until the owner records the App Store Connect age rating on the still-open ⏳ W070. Building it early is scope expansion by the 2026-09-10 ratification's own words. The meal COUNT is already computed and is legal today. Records the boundary A16 implies and never states for the Home surface.
++A20.12 THE APP GETS TYPOGRAPHY TOKENS. Part III has always specified colour, spacing, motion and haptics and NEVER TYPE, so every font size in the app was a per-file decision — the Home folder alone rendered 13 distinct `.font()` expressions across 9 semantic sizes — and web set its own inline in CSS with no parity test, so the two engines could drift on type silently and forever. The measured driver of a "this looks complicated" verdict is the number of distinct visual TREATMENTS and the quality of the grid, not the number of facts, which is why four Home passes that added and removed CONTENT never moved it. Five roles (statLead · sectionLabel · rowTitle · rowDetail · caption) join `shared/design-tokens.json` on the same generator path the spacing scale already uses; iOS names a SEMANTIC text style so Dynamic Type still scales every role (6.7), and `token-parity.test.ts` now enforces that. A screen reaches for at most four. Closes a hole in Part III that no clause has ever named.
++A20.13 THE DARK APPEARANCE IS PHOTOGRAPHED. Crew has shipped a full light+dark palette since 2026-09-04 and NO test, e2e spec, layout gate, a11y sweep or CI screenshot on either engine had ever rendered a dark screen — half the design system was unverified by construction, and the owner's own reference for this pass was, in palette terms, the theme he already owned and had never seen. `HomeStatesTests` renders two states in the dark appearance and captures both into the run artifact.
++A20 ADDS NO VECTOR, and that is a ruling, not an omission. The 56 vectors are the gamification fixture contract; every A20 clause is positional, presentational, or a correctness fix to a reporting function. The pause is an existing SERVER fact moving onto the phone and awards nothing; the cardio row reports minutes and awards nothing — the same reasoning A18 recorded and A19 followed. V57-V64 stay reserved for A16; the next free id is still V57.
++UNTOUCHED BY A20: the gamification numbers and every streak/XP/shield rule, every rejected list, Ember laws ① ② ③ ④ ⑤ ⑥ (the mockup's orange-filled check would break ① and ④, and its white glyph measures 2.61:1 on Crew's ratified dark ember against 6.5's 3:1 gate — it is not taken), the performance and accessibility budgets, minimumAgeYears 13, the five-tab set, the Concrete Doctrine C1-C14, every append-only vector, §1D's bridge (which A20 does not touch at all), A16 and its ⏳ W070 gate, and A17.4(c).
++
+ APPENDIX B — REMAINING DELIVERABLES (Phase 0 work, owner approves each)
+ ⏳ PENDING OWNER DECISION — Firebase Auth: proposed by owner, conflicts with two approved registry entries (zero third-party Swift dependencies — the Firebase iOS SDK is a large multi-module dependency; and the no-second-backend-vendor reasoning that declined Supabase). Options: A (recommended) keep the approved custom auth — Sign in with Apple + email with jose JWTs and crypto.scrypt hashing, reset emails via Resend (~300 lines, fully in-spec) · B adopt Firebase Auth — amend both registry entries, accept the SDK on iOS, split user records across Firebase + Mongo, and handle two-system deletion cascades. Until decided, the approved custom auth stands; nothing may be built against Firebase.
+ 
+diff --git a/ios/Crew/Engine/DayLabel.swift b/ios/Crew/Engine/DayLabel.swift
+index 770ca78..8e305bd 100644
+--- a/ios/Crew/Engine/DayLabel.swift
++++ b/ios/Crew/Engine/DayLabel.swift
+@@ -28,6 +28,17 @@ enum DayLabel {
+         return year == DayKey.utcParts(todayKey).year ? "\(weekday) \(monthDay(dayKey))" : "\(weekday) \(monthDay(dayKey)), \(year)"
+     }
+ 
++    // SPEC: A20.7 (2026-09-11) — "Saturday, Sep 12", the date line above Home's title. The FULL weekday name, because
++    // this is the one place the app states which day it believes it is, and "Sat" is the abbreviation the week strip
++    // already uses for a mark. A17.4(c) is untouched: the nav title still NAMES THE STATE, and this sits above it.
++    // It is also the cheapest answer to "things don't look like they're syncing" — a screen that prints the date it is
++    // reasoning about can be checked against the phone's own clock in one glance.
++    static let longWeekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
++
++    static func todayHeader(_ dayKey: String) -> String {
++        "\(longWeekdayNames[DayKey.isoWeekday(dayKey) - 1]), \(monthDay(dayKey))"
++    }
++
+     // SPEC: A6 — weekHeader(weekKey, todayWeekKey): This week · Last week · Week of Sep 1
+     static func weekHeader(_ weekKey: String, todayWeekKey: String) -> String {
+         if weekKey == todayWeekKey { return "This week" }
+diff --git a/ios/Crew/Features/Home/HomeHeader.swift b/ios/Crew/Features/Home/HomeHeader.swift
+index 1fbaf30..09aedd6 100644
+--- a/ios/Crew/Features/Home/HomeHeader.swift
++++ b/ios/Crew/Features/Home/HomeHeader.swift
+@@ -1,19 +1,27 @@
+-// SPEC: A14 · A17.1 · A18.1 · A18.2 · A18.6b — Home's header group: the flame, the weekly ring, the week strip, the
+-// shield line, and the two captions that name the numbers.
++// SPEC: A20.4 / A20.6 (owner-directed 2026-09-11) — Home's header group: the week's fraction, one quiet streak line,
++// and the seven-day strip. It carries A14 · A17.1 · A18.1 · A18.2 · A18.6b forward and changes three things.
+ //
+-// A18.1 — EVERY NUMERAL IS NAMED WHERE IT SITS. A17.1 diagnosed this exactly ("the flame, the ring, the week strip and
+-// the crew avatar each build a complete English sentence and render it ONLY to VoiceOver, so a sighted user gets a
+-// glyph, two bare numerals and seven dots") and then gave copy to the strip and the crew avatar only. THE TWO BARE
+-// NUMERALS WERE THE FLAME AND THE RING. On the screen the owner photographed they both read "1" while counting
+-// different things — consecutive days with any post, and workouts done this ISO week — so the natural reading, "my 1
+-// is 1 of 3", is wrong. A17.1's three hard limits are carried verbatim: secondaryText ink and never #B84D00 (law ③),
+-// never tappable (law ①), bridge-gated.
++// A20.4 THE RING BECOMES A NAMED FRACTION, AND INHERITS ITS GATE UNCHANGED. The arc plus a caption underneath was two
++//   elements saying one thing, a second circular shape competing with the seven dots directly below it, and — because
++//   A18.2 had to hide it below zero — an element that appeared on Wednesday and vanished on Monday, which is itself a
++//   reason a screen reads as unreliable. "3 of 5 workouts" satisfies A18.1's "every numeral is NAMED where it sits"
++//   better than a numeral with its noun on the next line. THE ABOVE-ZERO GATE IS CARRIED VERBATIM: A18.2's reasoning
++//   (a zero is a verdict, A8) applies to a fraction exactly as it applied to an arc, and A18.6b still hides it when
++//   the plan is frozen, where a fraction states a penalty the card denies.
+ //
+-// The captions live HERE rather than inside StreakFlame and WeeklyRing because ProgressScreen renders the same ring
+-// under its own week caption; a caption baked into the component would double up there.
++// A20.6 THE STREAK DEMOTES AND THE SHIELD FOLDS INTO IT. The owner's report on the shipped header was "what is the
++//   1/3" — two counters of equal visual weight, both reading "1", counting different things (consecutive days with
++//   any post; workouts done this ISO week). A18.1 answered it by NAMING both, and the owner says it still reads
++//   confusing, which is the evidence that naming was not the fix: exactly one number may lead. The week leads,
++//   because that is the plan-truth a lifter opened the app for. The streak becomes one caption line, and the shield —
++//   which A17.1 added as its own paragraph, and which renders NOWHERE ELSE IN THE APP — rides on that same line
++//   rather than being a block that appears only for some users and moves everything below it when it does.
+ //
+-// Split from HomeScreen.swift for the C9 200-line cap, the way HomeModel+Facts.swift already splits HomeModel.
+-// Screens hold ZERO logic (5.6.6): every value here is read off the model. WRITTEN — UNVERIFIED (needs Mac).
++// A17.1's three hard limits on this group are carried verbatim: secondaryText ink and never #B84D00 (law ③), never
++// tappable (law ①), bridge-gated. Part III law ④ still gets its ember: the flame glyph and the strip's done marks.
++// The captions live HERE rather than inside the components because ProgressScreen renders WeeklyRing under its own
++// week caption; a caption baked into a component would double up there.
++// Screens hold ZERO logic (5.6.6): every value is read off the model. WRITTEN — UNVERIFIED (needs Mac).
+ 
+ import SwiftUI
+ 
+@@ -28,48 +36,42 @@ struct HomeHeader: View {
+ 
+     var body: some View {
+         VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+-            HStack(alignment: .top, spacing: EmberTokens.Spacing.space16) {
+-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
+-                    StreakFlame(streak: streak, paused: isPaused)
+-                    if !isBridge, let caption = streakCaption {
+-                        Text(caption).font(.caption).foregroundStyle(EmberColors.secondaryText)
+-                    }
+-                }
+-                Spacer()
+-                // W043 — the ring is gone from the BRIDGE. There it read "0/3": a competing prompt on the one screen
+-                // §1D says must have none, an ember element that is not a reward (law ④), and a zero used as a verdict
+-                // (A8) — three rules at once, on a user's first ever screen.
+-                // A18.2 — and gone on every MONDAY too, for the same three reasons, which nobody checked: `ringDone`
+-                // resets each ISO week, so the shipped gate (`ringPlanned > 0, !isBridge`) printed "0/3" one day in
+-                // seven for every user, for the life of the app. It is the reward layer; it appears when there is a
+-                // reward. A18.6b — and never while the plan is frozen, where a fraction states a penalty the card denies.
+-                if showsRing {
+-                    VStack(alignment: .trailing, spacing: EmberTokens.Spacing.space4) {
+-                        WeeklyRing(done: ringDone, planned: ringPlanned)
+-                        Text("workouts this week").font(.caption).foregroundStyle(EmberColors.secondaryText)
+-                    }
++            if showsFraction {
++                Text("\(ringDone) of \(ringPlanned) workouts")
++                    .font(EmberTokens.Typography.statLead)
++                    .foregroundStyle(EmberColors.inkText)
++                    .accessibilityLabel("\(ringDone) of \(ringPlanned) workouts this week")
++            }
++            if !isBridge, let line = streakLine {
++                HStack(spacing: EmberTokens.Spacing.space4) {
++                    // Law ④ — the ember that remains in this group, at the size a demoted counter deserves. Paused
++                    // reads as a snowflake, the same swap StreakFlame makes, so the two never say different things.
++                    Image(systemName: isPaused ? "snowflake" : "flame.fill")
++                        .font(EmberTokens.Typography.caption)
++                        .foregroundStyle(isPaused ? EmberColors.missedGray : EmberColors.ember)
++                    Text(line)
++                        .font(EmberTokens.Typography.caption)
++                        .foregroundStyle(EmberColors.secondaryText)
++                        .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
+                 }
++                .accessibilityElement(children: .ignore)
++                .accessibilityLabel(line)
+             }
+             if !isBridge, !week.isEmpty { WeekStrip(days: week) } // A14: the states HomeModel already computed (F12)
+-            // A17.1 / H020 — the shield, which HomeModel has computed since day one and iOS rendered nowhere. A user
+-            // holding two shields and a user holding none saw an identical screen and an identical "One post keeps it
+-            // lit." Stated as reassurance, never as a countdown (spec:452). A8: rendered only above zero, so a
+-            // shieldless user is never told they have none.
+-            if !isBridge, shields > 0 {
+-                Text(shields == 1 ? "1 shield ready — one missed day won't break the streak." : "\(shields) shields ready — a missed day won't break the streak.")
+-                    .font(.caption).foregroundStyle(EmberColors.secondaryText)
+-                    .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
+-            }
+         }
+     }
+ 
+-    // A18.1 — A8 branch: nothing at a streak of zero, so the word "streak" never appears beside a 0 used as a verdict
+-    // (the same rule that takes the ring off the bridge and off Monday).
+-    private var streakCaption: String? {
+-        if isPaused { return "streak paused" }
+-        return streak > 0 ? "day streak" : nil
+-    }
++    // A18.2 / A18.6b, carried onto the fraction: it is the reward layer (law ④), so it renders only when there is a
++    // reward to show — never at zero done, never on the bridge, never while the plan is frozen.
++    private var showsFraction: Bool { ringPlanned > 0 && ringDone > 0 && !isBridge && !isPaused }
+ 
+-    // A18.2 / A18.6b — the ring is the reward layer (law ④), so it renders only when there is a reward to show.
+-    private var showsRing: Bool { ringPlanned > 0 && ringDone > 0 && !isBridge && !isPaused }
++    // A8 — nothing at a streak of zero, so the word "streak" never appears beside a 0 used as a verdict. A20.6 — the
++    // shield rides here instead of owning a paragraph; it is still stated as reassurance, never as a countdown
++    // (spec:452), and still only above zero, so a shieldless user is never told they have none.
++    private var streakLine: String? {
++        let shieldPart = shields > 0 ? " · \(shields) shield\(shields == 1 ? "" : "s") ready" : ""
++        if isPaused { return "Streak paused at \(streak)\(shieldPart)" }
++        guard streak > 0 else { return shields > 0 ? "\(shields) shield\(shields == 1 ? "" : "s") ready" : nil }
++        return "\(streak)-day streak\(shieldPart)"
++    }
+ }
+diff --git a/ios/Crew/Features/Home/NextUpLine.swift b/ios/Crew/Features/Home/NextUpLine.swift
+index c897f05..5728f8e 100644
+--- a/ios/Crew/Features/Home/NextUpLine.swift
++++ b/ios/Crew/Features/Home/NextUpLine.swift
+@@ -105,20 +105,28 @@ struct NextUpLine: View {
+     }
+ }
+ 
+-// SPEC: A18.3 — the what's-next fact as a titled block, in the space that used to be empty. It renders ONLY on the
+-// idle states (rest · all-done · paused): on a workout day the card already IS what is next, and that state is the
+-// tallest one on the smallest phone (H009). Ink detail under a secondaryText caption; never a control (law ①),
+-// never orange (law ③) — tapping it would give Home a second destination, which is the Plan tab's job.
+-struct NextUpBlock: View {
++// SPEC: A18.3 · A20.1 (owner-directed 2026-09-11) — the what's-next fact, at the BOTTOM of the screen and on EVERY
++// state that has one.
++//
++// A18.3 put this block ABOVE the card, on the idle states only, to fill the empty space the owner reported. Two things
++// were wrong with that and A20 fixes both. It rendered tomorrow ABOVE today, across the largest gap on the screen —
++// reading order said the next thing mattered more than the current one. And rendering on some states and not others
++// made it one more element that appears and disappears, which is why nothing below it ever had a stable position.
++// As the last row on every state it reads as the tail of the page, which is what it is.
++//
++// Still never a control (law ①) and never orange (law ③): tapping it would give Home a second destination, and the
++// week ahead is the Plan tab's job. The grammar matches the log rows above it — a quiet label over an ink detail —
++// so the page has ONE row grammar rather than a new one at the bottom (A20's whole premise).
++struct NextUpRow: View {
+     let facts: NextUpFacts
+ 
+     var body: some View {
+-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
++        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
+             Text(facts.heading.uppercased())
+-                .font(.caption)
++                .font(EmberTokens.Typography.sectionLabel)
+                 .foregroundStyle(EmberColors.secondaryText)
+             Text(facts.detail)
+-                .font(.title3.weight(.semibold))
++                .font(EmberTokens.Typography.rowTitle)
+                 .foregroundStyle(EmberColors.inkText)
+                 .fixedSize(horizontal: false, vertical: true) // 6.7: a long workout name wraps, it never widens the column
+         }
+diff --git a/ios/Crew/Features/Home/TodayCard.swift b/ios/Crew/Features/Home/TodayCard.swift
+index 23ea603..991e8f6 100644
+--- a/ios/Crew/Features/Home/TodayCard.swift
++++ b/ios/Crew/Features/Home/TodayCard.swift
+@@ -1,149 +1,99 @@
+-// SPEC: Flow 2 (today's card: "PUSH DAY · 5 exercises + mobility") · Flow 5 (rest day copy) · Flow 7 (paused 🧊) · 1D (the
+-// bridge CTA replaces the layout) · A3 (owner-directed 2026-09-08: every non-bridge state carries a what's-next line and a
+-// way to post a meal, log cardio and — rest / all-done — start a bonus workout) · A8 (never a zero as a verdict, verb-first
+-// CTAs) · Part III law ① (one primary, every control ink). Branches only on view state (5.6.6).
+-// WRITTEN — UNVERIFIED (needs Mac). T024
++// SPEC: Flow 2 · Flow 5 (rest day copy) · Flow 7 (paused) · §1D (the bridge CTA replaces the layout) · A8 (never a
++// zero as a verdict, verb-first CTAs) · Part III law ① (one primary, every control ink). Branches only on view
++// state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T024
+ //
+-// A17.3 (2026-09-10) — the "Log cardio" / "Bonus workout" pair is GONE from this card. A3 requires *a way* to reach each,
+-// not a dedicated button each, and the log rows below are that way at a position that no longer moves between states.
++// A20.1 (owner-directed 2026-09-11) — THE DAY'S CARD IS GONE; THIS FILE HOLDS WHAT SURVIVED IT.
+ //
+-// A18 (2026-09-10), four changes, each answering something the owner asked about the shipped screen:
++// Two things were true of the shipped card at once. It carried the day's ink-filled primary AND the day's work rows
++// AND, on three of four non-bridge states, a HEADLINE THAT REPEATED THE NAV TITLE VERBATIM — "Plan paused" sitting
++// ~250 pt under "Plan paused", "Done for today." under "Done for today". And its bottom control changed identity,
++// fill and height between states (56 pt ink primary → 44 pt outline → nothing), so it was also the single biggest
++// reason nothing on Home had a stable position. A20.1 moves the work to the log list's first row and the primary to
++// `.crewBottomBar`, and what is left is what the card was actually FOR: the one or two sentences that say what kind of
++// day this is and what it is worth.
+ //
+-//   A18.4 THE REST CARD STATES ITS PREMISE. "Post anything today and your 1-day streak holds" states the reward and
+-//     never the rule, so the headline ("recovery is part of the plan") and the loudest control on the screen read as a
+-//     contradiction — which is exactly what the owner reported. Crew's streak is DAILY and has no training-day
+-//     exemption: streak.vectors.json V04 is titled "rest day, silence → streak 0 at 3 AM". The line says so now.
+-//     A17.1's hard limit bans the CONSEQUENCE (no countdown, no risk notification, no time-pressure line); a premise
+-//     is none of the three. NOTE FOR A FUTURE SESSION: this line exists ONLY because the streak is daily (A18.13).
+-//   A18.9 THE ALL-DONE CARD REPORTS THE DAY. It was the one state with no control and nothing to report, so the day
+-//     you did everything right looked least finished. It now prints today's work in the journal's own sentence and
+-//     carries no button — the day is closed. Its outline "Post a meal" is gone; the meal row and the camera remain.
+-//   A18.6c THE PAUSED CARD OFFERS THE WAY OUT. Flow 7 gave it zero controls, which left a paused user reading a return
+-//     date with no route off it that any word on the screen named. "End the pause now" is the string Settings already
+-//     uses for the same action (6.6: one action, one wording).
+-//   A18.8 THE BRIDGE ABSORBS AN OPEN SESSION. The bridge lasts until the first POST and starting a workout is not a
+-//     post, so an abandoned first workout used to put a Resume banner NEXT TO the bridge's CTA — two prompts on the
+-//     one screen §1D says carries none. The bridge's single button resumes instead.
++// So the state block carries NO headline — the nav title already names the state (A17.4(c), reaffirmed) and repeating
++// it is the duplication the owner read as clutter. It carries no control either: every action on the day is in the log
++// list below or in the bottom bar (A17.3 and A18.9 both rule that a day asking nothing gets no filled primary).
+ //
+-// A CORRECTION, because the previous version of this comment will otherwise be quoted against the next decision: it
+-// claimed rest and all-done "still carry none [no ink-filled primary], deliberately" — twelve lines above a `case
+-// .rest` that renders `PrimaryButton`. The true rule, which the web twin stated correctly, is: the rest day carries a
+-// filled primary UNTIL it is posted, and after that nothing on the day is required so nothing is filled.
++// A18.4's PREMISE IS NOW UNCONDITIONAL. It used to render only on the unposted branch, which meant the rule ("a rest
++// day still asks for something, because the streak is DAILY") vanished the moment you satisfied it — and, because
++// every state a UI test can seed must post a meal to leave the bridge (§1D), the premise was unreachable from CI and
++// its assertion had never once passed. One sentence now states the premise on both branches and the reward follows it.
++// NOTE FOR A FUTURE SESSION: this line exists ONLY because the streak is daily (A18.13). If the cadence ever moves to
++// weeks, it is deleted in the same commit.
+ 
+ import SwiftUI
+ 
+-struct TodayCard: View {
+-    let state: TodayState
+-    let streak: Int          // A17.1: so the rest-day line can name what "it" is in "One post keeps it lit"
+-    let nextUpLine: String?  // A3 / §1D: the BRIDGE's one line. Every other state gets the NextUpBlock above the card (A18.3).
+-    let todaySummaryLines: [String] // A18.9: what today held, from the journal's own twin
+-    let resuming: Bool       // A18.8: a session is open, so the bridge's single CTA resumes it
++// §1D — the bridge carries ONE CTA and nothing else, ever. Untouched by A20: a brand-new user's first screen is not
++// the place to try a new layout, and every element A20 adds is one §1D forbids here.
++struct BridgeCard: View {
++    let kind: BridgeKind
++    let nextUpLine: String?
++    let resuming: Bool          // A18.8: a session is open, so the bridge's single CTA resumes it
+     let onStart: () -> Void
+     let onPost: () -> Void
+-    let onEndPause: () -> Void
+ 
+     var body: some View {
+-        switch state {
+-        case .bridge(let kind):
+-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+-                Text("Your first flame lights today.").font(.headline).foregroundStyle(EmberColors.secondaryText)
+-                // A18.8 — one CTA, and it takes the open session with it rather than a second banner appearing above.
+-                PrimaryButton(title: bridgeTitle(kind), action: kind == .workout || resuming ? onStart : onPost)
+-                nextUp // A3: the one line a rest-day install gets; nothing else competes (1D)
+-            }
+-        case .workout(let name, let exerciseCount, let hasCardio, let lines, let tail):
+-            Card {
+-                // A14 — three groups, not five evenly spaced elements: identity, the work, the action. sectionGap separates
+-                // the groups and rowGap the rows inside one, which is the whole reason two role tokens exist (G5 scale).
+-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
+-                    VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+-                        // A14 — the identity line now OUTRANKS the count line. It was .caption secondary while "5 exercises
+-                        // + mobility" was .title3 ink: the size of the workout was typographically louder than which
+-                        // workout it was. Typography carries the hierarchy; no colour is added to say it (law ⑥).
+-                        Text(name.uppercased()).font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+-                        Text(NextUp.sizeLine(exerciseCount: exerciseCount, hasCardio: hasCardio)).font(.caption).foregroundStyle(EmberColors.secondaryText)
+-                    }
+-                    workRows(lines, tail: tail)
+-                    PrimaryButton(title: resuming ? "Resume workout" : "Start workout", action: onStart)
+-                }
+-            }
+-        case .rest(let posted):
+-            Card {
+-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
+-                    Text("Rest day — recovery is part of the plan.").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+-                    Text(stakeLine(posted: posted)).font(.body).foregroundStyle(EmberColors.secondaryText)
+-                    // A18.3 — the what's-next line is no longer here on either branch, so it can no longer sit ABOVE the
+-                    // control when posted and BELOW it when not (the moving-element defect A14 was written to remove).
+-                    if posted {
+-                        SecondaryButton(title: "Post another", action: onPost)
+-                    } else {
+-                        PrimaryButton(title: "Post a meal", action: onPost)
+-                    }
+-                }
+-            }
+-        case .paused(let until):
+-            Card {
+-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
+-                    Text("Plan paused").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+-                    Text("Your streak is frozen until \(until). Reminders are off.").font(.body).foregroundStyle(EmberColors.secondaryText)
+-                    SecondaryButton(title: "End the pause now", action: onEndPause) // A18.6c
+-                }
+-            }
+-        case .allDone:
+-            Card {
+-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
+-                    Text("Done for today.").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+-                    // A18.9 — the day, reported. `todaySummaryLines` is the journal's own sentence (JournalFacts
+-                    // .summaryLine), so this adds no copy and cannot drift from what Progress and the journal print.
+-                    ForEach(Array(todaySummaryLines.enumerated()), id: \.offset) { _, line in
+-                        Text(line).font(.body).foregroundStyle(EmberColors.secondaryText)
+-                            .fixedSize(horizontal: false, vertical: true)
+-                    }
+-                }
+-            }
++        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
++            Text("Your first flame lights today.")
++                .font(EmberTokens.Typography.rowTitle)
++                .foregroundStyle(EmberColors.secondaryText)
++            PrimaryButton(title: title, action: kind == .workout || resuming ? onStart : onPost)
++            if let nextUpLine { NextUpLine(line: nextUpLine) } // A3: the one line a rest-day install gets
+         }
+     }
+ 
+-    // A18.8 — the bridge's single label. A rest-day install with no session still offers the meal; a workout-day
+-    // install, or ANY install with a session already open, resumes.
+-    private func bridgeTitle(_ kind: BridgeKind) -> String {
++    // A18.8 — a rest-day install with no session still offers the meal; a workout-day install, or ANY install with a
++    // session already open, resumes.
++    private var title: String {
+         if resuming { return "Resume your first workout" }
+         return kind == .workout ? "Start your first workout" : "Start your streak — post a meal"
+     }
++}
+ 
+-    // SPEC: A17.1 · A18.4 · A8 · spec:452 — what today is worth AND why a rest day is a day that asks for anything.
+-    // No countdown, no notification, no time pressure: it states a fact about today and stops there. At streak 0 it
+-    // never says "0-day streak" — the first flame is the thing on offer instead.
+-    private func stakeLine(posted: Bool) -> String {
+-        if posted { return "Today counts." }
+-        return streak > 0
+-            ? "Rest days count too — post anything and your \(streak)-day streak holds."
+-            : "Rest days count too — one post lights your first flame."
+-    }
+-
+-    @ViewBuilder
+-    private var nextUp: some View {
+-        if let nextUpLine { NextUpLine(line: nextUpLine) }
+-    }
++// A20.1 — the sentences the card was for, with the headline and the control removed. Renders on the three IDLE states
++// only: on a workout day the log list's first row IS what the day is, and that state is the tallest on the smallest
++// phone (H009), so it gets no block at all.
++struct StateBlock: View {
++    let state: TodayState
++    let streak: Int
++    let todaySummaryLines: [String] // A18.9: what today actually held, in the journal's own sentence
+ 
+-    // SPEC: A14 — the day's ACTUAL work: "Bench Press  3×8". The owner's report was that it is not visually clear what the
+-    // work should be; the rows were always available (the plan editor two taps away lists them) and Home showed a count
+-    // instead. Read-only lines, not controls — the card still has exactly one action (6.1 · §1B · S07).
+-    @ViewBuilder
+-    private func workRows(_ lines: [HomeLine], tail: String?) -> some View {
+-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+-            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+-                HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space8) {
+-                    Text(line.name).font(.subheadline).foregroundStyle(EmberColors.inkText)
+-                        .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true) // 6.7: a long name wraps, it never pushes the target past the edge
+-                    Spacer(minLength: EmberTokens.Spacing.space8)
+-                    Text(line.detail).font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
++    var body: some View {
++        if !lines.isEmpty {
++            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
++                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
++                    Text(line)
++                        .font(EmberTokens.Typography.rowDetail)
++                        .foregroundStyle(EmberColors.secondaryText)
++                        .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
+                 }
+             }
+-            if let tail { Text(tail).font(.caption).foregroundStyle(EmberColors.secondaryText) }
++            .frame(maxWidth: .infinity, alignment: .leading)
++            // E20 — one stop, one passage: three short sentences are not three places to stop
++            .accessibilityElement(children: .combine)
++        }
++    }
++
++    private var lines: [String] {
++        switch state {
++        case .bridge, .workout:
++            return [] // §1D has its own card; a workout day's card IS the first log row
++        case .rest(let posted):
++            // A18.4 — the PREMISE first and always, then what today is worth. spec:452 / A17.1's hard limit holds:
++            // no countdown, no risk notification, no time-pressure line — it states a fact about today and stops.
++            let premise = "Recovery is part of the plan — rest days count too."
++            if posted { return [premise, "Today counts."] }
++            return [premise, streak > 0 ? "Post anything and your \(streak)-day streak holds." : "One post lights your first flame."]
++        case .paused(let until):
++            // Flow 7. The way OUT is the bottom bar's "End the pause now" (A18.6c's string, unchanged — 6.6: one
++            // action, one wording), which is where A20.8 puts every state's primary.
++            return ["Your streak is frozen until \(until). Reminders are off."]
++        case .allDone:
++            // A18.9 — the day, reported in the journal's own sentence (JournalFacts.summaryLine), so this adds no copy
++            // and cannot drift from what Progress and the journal print.
++            return todaySummaryLines
+         }
+-        // E20 — VoiceOver reads the workout as one passage; seven separate stops on a read-only list is noise, and the
+-        // Start button below is the only thing here anyone can act on
+-        .accessibilityElement(children: .combine)
+     }
+ }
+diff --git a/ios/Crew/Features/Home/VectorRow.swift b/ios/Crew/Features/Home/VectorRow.swift
+deleted file mode 100644
+index e4ab38d..0000000
+--- a/ios/Crew/Features/Home/VectorRow.swift
++++ /dev/null
+@@ -1,100 +0,0 @@
+-// SPEC: A14 (owner-directed 2026-09-09) — Workout · Cardio · Meals, three co-equal logging vectors. The owner named
+-// these as the three primary vectors; F10 measured how far Home was from treating them that way (one filled primary,
+-// one outline button that moved between states, and one nav-bar glyph that disappeared on the bridge).
+-//
+-// A18.5 (owner-directed 2026-09-10) — THE GEOMETRY AND THE GRAMMAR MOVE; A14's content does not. The owner's report
+-// was "three strange divs at the bottom with workout, cardio, and meals", and there were three separate reasons for it:
+-//
+-//   1. THE SHAPE SAID PICKER. Three equal-width bordered cells in a row is, in Apple's own words, a segmented control
+-//      — "a linear set of two or more segments, each of which functions as a mutually exclusive button", in which
+-//      "all segments are equal in width". These were three INDEPENDENT buttons wearing the silhouette of a
+-//      one-of-three choice. Full-width rows carry no such claim.
+-//   2. THE GRAMMAR SAID READOUT. A caption NOUN over a value is the shape of a stat tile, and the value carried the
+-//      verb ("Workout" over "Log"). 6.6 requires verb-first control labels; the shipped VoiceOver name was literally
+-//      "Workout, Done today" on a Button. The verb is now the label, seen and spoken, and the status is the trailing
+-//      report — which also makes the row read identically whether it is empty or full.
+-//   3. THE BORDER WAS INVISIBLE. `secondaryButtonOutline` measures 1.26:1 on a card and 1.19:1 on the canvas against
+-//      6.5's 3:1 gate, so the one mark that says "this is a control" could not be seen. A18.11 gives it its own
+-//      `controlOutline` token (3.32:1 / 3.13:1), app-wide.
+-//
+-// Why three controls here are still legal under "one primary action per view" (6.1 · §1B · S07 · §1D): every row is
+-// an OUTLINE control, and the day's workout keeps the single ink-filled primary inside the card above. Position makes
+-// them peers; weight still says which one the plan is asking for today. (Recorded because the repo cites that rule as
+-// HIG in four places and it is not one: Apple writes "keep the number of prominent buttons to one or two per view".
+-// It is a Crew rule, and it is a ceiling, not a floor.)
+-//
+-// Part III law ① — no row ever wears ember, even when done: a filled INK dot marks a logged vector, and law ④ keeps
+-// ember scarce for the flame, the ring and the strip. A8 — an unlogged row REPORTS NOTHING rather than reporting a
+-// zero or an em dash: the verb is the invitation, and H028 already established that "—" reads as disabled.
+-// 6.3 — each row is its own ≥ 44 pt target, guaranteed by the frame and contentShape rather than inherited.
+-//
+-// The `ViewThatFits` fallback is retired with the grid: it existed only because three across truncates ("Workout" at
+-// accessibilityExtraExtraLarge measures ~124 pt in a 106.3 pt SE cell, H009). A full-width row cannot truncate.
+-// WRITTEN — UNVERIFIED (needs Mac).
+-
+-import SwiftUI
+-
+-struct VectorRow: View {
+-    let slots: VectorSlots
+-    let onWorkout: () -> Void
+-    let onCardio: () -> Void
+-    let onMeal: () -> Void
+-
+-    var body: some View {
+-        VStack(spacing: 0) {
+-            VectorLogRow(verb: "Log workout", status: slots.workoutDone ? "Done" : nil, action: onWorkout)
+-            rowDivider
+-            VectorLogRow(verb: "Log cardio", status: slots.cardioMinutes.map { "\($0) min" }, action: onCardio)
+-            rowDivider
+-            VectorLogRow(verb: "Log a meal", status: slots.meals > 0 ? "\(slots.meals)" : nil, action: onMeal)
+-        }
+-        // One boundary around the group, not three: the rows are a set of peers, and three separate outlines would
+-        // put two hairlines between every pair. `controlOutline` (A18.11), never the surface hairline.
+-        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
+-        .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+-    }
+-
+-    // A divider BETWEEN two surfaces is not a control, so this one keeps `hairline` — the distinction A18.11 is built
+-    // on, applied here so the file cannot be read as an exception to it.
+-    private var rowDivider: some View {
+-        Rectangle().fill(EmberColors.hairline).frame(height: EmberTokens.Size.hairline)
+-    }
+-}
+-
+-struct VectorLogRow: View {
+-    let verb: String
+-    let status: String?  // nil = nothing logged today; A8 — the row reports nothing rather than reporting a zero
+-    let action: () -> Void
+-    @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt) // 6.5: the row grows with Dynamic Type
+-
+-    var body: some View {
+-        Button(action: action) {
+-            HStack(spacing: EmberTokens.Spacing.space8) {
+-                Text(verb)
+-                    .font(.body.weight(.semibold))
+-                    .foregroundStyle(EmberColors.inkText)
+-                    .multilineTextAlignment(.leading)
+-                    .fixedSize(horizontal: false, vertical: true) // 6.7: at XXL it wraps inside its own row; it cannot truncate
+-                Spacer(minLength: EmberTokens.Spacing.space8)
+-                if let status {
+-                    // The dot is the redundant encoder (6.5 / WCAG 1.4.1): the shape says logged without anyone
+-                    // reading the number. Ink, never ember — law ① and law ④.
+-                    Circle()
+-                        .fill(EmberColors.inkText)
+-                        .frame(width: EmberTokens.Spacing.space8, height: EmberTokens.Spacing.space8)
+-                    Text(status)
+-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+-                        .foregroundStyle(EmberColors.inkText)
+-                }
+-            }
+-            .frame(maxWidth: .infinity, minHeight: minTarget, alignment: .leading)
+-            .padding(.horizontal, EmberTokens.Spacing.space16)
+-            .padding(.vertical, EmberTokens.Spacing.space12)
+-            .contentShape(Rectangle())
+-        }
+-        .buttonStyle(.plain)
+-        // E20 — the Button trait already says it is actionable, so the verb is not repeated as a value: "Log cardio,
+-        // 25 min today" / "Log cardio, nothing logged today".
+-        .accessibilityLabel("\(verb), \(status.map { "\($0) today" } ?? "nothing logged today")")
+-    }
+-}
+diff --git a/ios/Crew/Generated/EmberTokens.swift b/ios/Crew/Generated/EmberTokens.swift
+index 7167395..93e8f74 100644
+--- a/ios/Crew/Generated/EmberTokens.swift
++++ b/ios/Crew/Generated/EmberTokens.swift
+@@ -29,6 +29,15 @@ enum EmberTokens {
+         static let hairline: CGFloat = 1
+     }
+ 
++    /// A20.12 (2026-09-11) — FIVE TYPE ROLES, generated to both engines. Part III has always specified colour, spacing, motion and haptics and NEVER type, so every font size in the app was a per-file decision: the Home folder alone rendered 13 distinct .font() expressions across 9 semantic sizes, and web set its own inline in CSS with no parity test, so the two engines could drift on type silently and forever. The measured driver of a "this screen looks complicated" verdict is the number of distinct visual treatments, not the number of facts — which is why four Home passes that added and removed CONTENT never moved it. iOS names a semantic text style so Dynamic Type still scales every role (6.7); web carries px + weight + line-height. A screen should reach for at most four of these five.
++    enum Typography {
++        static let statLead: Font = .title3.weight(.semibold)
++        static let sectionLabel: Font = .caption.weight(.semibold)
++        static let rowTitle: Font = .body.weight(.semibold)
++        static let rowDetail: Font = .subheadline.weight(.regular)
++        static let caption: Font = .caption.weight(.regular)
++    }
++
+     /// GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline
+     enum Opacity {
+         static let disabled: Double = 0.5
+diff --git a/ios/Crew/Shared/BottomBar.swift b/ios/Crew/Shared/BottomBar.swift
+index e4bcc8a..e2faa29 100644
+--- a/ios/Crew/Shared/BottomBar.swift
++++ b/ios/Crew/Shared/BottomBar.swift
+@@ -24,8 +24,16 @@
+ //
+ // IT IS CONDITIONAL, AND THAT IS A RULE, NOT AN OPTION. A17.3 ruled that a day asking nothing carries no filled
+ // primary, and A18.9 gave the all-done card no control at all. A permanent chrome strip at the bottom of every screen
+-// would manufacture an ask on exactly the states those two decisions cleared — so a screen with no primary calls this
+-// with nothing, and gets no bar, no divider and no inset.
++// would manufacture an ask on exactly the states those two decisions cleared.
++//
++// A20.8 (2026-09-11) — A CORRECTION, because the previous version of this paragraph will otherwise be quoted against
++// the next decision. It claimed "a screen with no primary calls this with nothing, and gets no bar, no divider and no
++// inset", and the body below DID NOT DO THAT: it drew the hairline, the padding and the inset unconditionally, so an
++// empty bar still produced a rule and a strip of canvas. `Bar` is a compile-time type, so the guard below can only
++// see a LITERAL `EmptyView` — a `@ViewBuilder` that switches between a button and `EmptyView` produces
++// `_ConditionalContent`, which is indistinguishable from a real bar. The reliable way to render no bar is therefore
++// NOT to apply the modifier: see HomeScreen, which switches on the state and leaves the two states that ask nothing
++// without it. The guard is kept for the direct `EmptyView` case, which is cheap and correct as far as it goes.
+ //
+ // WRITTEN — UNVERIFIED (needs Mac).
+ 
+@@ -45,6 +53,14 @@ struct CrewBottomBar<Bar: View>: ViewModifier {
+     @ScaledMetric private var verticalPadding: CGFloat = EmberTokens.Spacing.space12
+ 
+     func body(content: Content) -> some View {
++        if Bar.self == EmptyView.self {
++            content // A20.8: a literal empty bar draws nothing at all — no rule, no padding, no inset
++        } else {
++            barred(content)
++        }
++    }
++
++    private func barred(_ content: Content) -> some View {
+         content.safeAreaInset(edge: .bottom, spacing: 0) {
+             VStack(spacing: 0) {
+                 // A18.11 — `controlOutline` (3.32:1 on a card, 3.13:1 on the canvas), never the 1.26:1 hairline family.
+diff --git a/ios/CrewTests/DayLabelTests.swift b/ios/CrewTests/DayLabelTests.swift
+index d837173..aede1fa 100644
+--- a/ios/CrewTests/DayLabelTests.swift
++++ b/ios/CrewTests/DayLabelTests.swift
+@@ -37,4 +37,13 @@ final class DayLabelTests: XCTestCase {
+         XCTAssertEqual(DayLabel.weekHeader("2026-08-24", todayWeekKey: "2026-09-07"), "Week of Aug 24")
+         XCTAssertEqual(DayLabel.weekHeader("2025-12-29", todayWeekKey: "2026-09-07"), "Week of Dec 29")
+     }
++    // SPEC: A20.7 (2026-09-11) — the date line above Home's title. FULL weekday name: this is the one place the app
++    // states which day it believes it is, and "Sat" is already the week strip's abbreviation for a mark.
++    // Twin of web/tests/engine/day-label.test.ts "todayHeader" — identical cases, identical strings.
++    func testTheDateLineNamesTheDayInFull() {
++        XCTAssertEqual(DayLabel.todayHeader("2026-09-12"), "Saturday, Sep 12")
++        XCTAssertEqual(DayLabel.todayHeader("2026-09-04"), "Friday, Sep 4")
++        XCTAssertEqual(DayLabel.todayHeader("2026-09-07"), "Monday, Sep 7")
++        XCTAssertEqual(DayLabel.todayHeader("2026-01-01"), "Thursday, Jan 1")
++    }
+ }
+diff --git a/ios/CrewTests/HomeModelTests.swift b/ios/CrewTests/HomeModelTests.swift
+index 93e5758..e14d7db 100644
+--- a/ios/CrewTests/HomeModelTests.swift
++++ b/ios/CrewTests/HomeModelTests.swift
+@@ -45,7 +45,10 @@ final class HomeModelTests: XCTestCase {
+         model.refresh(now: friday)
+         // Nothing completed yet, so the rotation starts at the cycle's first workout whatever the weekday (A1)
+         expectWorkout(model.today, named: "Push day")
+-        XCTAssertNil(model.nextUpLine) // an undone training day says nothing about tomorrow (A3)
++        // A20.1 (2026-09-11) — an undone training day now DOES carry the what's-next fact. A18.3 withheld it only
++        // because the block sat ABOVE the card, where it would have put tomorrow over today; as the last row on the
++        // page that reason is gone, and a fact that renders on three states out of four is one more moving element.
++        XCTAssertNotNil(model.nextUpLine)
+         XCTAssertTrue(model.quickCompleteAvailable)
+         XCTAssertEqual(model.ringPlanned, 3)
+         XCTAssertEqual(model.bonusWorkouts.map(\.kind), ["push", "pull", "legs"])
+diff --git a/shared/design-tokens.json b/shared/design-tokens.json
+index 85fedf6..23f8765 100644
+--- a/shared/design-tokens.json
++++ b/shared/design-tokens.json
+@@ -124,6 +124,46 @@
+       "hairline": 1
+     }
+   },
++  "typography": {
++    "spec": "A20.12 (2026-09-11) — FIVE TYPE ROLES, generated to both engines. Part III has always specified colour, spacing, motion and haptics and NEVER type, so every font size in the app was a per-file decision: the Home folder alone rendered 13 distinct .font() expressions across 9 semantic sizes, and web set its own inline in CSS with no parity test, so the two engines could drift on type silently and forever. The measured driver of a \"this screen looks complicated\" verdict is the number of distinct visual treatments, not the number of facts — which is why four Home passes that added and removed CONTENT never moved it. iOS names a semantic text style so Dynamic Type still scales every role (6.7); web carries px + weight + line-height. A screen should reach for at most four of these five.",
++    "scale": {
++      "statLead": {
++        "ios": "title3",
++        "weight": "semibold",
++        "webPx": 20,
++        "webWeight": 600,
++        "lineHeight": 1.25
++      },
++      "sectionLabel": {
++        "ios": "caption",
++        "weight": "semibold",
++        "webPx": 12,
++        "webWeight": 600,
++        "lineHeight": 1.3
++      },
++      "rowTitle": {
++        "ios": "body",
++        "weight": "semibold",
++        "webPx": 16,
++        "webWeight": 600,
++        "lineHeight": 1.35
++      },
++      "rowDetail": {
++        "ios": "subheadline",
++        "weight": "regular",
++        "webPx": 15,
++        "webWeight": 400,
++        "lineHeight": 1.35
++      },
++      "caption": {
++        "ios": "caption",
++        "weight": "regular",
++        "webPx": 12,
++        "webWeight": 400,
++        "lineHeight": 1.3
++      }
++    }
++  },
+   "opacity": {
+     "spec": "GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline",
+     "scale": {
+diff --git a/shared/scripts/generate.mjs b/shared/scripts/generate.mjs
+index 77b5647..b989024 100644
+--- a/shared/scripts/generate.mjs
++++ b/shared/scripts/generate.mjs
+@@ -50,6 +50,16 @@ function readDesignTokens() {
+   for (const [name, value] of Object.entries(tokens.sizes.scale)) {
+     if (!Number.isInteger(value)) throw new Error(`design-tokens.json: sizes.scale.${name} must be an integer`);
+   }
++  // A20.12 — the five type roles. iOS names a SEMANTIC style so Dynamic Type still scales it (6.7); a raw point size
++  // here would silently opt every screen out of accessibility sizes, which is the one thing this token must not do.
++  const iosStyles = ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"];
++  const weights = ["regular", "medium", "semibold", "bold"];
++  for (const [name, role] of Object.entries(tokens.typography.scale)) {
++    if (!iosStyles.includes(role.ios)) throw new Error(`design-tokens.json: typography.scale.${name}.ios must be one of ${iosStyles.join(", ")}`);
++    if (!weights.includes(role.weight)) throw new Error(`design-tokens.json: typography.scale.${name}.weight must be one of ${weights.join(", ")}`);
++    if (!Number.isInteger(role.webPx) || !Number.isInteger(role.webWeight)) throw new Error(`design-tokens.json: typography.scale.${name} needs integer webPx + webWeight`);
++    if (typeof role.lineHeight !== "number") throw new Error(`design-tokens.json: typography.scale.${name} needs a numeric lineHeight`);
++  }
+   const spring = tokens.motion.spring;
+   if (typeof spring.response !== "number" || typeof spring.dampingFraction !== "number") throw new Error("design-tokens.json: motion.spring needs response + dampingFraction");
+   for (const [name, haptic] of Object.entries(tokens.haptics)) {
+diff --git a/shared/scripts/render-ember.mjs b/shared/scripts/render-ember.mjs
+index 74503e0..b23cb17 100644
+--- a/shared/scripts/render-ember.mjs
++++ b/shared/scripts/render-ember.mjs
+@@ -41,6 +41,11 @@ export function renderEmberTokensSwift(tokens) {
+   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
+   lines.push("    }", "", `    /// ${tokens.sizes.spec}`, "    enum Size {");
+   for (const [name, value] of Object.entries(tokens.sizes.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
++  // NOT `enum Type`: `EmberTokens.Type` is Swift's metatype syntax, so every call site would be ambiguous.
++  lines.push("    }", "", `    /// ${tokens.typography.spec}`, "    enum Typography {");
++  for (const [name, role] of Object.entries(tokens.typography.scale)) {
++    lines.push(`        static let ${name}: Font = .${role.ios}.weight(.${role.weight})`);
++  }
+   lines.push("    }", "", `    /// ${tokens.opacity.spec}`, "    enum Opacity {");
+   for (const [name, value] of Object.entries(tokens.opacity.scale)) lines.push(`        static let ${name}: Double = ${value}`);
+   lines.push("    }", "", `    /// ${tokens.motion.spec}`, "    enum Motion {");
+@@ -59,6 +64,11 @@ export function renderEmberCss(tokens, sections) {
+   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`  ${cssName(name)}: ${value}px;`);
+   lines.push(`  /* ${tokens.sizes.spec} */`);
+   for (const [name, value] of Object.entries(tokens.sizes.scale)) lines.push(`  --ember-size-${name.replace(/[A-Z]/g, (upper) => `-${upper.toLowerCase()}`)}: ${value}px;`);
++  lines.push(`  /* ${tokens.typography.spec} */`);
++  for (const [name, role] of Object.entries(tokens.typography.scale)) {
++    const base = `--ember-type-${name.replace(/[A-Z]/g, (upper) => `-${upper.toLowerCase()}`)}`;
++    lines.push(`  ${base}-size: ${role.webPx}px;`, `  ${base}-weight: ${role.webWeight};`, `  ${base}-line-height: ${role.lineHeight};`);
++  }
+   lines.push(`  /* ${tokens.opacity.spec} */`);
+   for (const [name, value] of Object.entries(tokens.opacity.scale)) lines.push(`  --ember-opacity-${name}: ${value};`);
+   lines.push(`  /* ${tokens.motion.spec} */`);
+diff --git a/web/src/generated/ember.css b/web/src/generated/ember.css
+index eeae505..743f124 100644
+--- a/web/src/generated/ember.css
++++ b/web/src/generated/ember.css
+@@ -54,6 +54,22 @@
+   --ember-size-skeleton-hero: 128px;
+   --ember-size-corner-radius: 16px;
+   --ember-size-hairline: 1px;
++  /* A20.12 (2026-09-11) — FIVE TYPE ROLES, generated to both engines. Part III has always specified colour, spacing, motion and haptics and NEVER type, so every font size in the app was a per-file decision: the Home folder alone rendered 13 distinct .font() expressions across 9 semantic sizes, and web set its own inline in CSS with no parity test, so the two engines could drift on type silently and forever. The measured driver of a "this screen looks complicated" verdict is the number of distinct visual treatments, not the number of facts — which is why four Home passes that added and removed CONTENT never moved it. iOS names a semantic text style so Dynamic Type still scales every role (6.7); web carries px + weight + line-height. A screen should reach for at most four of these five. */
++  --ember-type-stat-lead-size: 20px;
++  --ember-type-stat-lead-weight: 600;
++  --ember-type-stat-lead-line-height: 1.25;
++  --ember-type-section-label-size: 12px;
++  --ember-type-section-label-weight: 600;
++  --ember-type-section-label-line-height: 1.3;
++  --ember-type-row-title-size: 16px;
++  --ember-type-row-title-weight: 600;
++  --ember-type-row-title-line-height: 1.35;
++  --ember-type-row-detail-size: 15px;
++  --ember-type-row-detail-weight: 400;
++  --ember-type-row-detail-line-height: 1.35;
++  --ember-type-caption-size: 12px;
++  --ember-type-caption-weight: 400;
++  --ember-type-caption-line-height: 1.3;
+   /* GAP (agent, 2026-09-04): the one opacity used for a disabled control; named so no literal is typed inline */
+   --ember-opacity-disabled: 0.5;
+   /* 6.4 — one spring curve app-wide, defined once; values = Decision Registry G5 (2026-09-04) */
+diff --git a/web/src/lib/engine/day-label.ts b/web/src/lib/engine/day-label.ts
+index 282191c..0acdda4 100644
+--- a/web/src/lib/engine/day-label.ts
++++ b/web/src/lib/engine/day-label.ts
+@@ -31,6 +31,16 @@ export function dayLabel(dayKey: string, todayKey: string): string {
+   return year === parts(todayKey).year ? `${weekday} ${monthDay(dayKey)}` : `${weekday} ${monthDay(dayKey)}, ${year}`;
+ }
+ 
++// SPEC: A20.7 (2026-09-11) — "Saturday, Sep 12", the date line above Home's title. The FULL weekday name, because this
++// is the one place the app states which day it believes it is, and "Sat" is the abbreviation the week strip already
++// uses for a mark. A17.4(c) is untouched: the nav title still NAMES THE STATE, and this sits above it.
++// Twin of ios DayLabel.todayHeader — identical names, so the two engines cannot print different dates.
++const longWeekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
++
++export function todayHeader(dayKey: string): string {
++  return `${longWeekdayNames[isoWeekday(dayKey) - 1] ?? ""}, ${monthDay(dayKey)}`;
++}
++
+ // SPEC: A6 — weekHeader(weekKey, todayWeekKey): This week · Last week · Week of Sep 1
+ export function weekHeader(weekKey: string, todayWeekKey: string): string {
+   if (weekKey === todayWeekKey) return "This week";
+diff --git a/web/tests/engine/day-label.test.ts b/web/tests/engine/day-label.test.ts
+index fad6ee0..be95f01 100644
+--- a/web/tests/engine/day-label.test.ts
++++ b/web/tests/engine/day-label.test.ts
+@@ -1,7 +1,7 @@
+ // SPEC: A6 (owner-directed 2026-09-08) — Today · Yesterday · Mon · Mon Sep 8 · Mon Sep 8, 2025; This week · Last week ·
+ // Week of Sep 1. Twin of ios/CrewTests/DayLabelTests.swift: identical cases, identical labels.
+ import { describe, expect, it } from "vitest";
+-import { dayLabel, weekHeader } from "@/lib/engine/day-label";
++import { dayLabel, todayHeader, weekHeader } from "@/lib/engine/day-label";
+ import { addDays } from "@/lib/engine/day-key";
+ import { SpecConstants } from "@/generated/spec-constants";
+ 
+@@ -40,3 +40,15 @@ describe("weekHeader — This week · Last week · Week of", () => {
+     expect(weekHeader("2025-12-29", "2026-09-07")).toBe("Week of Dec 29");
+   });
+ });
++
++// SPEC: A20.7 (2026-09-11) — the date line above Home's title. FULL weekday name: this is the one place the app states
++// which day it believes it is, and "Sat" is already the week strip's abbreviation for a mark. Twin of
++// ios/CrewTests/DayLabelTests.testTheDateLineNamesTheDayInFull — identical cases, identical strings.
++describe("todayHeader — the date line Home states", () => {
++  it("names the weekday in full, then the month and day with no leading zero", () => {
++    expect(todayHeader("2026-09-12")).toBe("Saturday, Sep 12");
++    expect(todayHeader("2026-09-04")).toBe("Friday, Sep 4");
++    expect(todayHeader("2026-09-07")).toBe("Monday, Sep 7");
++    expect(todayHeader("2026-01-01")).toBe("Thursday, Jan 1");
++  });
++});
+diff --git a/web/tests/token-parity.test.ts b/web/tests/token-parity.test.ts
+index 1d1eb68..d7b0e09 100644
+--- a/web/tests/token-parity.test.ts
++++ b/web/tests/token-parity.test.ts
+@@ -5,7 +5,8 @@ import { join } from "node:path";
+ import { describe, expect, it } from "vitest";
+ 
+ const root = join(process.cwd(), "..");
+-const tokens = JSON.parse(readFileSync(join(root, "shared", "design-tokens.json"), "utf8")) as { colors: Record<string, { light: string; dark: string }>; spacing: { scale: Record<string, number> }; sizes: { scale: Record<string, number> } };
++type TypeRole = { ios: string; weight: string; webPx: number; webWeight: number; lineHeight: number };
++const tokens = JSON.parse(readFileSync(join(root, "shared", "design-tokens.json"), "utf8")) as { colors: Record<string, { light: string; dark: string }>; spacing: { scale: Record<string, number> }; sizes: { scale: Record<string, number> }; typography: { scale: Record<string, TypeRole> } };
+ const css = readFileSync(join(root, "web", "src", "generated", "ember.css"), "utf8");
+ const swiftColors = readFileSync(join(root, "ios", "Crew", "Generated", "EmberColors.swift"), "utf8");
+ const swiftTokens = readFileSync(join(root, "ios", "Crew", "Generated", "EmberTokens.swift"), "utf8");
+@@ -29,4 +30,22 @@ describe("token parity — web CSS and Swift carry the same Ember values", () =>
+       expect(swiftTokens).toContain(`static let ${name}: CGFloat = ${value}`);
+     }
+   });
++
++  // SPEC: A20.12 (2026-09-11) — typography was the ONE thing Part III never specified, so every font size in the app
++  // was a per-file decision and web set its own inline in CSS with nothing checking the two against each other. This
++  // is the check that did not exist: Home alone carried 13 distinct `.font()` expressions across 9 semantic sizes.
++  it("every type role reaches both engines, and iOS names a SEMANTIC style so Dynamic Type still scales it", () => {
++    const iosStyles = ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"];
++    for (const [name, role] of Object.entries(tokens.typography.scale)) {
++      expect(css, `${name} size`).toContain(`--ember-type-${kebab(name)}-size: ${role.webPx}px;`);
++      expect(css, `${name} weight`).toContain(`--ember-type-${kebab(name)}-weight: ${role.webWeight};`);
++      expect(css, `${name} line-height`).toContain(`--ember-type-${kebab(name)}-line-height: ${role.lineHeight};`);
++      expect(swiftTokens, `${name} swift`).toContain(`static let ${name}: Font = .${role.ios}.weight(.${role.weight})`);
++      // 6.7 — a raw point size would opt the role out of accessibility sizes on the device the matrix fails first
++      expect(iosStyles, `${name} must name a semantic text style`).toContain(role.ios);
++    }
++    // `EmberTokens.Type` is Swift's metatype syntax; the enum must never be named `Type` or every call site is ambiguous
++    expect(swiftTokens).toContain("enum Typography {");
++    expect(swiftTokens).not.toContain("enum Type {");
++  });
+ });
