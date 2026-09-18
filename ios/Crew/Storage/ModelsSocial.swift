@@ -1,4 +1,5 @@
-// SPEC: Part IX — Post, GamificationState, Pause and the crew snapshot as local @Model classes (offline-first, E6).
+// SPEC: Part IX — Post, GamificationState, Pause and the crew snapshot as local @Model classes (offline-first, E6). W9: LocalPost is
+// the V2 shape — the plate journal's four stored properties left with the CrewSchemaV1 → V2 migration (StoreSchema.swift).
 // The server state REPLACES the local gamification state on reconcile (5.6.3). WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
@@ -11,32 +12,26 @@ final class LocalPost {
     var userId: String
     var type: String                 // workout | cardio; "meal" | "text" are LEGACY values (A22, 2026-09-18) — nothing writes them
     var sessionClientId: String?
-    var photoKey: String?            // LEGACY (A22 G2): never written since 2026-09-18; kept for the SwiftData schema until W9's migration
-    var localPhotoPath: String?      // LEGACY (A22 G2): the outbox photo path; never written since 2026-09-18
     var caption: String              // A22 G2: the optional line a workout post carries (≤ captionMaxChars)
-    var mealTag: String?             // LEGACY (A22): never written since 2026-09-18
     var shareToCrew: Bool
     var dayKey: String
     var isPlannedDay: Bool
     var workoutCompleted: Bool
-    var earlierToday: Bool           // LEGACY (A22): always false since 2026-09-18
     var summary: String?             // A6: a workout post's one readable line, computed at completion (SessionSummaryLine) and hydrated from the server
     var createdAt: Date
     var deliveredAt: Date?
     var deletedAt: Date?
 
-    init(clientId: String, userId: String, type: String, sessionClientId: String?, caption: String, mealTag: String?, shareToCrew: Bool, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool, earlierToday: Bool, createdAt: Date) {
+    init(clientId: String, userId: String, type: String, sessionClientId: String?, caption: String, shareToCrew: Bool, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool, createdAt: Date) {
         self.clientId = clientId
         self.userId = userId
         self.type = type
         self.sessionClientId = sessionClientId
         self.caption = caption
-        self.mealTag = mealTag
         self.shareToCrew = shareToCrew
         self.dayKey = dayKey
         self.isPlannedDay = isPlannedDay
         self.workoutCompleted = workoutCompleted
-        self.earlierToday = earlierToday
         self.createdAt = createdAt
     }
 }

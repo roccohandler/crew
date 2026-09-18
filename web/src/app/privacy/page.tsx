@@ -1,15 +1,27 @@
-// SPEC: E9 · A7 — the privacy policy the Settings row and the App Store listing point at. Static placeholder: the owner
-// replaces this text before submission (docs/OWNER-REVIEW.md, T047). Public page, one main, one h1.
+// SPEC: E9 · A7 · W9 (owner order 2026-09-18, item 6) — the privacy policy the Settings row and the App Store listing point at. Drafted from what the code actually does
+// (shared/copy/legal.json names the files); the OWNER REVIEWS IT before submission (docs/OWNER-REVIEW.md). The contact address is the
+// server's SUPPORT_EMAIL — until it is set the page points at the App Store listing's support link. Public page, one main, one h1.
 import Link from "next/link";
+import { legal } from "@/generated/copy";
 
 export default function PrivacyPage() {
+  const page = legal.privacy;
+  const contact = process.env.SUPPORT_EMAIL ?? "";
   return (
-    <main className="app-column stack">
-      <h1>Privacy policy</h1>
-      <p className="muted" role="note">Draft — replaced by the owner before submission.</p>
-      <p>Crew keeps what it needs to run your plan and your crew: your email, your name, an optional photo, the workouts you log, and what you post. Nothing is sold, and there is no public feed.</p>
-      <p>Your posts are visible only to the members of the crew you shared them with. Photos are resized and stripped of location data before they are stored.</p>
-      <p>We only email you for password resets and account deletion. You can export everything as one JSON file or delete your account from Settings at any time; deletion removes your plan, workouts, posts and photos everywhere.</p>
+    <main className="app-column stack stack--sections">
+      <h1>{page.title}</h1>
+      <p>{page.lead}</p>
+      {page.sections.map((section) => (
+        <section key={section.heading} className="stack stack--tight">
+          <h2>{section.heading}</h2>
+          {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </section>
+      ))}
+      <section className="stack stack--tight">
+        <h2>Contact</h2>
+        {contact === "" ? <p>Write to the support address on Crew&apos;s App Store page.</p> : <p>Write to <a href={`mailto:${contact}`}>{contact}</a>.</p>}
+      </section>
+      <p className="whisper">Last updated {legal.updated}.</p>
       <Link className="button button--text" href="/">Back to Crew</Link>
     </main>
   );

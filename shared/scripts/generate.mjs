@@ -67,6 +67,7 @@ export function readCopy(sections) {
   const copy = {
     nutritionMethod: resolveCopy(JSON.parse(readFileSync(join(copyDir, "nutrition-method.json"), "utf8")), values, "nutrition-method.json"),
     education: resolveCopy(JSON.parse(readFileSync(join(copyDir, "education.json"), "utf8")), values, "education.json"), // A23
+    legal: resolveCopy(JSON.parse(readFileSync(join(copyDir, "legal.json"), "utf8")), values, "legal.json"), // W9: web only — the phone opens these pages in its in-app browser
   };
   for (const [name, doc] of Object.entries(copy)) if (JSON.stringify(doc).includes('"#')) throw new Error(`copy ${name}: the sequence "# would break the Swift raw string`);
   return copy;

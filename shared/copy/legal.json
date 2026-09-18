@@ -1,0 +1,73 @@
+{
+  "spec": "W9 (owner order 2026-09-18, item 6) · E9 · A7 — the privacy policy and the terms the Settings rows, the signup line and the App Store listing point at, DRAFTED FROM WHAT THE CODE ACTUALLY DOES (lib/account-delete.ts, lib/export.ts, lib/events.ts, lib/photos.ts, lib/push.ts, lib/email.ts, the nutrition gate). The owner reviews both before submission (docs/OWNER-REVIEW.md): the operator's legal name, the contact address (SUPPORT_EMAIL on the server) and a governing-law sentence are the owner's to add. Web only — the phone opens these pages in its in-app browser. Numbers are {placeholders} resolved from spec-constants.",
+  "updated": "18 September 2026",
+  "privacy": {
+    "title": "Privacy policy",
+    "lead": "Crew is a training app for small groups of friends. This page says what Crew keeps about you, why, who can see it, and how you take it back. There is no public feed, there are no ads, and nothing is sold.",
+    "sections": [
+      { "heading": "What Crew keeps", "paragraphs": [
+        "Your account: your email address, a password that is stored only as a salted hash, the name you chose, your birth year, your timezone, your unit and reminder preferences, a profile photo if you add one, and a record of which one-time tips you have already seen. If you use Sign in with Apple, Crew keeps the identifier Apple gives it and the email address Apple shares, which may be a private relay address.",
+        "Your training: your weekly plan, every workout and cardio session you log with its sets, weights, times and distances, the posts those create and any caption you add, your reactions, your crew membership, any pause you set, and the streak, points and achievements worked out from them.",
+        "Nutrition, if you are {nutritionAdultAgeYears} or older and choose to use it: one current bodyweight, your daily targets, the meals you save, your daily template and what you log. Crew keeps no weight history.",
+        "Your device: a push notification token, if you allow notifications.",
+        "How the app is used: Crew records its own simple events, such as a plan being built or a workout being completed, in its own database. There are no third-party analytics or advertising tools in Crew.",
+        "Safety records: reports you file, and the people you block."
+      ] },
+      { "heading": "What Crew does with it", "paragraphs": [
+        "Crew uses this information to run your plan, to show your crew that you trained, to send the reminders you asked for, to keep accounts secure, and to understand which parts of the app work. It is not used for advertising, and it is not sold or rented to anyone."
+      ] },
+      { "heading": "Who can see what", "paragraphs": [
+        "A post you share is visible only to the members of the crew you shared it with, and a crew holds at most {crewMaxMembers} people. A post you keep private is visible only to you. Your crew sees your name, your profile photo, your streak and whether you have posted today.",
+        "Nutrition is private. Your bodyweight, your targets, your meals and your logs are never shown to your crew, never appear in a post and never appear on a profile.",
+        "Your profile photo is resized and stripped of location data before it is stored, and it is served only to you and to members of your crew."
+      ] },
+      { "heading": "The companies that help run Crew", "paragraphs": [
+        "Crew runs on a small number of service providers that process data only to provide their service: Vercel (hosting and photo storage), MongoDB Atlas (the database), Resend (email), and Apple (Sign in with Apple and push notifications). Your data may be processed in the United States and in other countries where these providers operate.",
+        "Crew emails you only about your account: password resets and the confirmation that an account was deleted."
+      ] },
+      { "heading": "How long Crew keeps it, and how you take it back", "paragraphs": [
+        "Crew keeps your information for as long as your account exists. In Settings you can export everything Crew holds about you as one file, delete your nutrition data on its own, or delete your account.",
+        "Deleting your account removes your plan, workouts, posts, photos, reactions, nutrition data, reports and tokens from Crew's systems right away. The usage events your account created are kept without any link to you. Backups held by the providers above expire on their own schedules.",
+        "Depending on where you live, you may have the right to access, correct, move or delete your information, or to object to how it is used. The tools in Settings do most of this directly; for anything else, write to the address below."
+      ] },
+      { "heading": "Age", "paragraphs": [
+        "Crew is for people {minimumAgeYears} and older, and Crew asks for a birth year at signup to check. Nutrition features are available only to people {nutritionAdultAgeYears} and older. If you believe a child under {minimumAgeYears} has an account, write to the address below and it will be removed."
+      ] },
+      { "heading": "Security", "paragraphs": [
+        "Connections to Crew are encrypted. Passwords are stored only as salted hashes, sign-in tokens on the iPhone live in the Keychain, and photos are private files served only after a permission check. No system is perfectly secure; if something goes wrong that affects you, Crew will tell you."
+      ] },
+      { "heading": "Changes to this policy", "paragraphs": [
+        "If this policy changes in a way that matters, Crew will say so in the app before the change takes effect."
+      ] }
+    ]
+  },
+  "terms": {
+    "title": "Terms",
+    "lead": "These are the terms for using Crew. They are written to be read. By creating an account you agree to them.",
+    "sections": [
+      { "heading": "Who can use Crew", "paragraphs": [
+        "You need to be {minimumAgeYears} or older to use Crew. Nutrition features are for people {nutritionAdultAgeYears} and older. You are responsible for your account and for keeping your password to yourself."
+      ] },
+      { "heading": "Your content", "paragraphs": [
+        "What you log and post stays yours. You give Crew permission to store it and to show it to the people you chose to share it with, which is the only way the app can work. You can export or delete it at any time from Settings."
+      ] },
+      { "heading": "How to treat other people", "paragraphs": [
+        "Crews are small groups of people who know each other. Do not harass, threaten or impersonate anyone, do not post content that exposes or sexualises another person, and do not use Crew to break the law. Anyone can report a post or a person and anyone can block a person; reports are read by a person. A Captain can remove a member from their crew.",
+        "Content that breaks these rules is removed, and an account that keeps breaking them can be closed."
+      ] },
+      { "heading": "Training and nutrition are your call", "paragraphs": [
+        "Crew is not a medical service. The plans, targets and estimates in the app are general information and not medical advice. Talk to a doctor before starting a training program or changing how you eat, especially if you have a health condition, and stop if something hurts. You train at your own risk."
+      ] },
+      { "heading": "The service", "paragraphs": [
+        "Crew is free. It is a young product: features can change, and the service can be paused or ended. If Crew ever ends, you will get notice and time to export your data.",
+        "Crew is provided as it is, without warranties of any kind, to the fullest extent the law allows. To the fullest extent the law allows, Crew is not liable for indirect or consequential losses, or for injuries that result from training."
+      ] },
+      { "heading": "Ending it", "paragraphs": [
+        "You can delete your account at any time in Settings, and that ends these terms for you. Crew can close an account that breaks these terms."
+      ] },
+      { "heading": "Changes to these terms", "paragraphs": [
+        "If these terms change in a way that matters, Crew will say so in the app before the change takes effect. Using Crew after that means you accept the new terms."
+      ] }
+    ]
+  }
+}

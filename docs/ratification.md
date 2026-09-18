@@ -1332,3 +1332,24 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   clear, well-sized control, which is 6.9's own sentence. S19 "How Crew works" is NOT split: A23's draft defines it as "one scrolling
   page" of prose reached from Settings → About — it is itself the destination, and it holds no controls but source links. Both are the
   owner's to overturn; docs/OWNER-REVIEW.md lists them.
+
+- **R-078 · 2026-09-18 · W9, launch readiness — READINGS (each the smallest in-order answer; overturnable by a registry line).**
+  (1) THE STORE'S VERSION ONE IS BUILD 150's SCHEMA. The stored models have not changed since 2026-09-10 (f814300), so one V1 covers
+  every TestFlight build a tester can still have; it is declared from the CURRENT classes for the ten models that did not change and
+  from a nested `CrewSchemaV1.LocalPost` for the one that did. A store older than that matches no version and takes F31's path
+  (start over, the server refills) — the plan makes the common update lossless and leaves the safety net where it was. The version
+  number is a constant (`storage.storeSchemaVersion`), because a literal 2 is a lint error and a schema version is a spec number.
+  (2) THE LEGAL PAGES SAY ONLY WHAT THE CODE DOES, and leave three blanks: the operator's legal name, a governing-law sentence and
+  the EULA choice are facts and decisions the builder does not have, so none is invented. The contact is the server's
+  `SUPPORT_EMAIL`, never an address typed into the repository. The copy lives in `shared/copy/legal.json` (web only — the phone
+  opens these pages in its in-app browser) and passes check-copy like every other shared string. (3) STORE SCREENSHOTS REUSE THE A24
+  TOUR rather than the journeys the order names: the tour is the journeys' successor for pictures (seeded through the real API with a
+  crew, a streak and six workout days, every step already a named shot), and a second set of screenshot tests would be a second
+  mechanism for one job (C5). The required sizes are reached by picking the simulator per App Store display class at run time and
+  REPORTING the pixels (`SIZES.md`), because the runner image, not this repository, decides which simulators exist. (4) "T047 RUN AND
+  ITS FINDINGS FIXED" is `shared/scripts/launch-audit.mjs` in the contracts job: eighteen scans, clean; its two findings on the way
+  (a `danger` class on the nutrition Settings notice, now ink — R-075 (13); and "healthy adults" inside a publisher's own title,
+  which is a citation and not Crew labelling a food — the exemption is written into the script) were settled in W8c. (5) `TEST_EMAIL_ALLOWLIST` "confirmed unset in production" is answered as far as this machine can see: no server code
+  reads the name, so production cannot behave differently because of it; the variable list itself is the owner's to open (debt).
+  (6) THE LISTING COPY promises nothing on A21.13's Not Building list and states no health outcome; the age-rating answers are left
+  to the owner (A16.b), with the facts that bear on them stated once.

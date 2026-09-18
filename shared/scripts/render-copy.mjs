@@ -61,7 +61,10 @@ export interface EducationWhisper { id: WhisperId; line: string; moment: string;
 export interface EducationSource { label: string; url: string; gate: CopyGate }
 export interface EducationSection { id: string; heading: string; body: string; adultBody: string; source: EducationSource | null }
 export interface EducationPage { title: string; note: { draft: boolean; heading: string; body: string }; sections: EducationSection[]; whispersHeading: string; clinician: string }
-export interface EducationCopy { whispers: EducationWhisper[]; page: EducationPage }`;
+export interface EducationCopy { whispers: EducationWhisper[]; page: EducationPage }
+export interface LegalSection { heading: string; paragraphs: string[] }
+export interface LegalDocument { title: string; lead: string; sections: LegalSection[] }
+export interface LegalCopy { updated: string; privacy: LegalDocument; terms: LegalDocument }`;
 
 export function renderCopyTs(copy) {
   const whisperIds = copy.education.whispers.map((whisper) => JSON.stringify(whisper.id));
@@ -72,6 +75,7 @@ export function renderCopyTs(copy) {
     copyTypes, "",
     `export const nutritionMethod: NutritionMethodCopy = ${JSON.stringify(copy.nutritionMethod, null, 2)};`,
     `export const education: EducationCopy = ${JSON.stringify(copy.education, null, 2)};`,
+    `export const legal: LegalCopy = ${JSON.stringify(copy.legal, null, 2)};`,
     "",
   ].join("\n");
 }

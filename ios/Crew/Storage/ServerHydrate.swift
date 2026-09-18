@@ -111,7 +111,7 @@ enum ServerHydrate {
         for item in items {
             let clientId = item.clientId ?? item.id
             if try store.post(clientId: clientId) != nil { continue }
-            let post = LocalPost(clientId: clientId, userId: userId, type: item.type, sessionClientId: nil, caption: item.caption, mealTag: nil, shareToCrew: item.crewId != nil, dayKey: item.dayKey, isPlannedDay: item.isPlannedDay, workoutCompleted: item.workoutCompleted, earlierToday: false, createdAt: item.createdAt) // A22: no meal tag, no backfill label, no photo
+            let post = LocalPost(clientId: clientId, userId: userId, type: item.type, sessionClientId: nil, caption: item.caption, shareToCrew: item.crewId != nil, dayKey: item.dayKey, isPlannedDay: item.isPlannedDay, workoutCompleted: item.workoutCompleted, createdAt: item.createdAt) // A22: no meal tag, no backfill label, no photo
             post.serverId = item.id
             post.summary = item.summary // A6: the line the server wrote at completion
             post.deliveredAt = item.createdAt

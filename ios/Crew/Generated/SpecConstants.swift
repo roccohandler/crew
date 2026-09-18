@@ -229,6 +229,10 @@ enum SpecConstants {
     /// SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8
     static let dayLabelWeekdayWithinDays: Int = 6
 
+    // MARK: storage
+    /// SPEC: W9 — the SwiftData store's current schema version (ios/Crew/Storage/StoreSchema.swift: CrewSchemaV2; V1 is TestFlight build 150's schema)
+    static let storeSchemaVersion: Int = 2
+
     // MARK: copy
     /// SPEC: A23 · docs/education-copy-draft.md §A rule 5 — a whisper is at most twelve words; check-copy.mjs counts them
     static let whisperMaxWords: Int = 12

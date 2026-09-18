@@ -1,0 +1,88 @@
+# SPEC: W9 (owner order 2026-09-18, item 6) · T047 · 8.9 — APP STORE SCREENSHOTS FROM CI, because no machine here is a Mac.
+# Dispatched by hand (never on a push: it costs two macOS jobs), it runs the A24 UI tour — the eight Tour_* classes (nutrition included), seeded through the
+# real API with a crew, a streak and six backdated workout days, which is the best-looking honest state the app has — once per App
+# Store display class, with the status bar pinned at 9:41, and uploads the PNGs at the simulator's NATIVE pixel size:
+#   · the 6.9" class  — the newest "Pro Max" on the runner (1320 × 2868; App Store Connect's required iPhone size)
+#   · the 6.5" class  — the newest "Plus" on the runner (1284 × 2778 or 1290 × 2796), or the newest plain iPhone when the image has none
+# Each artifact carries SIZES.md (file · width × height) so the owner can see which slot a shot fits before uploading it. Nothing here
+# ships a build: testflight.yml listens to `ci` only. The shots are the app as it is — no frames, no marketing text (that is the
+# owner's call in App Store Connect).
+name: store screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  shots:
+    name: tour on the ${{ matrix.display }} class
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { display: "6.9-inch", pattern: "Pro Max" }
+          - { display: "6.5-inch", pattern: "Plus" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: brew install xcodegen
+      - run: cd ios && xcodegen generate
+      - run: cd web && npm ci
+      - run: cd web && nohup node tests/e2e/dev-server.mjs > dev-server.log 2>&1 &
+      - name: wait for the harness
+        shell: bash
+        run: |
+          if ! npx --yes wait-on http://localhost:3000/login --timeout 180000; then
+            echo "::error title=Local API harness::the dev server never answered on :3000"
+            cat web/dev-server.log || true
+            exit 1
+          fi
+      # The runner image decides which simulators exist, so the device is picked at run time: the newest iPhone whose name carries the
+      # class's word; a class the image does not have falls back to the newest plain "iPhone NN" and says so.
+      - name: pick the simulator
+        shell: bash
+        run: |
+          CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ ${{ matrix.pattern }} \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
+          if [ -z "$CREW_SIM" ]; then
+            CREW_SIM=$(xcrun simctl list devices available | grep -oE '^ +iPhone [0-9]+ \(' | sed -E 's/^ +//; s/ \($//' | sort -t ' ' -k 2 -n | tail -n 1)
+            echo "::warning title=${{ matrix.display }}::no \"${{ matrix.pattern }}\" simulator on this image — using $CREW_SIM; check SIZES.md against the App Store's accepted sizes"
+          fi
+          test -n "$CREW_SIM"
+          echo "Simulator: $CREW_SIM"
+          echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
+      - name: pin the simulator's status bar (9:41)
+        continue-on-error: true
+        shell: bash
+        run: |
+          UDID=$(xcrun simctl list devices available -j | node -e 'const all=JSON.parse(require("fs").readFileSync(0,"utf8")).devices;const hits=Object.entries(all).filter(([runtime])=>runtime.includes("iOS")).flatMap(([runtime,list])=>list.filter((d)=>d.name===process.env.CREW_SIM).map((d)=>({runtime,udid:d.udid})));hits.sort((a,b)=>a.runtime.localeCompare(b.runtime,undefined,{numeric:true}));console.log(hits.length?hits[hits.length-1].udid:"")')
+          test -n "$UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+      - name: run the tour (the eight Tour_* classes)
+        continue-on-error: true
+        shell: bash
+        run: |
+          ONLY=""
+          for flow in Onboarding Home Plan Crew Progress Settings Session Nutrition; do ONLY="$ONLY -only-testing:CrewUITests/Tour_${flow}Tests"; done
+          cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewAll \
+            -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest" \
+            -resultBundlePath TestResults.xcresult $ONLY \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO 2>&1 | tail -n 40
+      - name: export the shots at native size · write SIZES.md
+        shell: bash
+        run: |
+          test -d ios/TestResults.xcresult
+          xcrun xcresulttool export attachments --path ios/TestResults.xcresult --output-path ios/storyboard-raw
+          node ios/scripts/storyboard.mjs ios/storyboard-raw ios/store-shots
+          { echo "# Store screenshots — ${{ matrix.display }} class ($CREW_SIM)"; echo; echo "| File | Pixels |"; echo "|---|---|";
+            find ios/store-shots -name '*.png' | sort | while read -r file; do echo "| ${file#ios/store-shots/} | $(sips -g pixelWidth -g pixelHeight "$file" | awk '/pixel/ {print $2}' | paste -sd '×' -) |"; done; } > ios/store-shots/SIZES.md
+          cat ios/store-shots/SIZES.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots-${{ matrix.display }}
+          path: ios/store-shots/**
+          retention-days: 30
+          if-no-files-found: error

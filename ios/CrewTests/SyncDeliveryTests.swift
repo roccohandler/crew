@@ -20,7 +20,7 @@ final class SyncDeliveryTests: XCTestCase {
     }
 
     private func localPost(_ clientId: String, store: Store) -> LocalPost {
-        let post = LocalPost(clientId: clientId, userId: "u1", type: "cardio", sessionClientId: nil, caption: "", mealTag: nil, shareToCrew: true, dayKey: "2026-09-04", isPlannedDay: false, workoutCompleted: true, earlierToday: false, createdAt: Date(timeIntervalSince1970: 1_000_000))
+        let post = LocalPost(clientId: clientId, userId: "u1", type: "cardio", sessionClientId: nil, caption: "", shareToCrew: true, dayKey: "2026-09-04", isPlannedDay: false, workoutCompleted: true, createdAt: Date(timeIntervalSince1970: 1_000_000))
         store.context.insert(post)
         return post
     }

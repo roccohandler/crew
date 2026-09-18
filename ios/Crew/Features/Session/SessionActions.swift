@@ -122,7 +122,7 @@ enum SessionActions {
     static func post(_ session: LocalSession, clientId: String, shareToCrew: Bool, now: Date, store: Store) throws -> [Award] {
         forgetUnanswered()
         guard try store.post(forSessionClientId: session.clientId) == nil else { return [] }
-        let post = LocalPost(clientId: clientId, userId: session.userId, type: session.workoutKind == "cardio" ? "cardio" : "workout", sessionClientId: session.clientId, caption: "", mealTag: nil, shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, earlierToday: false, createdAt: now)
+        let post = LocalPost(clientId: clientId, userId: session.userId, type: session.workoutKind == "cardio" ? "cardio" : "workout", sessionClientId: session.clientId, caption: "", shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, createdAt: now)
         post.summary = JournalFacts.summaryLine(session, distanceUnit: AuthStore.shared.distanceUnit) // A6: the one line the celebration, the journal and the day card read — server rounding (JournalFacts)
         store.context.insert(post)
         try store.save()

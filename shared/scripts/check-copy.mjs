@@ -76,8 +76,23 @@ function checkEducation(doc) {
   }
 }
 
+// SPEC: W9 · E9 — the two legal pages: every section has a heading and at least one paragraph, no brace survives, and the page
+// carries the date it was last changed. The words are the owner's to review; this only keeps the file well-formed.
+function checkLegal(doc) {
+  const name = "legal.json";
+  if (typeof doc.updated !== "string" || doc.updated.trim() === "") report(name, "updated: the date the text last changed is required");
+  for (const key of ["privacy", "terms"]) {
+    const page = doc[key] ?? {};
+    if (typeof page.title !== "string" || typeof page.lead !== "string") report(name, `${key}: title and lead are required`);
+    if ((page.sections ?? []).length === 0) report(name, `${key}: no sections`);
+    for (const section of page.sections ?? []) if (typeof section.heading !== "string" || (section.paragraphs ?? []).length === 0) report(name, `${key}: every section needs a heading and a paragraph`);
+  }
+  for (const { where, text } of strings(doc, name)) if (/[{}]/.test(text) || /!/.test(text)) report(where, "an unresolved placeholder brace, or an exclamation mark");
+}
+
 checkNutritionMethod(copy.nutritionMethod);
 checkEducation(copy.education);
+checkLegal(copy.legal);
 
 for (const finding of findings) console.log(`COPY  ${finding}`);
 if (findings.length > 0) { console.log(`check-copy: ${findings.length} finding(s)`); process.exit(1); }

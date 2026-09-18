@@ -27,7 +27,7 @@ enum HomeTestFixtures {
     // A post is what ends the BRIDGE (§1D), so every non-bridge test needs one before it can assert a real state
     @MainActor
     static func post(_ store: Store, userId: String, id: String, dayKey: String, now: Date = friday) throws {
-        store.context.insert(LocalPost(clientId: id, userId: userId, type: "cardio", sessionClientId: nil, caption: "", mealTag: nil, shareToCrew: false, dayKey: dayKey, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: now))
+        store.context.insert(LocalPost(clientId: id, userId: userId, type: "cardio", sessionClientId: nil, caption: "", shareToCrew: false, dayKey: dayKey, isPlannedDay: false, workoutCompleted: false, createdAt: now))
         try store.save()
     }
 }

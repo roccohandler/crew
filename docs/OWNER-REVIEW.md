@@ -1,145 +1,110 @@
-# Crew — owner review (regenerated after the cold-start audit, 2026-09-08 evening)
+# Crew — owner review (rewritten 2026-09-18, at the end of "continue to full completion")
 
-Read this first on a cold resume. It replaces the 2026-09-04 review in full. Every state below was produced by a command run
-on this Windows machine on 2026-09-08, or read from GitHub with `gh run view` — never carried over from an earlier claim.
-`docs/progress.md` is the ledger (rewritten from scratch the same evening, with the audit's command table at the top and the
-gap-closure queue), `docs/ratification.md` R-001 … R-055 holds every self-review and gap call (R-055 is the audit itself),
-`docs/debt.md` every compromise, `docs/testing-without-a-mac.md` the owner's route from Windows to an iPhone.
+Read this first. It replaces the 2026-09-08 review in full. It lists what only you can do, in the order that unblocks the most,
+with the exact step for each. Nothing here was waited on: everything a builder could do without you is built, tested and pushed.
+`docs/progress.md` is the ledger (its top line carries the latest TestFlight build number), `docs/ratification.md` R-068 … R-078
+holds every reading made without you, `docs/debt.md` every compromise.
 
-## 1. The four states
+## 1. Where things stand
 
-- ✅ **DONE-VERIFIED** — the verify command ran here today and passed (or `gh run view` read a green job today)
-- 📝 **WRITTEN-UNVERIFIED** — Swift app code. No Mac here. GitHub's macOS job compiled it, ran 49 unit tests and journeys ①②
-  on an iPhone 17 simulator (run 34252964640, green) — but nothing has run on a phone: gestures, haptics, camera, push,
-  offline, VoiceOver, Dynamic Type are unproven
-- 🔌 **BLOCKED-CREDENTIALS** — needs a vendor value or an account step only the owner can do
-- ❌ **NOT DONE** — nothing exists for it yet
-
-## 2. Completion matrix, T001–T047
-
-| Task | State | Evidence today / what is missing |
-|---|---|---|
-| T001 spec-constants | ✅ | generate + check-drift clean |
-| T002 generate + check-drift | ✅ | same; working tree unchanged after generate |
-| T003 vectors (51) | ✅ | check-vectors; `npm run vectors` 51/51; docker swift test 25/25; owner-ratified R-001 |
-| T004 exercises.json | ✅ | check-seeds |
-| T005 plan-templates.json | ✅ | check-seeds |
-| T006 achievements + api.md | ✅ | check-seeds; achievements.test.ts + V45–V50; the api.md `POST events` route now exists (audit gap Q03) |
-| T007 monorepo scaffold | ✅ | web typecheck/lint/build; ios project generated + built by the CI ios job |
-| T008 CI + doctrine lint | ✅ | `gh run view 34252964640`: five jobs green; doctrine-lint clean (132 Swift files); codemagic.yaml deleted |
-| T009 db + indexes | ✅ | db.test.ts |
-| T010 server auth | ✅ | auth.test.ts |
-| T011 email + reset | ✅ | auth-reset.test.ts (Resend behind the outbox) |
-| T012 Sign in with Apple | ✅ server + web (auth-apple.test.ts) · 🔌 the real Apple round-trip (Services ID, bundle id, a device) |
-| T013 iOS shells | 📝 | CI: ShellStatesTests green on the simulator |
-| T014 SyncQueue | 📝 | CI: SyncQueueTests 9 green |
-| T015 standing checks | ✅ | 139 generated checks green (every route under app/api/v1, events included) |
-| T016 DayKey twin | ✅ | V05–V10 both engines; NEW unit files both engines (audit Q06) |
-| T017 engine streak + XP | ✅ | 51/51 TS; 51/51 Swift (Linux + Xcode) |
-| T018 shields + pause | ✅ | same |
-| T019 completion/undo/edit | ✅ | same — the "both engines" gate holds |
-| T020 PlanGenerator + SwapFinder | ✅ | property tests both engines |
-| T021 Onboarding S02–S04 | 📝 | CI journey ① walks them; screenshots reviewed R-052/R-053 |
-| T022 Save/auth S05 | 📝 | CI journey ① saves with email |
-| T023 plans/sessions/sync API | ✅ | plans/sessions/sync tests incl. the iPhone batch replay |
-| T024 Home S07 | 📝 | CI: HomeModel tests; bridge + post-state screenshots |
-| T025 Session S09 | 📝 | CI: SessionModel tests; journey ② logs 3/3 |
-| T026 Celebration + Posts API | ✅ API + web (posts.test.ts; e2e ④) · 📝 iOS |
-| T027 Nutrition + blob | ✅ API + web (photos.test.ts EXIF fixture; e2e ①) · 📝 iOS (+ NEW CameraDeniedTests probe) |
-| T028 🛑 Journey ① | ✅ on the CI simulator and on web · ❌ on a device · owner ratification of R-022/R-053 pending |
-| T029 Crews API | ✅ | crews.test.ts (mute now covered — audit Q04) |
-| T030 Messages/Reactions API | ✅ | messages.test.ts |
-| T031 Crew feature iOS | 📝 | CI journey ② sees the reaction; MessageRow/CreateCrewScreen split into their own files |
-| T032 crew engine rules | ✅ | V37–V40 both engines |
-| T033 Notifications | ✅ route + apns2 lib + eligibility + cron tests · 🔌 a push to a device (APNs key + phone) |
-| T034 Moderation | ✅ | moderation.test.ts |
-| T035 🛑 Journey ② + 8.7 | ✅ web ② + the 8.7 items runnable here · 📝 iOS ② (CI simulator green) · ❌ device items |
-| T036 Web onboarding | ✅ | build; e2e ① (three viewports) |
-| T037 Web session + posting | ✅ | e2e ④ |
-| T038 Web crew + landing | ✅ | e2e ③ |
-| T039 🛑 Playwright + Lighthouse | ✅ e2e matrix (see §3 for today's run) + token parity · 🔌 Lighthouse (`@lhci/cli` needs your approval — debt) |
-| T040 Progress + Journal | ✅ web · 📝 iOS |
-| T041 Settings/pause/export/delete | ✅ routes + web (account.test.ts) · 📝 iOS |
-| T042 Edge screens | ✅ web (welcome-back, lapsed-user tests) · 📝 iOS |
-| T043 A11y/offline/perf | ✅ web substitute audit · ❌ Xcode a11y audit, VoiceOver, Dynamic Type XXL, Reduce Motion, 8.6 offline matrix, device signposts · 🔌 axe-core/Lighthouse (dependencies) · 📝 NEW Resume-after-kill + camera-denied probes |
-| T044 🛑 Security sweep | ✅ everything runnable (standing 403s, audit 0, EXIF, cascade, rate limits; harness isolation fixed today) · ❌ device items · ratification pending |
-| T045 TestFlight + beta + metrics | ✅ metrics (`npm run metrics`, tested) · 🔌 TestFlight (Admin App Store Connect key, Team ID, bundle id, deployed host) |
-| T046 Production env | 🔌 Atlas/Resend/Blob values exist in your local `web/.env` (never printed, never committed); whether the Vercel deploy exists is unknown from here — report the host; monitoring/backups/rotation deferred (debt) |
-| T047 🛑 App Store | ❌ needs a TestFlight build first; the registry audit (R-040) and the launch checklist (§6) are done |
-
-## 3. Proof — commands run 2026-09-08 (evening)
-
-| Command | Result |
+| Area | State |
 |---|---|
-| `node shared/scripts/generate.mjs && node shared/scripts/check-drift.mjs` | clean, tree unchanged |
-| `node shared/scripts/check-vectors.mjs` · `check-seeds.mjs` · `doctrine-lint.mjs` | 51 vectors · seeds consistent · 132 Swift files clean |
-| `web: npm run typecheck` · `npm run lint` | clean · clean |
-| `web: npm test` | before the audit 28 files / 285 tests; after it 31 files / 309 tests (events 4, validators 7, day-key 9, mute 1, standing checks +3) — green |
-| `web: npm run vectors` | 51/51 |
-| `web: npm run build` | green |
-| `web: npm audit --audit-level=high` | 0 vulnerabilities |
-| `web: npm run e2e` | first run of the day: 22 passed · 1 skipped · 1 FAILED (journey ① phone-375 hydration flake; passed alone). After the helper fix: see the last line of `docs/progress.md` "Audit evidence" for the re-run |
-| `docker run … swift:5.10 swift test` | 25 tests, 0 failures (18 + the 7 new DayKey cases) |
-| `gh run view 34252964640` | contracts ✓ web ✓ web-e2e ✓ ios-engine ✓ ios (macOS: build, unit + vectors, journeys ①②) ✓ |
+| Server + web (Vercel, `crew-eta-one.vercel.app`) | Live and current: training, crews, invites by code or link, nutrition (18+), the education layer, the drafted privacy and terms pages. Checked 2026-09-18: `/` 200 · `/privacy` 200 · `/api/v1/users/me` 401 · the app-site-association route answers 404 until step 2 below |
+| iPhone app | Everything above is written and compiled and tested on GitHub's macOS simulator. No Mac exists here, so nothing is proven on a phone until you run the checklist in §4 |
+| Tests | 84 vectors on both engines · the web suite and the Playwright journeys ①–⑤ at 375 / 768 / 1280 · the iPhone unit tests and journeys · the launch audit (the seven no-grade clauses + the Not Building list) runs in CI on every push |
+| Not built, by your rulings | A21.13's list: feed, chat, leaderboards, comments, DMs, food search / barcode / recognition, supersets, A15, exercise media, web push, Android, Google sign-in (v1.1) |
 
-## 4. What the audit changed (R-055)
+## 2. Your tasks, in order (each is independent unless it says otherwise)
 
-- **Server**: `POST /api/v1/events` built and tested (api.md had promised it since R-004); `PATCH crews/[id]/mute` gained its
-  test. Every other route already existed and was tested — the "server unfinished" impression came from somewhere else.
-- **Web**: the onboarding funnel (hero → days → experience → plan built → saved) is recorded and flushed after sign-up, so
-  the 1C "hero → Home ≤ 90 s" reading exists in the `events` collection.
-- **Tests**: 8.3 validators (every input limit) and DayKey unit tests on both engines; the Playwright helper no longer flakes on
-  a pre-hydration fill.
-- **Hygiene**: the Playwright harness pins every vendor key to empty (a local `.env` with real keys could have reached it);
-  the stray `ios/.env` and the never-run `codemagic.yaml` are gone; `.env.example` gained `APP_STORE_URL`; MessageRow and
-  CreateCrewScreen live in their own files (C10); two 8.4 probes (camera-denied, Resume-after-kill) wait for their first CI run.
+1. **Domain (W7).** Buy a domain, attach it to the Vercel project `crew`, then in Vercel → Settings → Environment Variables set
+   `APP_BASE_URL` to `https://<your-domain>` and redeploy. Then tell the builder the host, or run:
+   ```powershell
+   gh variable set CREW_API_HOST --body "<your-domain>"
+   ```
+   Skipping this is fine for the beta: the vercel.app host works today.
+2. **Universal links (W7).** (a) developer.apple.com → Identifiers → `com.maxwellcuenca.crew` → tick **Associated Domains** → Save.
+   (b) In Vercel set `APPLE_TEAM_ID` (your ten-character Team ID; it becomes public inside the association file, which is normal)
+   and check `APPLE_BUNDLE_ID` is `com.maxwellcuenca.crew`; redeploy. (c) Then:
+   ```powershell
+   gh variable set CREW_APPLINKS_HOST --body "crew-eta-one.vercel.app"
+   gh workflow run testflight.yml
+   ```
+   (use your own domain instead once step 1 is done). If that build fails at the export step, Associated Domains is not enabled on
+   the App ID yet; `gh variable delete CREW_APPLINKS_HOST` returns the build to green. Until all three are done, invites still work
+   by pasted code, and a tapped link opens the web page with a Copy code button.
+3. **Support address.** In Vercel set `SUPPORT_EMAIL` to the address people should write to, then redeploy (the two pages are built
+   once per deploy). The privacy and terms pages print it; until then they say "Write to the support address on Crew's App Store page."
+4. **Privacy and terms (W9).** Read `https://crew-eta-one.vercel.app/privacy` and `/terms` (source: `shared/copy/legal.json`). They
+   are drafted from what the code does — what is stored, who sees it, the four providers, export and deletion, the 13+ and 18+ ages.
+   Three things are yours to add, and a lawyer's eye is worth it: **the operator's legal name**, **a governing-law sentence**, and
+   whether you want Apple's standard EULA or these terms as the App Store EULA. Send the changes; the builder edits the one file.
+5. **The age questionnaire (A16.b / W070).** App Store Connect → your app → App Information → Age Rating → answer it again with
+   what the app now does in mind: it gives adults calorie and macro targets and keeps one bodyweight, and posts are user-generated
+   content inside invite-only groups. The answers are yours. Record the rating Apple returns in `docs/progress.md` (or tell the builder).
+   **The App Store submission is gated on this and on nothing else in the code.**
+6. **The education copy (A23).** Read `docs/education-copy-draft.md` line by line — twelve whispers and the How Crew works page —
+   and **rewrite the note from Max in your own words**. On screen the note is labelled "Draft" until you do. Send the final text;
+   the builder changes `shared/copy/education.json` (`page.note.draft` → false) and both apps follow.
+7. **The canonical Push / Pull / Legs lists.** `shared/seed/plan-templates.json` has not been touched since W2, as ordered. Send the
+   lists (per day kind and experience level, in order) as a ruling; the builder applies them with new vectors.
+8. **Fast-food chains.** Six chains ship (Chick-fil-A, Chipotle, Panera Bread, Starbucks, Subway, Wendy's). McDonald's, Burger King,
+   Five Guys and Taco Bell are held in `docs/fast-food-seed-sources.md` with the reason each could not be read from its own current
+   publication. Release a chain by sending its published nutrition PDF or page; nothing else is needed.
+9. **The test-account variable.** `TEST_EMAIL_ALLOWLIST` is read by no server code — only by `web/scripts/purge-test-accounts.ts`
+   on this machine (confirmed by search 2026-09-18), so it cannot change how production behaves. Vercel's environment cannot be read
+   from here: open Vercel → Settings → Environment Variables and delete the name if it is listed. Before public launch, purge the
+   plus-addressed test accounts with that script (`docs/TEST_ACCOUNT_BYPASS.md`).
+10. **Store screenshots.** When the app looks the way you want:
+    ```powershell
+    gh workflow run "store screenshots"
+    ```
+    Two artifacts appear on the run (6.9-inch and 6.5-inch classes), each with `SIZES.md`. Listing copy: `docs/app-store-listing.md`.
+11. **Connectors.** The Google Calendar connector and the Stripe plugin are not authorized in this Claude session. Nothing in Crew
+    needs them. If you want them: claude.ai → Settings → Connectors, or `/mcp` in an interactive Claude Code session.
 
-## 5. Everything ratifiable — the gap calls that need your yes
+## 3. Readings made without you — a "no" on any of them is a small change
 
-Unchanged from the 2026-09-04 review, all still tagged `// GAP:` in code and logged in `docs/ratification.md`: reactions on
-posts only (R-023) · achievements by a separate pass (R-037) · swap keeps the row's targets (R-016/R-034) · server-clock window
-7 days back / 5 min forward (R-018) · holds count in x/y (R-018) · photo pipeline + unguessable keys (R-020) · web reminder
-in-app only (R-031) · progress spans 12/8 weeks (R-033) · welcome-back per quiet spell (R-034) · stale session two choices
-(R-034) · iOS S14 editor built without a ledger task (R-034) · empty states as h1 (R-035) · dev-only substitutes (R-005 …) ·
-mid-workout swap helper + 15 s rest step (R-038) · metrics denominators (R-039) · the phone's replay contract (R-043) · the
-GAP constants (R-044) · fresh-phone hydration (R-046) · the sync driver (R-045) · the XCUITest seed (R-046) · S03 day circles
-inscribed in the column (R-052) · **new today**: the funnel event names and the auth-only events route (R-055).
+| Reading | Where | What was chosen |
+|---|---|---|
+| A one-day plan whose one workout is done is a perfect week (+150 and a shield) | R-068 (3), A22 G1 (a) | The rule as written; the alternative is a minimum of two planned days for a perfect week |
+| Plan history is not kept, so a plan edit re-judges unposted past days | R-068 (1), debt | The current plan judges the past |
+| The comeback, the rest-day bridge and the streak nudge after A22 | R-069 · R-070 · R-071 | The smallest copy and rule that survive the removal of meal posts |
+| Nutrition: ten readings (rounded energy, the typo bounds, the calorie line, idempotent saves, the one-route delete, the gate, six chains) | R-074 | Each the narrowest in-contract answer |
+| Nutrition screens: what Today prints, the markers, optimistic logging | R-075 | Same |
+| Education: `how.invite` shows on the Crew tab, not inside the Invite sheet (a whisper never sits in a sheet) | R-076 | Rule 3 of the whisper contract wins over the placement table |
+| 6.9 density on Today: Quick add and "Logged today" became their own screens; How Crew works stays one scrolling page | R-077 | Nothing was removed; the second scroll-length moved one tap away. S19 is prose, read once |
+| W9: the store's first versioned schema is build 150's; the legal pages leave three blanks for you | R-078 | See §2.4 |
 
-Open owner decision: Firebase Auth ⏳ (Appendix B) — custom auth proceeded by default; nothing built against Firebase.
+## 4. The phone checklist (TestFlight, latest build — the number is on the top line of `docs/progress.md`)
 
-## 6. The ordered ship path (one step per message from the agent; real values never in the repo or the chat)
+1. Update over your existing install: your plan, history and streak are all still there (the new store migration).
+2. A rest day's Home asks nothing: no camera, no meal row, the streak unchanged the next morning.
+3. Finish a workout: the celebration offers "Share to crew" and "Keep it private"; nothing posts before you tap one; the caption saves.
+4. Paste an invite code on the hero or the Crew tab: the crew's name previews, and you land in the crew.
+5. Tap a `/join/…` link in Messages: today it opens the web page with Copy code; after §2.2 it opens the app.
+6. Home shows "Log macros" on an adult account (absent under 18): estimate targets from a bodyweight, then Today shows four lines.
+7. Save a meal, add one from a chain, build the template, log a slot with one tap, undo it; Quick add: one tap on + adds 5 g and a hold repeats (the same fix is on reps and weight in the logger); "Logged today" lists both.
+8. Airplane mode: log a meal and a quick add, then reconnect: both reach the web app's Today without a duplicate.
+9. Whispers: each appears once, the first tap anywhere clears it, and it stays gone after a reinstall once you sign in; Settings → About → How Crew works opens.
+10. Settings → Accessibility → Colour Filters → Grayscale: the macro lines still read correctly (W066); then Settings → Delete my nutrition data.
 
-1. **Commit and push the audit.** `& "C:\Program Files\Git\bin\bash.exe" C:/Users/princ/CREW_2.0/docs/commit-queue.sh` then
-   `git push` — blocks F08–F13. CI runs the two new UI probes for the first time; if one fails, the agent reads the job log
-   with `gh api` and fixes it (behaviour never changes to make a test pass).
-2. **Report the Vercel host** (or say it is not deployed yet). The agent curls `/api/v1/users/me` (401) and `/` (200), then
-   runs Playwright against production. Until then T046 stays 🔌.
-3. **Rotate Resend and Blob** (you said you would): new values into Vercel's environment, redeploy, and update your local
-   `web/.env`; nothing in the repo changes.
-4. **Apple**: accept the updated Program License Agreement; Team ID + APNs key into Vercel (`APNS_*`, `APNS_ENVIRONMENT=
-   production`); an **Admin** App Store Connect API key; GitHub secrets/variables per `.github/workflows/testflight.yml`.
-5. **Actions → testflight → Run workflow** (build number 1). Install from TestFlight.
-6. **Device pass** on your iPhone: journeys ① and ② by hand; the 8.6 offline matrix (§7); one push; one photo; VoiceOver
-   through a session; Dynamic Type XXL on Home / Session / Crew; Reduce Motion on the celebration. Tick each in
-   `docs/progress.md` (T028, T035, T043 flip from 📝/❌ to ✅), one commit each.
-7. **Gate ratifications**: R-015 (Phase 1), R-022/R-053 (Phase 2), R-027 (Phase 3), R-032 (Phase 4), R-036 (Phase 5), plus
-   the §5 list — a "no" on any gap call is a small local change.
-8. **Production tier** when a second tester exists: Vercel Pro (cron back to `* * * * *`), Atlas M10+ with backups and a
-   real allowlist, a verified Resend domain, log drains and alerts (debt entries name each).
-9. **App Store (T047)**: bundle id, capabilities, privacy labels, EULA link, 13+, review notes with a test account and an
-   invite link, screenshots; final audit `node shared/scripts/doctrine-lint.mjs` + `grep -rn "GAP:" web/src ios/Crew`.
-10. **Test accounts**: `TEST_EMAIL_ALLOWLIST` unset in production before public launch (`docs/TEST_ACCOUNT_BYPASS.md`;
-    the plus-addressed test accounts are purged locally with `web/scripts/purge-test-accounts.ts` first).
+## 5. What blocks the App Store submission (T047)
 
-## 7. The 8.6 offline matrix — first device pass checklist
+| Gate | Owner | State |
+|---|---|---|
+| Age questionnaire re-answered (A16.b) | you | open — §2.5 |
+| Privacy and terms reviewed; legal name and governing law added | you | open — §2.4 |
+| Education copy ratified; the note rewritten | you | open — §2.6 |
+| A demo account for App Review with a plan, workouts and a two-person crew | you | open — notes drafted in `docs/app-store-listing.md` |
+| The phone checklist in §4 | you | open |
+| Listing copy, privacy label answers, review notes | builder | drafted — `docs/app-store-listing.md` |
+| Launch audit (seven no-grade clauses + Not Building) | builder | clean, and in CI |
+| Store migration for existing installs | builder | built and unit-tested in CI (`StoreMigrationTests`); proven on a phone by §4.1 |
+| Exercise media (A13) | lawyer | not shipping; gated on W053, unchanged |
 
-Airplane mode: view plan · full session · complete + celebration (local engine) · post queued with chip · reconnect →
-auto-send, silent reconcile · chat draft held · kill mid-queue → nothing lost (the simulator half of this is now
-`OfflineSessionTests`) · 24 h failed upload → Retry / Post without photo / Delete.
+## 6. Production notes that still stand
 
-## 8. Production notes (T046) — decisions, not steps
-
-Unchanged: Atlas continuous backup + a restore drill before launch · Vercel log drain + 5xx alert, Atlas alerts · `JWT_SECRET`
-rotation expires access tokens within 15 min while refresh tokens (server-side records) survive · `CRON_SECRET` rotates in
-Vercel and `vercel.json` together · APNs/Resend/Blob keys rotate at the provider, redeploy, one smoke each · photos under
-unguessable keys, deleted by the account cascade; the JSON export is the user's copy; nothing is aggregated beyond Part IV.
+Atlas continuous backup and a restore drill before launch · a Vercel log drain with a 5xx alert · `JWT_SECRET` rotation expires access
+tokens within 15 minutes while refresh tokens survive · `CRON_SECRET` rotates in Vercel and `vercel.json` together · APNs, Resend and
+Blob keys rotate at the provider, redeploy, one smoke test each · Vercel Pro returns the reminder cron to every minute when a second
+tester exists (debt).

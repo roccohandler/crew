@@ -1,5 +1,7 @@
 // SPEC: 5.2 Storage/Store.swift — the SwiftData container + typed fetch functions · C3 (Store.shared) · C4 (tests use
-// an in-memory container: Store(inMemory: true)). Plain functions, no repository layer (C2). WRITTEN — UNVERIFIED.
+// an in-memory container: Store(inMemory: true)). W9: the container opens the CURRENT versioned schema under CrewMigrationPlan
+// (StoreSchema.swift), so an update keeps the phone's rows; F31's start-over stays underneath for a store no version matches.
+// Plain functions, no repository layer (C2). WRITTEN — UNVERIFIED.
 
 import Foundation
 import SwiftData
@@ -11,17 +13,12 @@ final class Store {
     let container: ModelContainer
     var context: ModelContext { container.mainContext }
 
-    init(inMemory: Bool) {
-        let schema = Schema([
-            LocalPlan.self, LocalWorkoutTemplate.self, LocalExerciseTemplate.self,
-            LocalSession.self, LocalSessionExercise.self, LocalSetLog.self,
-            LocalPost.self, LocalGamificationState.self, LocalPause.self, LocalCrewSnapshot.self,
-            LocalNutritionTargets.self, LocalSavedMeal.self, LocalDayTemplate.self, LocalMealLog.self, // W8 (nutrition addendum §2)
-            OpRecord.self,
-        ])
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: inMemory)
+    // `url` is for the migration test alone (a store file written by an older schema); the app never passes one
+    init(inMemory: Bool, url: URL? = nil) {
+        let schema = Schema(versionedSchema: CrewSchemaV2.self)
+        let configuration = url.map { ModelConfiguration(url: $0) } ?? ModelConfiguration(isStoredInMemoryOnly: inMemory)
         do {
-            container = try ModelContainer(for: schema, configurations: [configuration])
+            container = try ModelContainer(for: schema, migrationPlan: CrewMigrationPlan.self, configurations: [configuration])
         } catch {
             // SPEC: 1C · S01 · docs/debt.md (no SwiftData migration in the beta) — a store written by an earlier schema (build 2's,
             // before A1/A2 reshaped plans and sets) cannot be opened by this one. The phone is not the source of truth: the server
@@ -30,7 +27,7 @@ final class Store {
             guard !inMemory else { fatalError("SwiftData container failed: \(error)") }
             Store.removeStoreFiles(at: configuration.url)
             do {
-                container = try ModelContainer(for: schema, configurations: [configuration])
+                container = try ModelContainer(for: schema, migrationPlan: CrewMigrationPlan.self, configurations: [configuration])
             } catch {
                 fatalError("SwiftData container failed after a fresh store: \(error)")
             }
