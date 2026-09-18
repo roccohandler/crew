@@ -229,16 +229,6 @@ export const SpecConstants = {
   /** SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8 */
   dayLabelWeekdayWithinDays: 6,
 
-  // --- nutrition ---
-  /** SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight) */
-  mealTagBreakfastFromMinute: 240,
-  /** SPEC: Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local */
-  mealTagLunchFromMinute: 630,
-  /** SPEC: Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local */
-  mealTagDinnerFromMinute: 930,
-  /** SPEC: Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack */
-  mealTagDinnerUntilMinute: 1260,
-
   // --- reminders ---
   /** SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in */
   reminderSuggestedMinuteOfDay: 450,
@@ -270,10 +260,6 @@ export const SpecConstants = {
   swapMaxTaps: 2,
   /** SPEC: S07 — ≤3 taps launch→fast-logged */
   fastLogMaxTapsFromLaunch: 3,
-  /** SPEC: S11 — text-only ≤ 3 taps */
-  textOnlyPostMaxTaps: 3,
-  /** SPEC: Flow 2; Flow 4 — under 15 seconds */
-  nutritionPostTargetSeconds: 15,
   /** SPEC: S13 — join ≤ 2 taps with app */
   inviteJoinMaxTapsApp: 2,
   /** SPEC: W1 — joining via web ≤ 3 interactions post-auth */
@@ -292,8 +278,6 @@ export const SpecConstants = {
   scrollTargetFps: 60,
   /** SPEC: 6.2 — no hangs > 250 ms */
   hangMaxMs: 250,
-  /** SPEC: 6.2; S11 — shutter → optimistic posted < 500 ms */
-  photoPostOptimisticMaxMs: 500,
   /** SPEC: 6.2 — web LCP (Home, Crew) < 2.5 s on 4G */
   webLcpMaxMs: 2500,
   /** SPEC: 6.2 — web INP < 200 ms */
@@ -338,8 +322,6 @@ export const SpecConstants = {
   webMinViewportPx: 360,
   /** SPEC: 6.7 — no horizontal scroll 360–1920 */
   webMaxViewportPx: 1920,
-  /** SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars) */
-  captionComposerMaxLines: 3,
 
   // --- accessibility ---
   /** SPEC: 6.5 — text ≥ 4.5:1 */
@@ -352,7 +334,7 @@ export const SpecConstants = {
   syncBackoffSeconds: [1, 2, 4, 8, 16],
   /** SPEC: 5.6.3 SyncQueue — five attempts, then .held */
   syncMaxAttemptsBeforeHeld: 5,
-  /** SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete */
+  /** SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Delete (A22 G2, 2026-09-18: no queued op carries a photo) */
   failedUploadChoiceAfterHours: 24,
   /** SPEC: GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins */
   syncClientTimestampMaxAgeDays: 7,

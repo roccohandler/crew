@@ -1,5 +1,13 @@
 # Meal-post removal map (the plate journal)
 
+**EXECUTED 2026-09-18** (the owner's order of 2026-09-18, item 2; commits a70a401 · 8695e1d · 3eb3042 and the constants/seeds/spec-markers
+commit): every row below has been applied — the engines under G1 (a) (rest days exempt; 23 vectors retired by marker, V66–V84 added), the
+web platform (POST posts removed, photos profile-only, Home asks nothing of a rest day, the composer and the meal row deleted), the phone
+(the Post folder deleted except the profile camera, the sync queue without photos, CameraDenied → ProfilePhotoDeniedTests), the constants
+(the four G10 minutes, textOnlyPostMaxTaps, nutritionPostTargetSeconds, photoPostOptimisticMaxMs, captionComposerMaxLines deleted;
+xpMealPost / mealXpDailyCap stay vector-bound), the seeds (first-flame and perfect-week re-copied) and the spec markers. The line
+numbers below are those of master `1d94692`, when the map was drawn; the readings the execution took are R-068 to R-072.
+
 Owner ruling (2026-09-17, recorded as Appendix A **A22 — OWNER-DIRECTED, PENDING** the four GAPs below): nutrition is macro logging
 ONLY, in the MyMacros+ shape. Meal photo/text posts — the plate journal — are REMOVED from the product: no meal photo capture, no
 meal captions, no meal posts in the crew stream, no meal tags, no "same as yesterday", no 3-meal XP cap. A meal is a macro entry

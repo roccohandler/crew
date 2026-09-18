@@ -1365,7 +1365,7 @@ export const achievements: SeedAchievement[] = [
   {
     "id": "first-flame",
     "title": "First flame",
-    "line": "Your first post. The streak starts here.",
+    "line": "Your first post. It all starts here.",
     "scope": "solo",
     "trigger": "postsTotal",
     "threshold": 1,
@@ -1410,7 +1410,7 @@ export const achievements: SeedAchievement[] = [
   {
     "id": "perfect-week",
     "title": "Perfect week",
-    "line": "Every planned workout, every day posted. Shield earned.",
+    "line": "Every planned workout done. Shield earned.",
     "scope": "solo",
     "trigger": "perfectWeeks",
     "threshold": 1,

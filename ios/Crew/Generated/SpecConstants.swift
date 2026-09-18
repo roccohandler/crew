@@ -229,16 +229,6 @@ enum SpecConstants {
     /// SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8
     static let dayLabelWeekdayWithinDays: Int = 6
 
-    // MARK: nutrition
-    /// SPEC: Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)
-    static let mealTagBreakfastFromMinute: Int = 240
-    /// SPEC: Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local
-    static let mealTagLunchFromMinute: Int = 630
-    /// SPEC: Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local
-    static let mealTagDinnerFromMinute: Int = 930
-    /// SPEC: Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack
-    static let mealTagDinnerUntilMinute: Int = 1260
-
     // MARK: reminders
     /// SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in
     static let reminderSuggestedMinuteOfDay: Int = 450
@@ -270,10 +260,6 @@ enum SpecConstants {
     static let swapMaxTaps: Int = 2
     /// SPEC: S07 — ≤3 taps launch→fast-logged
     static let fastLogMaxTapsFromLaunch: Int = 3
-    /// SPEC: S11 — text-only ≤ 3 taps
-    static let textOnlyPostMaxTaps: Int = 3
-    /// SPEC: Flow 2; Flow 4 — under 15 seconds
-    static let nutritionPostTargetSeconds: Int = 15
     /// SPEC: S13 — join ≤ 2 taps with app
     static let inviteJoinMaxTapsApp: Int = 2
     /// SPEC: W1 — joining via web ≤ 3 interactions post-auth
@@ -292,8 +278,6 @@ enum SpecConstants {
     static let scrollTargetFps: Int = 60
     /// SPEC: 6.2 — no hangs > 250 ms
     static let hangMaxMs: Int = 250
-    /// SPEC: 6.2; S11 — shutter → optimistic posted < 500 ms
-    static let photoPostOptimisticMaxMs: Int = 500
     /// SPEC: 6.2 — web LCP (Home, Crew) < 2.5 s on 4G
     static let webLcpMaxMs: Int = 2500
     /// SPEC: 6.2 — web INP < 200 ms
@@ -338,8 +322,6 @@ enum SpecConstants {
     static let webMinViewportPx: Int = 360
     /// SPEC: 6.7 — no horizontal scroll 360–1920
     static let webMaxViewportPx: Int = 1920
-    /// SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)
-    static let captionComposerMaxLines: Int = 3
 
     // MARK: accessibility
     /// SPEC: 6.5 — text ≥ 4.5:1
@@ -352,7 +334,7 @@ enum SpecConstants {
     static let syncBackoffSeconds: [Int] = [1, 2, 4, 8, 16]
     /// SPEC: 5.6.3 SyncQueue — five attempts, then .held
     static let syncMaxAttemptsBeforeHeld: Int = 5
-    /// SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete
+    /// SPEC: E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Delete (A22 G2, 2026-09-18: no queued op carries a photo)
     static let failedUploadChoiceAfterHours: Int = 24
     /// SPEC: GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins
     static let syncClientTimestampMaxAgeDays: Int = 7

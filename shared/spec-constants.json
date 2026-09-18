@@ -126,12 +126,6 @@
   "journal": {
     "dayLabelWeekdayWithinDays": { "value": 6, "spec": "A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8" }
   },
-  "nutrition": {
-    "mealTagBreakfastFromMinute": { "value": 240, "spec": "Flow 4 time-smart tags; Decision Registry G10 (2026-09-04) — breakfast 04:00–10:30 local (minutes since local midnight)" },
-    "mealTagLunchFromMinute": { "value": 630, "spec": "Decision Registry G10 (2026-09-04) — lunch 10:30–15:30 local" },
-    "mealTagDinnerFromMinute": { "value": 930, "spec": "Decision Registry G10 (2026-09-04) — dinner 15:30–21:00 local" },
-    "mealTagDinnerUntilMinute": { "value": 1260, "spec": "Decision Registry G10 (2026-09-04) — after 21:00 and before 04:00 = snack" }
-  },
   "reminders": {
     "reminderSuggestedMinuteOfDay": { "value": 450, "spec": "Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in" },
     "streakRiskNudgeWindowMinutes": { "value": 60, "spec": "GAP (agent, 2026-09-04): Flow 4 rhythm reminder 'at YOUR usual time' — the nudge may fire within this many minutes after the user's usual post time" },
@@ -150,8 +144,6 @@
   "interactionBudgets": {
     "swapMaxTaps": { "value": 2, "spec": "Flow 1 step 4; S04 — Swap in 2 taps" },
     "fastLogMaxTapsFromLaunch": { "value": 3, "spec": "S07 — ≤3 taps launch→fast-logged" },
-    "textOnlyPostMaxTaps": { "value": 3, "spec": "S11 — text-only ≤ 3 taps" },
-    "nutritionPostTargetSeconds": { "value": 15, "spec": "Flow 2; Flow 4 — under 15 seconds" },
     "inviteJoinMaxTapsApp": { "value": 2, "spec": "S13 — join ≤ 2 taps with app" },
     "inviteJoinMaxInteractionsWeb": { "value": 3, "spec": "W1 — joining via web ≤ 3 interactions post-auth" }
   },
@@ -162,7 +154,6 @@
     "setCheckFeedbackMaxMs": { "value": 50, "spec": "6.2 — set-check → haptic + UI update < 50 ms" },
     "scrollTargetFps": { "value": 60, "spec": "6.2 — session/history scroll 60 fps" },
     "hangMaxMs": { "value": 250, "spec": "6.2 — no hangs > 250 ms" },
-    "photoPostOptimisticMaxMs": { "value": 500, "spec": "6.2; S11 — shutter → optimistic posted < 500 ms" },
     "webLcpMaxMs": { "value": 2500, "spec": "6.2 — web LCP (Home, Crew) < 2.5 s on 4G" },
     "webInpMaxMs": { "value": 200, "spec": "6.2 — web INP < 200 ms" },
     "loadingSkeletonWithinMs": { "value": 100, "spec": "6.1 — skeleton/spinner within 100 ms" },
@@ -186,8 +177,7 @@
     "webAppMaxWidthPx": { "value": 640, "spec": "6.7 — centered single column, max-width ~640 px" },
     "webProgressMaxWidthPx": { "value": 960, "spec": "6.7 — Progress may widen to ~960 px for charts" },
     "webMinViewportPx": { "value": 360, "spec": "6.7 — from 360 px up; no horizontal scroll 360–1920" },
-    "webMaxViewportPx": { "value": 1920, "spec": "6.7 — no horizontal scroll 360–1920" },
-    "captionComposerMaxLines": { "value": 3, "spec": "GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)" }
+    "webMaxViewportPx": { "value": 1920, "spec": "6.7 — no horizontal scroll 360–1920" }
   },
   "accessibility": {
     "textContrastMin": { "value": 4.5, "spec": "6.5 — text ≥ 4.5:1" },
@@ -196,7 +186,7 @@
   "sync": {
     "syncBackoffSeconds": { "value": [1, 2, 4, 8, 16], "spec": "5.6.3 SyncQueue — backoff 1s·2s·4s·8s·16s then .held" },
     "syncMaxAttemptsBeforeHeld": { "value": 5, "spec": "5.6.3 SyncQueue — five attempts, then .held" },
-    "failedUploadChoiceAfterHours": { "value": 24, "spec": "E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete" },
+    "failedUploadChoiceAfterHours": { "value": 24, "spec": "E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Delete (A22 G2, 2026-09-18: no queued op carries a photo)" },
     "syncClientTimestampMaxAgeDays": { "value": 7, "spec": "GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins" },
     "clientClockSkewToleranceMinutes": { "value": 5, "spec": "GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync)" },
     "streamPollIntervalMinSeconds": { "value": 5, "spec": "Part IV; 5.6.2 CrewModel.poll — the stream is polled every 5–10 s (A21.2 / W3, 2026-09-17: renamed from chatPollIntervalMinSeconds — the chat is gone, the value is not)" },
