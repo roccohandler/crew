@@ -51,7 +51,7 @@ Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web t
 | GET `users/me` | — | `{ user, gamification, pause, crew }` — `user` is the public User: id, email, authProvider, displayName, profilePhotoKey, units, timezone, reminderTime, `notificationPrefs { workoutReminder, streakRisk, crewActivity }` (always present, defaults `true` — A7), welcomeBackAckDay, createdAt; `crew` = `{ id, name, emoji, muted }` or null | — |
 | PATCH `users/me` | `updateMeSchema` { displayName?, units?, timezone?, reminderTime? (null clears), profilePhotoKey? (null clears), notificationPrefs? (partial), welcomeBackAckDay? } | update profile fields; `profilePhotoKey` must name a photo the caller uploaded with `purpose: "profile"` (400 `validation` otherwise — A7/E1); `notificationPrefs` is merged over the stored toggles (send only the row that changed — A7); `welcomeBackAckDay` (YYYY-MM-DD) records the answer to the welcome-back screen (E4) so no device asks twice in one quiet spell; replies with the public User | `validation` |
 | DELETE `users/me` | `deleteAccountSchema` { confirm: "delete" } | the cascade (E9, 8.2 Account): posts vanish from streams, blobs deleted, memberships removed (captaincy auto-passes, last-out archives), refresh tokens revoked, Resend "account deleted" email; afterwards every resource 404s and re-signup is a fresh identity | `validation` |
-| GET `users/me/export` | — | streamed JSON export of everything the user owns (user, plan — in the A1 shape, sessions, sets, posts, reactions given, memberships, messages, gamification, pauses, blocks) — 8.2 completeness test | — |
+| GET `users/me/export` | — | streamed JSON export of everything the user owns (user, plan — in the A1 shape, sessions, sets, posts, reactions given, memberships, messages (system lines about you — the chat is gone, A21.2), gamification, pauses, blocks) — 8.2 completeness test | — |
 
 ## Photos — `photos` (T027) — tree addition, see ratification R-004
 
@@ -88,7 +88,9 @@ Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web t
 | POST `posts/[id]/reactions` | `reactionSchema` { emoji ∈ `reactionEmojis` } | react (UNIQUE per user-target; a second emoji replaces the first); `reactionXpDailyCap` server-enforced | `notFound`, `validation`, `notInCrew` 403 |
 | DELETE `posts/[id]/reactions` | — | un-react (tap again, E20) | `notFound` |
 
-## Crews — `crews`, `crews/join`, `crews/[id]/{members,invite,messages,stream}` (T029–T030)
+## Crews — `crews`, `crews/join`, `crews/[id]/{members,invite,stream,mute}` (T029–T030)
+
+A21.2 / W3 (owner-approved 2026-09-17): free-text chat is GONE. `POST crews/[id]/messages` and `DELETE crews/[id]/messages/[messageId]` are DELETED (not deprecated: nothing sends, and a live write path for free text would contradict "posts + system lines + reactions only"); the `messages` collection carries SYSTEM LINES only and a legacy `message` row is never served; an older phone's queued `sendMessage` sync op is rejected per op as `chatRetired` (non-retryable). `pulse` and `members` on GET `crews`, GET `crews/[id]/stream` and GET `crews/[id]/members` exclude anyone the caller blocked or was blocked by (E9).
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
@@ -100,9 +102,7 @@ Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web t
 | DELETE `crews/[id]/members` | `leaveOrRemoveSchema` { userId? } | own userId (or absent) = leave; another userId = Captain removes; captaincy auto-passes to the longest-tenured; last one out archives silently (E2) | `notFound`, `forbidden` |
 | POST `crews/[id]/invite` | — | Captain regenerates the invite token (the old link dies) | `forbidden` |
 | PATCH `crews/[id]` | `renameCrewSchema` { name?, emoji? } | Captain renames | `forbidden`, `validation` |
-| GET `crews/[id]/stream` | ?since= | the ONE unified stream: posts (shared — each `post` is the Post shape above, `summary` included, A5/A6), messages, system lines, time-merged, `feedWindowDays` (7) window, join-forward for joiners, blocked users filtered both ways, own reactions marked; comeback banners per V39 | `notFound` |
-| POST `crews/[id]/messages` | `sendMessageSchema` { clientId, body (≤ `chatMessageMaxChars`) } | send; idempotent on `clientId` | `validation`, `notFound` |
-| DELETE `crews/[id]/messages/[messageId]` | — | own message → tombstone (`deletedAt`); Captain may delete any | `notFound`, `forbidden` |
+| GET `crews/[id]/stream` | ?since= | the ONE unified stream: posts (shared — each `post` is the Post shape above, `summary` included, A5/A6) and system lines, time-merged (A21.2: never a chat row), `feedWindowDays` (7) window, join-forward for joiners, blocked users filtered both ways, own reactions marked; comeback banners per V39 | `notFound` |
 | PATCH `crews/[id]/mute` | `muteSchema` { muted: boolean } | per-crew mute (E2, S17) | `notFound` |
 
 ## Sync — `sync` (T023)

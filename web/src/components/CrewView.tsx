@@ -1,28 +1,28 @@
 "use client";
-// SPEC: Flow 6 — CREW PULSE + member strip + ONE unified stream + chat composer; reactions on posts; Part IV polling (5 s while
-// the tab is open); E20 un-react by tapping again. A5: solo = three lines then one CTA; a crew of one = the open invite card
-// and no composer until two members; E9: report / block from a card, then one confirming line. Web twin of ios CrewModel +
-// CrewScreen.
+// SPEC: Flow 6 — CREW PULSE + member strip + ONE unified stream of posts and system lines; reactions on posts; Part IV polling
+// (5 s while the tab is open); E20 un-react by tapping again. A21.2 (owner-approved 2026-09-17): free-text chat is gone — no
+// composer, ever; the stream is posts + system lines + reactions. A5: solo = three lines then one CTA; a crew of one = the open
+// invite card until two members; E9: report / block from a card, then one confirming line. Web twin of ios CrewModel + CrewScreen.
 import { useCallback, useEffect, useState } from "react";
-import { CrewHeader, Composer } from "@/components/CrewHeader";
+import { CrewHeader } from "@/components/CrewHeader";
 import { CrewInvitePanel } from "@/components/CrewInvitePanel";
 import { EmptyState, ErrorState } from "@/components/EmptyState";
 import { StreamList, type Moderation } from "@/components/StreamList";
 import { isApiClientError } from "@/lib/api-client";
-import { block, createCrew, myCrew, react, report, sendMessage, stream, unreact, type CrewSummary, type StreamReply } from "@/lib/api-client-crew";
+import { block, createCrew, myCrew, react, report, stream, unreact, type CrewSummary, type StreamReply } from "@/lib/api-client-crew";
 import { TimeUnits } from "@/lib/time-units";
 import { SpecConstants } from "@/generated/spec-constants";
 
 type Loaded = { crew: CrewSummary | null; feed: StreamReply | null };
 
-// SPEC: A5 · Flow 10 — the solo tab explains the loop in three lines, then one warm invitation (never a waiting room)
+// SPEC: A5 · Flow 10 — the solo tab explains the loop in three lines, then one warm invitation (never a waiting room); A21.2: no "and chat"
 function SoloState({ onStart }: { onStart: () => void }) {
   return (
     <EmptyState title="Start a crew" line="Two to ten friends. A link, a name, an emoji." ctaTitle="Start a crew" onClick={onStart}>
       <ul className="loop">
         <li>Post a workout or a meal photo.</li>
         <li>It lands here for your crew.</li>
-        <li>They react 🔥💪👏😂❤️ and chat.</li>
+        <li>They react 🔥💪👏😂❤️.</li>
       </ul>
     </EmptyState>
   );
@@ -60,9 +60,9 @@ export function CrewView({ myUserId }: { myUserId: string }) {
   }, []);
 
   useEffect(() => {
-    // subscribe to the server: first poll on the next tick, then every 5 s (Part IV polling)
+    // subscribe to the server: first poll on the next tick, then every 5 s (Part IV polling — the stream's, since A21.2 there is no chat)
     const first = window.setTimeout(() => void load(), 0);
-    const timer = window.setInterval(() => void load(), SpecConstants.chatPollIntervalMinSeconds * TimeUnits.msPerSecond);
+    const timer = window.setInterval(() => void load(), SpecConstants.streamPollIntervalMinSeconds * TimeUnits.msPerSecond);
     return () => { window.clearTimeout(first); window.clearInterval(timer); };
   }, [load]);
 
@@ -73,7 +73,7 @@ export function CrewView({ myUserId }: { myUserId: string }) {
   if (state.crew === null && !creating) return <SoloState onStart={() => setCreating(true)} />;
   if (state.crew === null) return <CrewInvitePanel crew={null} members={[]} onCreate={async (name, emoji) => { await createCrew(name, emoji); setCreating(false); await load(); }} onChanged={load} />;
   const members = state.feed?.members ?? [];
-  const hasCrewmates = members.length >= SpecConstants.crewMinMembers; // SPEC: A5 — no composer, no "Quiet in here" until two members
+  const hasCrewmates = members.length >= SpecConstants.crewMinMembers; // SPEC: A5 — no "Quiet in here" until two members
   return (
     <div className="stack">
       <CrewHeader crew={state.crew} feed={state.feed} />
@@ -81,7 +81,6 @@ export function CrewView({ myUserId }: { myUserId: string }) {
       {notice ? <p className="muted" role="status">{notice}</p> : null}
       {hasCrewmates && state.feed && state.feed.items.length === 0 ? <p className="muted">Quiet in here. Post a workout or a plate and it lands right here.</p> : null}
       {state.feed ? <StreamList items={state.feed.items} members={members} myUserId={myUserId} onReact={toggleReaction} moderation={moderationFor(load, setNotice)} /> : null}
-      {hasCrewmates ? <Composer onSend={async (body) => { await sendMessage(state.crew!.id, crypto.randomUUID(), body); await load(); }} /> : null}
     </div>
   );
 }

@@ -92,8 +92,6 @@ export const SpecConstants = {
   crewNameMaxChars: 30,
   /** SPEC: E20 */
   exerciseNameMaxChars: 60,
-  /** SPEC: E20; Part IX; 8.2 */
-  chatMessageMaxChars: 1000,
   /** SPEC: GAP (agent, 2026-09-04): E1 names a display name but no limit; conservative default = the crew-name limit */
   displayNameMaxChars: 30,
   /** SPEC: GAP (agent, 2026-09-04): E18 standard resets, no password floor stated; conservative common floor */
@@ -342,8 +340,6 @@ export const SpecConstants = {
   webMaxViewportPx: 1920,
   /** SPEC: GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton */
   skeletonPlaceholderRows: 3,
-  /** SPEC: GAP (agent, 2026-09-05): S13 chat composer grows to four lines before it scrolls */
-  chatComposerMaxLines: 4,
   /** SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars) */
   captionComposerMaxLines: 3,
 
@@ -364,10 +360,10 @@ export const SpecConstants = {
   syncClientTimestampMaxAgeDays: 7,
   /** SPEC: GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync) */
   clientClockSkewToleranceMinutes: 5,
-  /** SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s */
-  chatPollIntervalMinSeconds: 5,
-  /** SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s */
-  chatPollIntervalMaxSeconds: 10,
+  /** SPEC: Part IV; 5.6.2 CrewModel.poll — the stream is polled every 5–10 s (A21.2 / W3, 2026-09-17: renamed from chatPollIntervalMinSeconds — the chat is gone, the value is not) */
+  streamPollIntervalMinSeconds: 5,
+  /** SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10 s (A21.2 / W3: renamed from chatPollIntervalMaxSeconds) */
+  streamPollIntervalMaxSeconds: 10,
   /** SPEC: GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops */
   syncBatchMaxOps: 1000,
   /** SPEC: GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived */

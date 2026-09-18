@@ -1,9 +1,9 @@
-// SPEC: docs/api.md POST reports — report any post/message/crew-name/user; the Report is stored and the moderation inbox is
-// emailed via Resend — that email IS the manual review queue (E9: no AI scanning) · T034
+// SPEC: docs/api.md POST reports — report any post / crew name / user (E9 as marked by A21.2: messages are gone with the chat);
+// the Report is stored and the moderation inbox is emailed via Resend — that email IS the manual review queue (E9: no AI scanning) · T034
 import { ObjectId } from "mongodb";
 import { errorResponse, json, notFound } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
-import { crews, messages, posts, reports, users } from "@/lib/db";
+import { crews, posts, reports, users } from "@/lib/db";
 import { sendReportReceivedEmail } from "@/lib/email";
 import { logEvent } from "@/lib/events";
 import { HttpStatus } from "@/lib/http-status";
@@ -11,7 +11,6 @@ import { createReportSchema } from "@/lib/validate-crews";
 
 async function previewOf(targetType: string, targetId: ObjectId): Promise<string> {
   if (targetType === "post") return (await (await posts()).findOne({ _id: targetId }))?.caption ?? "";
-  if (targetType === "message") return (await (await messages()).findOne({ _id: targetId }))?.body ?? "";
   if (targetType === "crewName") return (await (await crews()).findOne({ _id: targetId }))?.name ?? "";
   return (await (await users()).findOne({ _id: targetId }))?.displayName ?? "";
 }

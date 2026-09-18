@@ -1,7 +1,8 @@
 "use client";
-// SPEC: Flow 6 — posts drop into the chat as cards; system lines; tombstoned messages; reactions (🔥 💪 👏 😂 ❤️) with a visible
-// React row (6.7); the COMEBACK banner (V39). A6: one summary line under the author (item.post.summary); A5/E9: a "…" menu with
-// Report post / Block {name} on others' posts. Mirrors ios StreamList + PostCard + MessageRow.
+// SPEC: Flow 6 — posts are the stream's cards; system lines between them; reactions (🔥 💪 👏 😂 ❤️) with a visible React row
+// (6.7); the COMEBACK banner (V39). A21.2 (owner-approved 2026-09-17): no chat rows — the stream is posts + system lines +
+// reactions and nothing else. A6: one summary line under the author (item.post.summary); A5/E9: a "…" menu with Report post /
+// Block {name} on others' posts. Mirrors ios StreamList + PostCard.
 import { useState } from "react";
 import { PostMenu } from "@/components/PostMenu";
 import type { MemberDot } from "@/lib/crew-stream";
@@ -46,7 +47,7 @@ export function StreamList({ items, members, myUserId, onReact, moderation }: { 
         const key = item.id ?? item.post?.id ?? item.at;
         if (item.kind === "post" && item.post) return <PostCard key={key} item={item} author={name(item.userId)} myUserId={myUserId} onReact={(emoji) => onReact(item.post!.id, emoji)} moderation={moderation} />;
         if (item.kind === "system") return <p key={key} className="whisper center">{item.body}</p>;
-        return <div key={key} className="stack" style={{ gap: 0 }}><span className="whisper">{name(item.userId)} · {new Date(item.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span><p className={item.deleted ? "missed" : ""}>{item.deleted ? "Message deleted" : item.body}</p></div>;
+        return null; // A21.2: anything else (an old snapshot's chat row) renders nothing
       })}
     </div>
   );

@@ -2,7 +2,7 @@
 import { ObjectId } from "mongodb";
 import { errorResponse, json } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
-import { memberDots, pulseFor } from "@/lib/crew-stream";
+import { blockedIdsFor, memberDots, pulseFor } from "@/lib/crew-stream";
 import { createCrew, inviteLinkFor, membershipOf } from "@/lib/crews";
 import { crews } from "@/lib/db";
 import { dayKeyFor } from "@/lib/engine/day-key";
@@ -34,10 +34,11 @@ export async function GET(req: Request) {
     const user = await findUserById(userId.toHexString());
     const todayKey = dayKeyFor(new Date(), user?.timezone ?? "UTC");
     const isCaptain = crew.captainId.equals(userId);
+    const hidden = await blockedIdsFor(userId); // E9 · W3: the strip and the pulse never count someone this viewer blocked or was blocked by
     return json({
       crew: { id: crew._id.toHexString(), name: crew.name, emoji: crew.emoji, captainId: crew.captainId.toHexString(), inviteLink: isCaptain ? inviteLinkFor(crew.inviteToken) : null, muted: membership.mutedAt !== null },
-      members: await memberDots(crew._id, crew.captainId, todayKey),
-      pulse: await pulseFor(crew._id, todayKey),
+      members: await memberDots(crew._id, crew.captainId, todayKey, hidden),
+      pulse: await pulseFor(crew._id, todayKey, hidden),
     });
   } catch (error) {
     return errorResponse(error);

@@ -1,4 +1,4 @@
-// SPEC: S12–S13 on web — the unified stream, pulse, member strip, composer, reactions with a visible button (6.7), invite/create/
+// SPEC: S12–S13 on web — the unified stream (posts + system lines; A21.2: no chat), pulse, member strip, reactions with a visible button (6.7), invite/create/
 // leave; Flow 10 (solo: one warm invitation); Part IV (polling 5–10 s). T038
 import { redirect } from "next/navigation";
 import { CrewView } from "@/components/CrewView";

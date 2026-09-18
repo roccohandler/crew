@@ -10,7 +10,7 @@ import { QuickCompleteButton } from "@/components/QuickCompleteButton";
 import { StaleSessionPrompt } from "@/components/StaleSessionPrompt";
 import { WelcomeBack } from "@/components/WelcomeBack";
 import { VectorRow } from "@/components/VectorRow";
-import { memberDots } from "@/lib/crew-stream";
+import { blockedIdsFor, memberDots } from "@/lib/crew-stream";
 import { crewMemberships, crews } from "@/lib/db";
 import { storedState } from "@/lib/gamification-store";
 import { shouldShowWelcomeBack } from "@/lib/lapsed-user";
@@ -40,7 +40,7 @@ async function CrewToday({ userId, todayKey }: { userId: ObjectId; todayKey: str
   const membership = await (await crewMemberships()).findOne({ userId });
   const crew = membership ? await (await crews()).findOne({ _id: membership.crewId }) : null;
   if (crew === null) return null;
-  const members = await memberDots(crew._id, crew.captainId, todayKey);
+  const members = await memberDots(crew._id, crew.captainId, todayKey, await blockedIdsFor(userId)); // E9 · W3: never a blocked face on Home
   // A17.1 / H033 — a crew of ONE has a snapshot whose members are [you], so Home was showing the user their own face
   // back to them, unlabelled, and calling it a crew. The Crew tab has always known better (the same crewMinMembers
   // predicate). True solo was already correct (no crew → null), so Flow 10 was satisfied; this is the crew-of-one

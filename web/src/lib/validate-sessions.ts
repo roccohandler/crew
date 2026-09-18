@@ -72,6 +72,7 @@ export type PatchSessionInput = z.infer<typeof patchSessionSchema>;
 
 export const syncOpSchema = z.object({
   opId: z.string().min(1).max(SpecConstants.exerciseNameMaxChars),
+  // A21.2 / W3: "sendMessage" stays ACCEPTED here so an older phone's queued chat op is rejected per op as `chatRetired` (sync-ops.ts), never as a batch validation error
   kind: z.enum(["createSession", "patchSession", "createPost", "deletePost", "sendMessage", "react", "unreact", "putPlan", "pause", "pushToken"]),
   payload: z.record(z.string(), z.unknown()),
 });

@@ -92,8 +92,6 @@ enum SpecConstants {
     static let crewNameMaxChars: Int = 30
     /// SPEC: E20
     static let exerciseNameMaxChars: Int = 60
-    /// SPEC: E20; Part IX; 8.2
-    static let chatMessageMaxChars: Int = 1000
     /// SPEC: GAP (agent, 2026-09-04): E1 names a display name but no limit; conservative default = the crew-name limit
     static let displayNameMaxChars: Int = 30
     /// SPEC: GAP (agent, 2026-09-04): E18 standard resets, no password floor stated; conservative common floor
@@ -342,8 +340,6 @@ enum SpecConstants {
     static let webMaxViewportPx: Int = 1920
     /// SPEC: GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton
     static let skeletonPlaceholderRows: Int = 3
-    /// SPEC: GAP (agent, 2026-09-05): S13 chat composer grows to four lines before it scrolls
-    static let chatComposerMaxLines: Int = 4
     /// SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)
     static let captionComposerMaxLines: Int = 3
 
@@ -364,10 +360,10 @@ enum SpecConstants {
     static let syncClientTimestampMaxAgeDays: Int = 7
     /// SPEC: GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync)
     static let clientClockSkewToleranceMinutes: Int = 5
-    /// SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s
-    static let chatPollIntervalMinSeconds: Int = 5
-    /// SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10s
-    static let chatPollIntervalMaxSeconds: Int = 10
+    /// SPEC: Part IV; 5.6.2 CrewModel.poll — the stream is polled every 5–10 s (A21.2 / W3, 2026-09-17: renamed from chatPollIntervalMinSeconds — the chat is gone, the value is not)
+    static let streamPollIntervalMinSeconds: Int = 5
+    /// SPEC: Part IV; 5.6.2 CrewModel.poll — polling 5–10 s (A21.2 / W3: renamed from chatPollIntervalMaxSeconds)
+    static let streamPollIntervalMaxSeconds: Int = 10
     /// SPEC: GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops
     static let syncBatchMaxOps: Int = 1000
     /// SPEC: GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived

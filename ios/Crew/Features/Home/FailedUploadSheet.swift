@@ -34,7 +34,6 @@ struct FailedUploadSheet: View {
         switch OpKind(rawValue: record.kind) {
         case .createPost: return "A post from \(record.createdAt.formatted(date: .abbreviated, time: .shortened))"
         case .createSession, .patchSession: return "A workout log from \(record.createdAt.formatted(date: .abbreviated, time: .shortened))"
-        case .sendMessage: return "A crew message"
         default: return "A change from \(record.createdAt.formatted(date: .abbreviated, time: .shortened))"
         }
     }

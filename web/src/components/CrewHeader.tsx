@@ -1,8 +1,8 @@
 "use client";
-// SPEC: Flow 6 — "DAWN PATROL 🌅 4/5 today" (CREW PULSE, V37) + the member strip (streak + today-dot + ⏸) + the chat composer
-// (E20 ≤ 1,000 chars). A5: the header is pinned at the top of the tab; A8: the pulse never reads "0/n" — "No posts yet today".
-// E1/A7: a member's profile photo fills the avatar when a key exists, initials until then. Mirrors ios MemberStrip + composer.
-import { useState } from "react";
+// SPEC: Flow 6 — "DAWN PATROL 🌅 4/5 today" (CREW PULSE, V37) + the member strip (streak + today-dot + ⏸). A5: the header is
+// pinned at the top of the tab; A8: the pulse never reads "0/n" — "No posts yet today". E1/A7: a member's profile photo fills the
+// avatar when a key exists, initials until then. A21.2 (owner-approved 2026-09-17): the chat composer that lived in this file is
+// gone — the stream is posts + system lines + reactions. Mirrors ios MemberStrip.
 import type { MemberDot } from "@/lib/crew-stream";
 import type { CrewSummary, StreamReply } from "@/lib/api-client-crew";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -43,22 +43,6 @@ export function CrewHeader({ crew, feed }: { crew: CrewSummary; feed: StreamRepl
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-export function Composer({ onSend }: { onSend: (body: string) => Promise<void> }) {
-  const [draft, setDraft] = useState("");
-  const send = async () => {
-    const body = draft.trim().slice(0, SpecConstants.chatMessageMaxChars);
-    if (body.length === 0) return;
-    setDraft("");
-    await onSend(body);
-  };
-  return (
-    <div className="composer">
-      <input aria-label="Message" value={draft} maxLength={SpecConstants.chatMessageMaxChars} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void send(); }} placeholder="Say something" />
-      <button type="button" className="button button--primary" style={{ width: "auto" }} onClick={send} disabled={draft.trim().length === 0}>Send</button>
     </div>
   );
 }

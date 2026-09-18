@@ -13,7 +13,7 @@ struct CrewSoloView: View {
             Text("Start a crew").font(.title2.weight(.semibold)).foregroundStyle(EmberColors.inkText)
             LoopLine(symbol: "camera", text: "Post a workout or a meal photo.")
             LoopLine(symbol: "arrow.down.to.line", text: "It lands here for your crew.")
-            LoopLine(symbol: "bubble.left.and.bubble.right", text: "They react 🔥💪👏😂❤️ and chat.")
+            LoopLine(symbol: "flame", text: "They react 🔥💪👏😂❤️.") // A21.2: no chat
             Text("Two to ten friends. A link, a name, an emoji.").font(.body).foregroundStyle(EmberColors.secondaryText)
             PrimaryButton(title: "Start a crew", action: onStart)
             Spacer()

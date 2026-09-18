@@ -3,7 +3,7 @@
 // zod schema, at the limit (accepted) and one over (rejected). The numbers come from SpecConstants, never typed here (C7).
 import { describe, expect, it } from "vitest";
 import { createPostSchema, patchPostSchema, reactionSchema } from "@/lib/validate-posts";
-import { createCrewSchema, createReportSchema, sendMessageSchema } from "@/lib/validate-crews";
+import { createCrewSchema, createReportSchema } from "@/lib/validate-crews";
 import { exerciseTemplateInputSchema, putPlanSchema, workoutTemplateInputSchema } from "@/lib/validate-plans";
 import { sessionExerciseInputSchema, setLogInputSchema, syncSchema } from "@/lib/validate-sessions";
 import { clientEventsSchema, registerSchema, timezoneSchema, updateMeSchema } from "@/lib/validate";
@@ -31,12 +31,9 @@ describe("input limits (8.3 validators)", () => {
     expect(reactionSchema.safeParse({ emoji: "👍" }).success).toBe(false);
   });
 
-  it("crew names ≤ 30, chat messages ≤ 1,000, report reasons ≤ 500 (E20, GAP)", () => {
+  it("crew names ≤ 30, report reasons ≤ 500 (E20, GAP; A21.2 retired the chat limit with the chat)", () => {
     expect(createCrewSchema.safeParse({ name: text(SpecConstants.crewNameMaxChars), emoji: "🌅" }).success).toBe(true);
     expect(createCrewSchema.safeParse({ name: text(SpecConstants.crewNameMaxChars + 1), emoji: "🌅" }).success).toBe(false);
-    expect(sendMessageSchema.safeParse({ clientId: uuid, body: text(SpecConstants.chatMessageMaxChars) }).success).toBe(true);
-    expect(sendMessageSchema.safeParse({ clientId: uuid, body: text(SpecConstants.chatMessageMaxChars + 1) }).success).toBe(false);
-    expect(sendMessageSchema.safeParse({ clientId: uuid, body: "   " }).success).toBe(false);
     const report = { targetType: "post" as const, targetId: "0123456789abcdef01234567" };
     expect(createReportSchema.safeParse({ ...report, reason: text(SpecConstants.reportReasonMaxChars) }).success).toBe(true);
     expect(createReportSchema.safeParse({ ...report, reason: text(SpecConstants.reportReasonMaxChars + 1) }).success).toBe(false);

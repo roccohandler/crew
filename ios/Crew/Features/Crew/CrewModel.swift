@@ -1,8 +1,8 @@
-// SPEC: 5.6.2 CrewModel — state: crew?, stream (time-merged, 7-day window), members, pulse, draft; actions: poll (foreground
-// 5–10 s) · send · react · unreact · create · join · leave · captainRemove · regenerateLink · report · block. Part IV (chat =
-// polling). 6.1 Offline: social shows last-synced (LocalCrewSnapshot) + one thin banner. Optimistic sends through SyncQueue.
-// A5 (owner-directed 2026-09-08): a crew of one has no composer; the invite sheet follows a create; report/block one long-press
-// away (E9). WRITTEN — UNVERIFIED (needs Mac). T031 + T032 (crew rules already in CrewRules.swift)
+// SPEC: 5.6.2 CrewModel — state: crew?, stream (time-merged, 7-day window), members, pulse; actions: poll (foreground 5–10 s) ·
+// react · unreact · create · join · leave · captainRemove · regenerateLink · rename (E2, Captain) · report · block. Part IV (the
+// stream is polled). 6.1 Offline: social shows last-synced (LocalCrewSnapshot) + one thin banner. A21.2 (owner-approved 2026-09-17):
+// free-text chat is GONE — no draft, no send, no composer; the stream is posts + system lines + reactions. A5 (owner-directed
+// 2026-09-08): the invite sheet follows a create; report/block one long-press away (E9). WRITTEN — UNVERIFIED (needs Mac). T031 + T032
 
 import Foundation
 import Observation
@@ -15,12 +15,11 @@ final class CrewModel {
     var stream: [StreamItemDTO] = []
     var members: [MemberDot] = []
     var pulse = PulseDTO(posted: 0, total: 0)
-    var draft = ""
     var offline = false
     var loadError: String?
     var lastSyncedAt: Date?
     var isLoaded = false
-    var noticeLine: String?            // one-line confirmations: reported · blocked · link copied
+    var noticeLine: String?            // one-line confirmations: reported · blocked · link copied · renamed
     private var invitePromptPending = false
 
     private let store: Store
@@ -33,9 +32,9 @@ final class CrewModel {
 
     var isSolo: Bool { crew == nil }
     var isCaptain: Bool { crew?.captainId == AuthStore.shared.currentUser?.id }
-    // SPEC: A5 — a crew of one shows the invite card and no composer until two members (crewMinMembers)
+    // SPEC: A5 — a crew of one shows the invite card until two members (crewMinMembers)
     var isCrewOfOne: Bool { crew != nil && members.count < SpecConstants.crewMinMembers }
-    var canCompose: Bool { crew != nil && members.count >= SpecConstants.crewMinMembers }
+    var hasCrewmates: Bool { crew != nil && members.count >= SpecConstants.crewMinMembers }
 
     // 6.1 Offline — the last-synced stream from SwiftData, instantly
     private func loadSnapshot() {
@@ -80,13 +79,13 @@ final class CrewModel {
         try store.save()
     }
 
-    // SPEC: Part IV chat = polling 5–10 s while the screen is in the foreground
+    // SPEC: Part IV — the stream is polled every 5–10 s while the screen is in the foreground
     func startPolling() {
         pollTask?.cancel()
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                try? await Task.sleep(for: .seconds(SpecConstants.chatPollIntervalMinSeconds))
+                try? await Task.sleep(for: .seconds(SpecConstants.streamPollIntervalMinSeconds))
             }
         }
     }
@@ -95,16 +94,6 @@ final class CrewModel {
         pollTask?.cancel()
         pollTask = nil
         noticeLine = nil
-    }
-
-    // Optimistic send: the line appears at once, the op goes through the queue (E6: chat holds drafts offline)
-    func send() {
-        guard let crew, !draft.trimmingCharacters(in: .whitespaces).isEmpty, let me = AuthStore.shared.currentUser?.id else { return }
-        let body = String(draft.prefix(SpecConstants.chatMessageMaxChars))
-        let clientId = UUID().uuidString.lowercased()
-        stream.append(StreamItemDTO(kind: "message", at: Date(), userId: me, post: nil, reactions: nil, comeback: nil, id: clientId, body: body, deleted: false))
-        try? SyncQueue.shared.enqueue(.sendMessage, payload: SendMessagePayload(crewId: crew.id, clientId: clientId, body: body))
-        draft = ""
     }
 
     // Long-press a post → 🔥 💪 👏 😂 ❤️; tap again to un-react (E20). Reaction XP is the server's call (V27).
@@ -133,7 +122,8 @@ final class CrewModel {
         } catch let error as AppError { noticeLine = error.userLine } catch { noticeLine = AppError.invalidResponse.userLine }
     }
 
-    // SPEC: E9 — block hides content both ways, silently; their items leave the stream at once, the server keeps them out
+    // SPEC: E9 — block hides content both ways, silently; their items leave the stream at once, the server keeps them out of the
+    // stream, the pulse and the strip from the next refresh (W3)
     func block(userId: String) async {
         do {
             _ = try await Api.shared.block(userId: userId)
@@ -180,5 +170,18 @@ final class CrewModel {
     func regenerateLink() async {
         guard let crew, isCaptain else { return }
         if let reply = try? await Api.shared.regenerateInvite(crewId: crew.id) { self.crew = CrewDTO(id: crew.id, name: crew.name, emoji: crew.emoji, captainId: crew.captainId, inviteLink: reply.inviteLink, muted: crew.muted) }
+    }
+
+    // SPEC: E2 (Captain: rename) · S13 · W3 — rename the crew or change its emoji from the Invite screen; the refresh re-reads the
+    // name everywhere (header, snapshot) and the notice says what happened
+    func rename(name: String, emoji: String) async {
+        guard let crew, isCaptain else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, trimmed.count <= SpecConstants.crewNameMaxChars, !emoji.isEmpty, emoji.count <= SpecConstants.crewEmojiMaxChars else { return }
+        do {
+            _ = try await Api.shared.renameCrew(crewId: crew.id, name: trimmed == crew.name ? nil : trimmed, emoji: emoji == crew.emoji ? nil : emoji)
+            noticeLine = "Crew renamed."
+            await refresh()
+        } catch let error as AppError { noticeLine = error.userLine } catch { noticeLine = AppError.invalidResponse.userLine }
     }
 }

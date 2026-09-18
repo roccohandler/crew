@@ -1,17 +1,18 @@
 // SPEC: docs/api.md POST sync — replay the offline queue IN ORDER, each op idempotent; per-op results, never a failed batch;
-// the server gamification state REPLACES the client's (5.6.3). Op kinds map to the same lib functions the routes use. T023/T030/T041
+// the server gamification state REPLACES the client's (5.6.3). Op kinds map to the same lib functions the routes use. A21.2 / W3
+// (2026-09-17): free-text chat is gone — a `sendMessage` op from an older phone is rejected PER OP, non-retryably (`chatRetired`),
+// so that phone's queue holds it instead of retrying forever, and the rest of its batch still lands. T023/T030/T041
 import { ObjectId } from "mongodb";
 import { ZodError } from "zod";
-import { isApiError } from "@/lib/api-error";
-import { sendMessage } from "@/lib/crew-messages";
+import { apiError, isApiError } from "@/lib/api-error";
 import { pushTokens } from "@/lib/db";
+import { HttpStatus } from "@/lib/http-status";
 import { createPause } from "@/lib/pauses";
 import { replacePlan } from "@/lib/plans";
 import { createPost, deletePostByClientId } from "@/lib/posts";
 import { react, reactablePost, unreact } from "@/lib/reactions";
 import { createSession, patchSession } from "@/lib/sessions";
 import { dayKeySchema, pushTokenSchema } from "@/lib/validate";
-import { sendMessageSchema } from "@/lib/validate-crews";
 import { putPlanSchema } from "@/lib/validate-plans";
 import { createPostSchema, deletePostOpSchema, reactionSchema } from "@/lib/validate-posts";
 import { createSessionSchema, patchSessionSchema, type SyncInput } from "@/lib/validate-sessions";
@@ -24,6 +25,9 @@ export interface SyncOpResult {
 }
 
 type Op = SyncInput["ops"][number];
+
+// SPEC: A21.2 — the retired chat op: an ApiError, so the result is ok:false, retryable:false (the phone holds it — 5.6.3 poison)
+const chatRetired = () => apiError("chatRetired", "Crew chat was retired; this message can't be sent.", HttpStatus.badRequest);
 
 async function runContentOp(userId: ObjectId, op: Op, timezone: string): Promise<boolean> {
   if (op.kind === "createSession") { await createSession(userId, createSessionSchema.parse({ timezone, ...op.payload })); return true; }
@@ -43,12 +47,7 @@ async function runContentOp(userId: ObjectId, op: Op, timezone: string): Promise
 }
 
 async function runSocialOp(userId: ObjectId, op: Op, timezone: string): Promise<boolean> {
-  if (op.kind === "sendMessage") {
-    const { crewId, ...rest } = op.payload as { crewId: string };
-    const body = sendMessageSchema.parse(rest);
-    await sendMessage(userId, crewId, body.clientId, body.body);
-    return true;
-  }
+  if (op.kind === "sendMessage") throw chatRetired();
   if (op.kind === "react") {
     const { postId, emoji } = op.payload as { postId: string; emoji: string };
     await react(userId, await reactablePost(userId, postId), reactionSchema.parse({ emoji }).emoji, timezone);

@@ -1,7 +1,8 @@
-// SPEC: docs/api.md crews (create ≤ crewNameMaxChars + emoji; join by token; rename; leave/remove; mute), messages (≤
-// chatMessageMaxChars, clientId), safety (reports ≤ reportReasonMaxChars, blocks). Mirrors ApiCrews.swift.
+// SPEC: docs/api.md crews (create ≤ crewNameMaxChars + emoji; join by token; rename; leave/remove; mute), safety (reports ≤
+// reportReasonMaxChars on a post, a crew name or a user — A21.2 / W3 retired the message target with the chat; blocks). Mirrors
+// ApiCrews.swift.
 import { z } from "zod";
-import { clientIdSchema, objectIdSchema } from "@/lib/validate";
+import { objectIdSchema } from "@/lib/validate";
 import { SpecConstants } from "@/generated/spec-constants";
 
 const emojiSchema = z.string().trim().min(1).max(SpecConstants.crewEmojiMaxChars); // one emoji, ZWJ sequences included
@@ -13,10 +14,9 @@ export const joinCrewSchema = z.object({ token: z.string().min(1).max(SpecConsta
 export const leaveOrRemoveSchema = z.object({ userId: objectIdSchema.optional() });
 export const muteSchema = z.object({ muted: z.boolean() });
 
-export const sendMessageSchema = z.object({ clientId: clientIdSchema, body: z.string().trim().min(1).max(SpecConstants.chatMessageMaxChars) });
-
+// SPEC: E9 (as marked by A21.2) — reportable: a post, a crew name, a user
 export const createReportSchema = z.object({
-  targetType: z.enum(["post", "message", "crewName", "user"]),
+  targetType: z.enum(["post", "crewName", "user"]),
   targetId: objectIdSchema,
   reason: z.string().trim().min(1).max(SpecConstants.reportReasonMaxChars),
 });

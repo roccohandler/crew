@@ -1,14 +1,18 @@
 "use client";
 // SPEC: Flow 6 — [Start a Crew] → name + emoji → invite link; A5: a crew of one shows an open invite card ("Only your crew
 // sees this.") with Invite friends (navigator.share) and Copy link / Text it fallbacks (r-crew R7); crews of two or more keep
-// the collapsed panel; S13 Captain tools only for the Captain (regenerate link, remove members), "crew full" explicit; leave.
-// Mirrors ios InviteScreen + CreateCrewScreen.
+// the collapsed panel; S13 Captain tools only for the Captain — rename / change the emoji (E2, via PATCH crews/[id]; W3 under
+// A21.2, 2026-09-17), regenerate link, remove members; "crew full" explicit; leave. Mirrors ios InviteScreen + CreateCrewScreen.
 import { useState, useSyncExternalStore } from "react";
 import type { MemberDot } from "@/lib/crew-stream";
-import { leaveOrRemove, regenerateInvite, type CrewSummary } from "@/lib/api-client-crew";
+import { leaveOrRemove, regenerateInvite, renameCrew, type CrewSummary } from "@/lib/api-client-crew";
 import { SpecConstants } from "@/generated/spec-constants";
 
 const EMOJIS = ["🌅", "🔥", "💪", "🏋️", "🌊", "⚡️", "🦍", "🥑"];
+
+function EmojiPicker({ options, chosen, onPick }: { options: string[]; chosen: string; onPick: (emoji: string) => void }) {
+  return <div className="row" role="group" aria-label="Emoji">{options.map((option) => <button key={option} type="button" className="toggle" aria-pressed={chosen === option} onClick={() => onPick(option)}>{option}</button>)}</div>;
+}
 
 function CreateForm({ onCreate }: { onCreate: (name: string, emoji: string) => Promise<void> }) {
   const [name, setName] = useState("");
@@ -17,8 +21,25 @@ function CreateForm({ onCreate }: { onCreate: (name: string, emoji: string) => P
     <form className="stack" onSubmit={(event) => { event.preventDefault(); void onCreate(name.trim(), emoji); }}>
       <h1>Name your crew</h1>
       <label className="field"><span>Name</span><input value={name} maxLength={SpecConstants.crewNameMaxChars} onChange={(event) => setName(event.target.value)} placeholder="Dawn Patrol" required /></label>
-      <div className="row" role="group" aria-label="Emoji">{EMOJIS.map((option) => <button key={option} type="button" className="toggle" aria-pressed={emoji === option} onClick={() => setEmoji(option)}>{option}</button>)}</div>
+      <EmojiPicker options={EMOJIS} chosen={emoji} onPick={setEmoji} />
       <button type="submit" className="button button--primary" disabled={name.trim().length === 0}>Start a crew</button>
+    </form>
+  );
+}
+
+// SPEC: E2 (Captain: rename) · S13 · W3 — the Captain renames the crew or changes its emoji here; the crew's current emoji leads the
+// picker even when it is not one of the eight defaults (an iOS crew may carry any emoji)
+function RenameForm({ crew, onChanged }: { crew: CrewSummary; onChanged: () => Promise<void> }) {
+  const [name, setName] = useState(crew.name);
+  const [emoji, setEmoji] = useState(crew.emoji);
+  const [saved, setSaved] = useState(false);
+  const options = EMOJIS.includes(crew.emoji) ? EMOJIS : [crew.emoji, ...EMOJIS];
+  const dirty = name.trim() !== crew.name || emoji !== crew.emoji;
+  return (
+    <form className="stack stack--tight" aria-label="Rename crew" onSubmit={async (event) => { event.preventDefault(); await renameCrew(crew.id, { name: name.trim(), emoji }); setSaved(true); await onChanged(); }}>
+      <label className="field"><span>Crew name</span><input value={name} maxLength={SpecConstants.crewNameMaxChars} onChange={(event) => { setName(event.target.value); setSaved(false); }} required /></label>
+      <EmojiPicker options={options} chosen={emoji} onPick={(next) => { setEmoji(next); setSaved(false); }} />
+      <button type="submit" className="button button--secondary" disabled={!dirty || name.trim().length === 0}>{saved && !dirty ? "Saved" : "Save name"}</button>
     </form>
   );
 }
@@ -51,6 +72,7 @@ function InviteBody({ crew, members, onChanged }: { crew: CrewSummary; members: 
   return (
     <div className="stack stack--tight">
       {members.length >= SpecConstants.crewMaxMembers ? <p>Crew full — {SpecConstants.crewMaxMembers} is the max.</p> : crew.inviteLink ? <ShareControls crew={crew} /> : <p className="muted">Ask your Captain for the link.</p>}
+      {isCaptain ? <RenameForm key={`${crew.name}${crew.emoji}`} crew={crew} onChanged={onChanged} /> : null}
       {isCaptain ? <button type="button" className="button button--secondary" onClick={async () => { await regenerateInvite(crew.id); await onChanged(); }}>Regenerate link (old one dies)</button> : null}
       {isCaptain ? members.filter((member) => !member.isCaptain).map((member) => <div key={member.id} className="row row--between"><span>{member.displayName}</span><button type="button" className="button button--text danger" onClick={async () => { await leaveOrRemove(crew.id, member.id); await onChanged(); }}>Remove</button></div>) : null}
       <button type="button" className="button button--text danger" onClick={async () => { await leaveOrRemove(crew.id); await onChanged(); }}>Leave crew</button>

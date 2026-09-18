@@ -10,7 +10,9 @@ import Observation
 import SwiftData
 
 enum OpKind: String, Codable, CaseIterable {
-    case createSession, patchSession, createPost, deletePost, sendMessage, react, unreact, putPlan, pause, pushToken
+    // A21.2 / W3 (2026-09-17): sendMessage is retired with the chat. A record with that raw kind from an older build still drains:
+    // the server answers chatRetired (non-retryable), the queue holds it, and FailedUploadSheet names it through its default.
+    case createSession, patchSession, createPost, deletePost, react, unreact, putPlan, pause, pushToken
 }
 
 enum OpState: String {

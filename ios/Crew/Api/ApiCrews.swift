@@ -1,6 +1,7 @@
-// SPEC: docs/api.md crews/* + messages + reactions + the blocked list (GET blocks · DELETE blocks, A7) — DTOs mirror
-// lib/validate-crews.ts, crew-stream.ts and lib/blocks.ts 1:1; a stream post is a PostDTO (its A6 summary rides along).
-// WRITTEN — UNVERIFIED (needs Mac). T031
+// SPEC: docs/api.md crews/* + reactions + the blocked list (GET blocks · DELETE blocks, A7) — DTOs mirror lib/validate-crews.ts,
+// crew-stream.ts and lib/blocks.ts 1:1; a stream post is a PostDTO (its A6 summary rides along). A21.2 / W3 (owner-approved
+// 2026-09-17): the chat is gone — no message payload, no message routes; a stream item is a post or a system line; renameCrew is
+// the Captain's PATCH crews/[id] (E2), reached from the Invite screen. WRITTEN — UNVERIFIED (needs Mac). T031
 
 import Foundation
 
@@ -29,7 +30,8 @@ struct ReactionSummaryDTO: Codable, Equatable {
     let userId: String
 }
 
-// One stream item (Flow 6: posts drop into the chat) — kind post | message | system
+// One stream item (Flow 6) — kind post | system. `body`/`deleted` stay optional so a snapshot written before A21.2 still decodes;
+// StreamList renders nothing for a kind it no longer knows.
 struct StreamItemDTO: Codable, Equatable, Identifiable {
     let kind: String
     let at: Date
@@ -61,10 +63,20 @@ struct CreateCrewReplyDTO: Codable {
     let crew: CrewDTO
 }
 
-struct SendMessagePayload: Codable {
-    let crewId: String
-    let clientId: String
-    let body: String
+// SPEC: E2 · docs/api.md PATCH crews/[id] — { name?, emoji? } → { crew: { id, name, emoji } }
+struct RenameCrewRequestDTO: Codable {
+    let name: String?
+    let emoji: String?
+}
+
+struct RenamedCrewDTO: Codable {
+    let id: String
+    let name: String
+    let emoji: String
+}
+
+struct RenameCrewReplyDTO: Codable {
+    let crew: RenamedCrewDTO
 }
 
 struct ReactPayload: Codable {
@@ -105,6 +117,7 @@ extension Api {
     }
     func leaveOrRemove(crewId: String, userId: String?) async throws -> OkDTO { try await send("DELETE", "crews/\(crewId)/members", body: RemoveMemberRequestDTO(userId: userId)) }
     func regenerateInvite(crewId: String) async throws -> InviteReplyDTO { try await send("POST", "crews/\(crewId)/invite") }
+    func renameCrew(crewId: String, name: String?, emoji: String?) async throws -> RenameCrewReplyDTO { try await send("PATCH", "crews/\(crewId)", body: RenameCrewRequestDTO(name: name, emoji: emoji)) }
 
     // SPEC: A7 — the people this user blocked, and the unblock (DELETE blocks { userId }; a 404 means it was already undone)
     func blockedUsers() async throws -> [BlockedUserDTO] {

@@ -27,18 +27,15 @@ async function foreignPostPath(_me: TestUser, other: TestUser): Promise<string> 
 const foreignReactionPath = async (me: TestUser, other: TestUser) => `${await foreignPostPath(me, other)}/reactions`;
 
 // A crew the test user is NOT in (created by `other`) — every crews/[id]/* method must 404 for outsiders
-let foreignCrew: { id: string; messageId: string } | null = null;
-async function foreignCrewIds(other: TestUser): Promise<{ id: string; messageId: string }> {
+let foreignCrew: { id: string } | null = null;
+async function foreignCrewIds(other: TestUser): Promise<{ id: string }> {
   if (foreignCrew !== null) return foreignCrew;
   const { POST: createCrewRoute } = await import("@/app/api/v1/crews/route");
-  const { POST: sendMessageRoute } = await import("@/app/api/v1/crews/[id]/messages/route");
   const crew = await readJson<{ crew: { id: string } }>(await createCrewRoute(request("POST", "/crews", { token: other.accessToken, body: { name: "Theirs", emoji: "🌊" } })));
-  const message = await readJson<{ message: { id: string } }>(await sendMessageRoute(request("POST", `/crews/${crew.crew.id}/messages`, { token: other.accessToken, body: { clientId: randomUUID(), body: "hi" } }), { params: Promise.resolve({ id: crew.crew.id }) }));
-  foreignCrew = { id: crew.crew.id, messageId: message.message.id };
+  foreignCrew = { id: crew.crew.id }; // A21.2 / W3: the messages routes are gone, so there is no message to seed
   return foreignCrew;
 }
 const foreignCrewPath = (suffix: string) => async (_me: TestUser, other: TestUser) => `/crews/${(await foreignCrewIds(other)).id}${suffix}`;
-const foreignMessagePath = async (_me: TestUser, other: TestUser) => { const ids = await foreignCrewIds(other); return `/crews/${ids.id}/messages/${ids.messageId}`; };
 
 export interface StandingEntry {
   public?: boolean;
@@ -83,8 +80,6 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "crews/[id]/invite:POST": { jsonBody: false, foreignPath: foreignCrewPath("/invite") },
   "crews/[id]/mute:PATCH": { jsonBody: true, foreignPath: foreignCrewPath("/mute"), validBody: () => ({ muted: true }) },
   "crews/[id]/stream:GET": { jsonBody: false, foreignPath: foreignCrewPath("/stream") },
-  "crews/[id]/messages:POST": { jsonBody: true, foreignPath: foreignCrewPath("/messages"), validBody: () => ({ clientId: randomUUID(), body: "hi" }) },
-  "crews/[id]/messages/[messageId]:DELETE": { jsonBody: false, foreignPath: foreignMessagePath },
   "blocks:GET": { jsonBody: false },
   "blocks:POST": { jsonBody: true },
   "blocks:DELETE": { jsonBody: true },

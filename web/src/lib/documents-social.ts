@@ -50,8 +50,8 @@ export interface MessageDoc {
   clientId: string;
   crewId: ObjectId;
   userId: ObjectId;
-  kind: "message" | "system"; // system lines: "Jordan joined the crew"
-  body: string; // ≤ chatMessageMaxChars
+  kind: "message" | "system"; // system lines: "Jordan joined the crew". A21.2 (2026-09-17): "message" is LEGACY — never written, never served; the collection carries system lines only
+  body: string; // the system line's text (the chat limit left with the chat, A21.2)
   createdAt: Date;
   deletedAt: Date | null; // tombstone (E20)
 }
@@ -89,7 +89,7 @@ export interface PauseDoc {
 
 export interface ReportDoc {
   _id: ObjectId;
-  targetType: "post" | "message" | "crewName" | "user";
+  targetType: "post" | "crewName" | "user"; // A21.2: "message" targets left with the chat (older rows may still carry it)
   targetId: ObjectId;
   reporterId: ObjectId;
   reason: string;

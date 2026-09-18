@@ -1,5 +1,6 @@
-// SPEC: Flow 6 — ONE unified stream: messages, post cards, system lines, time-ordered; feed shows 7 days (S12) · E20 (deleted
-// messages are tombstones) · E9 (report / block reach the model through the card). WRITTEN — UNVERIFIED (needs Mac). T031
+// SPEC: Flow 6 — ONE unified stream: post cards and system lines, time-ordered; feed shows 7 days (S12) · A21.2 (owner-approved
+// 2026-09-17): no chat rows — a kind this list no longer knows (an old snapshot's chat line) renders nothing · E9 (report / block
+// reach the model through the card). WRITTEN — UNVERIFIED (needs Mac). T031
 
 import SwiftUI
 
@@ -25,7 +26,7 @@ struct StreamList: View {
                 case "system":
                     Text(item.body ?? "").font(.footnote).foregroundStyle(EmberColors.secondaryText).frame(maxWidth: .infinity)
                 default:
-                    MessageRow(authorName: name(item.userId), text: item.body ?? "", deleted: item.deleted ?? false, mine: item.userId == myUserId, at: item.at)
+                    EmptyView()
                 }
             }
         }

@@ -52,7 +52,6 @@
     "captionMaxChars": { "value": 280, "spec": "E20; Part IX" },
     "crewNameMaxChars": { "value": 30, "spec": "E20; Part IX" },
     "exerciseNameMaxChars": { "value": 60, "spec": "E20" },
-    "chatMessageMaxChars": { "value": 1000, "spec": "E20; Part IX; 8.2" },
     "displayNameMaxChars": { "value": 30, "spec": "GAP (agent, 2026-09-04): E1 names a display name but no limit; conservative default = the crew-name limit" },
     "passwordMinChars": { "value": 8, "spec": "GAP (agent, 2026-09-04): E18 standard resets, no password floor stated; conservative common floor" },
     "reportReasonMaxChars": { "value": 500, "spec": "GAP (agent, 2026-09-04): E9 report flow, no length stated; docs/api.md reports" },
@@ -189,7 +188,6 @@
     "webMinViewportPx": { "value": 360, "spec": "6.7 — from 360 px up; no horizontal scroll 360–1920" },
     "webMaxViewportPx": { "value": 1920, "spec": "6.7 — no horizontal scroll 360–1920" },
     "skeletonPlaceholderRows": { "value": 3, "spec": "GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton" },
-    "chatComposerMaxLines": { "value": 4, "spec": "GAP (agent, 2026-09-05): S13 chat composer grows to four lines before it scrolls" },
     "captionComposerMaxLines": { "value": 3, "spec": "GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)" }
   },
   "accessibility": {
@@ -202,8 +200,8 @@
     "failedUploadChoiceAfterHours": { "value": 24, "spec": "E19; 5.6.3; 8.6 — after ~24h the user chooses Retry / Post without photo / Delete" },
     "syncClientTimestampMaxAgeDays": { "value": 7, "spec": "GAP (agent, 2026-09-04): E15 server clock wins + E19 delivery lag never retro-breaks — the server keeps a client's creation timestamp when it is at most this old; older, and the server clock wins" },
     "clientClockSkewToleranceMinutes": { "value": 5, "spec": "GAP (agent, 2026-09-04): E15 — a client timestamp further in the future than this is replaced by the server clock (device-clock skew, 8.2 Sync)" },
-    "chatPollIntervalMinSeconds": { "value": 5, "spec": "Part IV; 5.6.2 CrewModel.poll — polling 5–10s" },
-    "chatPollIntervalMaxSeconds": { "value": 10, "spec": "Part IV; 5.6.2 CrewModel.poll — polling 5–10s" },
+    "streamPollIntervalMinSeconds": { "value": 5, "spec": "Part IV; 5.6.2 CrewModel.poll — the stream is polled every 5–10 s (A21.2 / W3, 2026-09-17: renamed from chatPollIntervalMinSeconds — the chat is gone, the value is not)" },
+    "streamPollIntervalMaxSeconds": { "value": 10, "spec": "Part IV; 5.6.2 CrewModel.poll — polling 5–10 s (A21.2 / W3: renamed from chatPollIntervalMaxSeconds)" },
     "syncBatchMaxOps": { "value": 1000, "spec": "GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops" },
     "hydrationMaxWaitSeconds": { "value": 10, "spec": "GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived" }
   },

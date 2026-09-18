@@ -1,4 +1,4 @@
-// SPEC: Flow 6 — posts drop into the chat as cards ("SAM · PULL DAY ✓ · 15/15 sets · 🔥 day 4"); long-press → the five
+// SPEC: Flow 6 — posts are the stream's cards ("SAM · PULL DAY ✓ · 15/15 sets · 🔥 day 4"; A21.2: there is no chat); long-press → the five
 // reactions; the COMEBACK 🎉 banner (V39); Part III law ④ (ember only where progress is the message) · A6 (the summary line
 // under the author) · A5 + E9 (Report post · Block {name} one long-press away, never on your own post).
 // WRITTEN — UNVERIFIED. T031
@@ -51,7 +51,7 @@ struct PostCard: View {
                 Button("Block \(authorName)", role: .destructive) { onBlock() }
             }
         }
-        // SPEC: 6.5 — "session, posting, reacting, chat fully completable non-visually" is a RELEASE-BLOCKING gate, and
+        // SPEC: 6.5 — "session, posting, reacting fully completable non-visually" (A21.2 dropped chat) is a RELEASE-BLOCKING gate, and
         // reacting was not completable. `children: .combine` merges the card into one element, which is right for reading a
         // post as a single passage — but it also swallows the inner `React` button, so the only non-visual route to a
         // reaction was a long-press gesture VoiceOver never delivers. The reactions become accessibility ACTIONS on the

@@ -3,7 +3,7 @@
 import { ObjectId } from "mongodb";
 import { errorResponse, json } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
-import { memberDots } from "@/lib/crew-stream";
+import { blockedIdsFor, memberDots } from "@/lib/crew-stream";
 import { removeMember, requireMember } from "@/lib/crews";
 import { dayKeyFor } from "@/lib/engine/day-key";
 import { logEvent } from "@/lib/events";
@@ -18,7 +18,7 @@ export async function GET(req: Request, context: Context) {
     const { id } = await context.params;
     const { crew } = await requireMember(userId, id);
     const user = await findUserById(userId.toHexString());
-    return json({ members: await memberDots(crew._id, crew.captainId, dayKeyFor(new Date(), user?.timezone ?? "UTC")) });
+    return json({ members: await memberDots(crew._id, crew.captainId, dayKeyFor(new Date(), user?.timezone ?? "UTC"), await blockedIdsFor(userId)) }); // E9 · W3: never a blocked face in the strip
   } catch (error) {
     return errorResponse(error);
   }
