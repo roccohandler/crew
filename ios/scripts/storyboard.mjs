@@ -18,8 +18,14 @@ function slug(text) {
   return text.normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-").toLowerCase() || "shot";
 }
 
+// The exporter names a file "<attachment name>_<index>_<UUID>.png"; the storyboard wants the attachment name alone
+function cleanName(name) {
+  return name.replace(/\.(png|jpe?g|heic)$/i, "").replace(/_\d+_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "");
+}
+
 // "03-S04 the week, built" → { step: "03", screen: "S04", action: "the week, built" }; "S07 Home — rest day" → screen "S07 Home", action "rest day"
-function parseName(name) {
+function parseName(raw) {
+  const name = cleanName(raw);
   const numbered = /^(\d{2})-(.*)$/.exec(name);
   const step = numbered ? numbered[1] : "";
   const rest = numbered ? numbered[2] : name;
@@ -48,7 +54,9 @@ function readManifest(dir) {
 
 const manifest = readManifest(rawDir);
 const files = existsSync(rawDir) ? readdirSync(rawDir).filter((file) => file !== "manifest.json") : [];
-const rows = manifest.length > 0 ? manifest : files.map((file) => ({ test: "", file, name: basename(file, extname(file)) }));
+const rows = (manifest.length > 0 ? manifest : files.map((file) => ({ test: "", file, name: basename(file, extname(file)) })))
+  .map((row) => ({ ...row, parsed: parseName(row.name) }))
+  .sort((a, b) => a.test.localeCompare(b.test) || a.parsed.step.localeCompare(b.parsed.step) || a.name.localeCompare(b.name)); // a test's steps in the order taken
 
 mkdirSync(outDir, { recursive: true });
 const lines = ["# Storyboard — every journey step, in the order it was taken", "", "| Test | Step | Screen | Action | File |", "|---|---|---|---|---|"];
@@ -57,7 +65,7 @@ for (const row of rows) {
   const source = join(rawDir, row.file);
   if (!row.file || !existsSync(source)) continue;
   const testClass = (row.test.split("/")[0] || "unknown").replace(/\(\)$/, "");
-  const { step, screen, action } = parseName(row.name);
+  const { step, screen, action } = row.parsed;
   const ext = extname(row.file) || ".png";
   const fileName = `${step ? `${step}-` : ""}${slug(`${screen} ${action}`)}${ext}`;
   const dir = join(outDir, slug(testClass));
