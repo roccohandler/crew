@@ -81,31 +81,25 @@ jobs:
       # 2026-09-18 — AN ARCHIVE THAT MINTS NOTHING. Under automatic signing an archive is signed with an "Apple Development"
       # identity, and a fresh runner holds no private key from the last build, so every run MINTED a new development
       # certificate until Apple refused ("Your account has reached the maximum number of certificates" — runs 35294010935,
-      # 35303576028, 35304691405; builds 136, 142, 143 never uploaded). The export step has always signed with the
-      # cloud-managed "Apple Distribution" identity, whose key Apple holds and reuses — so the archive now signs with THAT
-      # identity and asks for an App Store profile (-allowProvisioningUpdates fetches or creates it with the Admin key).
-      # No development certificate is requested anywhere in this workflow any more. Fallback in the same step: if Xcode
-      # will not archive with the distribution identity, archive UNSIGNED and let the export step sign the whole thing —
-      # either way no run ever asks for a development certificate again. docs/debt.md 2026-09-17 (the certificate cap).
-      - name: Archive
-        run: |
-          cd ios
-          COMMON=(-project Crew.xcodeproj -scheme Crew -configuration Release
-                  -destination 'generic/platform=iOS' -archivePath build/Crew.xcarchive
-                  -allowProvisioningUpdates
-                  -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
-                  -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-                  -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-                  DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
-                  CURRENT_PROJECT_VERSION=$CREW_BUILD
-                  CREW_API_HOST=${{ vars.CREW_API_HOST }})
-          if xcodebuild archive "${COMMON[@]}" CODE_SIGN_IDENTITY="Apple Distribution"; then
-            echo "archive signed with the cloud-managed Apple Distribution identity — no development certificate requested"
-          else
-            echo "::warning::the distribution-signed archive failed; archiving UNSIGNED and letting the export step sign"
-            rm -rf build/Crew.xcarchive
-            xcodebuild archive "${COMMON[@]}" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-          fi
+      # 35303576028, 35304691405; builds 136, 142, 143 never uploaded). So the archive is built UNSIGNED — no identity, no
+      # profile, nothing minted — and the EXPORT step does all the signing with the cloud-managed "Apple Distribution"
+      # identity it has used on every successful upload (its key is Apple's and is reused). Run 35304967694 proved the two
+      # halves: signing the archive itself with the distribution identity is refused under automatic signing ("conflicting
+      # provisioning settings"), the unsigned archive builds, and the export then needs the team named explicitly ("No Team
+      # Found in Archive") — which the next step gives it from the secret. docs/debt.md 2026-09-17 (the certificate cap).
+      - name: Archive (unsigned — the export signs)
+        run: >
+          cd ios && xcodebuild archive
+          -project Crew.xcodeproj -scheme Crew -configuration Release
+          -destination 'generic/platform=iOS' -archivePath build/Crew.xcarchive
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
+          CURRENT_PROJECT_VERSION=$CREW_BUILD
+          CREW_API_HOST=${{ vars.CREW_API_HOST }}
+
+      # An unsigned archive records no team, so the export is told which team signs (the id never lives in the repo).
+      - name: Name the team for the export
+        run: cd ios && plutil -insert teamID -string "${{ secrets.APPLE_TEAM_ID }}" ExportOptions.plist && plutil -lint ExportOptions.plist
 
       - name: Export and upload
         run: >
