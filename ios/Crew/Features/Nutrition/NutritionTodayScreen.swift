@@ -17,7 +17,21 @@ struct NutritionTodayScreen: View {
     @State private var showsLog = false
     @FocusState private var focused: String?
 
+    // 6.3 · 6.7 (DESIGN.md 4.2) — the two asking states carry one primary, bottom-anchored; Today itself has none, and a screen with no
+    // primary gets no bar (BottomBar.swift: "it is conditional, and that is a rule")
     var body: some View {
+        Group {
+            switch model.availability {
+            case .askBirthYear:
+                page.crewBottomBar { PrimaryButton(title: "Continue", isLoading: model.isSaving) { focused = nil; Task { await model.saveBirthYear(birthYearText) } } }
+            case .available where model.remaining == nil:
+                page.crewBottomBar { PrimaryButton(title: "Estimate my targets") { focused = nil; model.estimate(bodyweightText: bodyweightText) } }
+            default: page
+            }
+        }
+    }
+
+    private var page: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
                 switch model.availability {
@@ -69,7 +83,6 @@ struct NutritionTodayScreen: View {
             Text("Start with your bodyweight. It sets a first estimate of your protein, carbs and fat, and you can change any of it.").font(.body).foregroundStyle(EmberColors.secondaryText)
             NutritionTextField(title: "Bodyweight (\(model.weightUnit))", text: $bodyweightText, keyboard: .decimalPad, focus: $focused, key: "bodyweight")
             Text("Used for the estimate and nothing else. Only you can see it.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-            PrimaryButton(title: "Estimate my targets") { focused = nil; model.estimate(bodyweightText: bodyweightText) }
             NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.inkText)
         }
     }
@@ -79,7 +92,6 @@ struct NutritionTodayScreen: View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
             Text("Nutrition needs it once. It's never shown to anyone.").font(.body).foregroundStyle(EmberColors.secondaryText)
             NutritionTextField(title: "Birth year", text: $birthYearText, keyboard: .numberPad, focus: $focused, key: "birthYear")
-            PrimaryButton(title: "Continue", isLoading: model.isSaving) { focused = nil; Task { await model.saveBirthYear(birthYearText) } }
         }
     }
 }
