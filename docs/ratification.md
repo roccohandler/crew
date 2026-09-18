@@ -1168,3 +1168,41 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   of macOS-only error are now caught on Windows: removed members, mismatched argument labels, main-actor defaults.
 - **Verdict.** WRITTEN — UNVERIFIED (swift-xref and doctrine-lint clean); the next `ios` verdict is the proof, and
   TestFlight build 4 follows it.
+
+
+## R-068 — 2026-09-18, the builder's readings of A22 G1 (a) for the two engines (continuous-build mode; each open to the owner)
+
+- **The ruling.** Rest days are exempt; the streak counts planned training days only; a rest day neither requires nor breaks
+  it; a bonus or cardio day pays its XP and leaves the streak unchanged; an all-rest plan counts any completed workout day;
+  perfect week = every planned workout day completed; the meal-carrying vectors retire by marker; new vectors from V66.
+- **Reading 1 — `dayRolledOver` keeps its shape.** `hadRequirement` was always the caller's word; it now means "an uncompleted
+  planned training day of the CURRENT plan, not paused". iOS derives it in `GamificationLocal.judgeElapsedDays` from
+  `store.plan(for:)?.trainingWeekdays` (the one-liner `PostModel` already used); the server derives it in the recompute fold
+  from `findPlan(userId)` threaded into `recomputeState`. Plan history is not kept (PUT plans is forward-only, no
+  effectiveFrom), so an unposted past day is judged by the plan of today — the conservative reading, because the alternative
+  (plan-effective dates) is a new data model. A post's stamped `isPlannedDay` stands as before (V36's note).
+- **Reading 2 — `postCreated` gains an optional `plannedWeekdays: [Int]`** (the plan's ISO weekdays; `[]` = an all-rest plan).
+  The streak counts a completed workout on a planned day, or any completed workout under an all-rest plan; nothing else counts
+  a day. The first-post-of-day XP (+25) stays for any first post of a day — V25's day-one total 125 is a planned workout and
+  survives; a bonus day pays 25 + 25 and the streak stands (the repeal of V30). Why an optional field rather than reusing
+  `isPlannedDay: true` for all-rest plans: that would pay +100 for an all-rest workout, widening XP; the ruling widened only the
+  streak.
+- **Reading 3 — perfect week from the plan.** With `plannedWeekdays` present, a week is perfect when every planned weekday of
+  that week carries a completed workout (`week.plannedDone`), so a skipped planned day or a partial first week is never perfect;
+  `everyDayPosted` is dropped. A legacy fixture WITHOUT the field keeps the pre-A22 clause (`week.planned ⊆ plannedDone` and
+  every day posted), so V02, V16, V25, V31, V34, V41 and V42 stay green unedited — a fixture-only branch, the shape A22 already
+  accepted for meal XP.
+- **Reading 4 — comeback stays calendar-quiet.** `quietDaysBetween` counts non-paused calendar days since the last COUNTED day;
+  the crew banner (`comebackBanner`, V39) counts post days the same way, so they agree. A two-day plan (Mon/Thu) therefore sees
+  three quiet days every week and fires a comeback weekly — recorded here and in debt.md, not widened; the owner may narrow
+  "quiet" to planned days with a registry entry and new vectors.
+- **Reading 5 — the `retired` marker.** A retired vector carries `"retired": { "by": "<Appendix A entry>", "reason": "…",
+  "replacedBy": ["V66", …] }`; its `expect` is never edited; `check-vectors.mjs` requires the three fields when present and
+  still requires V01–V50 + V18b to EXIST; both runners skip it (the iOS `checked == total − crewKinds` assertion subtracts
+  retired non-crew vectors); the README gains the contract. 23 retire: the 21 meal carriers (V01, V03, V09–V12, V13–V15, V17,
+  V18, V18b, V20, V21, V24, V26, V28, V29, V35, V36, V43), V04 (a rest day's silence broke the streak) and V30 (a bonus day
+  incremented it). V11 and V20 retire for their meal payloads only and return as workout-only fixtures; V36's `recompute`
+  coverage returns with `trainingWeekdays` in the case; V24's `text` kind and V26's `mealXpDailyCap` return as fixture-only
+  branches no client reaches (A22's constraint).
+- **Verdict.** READINGS, not rulings: each is the smallest change that satisfies the owner's words on both engines with the
+  surviving vectors unedited. Any of the five may be overturned by an Appendix A line; the vectors they add are append-only.

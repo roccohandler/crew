@@ -1,7 +1,8 @@
-# Nutrition addendum — DRAFT for owner ratification (A21.5)
+# Nutrition addendum — the A21.5 contract (RATIFIED 2026-09-18)
 
-Status: PROPOSAL, NOT RATIFIED. Written 2026-09-17 from the owner's A21.5 ruling (Appendix A). On ratification this document becomes
-the A21.5 contract and W8 begins; until then nothing in it is built or stubbed for (Appendix C). It replaces A16's MODEL
+Status: RATIFIED 2026-09-18 by the owner, with the three answers closed in §9 (Q1 no goal field · Q2 calories as a fourth line ·
+Q3 the Home row is the action). This document is the A21.5 contract and W8 builds it (the owner's order of 2026-09-18, item 4);
+A22 (ruled the same day) removed the plate journal, so nutrition is macro logging only. Written 2026-09-17 as a draft. It replaces A16's MODEL
 (`docs/ux-plan-2026-09-09.md` §7.2–7.3: the "Your usual day" outline seed, Flex, the 50% framing flip). It keeps, unchanged: the
 seven no-grade clauses (spec:240) and their enforcement mechanisms, the macro palette with its five redundant encoders (§7.4),
 Ember law ⑥'s bounded exception, E1's single-current-bodyweight exception, A16.a (methodology screen), A16.b (age questionnaire —
@@ -10,7 +11,7 @@ third-party nutrition API, calorie coaching copy) governs every line below.
 
 ## 1. Scope — Stage 1, as ruled
 
-Daily protein / carb / fat targets derived from body weight and goal, editable in Settings · saved meals entered manually · a daily
+Daily protein / carb / fat targets derived from body weight (Q1: no goal), editable in Settings · saved meals entered manually · a daily
 meal template (1–6 slots) · one-tap logging from the template · quick-add grams · a Today view with remaining macros · a curated
 fast-food seed (~10 chains × ~15 items from the chains' published nutrition facts; chain name and a neutral icon only — no logos, no
 food photos). Private and ungamified: never in the feed, the pulse or a profile (clauses ③ ④). Built as the final block before public
@@ -20,7 +21,7 @@ launch (W8, after W7), on both platforms (Part IV parity).
 
 | Collection | Fields | Invariants |
 |---|---|---|
-| nutritionTargets | userId UNIQUE · bodyweightValue · bodyweightUnit (lb \| kg — the account's weightUnit at entry) · goal (§3) · proteinG · carbsG · fatG · source (derived \| manual) · updatedAt | one document per user; the only body stat in the system (E1's exception); deleting it deletes the bodyweight with it, one tap; never joined into any social query |
+| nutritionTargets | userId UNIQUE · bodyweightValue · bodyweightUnit (lb \| kg — the account's weightUnit at entry) · proteinG · carbsG · fatG · source (derived \| manual) · updatedAt | one document per user; the only body stat in the system (E1's exception); deleting it deletes the bodyweight with it, one tap; never joined into any social query |
 | savedMeals | _id · userId · name ≤ savedMealNameMaxChars · proteinG · carbsG · fatG · source (manual \| seed{chainId, itemId}) · createdAt · deletedAt? | grams are integers within bounds and nothing else is checked (clause ⑤); a seed-sourced meal COPIES the grams at save time, so a later seed edit never rewrites a user's history |
 | dayTemplate | userId UNIQUE · slots[] (1 … dayTemplateMaxSlots) of {savedMealId, label} · updatedAt | a slot references a saved meal; deleting the meal removes the slot; the template is a checklist, never a requirement |
 | mealLogs | clientId UNIQUE · userId · dayKey (3 AM boundary, device timezone) · savedMealId? · name · proteinG · carbsG · fatG · quickAdd (bool) · createdAt · deletedAt? | idempotent on clientId (8.2 ④); a log is its own object — deleting a photo post never touches it and vice versa (E3's shape); no XP, no streak, no shield, no achievement (V63) |
@@ -42,7 +43,7 @@ Inputs: bodyweight, entered in the account's weightUnit and normalised to kg wit
 | protein | kg × proteinGramsPerKg | 1.8 g/kg | the protein-first rule A16 ratified |
 | fat | max(fatFloorFractionOfEnergy × energy ÷ kcalPerGramFat, fatFloorGramsPerKg × kg) | 0.20 · 9 · 0.5 g/kg | A16's floor, verbatim |
 | carbs | (energy − protein × kcalPerGramProtein − fat × kcalPerGramFat) ÷ kcalPerGramCarbs, floored at 0 | 4 · 9 · 4 | never negative; a floor hit is a measurement on its own line, never a warning |
-| goal | a stored preference {maintain \| lose \| gain} with NO effect on the numbers until Q1 is answered | — | A16 was ratified maintenance-only; a deficit is the owner's call, not the agent's |
+| goal | REMOVED (Q1, 2026-09-18): maintenance only — no goal field exists, stored or shown | — | A16 was ratified maintenance-only; a deficit is the owner's call, not the agent's |
 
 Rounding: grams to the nearest macroGramsRoundTo (5), integer arithmetic on both engines (the distanceDecimalScale precedent), so
 Swift and TypeScript print the same digit. The user may overwrite any of the three grams; source flips to manual and the derivation
@@ -52,10 +53,10 @@ line — every source linkable.
 
 ## 4. The two screens (both platforms; ink acts, macro colours are identity only, state is never colour)
 
-**Today.** Nav title "Today". Three rows P / C / F, each: the letter in ink, `logged / target g`, `N to go` — or `N over` in ordinary
+**Today.** Nav title "Today". Four lines — P / C / F and, fourth, Calories (Q2: `logged / target kcal` and `N to go`, ink, the §3 energy estimate as the target) — each macro row: the letter in ink, `logged / target g`, `N to go` — or `N over` in ordinary
 ink on its own line (clause ②) — and a bar in the macro token with the target marker as an ink hairline. Then "Your template": one row
 per slot, one tap logs it (✓, undo in place, a skipped slot is simply unlogged). Then "Quick add": three gram steppers (P, C, F) and
-Add. Then today's log list, swipe-to-delete with the visible button (6.3). One ink-filled primary, "Log a meal", opens Saved meals.
+Add. Then today's log list, swipe-to-delete with the visible button (6.3). Q3: the Home row "Log macros" is the way in (G4; absent when gated off); Today carries a text link "Saved meals & template" and no ink-filled primary of its own; targets live in Settings; there is no Progress segment.
 Five states designed (6.1); the empty state is the template invitation. No ember element and no semantic token ever renders here
 (law ⑥'s exception, clause ②). The screen must read fully correctly with every macro token forced to plain ink (§7.4).
 
@@ -104,7 +105,11 @@ or chart · sex, height or age fields beyond the birth year · notifications abo
 share · XP, streak or achievements for entries · ~~photos inside Nutrition (photos stay in the plate journal)~~ (struck 2026-09-17 by the A22 ruling: the plate journal itself is removed; whether any photo stays anywhere is A22 G2) · logos or food photos in the
 seed · HealthKit or any export beyond the user's own JSON · search or filtering of the seed beyond chain → item.
 
-## 9. Three questions only the owner can answer
+## 9. The three questions, closed by the owner on 2026-09-18
+
+Answers: **Q1** maintenance only — the goal field is removed, not stored. **Q2** Today shows calories as a fourth line beside P / C / F.
+**Q3** the Home row is the action; Today links to Saved meals & template; targets live in Settings; no Progress segment. The questions
+as they were asked follow, for the record.
 
 1. **Goal.** A16 was ratified maintenance-only ("never a prescribed deficit, never a weight goal"). A21.5 names "goal" as an input. Does
    goal admit lose / gain — a deficit or surplus applied to the energy estimate — and if so by what fixed percentage, with what
