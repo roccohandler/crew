@@ -144,6 +144,10 @@ before this list was written (R-054):
   (`docs/debt.md`). Everything else in the beta is unaffected.
 - **Resend without a verified domain** sends from `onboarding@resend.dev` and delivers only to the Resend account's own
   address — enough for your own password reset and the moderation inbox, not for other testers.
+- **The archive signs with the cloud-managed Apple Distribution identity, never a development certificate (2026-09-18).**
+  Until then every run minted an "Apple Development" certificate for its throwaway runner, and after ~six builds Apple refused
+  ("maximum number of certificates"; builds 136, 142, 143 never uploaded). If you see dead "Apple Development" certificates at
+  developer.apple.com → Certificates, revoking them is housekeeping, not a gate.
 - **Xcode's cloud signing needs an App Store Connect API key with the Admin role** to issue the Distribution certificate;
   an App Manager key fails with "Cloud signing permission error".
 

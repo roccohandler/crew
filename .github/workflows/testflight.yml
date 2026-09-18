@@ -71,24 +71,41 @@ jobs:
         run: sed -i '' "s/com.yourteam.crew/${{ vars.CREW_BUNDLE_ID }}/g" ios/project.yml
       - run: cd ios && xcodegen generate
 
-      # The API key file: xcodebuild reads it to create the signing certificate and profile itself (no .p12 to export).
+      # The API key file: xcodebuild reads it to fetch or create the App Store profile and to use the team's cloud-managed
+      # Apple Distribution certificate (no .p12 to export, and — since 2026-09-18 — no development certificate minted).
       - name: Write the App Store Connect key
         run: |
           mkdir -p ~/private_keys
           printf '%s' "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
 
+      # 2026-09-18 — AN ARCHIVE THAT MINTS NOTHING. Under automatic signing an archive is signed with an "Apple Development"
+      # identity, and a fresh runner holds no private key from the last build, so every run MINTED a new development
+      # certificate until Apple refused ("Your account has reached the maximum number of certificates" — runs 35294010935,
+      # 35303576028, 35304691405; builds 136, 142, 143 never uploaded). The export step has always signed with the
+      # cloud-managed "Apple Distribution" identity, whose key Apple holds and reuses — so the archive now signs with THAT
+      # identity and asks for an App Store profile (-allowProvisioningUpdates fetches or creates it with the Admin key).
+      # No development certificate is requested anywhere in this workflow any more. Fallback in the same step: if Xcode
+      # will not archive with the distribution identity, archive UNSIGNED and let the export step sign the whole thing —
+      # either way no run ever asks for a development certificate again. docs/debt.md 2026-09-17 (the certificate cap).
       - name: Archive
-        run: >
-          cd ios && xcodebuild archive
-          -project Crew.xcodeproj -scheme Crew -configuration Release
-          -destination 'generic/platform=iOS' -archivePath build/Crew.xcarchive
-          -allowProvisioningUpdates
-          -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
-          -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
-          CURRENT_PROJECT_VERSION=$CREW_BUILD
-          CREW_API_HOST=${{ vars.CREW_API_HOST }}
+        run: |
+          cd ios
+          COMMON=(-project Crew.xcodeproj -scheme Crew -configuration Release
+                  -destination 'generic/platform=iOS' -archivePath build/Crew.xcarchive
+                  -allowProvisioningUpdates
+                  -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+                  -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+                  -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+                  DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
+                  CURRENT_PROJECT_VERSION=$CREW_BUILD
+                  CREW_API_HOST=${{ vars.CREW_API_HOST }})
+          if xcodebuild archive "${COMMON[@]}" CODE_SIGN_IDENTITY="Apple Distribution"; then
+            echo "archive signed with the cloud-managed Apple Distribution identity — no development certificate requested"
+          else
+            echo "::warning::the distribution-signed archive failed; archiving UNSIGNED and letting the export step sign"
+            rm -rf build/Crew.xcarchive
+            xcodebuild archive "${COMMON[@]}" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          fi
 
       - name: Export and upload
         run: >
