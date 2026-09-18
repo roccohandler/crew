@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -659,6 +659,23 @@ Identifiers & Profiles → Certificates, revoke every "Apple Development" certif
 is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
 commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
 before it is touched.
+## 2026-09-17 (late) — A22 DRAFTED (plate journal removed; PENDING G1–G4), W3 PARKED, W3→W6 GO PAUSED (docs-only; no source, vector or constant changed)
+
+- The owner's evening go for W3 → W6 was executed as far as W3's code (composer and message routes gone, blocked members out of the
+  pulse and strip, Captain rename on both Invite panels) and then PAUSED by the owner's later ruling: "W3 waits for the owner's go",
+  and W3 → W6 are to be pushed together when all are done, not W by W. The W3 state is committed on the local branch
+  **`wip/w3-crew-surface` (f8dbf22)** — UNVERIFIED (no gate has run on it), never pushed; master is back at the W2 state.
+- **A22 drafted in Appendix A as OWNER-DIRECTED, PENDING** — nutrition is macro logging only (MyMacros+ shape); meal photo/text posts,
+  the plate journal, are removed; four GAPs recorded verbatim and NOT resolved (G1 streak on rest days · G2 photos on workout posts ·
+  G3 under-18 users · G4 Home's log rows). `docs/MEAL_POST_REMOVAL_MAP.md` lists every row with delete / rewrite / no-op and its GAP;
+  21 vectors carry a meal or text post (V01, V03, V09–V12, V13–V15, V17, V18, V18b, V20, V21, V24, V26, V28, V29, V35, V36, V43) — listed,
+  never edited — so the engine's meal branch and `xpMealPost` / `mealXpDailyCap` stay vector-bound.
+- `docs/mvp-definition.md`: A21.5's row gains "the plate journal is removed"; a **W3b** session (the removal, deletion before polish,
+  its GAP dependencies named) follows W3; flow 5 is marked pending G1. `docs/nutrition-addendum-draft.md` §8: "photos stay in the
+  plate journal" struck.
+- W2 delivery is still blocked on Apple's certificate cap (the owner revokes the runner-minted Apple Development certificates, then
+  build 136 ships); nothing in A22 touches W2.
+- NEXT: the owner rules G1–G4 and ratifies A22, then says go — W3 resumes from the wip branch (gates first), then W3b, W4, W5, W6, one push.
 ## Ledger
 
 Phase 0 — contracts
@@ -750,7 +767,7 @@ Phases 6–7 — beta & release
 
 ## Notes for next session
 
-- 2026-09-17 (night): W2 gym-only is DONE and pushed (the CI verdict and the TestFlight build number are in the W2 section). NEXT: W3 (crew surface — A21.2, blocked members out of the pulse, Captain rename) ON THE OWNER'S GO; nothing else is built before that. Build B stays on `archive/a20-build-b` until the W6 walkthrough decides rebuild-or-drop (A21.12). The nutrition addendum draft awaits ratification (W8).
+- 2026-09-17 (late): W2 is DONE on master and CI-green but UNDELIVERED — TestFlight blocked on Apple's certificate cap until the owner revokes the runner-minted Apple Development certificates (then build 136). A22 (plate journal removed; nutrition = macro logging only) is DRAFTED and PENDING the owner's G1–G4. W3's code is PARKED on `wip/w3-crew-surface` (f8dbf22, unverified, never pushed). NEXT, on the owner's go: resume W3 from the branch (run every gate first), then W3b (the removal, after G1–G4), W4, W5, W6 — pushed together, one smoke test at the end. Nothing is built before that go. Build B stays on `archive/a20-build-b` until the W6 walkthrough decides rebuild-or-drop (A21.12). The nutrition addendum draft awaits ratification (W8).
 - CI run 34351357853 (push 5374a2f, 2026-09-09 12:30Z): contracts ✓ · web ✓ · ios engine ✓ · ios ✗ with ONE diagnostic across the ~95 rewritten Swift files — `ShellStatesTests.swift:11: type 'PlanLoadState' has no member 'offline'` (the editor rewrite dropped the case); F23 restores it. The unit + UI test outcome is unknown until the next run. The web e2e job also failed on ONE check: the phone-375 a11y sweep measured 11 px of sideways scroll on a signed-in page under the Linux runner's fallback fonts (green here on Windows fonts). Reproduced locally by forcing a wide font: the Settings profile `<input type=file>` and the session exercise header (name · chip · Swap · Skip) overflowed; F23 makes the file input span the column and lets that header wrap, and the assertion now names the page.
 - CI run 34354352786 (push 178c1b4 = F23, 2026-09-09 13:00Z): contracts ✓ · web ✓ · web e2e ✓ (the wide-font overflow fix held on the runner) · ios engine ✓ · ios ✗ — the whole app compiled, 89 unit tests ran, 3 assertions failed in TWO tests of `SyncDeliveryTests`, both test bugs: they enqueued at `Date()` (2026) and stepped the queue at `Date(timeIntervalSince1970: 1_000_000)` (1970), so the op was `.waiting`, never `.sent`; and `attachPhotoKey` re-serialised the payload with JSONSerialization, which escapes `/` as `/`, so `contains("blob/abc")` was false. F24: the tests share one clock; the re-serialisation (SyncDelivery, PostPayloadPhotoStripper) uses `.withoutEscapingSlashes`. The journeys did not run (the unit step failed first) — Q09 is still unread.
 - The owner's ask after that run — "how can this be checked locally before it fails on GitHub?" — answered in F24 (docs/testing-without-a-mac.md Stage 0/1): (1) `node shared/scripts/swift-xref.mjs` — a compiler-free cross-reference check that reproduces every compile error the macOS job has ever reported (removed enum case, renamed parameter, removed struct field, shadowed SwiftUI type; a scratch copy with all four re-introduced reports all four; the real tree is clean) — first step of the `contracts` CI job and the command to run before every queue-and-push; (2) `expectNoHorizontalScroll` measures a second time under a wide fallback font (Verdana here, DejaVu Sans on the runner), so the e2e sweep on this machine sees what the runner sees — and names the overflowing element; its first full run caught a REAL one the runner would have found next: the crew header's name + pulse row pushed the pulse 9 px past a 375 edge in journeys ② and ③ (`CrewHeader.tsx` now wraps that row; journeys ② ③ 6/6 green on all viewports after the fix); (3) the `ios` job runs unit AND journeys even when unit fails and a `verdict` step writes both logs' error lines and suite totals to the run summary — one run, every failure. What no local check can do: run SwiftData/SwiftUI code — test logic against Foundation behaviour still meets the macOS job first.

@@ -101,7 +101,7 @@ V64 deleting targets deletes the bodyweight · V65 unreachable for a 17-year-old
 Food search · barcode · food recognition · third-party nutrition API · calorie coaching copy · any score, grade, colour, rank or label
 on a food, a meal or a day · a deficit or weight goal unless Q1 ratifies one, with its own compliance checklist · weight history, trend
 or chart · sex, height or age fields beyond the birth year · notifications about macros · macros in the feed, the pulse, a profile or a
-share · XP, streak or achievements for entries · photos inside Nutrition (photos stay in the plate journal) · logos or food photos in the
+share · XP, streak or achievements for entries · ~~photos inside Nutrition (photos stay in the plate journal)~~ (struck 2026-09-17 by the A22 ruling: the plate journal itself is removed; whether any photo stays anywhere is A22 G2) · logos or food photos in the
 seed · HealthKit or any export beyond the user's own JSON · search or filtering of the seed beyond chain → item.
 
 ## 9. Three questions only the owner can answer
