@@ -1,6 +1,5 @@
 // SPEC: T029 (Verify: crews suite) · 8.2 Crews: create; join via link; full-crew rejection; regenerated link kills old; leave keeps
 // past posts; Captain removes member; captaincy auto-pass; last-out archive; 1-crew invariant · V37 pulse · E2 join-forward.
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PATCH as renameCrew } from "@/app/api/v1/crews/[id]/route";
 import { POST as regenerateInvite } from "@/app/api/v1/crews/[id]/invite/route";
@@ -9,12 +8,12 @@ import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
 import { GET as previewInvite, POST as joinCrew } from "@/app/api/v1/crews/join/route";
 import { PATCH as muteCrew } from "@/app/api/v1/crews/[id]/mute/route";
 import { GET as myCrew, POST as createCrew } from "@/app/api/v1/crews/route";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { GET as getMe } from "@/app/api/v1/users/me/route";
 import { closeDb, crews, resetDbForTests } from "@/lib/db";
 import { SpecConstants } from "@/generated/spec-constants";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
+import { postWorkout } from "./workout-post";
 
 let captain: TestUser;
 let alex: TestUser;
@@ -59,7 +58,7 @@ describe("crews", () => {
   });
 
   it("counts the pulse from shared posts and shows them in the stream (join-forward)", async () => {
-    await createPost(request("POST", "/posts", { token: captain.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "who's in at 6am", shareToCrew: true, timezone: "UTC", isPlannedDay: false } }));
+    await postWorkout(captain, { cardio: true, shareToCrew: true, caption: "who's in at 6am", timezone: "UTC" }); // A22: a post is a workout post
     const mine = await readJson<{ pulse: { posted: number; total: number } }>(await myCrew(request("GET", "/crews", { token: captain.accessToken })));
     expect(mine.pulse).toEqual({ posted: 1, total: 2 });
     await joinCrew(request("POST", "/crews/join", { token: sam.accessToken, body: { token: tokenOf(inviteLink) } }));

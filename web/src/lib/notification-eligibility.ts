@@ -1,5 +1,6 @@
-// SPEC: Flow 2 (7:00 AM "Push day is ready 💪" — the reminder at the user's chosen time, G12) · Flow 4 rhythm reminder (one gentle
-// nudge at YOUR usual time, only when the streak's at risk) · Flow 7 (paused → reminders stop) · Flow 6 (no nudge pings) ·
+// SPEC: Flow 2 (7:00 AM "Push day is ready 💪" — the reminder at the user's chosen time, G12) · the streak nudge (one gentle nudge
+// at YOUR usual time, only when the streak's at risk — A22 G1 (a), owner-approved 2026-09-18: at risk means a PLANNED day with no
+// completed workout; a rest day asks nothing) · Flow 7 (paused → reminders stop) · Flow 6 (no nudge pings) ·
 // Part IV email rules (no digests) · E5 (denied → in-app) · A7 (each kind gated by its own toggle). Pure decision functions;
 // the sender calls them on a schedule. T033
 import type { NotificationPrefs } from "@/lib/documents";
@@ -10,7 +11,6 @@ export interface ReminderFacts {
   localTime: string; // "HH:MM" now, in the user's zone
   isPlannedDay: boolean;
   workoutDoneToday: boolean;
-  postedToday: boolean;
   paused: boolean;
   hasPushToken: boolean;
   alreadySentToday: boolean;
@@ -28,7 +28,8 @@ export function reminderDue(facts: ReminderFacts): boolean {
 
 export interface StreakRiskFacts {
   currentStreak: number;
-  postedToday: boolean;
+  isPlannedDay: boolean; // A22 G1 (a): only a planned day can put the streak at risk
+  workoutDoneToday: boolean;
   paused: boolean;
   hasPushToken: boolean;
   alreadySentToday: boolean;
@@ -37,11 +38,12 @@ export interface StreakRiskFacts {
   prefs: NotificationPrefs;
 }
 
-// SPEC: Flow 4 rhythm reminder — one nudge at the user's usual time, only when a live streak has nothing posted yet
-// SPEC: A7 — the "Streak reminder" toggle gates it
+// SPEC: the streak nudge — one nudge at the user's usual time, only when a live streak's PLANNED day has no completed workout yet
+// (A22 G1 (a): a rest day asks nothing, so it never nudges) · A7 — the "Streak reminder" toggle gates it
 export function streakRiskDue(facts: StreakRiskFacts): boolean {
   if (!facts.prefs.streakRisk) return false;
-  if (!facts.hasPushToken || facts.paused || facts.alreadySentToday || facts.postedToday) return false;
+  if (!facts.hasPushToken || facts.paused || facts.alreadySentToday) return false;
+  if (!facts.isPlannedDay || facts.workoutDoneToday) return false;
   if (facts.currentStreak <= 0 || facts.usualPostMinuteOfDay === null) return false;
   return facts.localMinuteOfDay >= facts.usualPostMinuteOfDay && facts.localMinuteOfDay < facts.usualPostMinuteOfDay + SpecConstants.streakRiskNudgeWindowMinutes;
 }

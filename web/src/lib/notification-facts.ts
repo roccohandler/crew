@@ -42,18 +42,20 @@ type NotifiableUser = { _id: ObjectId; timezone: string; reminderTime: string | 
 export async function gatherFacts(user: NotifiableUser, streak: number, now: Date): Promise<{ reminder: ReminderFacts; risk: StreakRiskFacts; dayKey: string }> {
   const dayKey = dayKeyFor(now, user.timezone);
   const clock = localClock(now, user.timezone);
-  const [plan, todaySessions, todayPosts, pause, tokens, log] = await Promise.all([
+  const [plan, todaySessions, pause, tokens, log] = await Promise.all([
     findPlan(user._id),
     (await sessions()).find({ userId: user._id, dayKey, status: "completed" }).toArray(),
-    (await posts()).countDocuments({ userId: user._id, dayKey, deletedAt: null }),
     (await pauses()).findOne({ userId: user._id, startDay: { $lte: dayKey }, endDay: { $gt: dayKey } }),
     (await pushTokens()).countDocuments({ userId: user._id }),
     (await notificationLog()).find({ userId: user._id, dayKey }).toArray(),
   ]);
-  const base = { paused: pause !== null, hasPushToken: tokens > 0, postedToday: todayPosts > 0, prefs: notificationPrefsOf(user) };
+  // SPEC: A22 G1 (a) — the day's requirement is a PLANNED day with no completed workout; a rest day asks nothing, so neither nudge fires on one
+  const isPlannedDay = isPlannedWeekday(plan, isoWeekday(dayKey));
+  const workoutDoneToday = todaySessions.some((session) => session.workoutKind !== "cardio");
+  const base = { paused: pause !== null, hasPushToken: tokens > 0, isPlannedDay, workoutDoneToday, prefs: notificationPrefsOf(user) };
   return {
     dayKey,
-    reminder: { ...base, reminderTime: user.reminderTime, localTime: clock.time, isPlannedDay: isPlannedWeekday(plan, isoWeekday(dayKey)), workoutDoneToday: todaySessions.some((session) => session.workoutKind !== "cardio"), alreadySentToday: log.some((entry) => entry.kind === "reminder") },
+    reminder: { ...base, reminderTime: user.reminderTime, localTime: clock.time, alreadySentToday: log.some((entry) => entry.kind === "reminder") },
     risk: { ...base, currentStreak: streak, alreadySentToday: log.some((entry) => entry.kind === "streakRisk"), localMinuteOfDay: clock.minuteOfDay, usualPostMinuteOfDay: await usualPostMinute(user._id, user.timezone) },
   };
 }

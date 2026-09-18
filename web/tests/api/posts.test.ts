@@ -1,17 +1,24 @@
-// SPEC: T026 (Verify: npm test tests/api/posts) · 8.2 Posts: fitness/meal/text-only creation; delete keeps log + streak (E3);
-// caption edit; 3-meal XP cap server-enforced (V26); idempotency (④); journal forever.
+// SPEC: T026 (Verify: npm test tests/api/posts) · 8.2 Posts — A22 (owner-approved 2026-09-18): the plate journal is gone; a post is
+// a WORKOUT post created by the session that completes it (S10 · A21.9), so POST posts no longer exists. Delete keeps log + streak
+// (E3); caption edit (G2: an optional caption ≤ captionMaxChars on a workout post); idempotency on the completion's clientId (④);
+// the journal forever; another user's post is a 404.
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DELETE as deletePost, GET as getPost, PATCH as patchPost } from "@/app/api/v1/posts/[id]/route";
-import { GET as listPosts, POST as createPost } from "@/app/api/v1/posts/route";
+import * as postsRoute from "@/app/api/v1/posts/route";
+import { PATCH as patchSession } from "@/app/api/v1/sessions/[id]/route";
+import { POST as createSession } from "@/app/api/v1/sessions/route";
 import { closeDb, resetDbForTests } from "@/lib/db";
+import { SpecConstants } from "@/generated/spec-constants";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
+import { sampleCardioSessionBody } from "./plans-sessions";
+import { postWorkout, type JournalItem } from "./workout-post";
 
 let me: TestUser;
-interface PostReply { post: { id: string; type: string; dayKey: string; caption: string; crewId: string | null }; gamification: { currentStreak: number; totalXP: number } }
+const TZ = "America/Los_Angeles";
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
-const meal = (caption: string) => ({ clientId: randomUUID(), type: "meal", caption, shareToCrew: true, timezone: "America/Los_Angeles", isPlannedDay: false });
+const journal = async (user: TestUser) => (await readJson<{ items: JournalItem[] }>(await postsRoute.GET(request("GET", "/posts", { token: user.accessToken })))).items;
 
 beforeAll(async () => {
   await resetDbForTests();
@@ -22,46 +29,45 @@ afterAll(async () => {
 });
 
 describe("posts", () => {
-  it("creates a text post with the server dayKey, pays the first-post XP without counting the day (A22 G1 (a)), and is idempotent on clientId", async () => {
-    const body = { clientId: randomUUID(), type: "text", caption: "protein shake post-gym", shareToCrew: false, timezone: "America/Los_Angeles", isPlannedDay: false };
-    const first = await createPost(request("POST", "/posts", { token: me.accessToken, body }));
-    expect(first.status).toBe(201);
-    const reply = await readJson<PostReply>(first);
-    expect(reply.post.dayKey).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(reply.gamification).toMatchObject({ currentStreak: 0, totalXP: 25 }); // V70: only a completed workout counts a day
-    const again = await createPost(request("POST", "/posts", { token: me.accessToken, body }));
+  it("POST posts is gone: the only way to a post is the session that completes it (A22)", () => {
+    expect("POST" in postsRoute).toBe(false);
+  });
+
+  it("a completed planned workout is the day's post — server dayKey, +25 +100, streak 1 — and replaying the completion creates it once", async () => {
+    const first = await postWorkout(me, { caption: "felt strong" });
+    expect(first.gamification).toMatchObject({ currentStreak: 1, totalXP: SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout }); // V25 / V67
+    const items = await journal(me);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ id: first.postId, type: "workout", caption: "felt strong" });
+    expect(items[0]?.dayKey).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const again = await patchSession(request("PATCH", `/sessions/${first.sessionId}`, { token: me.accessToken, body: { timezone: TZ, status: "completed", post: { clientId: first.clientId, shareToCrew: false } } }), params(first.sessionId));
     expect(again.status).toBe(200);
-    expect((await readJson<PostReply>(again)).post.id).toBe(reply.post.id);
+    expect(await journal(me)).toHaveLength(1); // ④: the same completion twice writes one post
   });
 
-  it("enforces the 3-meal XP cap server-side (V26) and a solo post stays journal-only", async () => {
-    let last: PostReply | null = null;
-    for (const caption of ["eggs", "salad", "rice", "late snack"]) last = await readJson<PostReply>(await createPost(request("POST", "/posts", { token: me.accessToken, body: meal(caption) })));
-    expect(last?.gamification.totalXP).toBe(25 + 15 * 3); // first-post XP already counted by the text post; four meals earn 15 × 3
-    expect(last?.post.crewId).toBeNull(); // shareToCrew without a crew = the private journal (Flow 10)
+  it("a caption over the limit is refused with the completion (400); a solo shared post stays journal-only", async () => {
+    const created = await readJson<{ session: { id: string } }>(await createSession(request("POST", "/sessions", { token: me.accessToken, body: sampleCardioSessionBody({ timezone: TZ }) })));
+    const tooLong = await patchSession(request("PATCH", `/sessions/${created.session.id}`, { token: me.accessToken, body: { timezone: TZ, status: "completed", post: { clientId: randomUUID(), shareToCrew: false, caption: "x".repeat(SpecConstants.captionMaxChars + 1) } } }), params(created.session.id));
+    expect(tooLong.status).toBe(400);
+    const shared = await postWorkout(me, { cardio: true, shareToCrew: true });
+    expect((await journal(me)).find((item) => item.id === shared.postId)?.crewId).toBeNull(); // shareToCrew without a crew = the private journal (Flow 10)
   });
 
-  it("rejects a meal with neither photo nor text, and a caption over the limit", async () => {
-    expect((await createPost(request("POST", "/posts", { token: me.accessToken, body: { ...meal(""), caption: "" } }))).status).toBe(400);
-    expect((await createPost(request("POST", "/posts", { token: me.accessToken, body: meal("x".repeat(281)) }))).status).toBe(400);
-  });
-
-  it("edits the caption, and deleting a post keeps the streak (E3) while removing it from the journal", async () => {
-    const created = await readJson<PostReply>(await createPost(request("POST", "/posts", { token: me.accessToken, body: meal("edit me") })));
-    const edited = await readJson<PostReply>(await patchPost(request("PATCH", `/posts/${created.post.id}`, { token: me.accessToken, body: { caption: "edited" } }), params(created.post.id)));
+  it("edits the caption (G2), and deleting a post keeps the streak (E3) while removing it from the journal", async () => {
+    const created = await postWorkout(me, { cardio: true, caption: "edit me" });
+    const edited = await readJson<{ post: { caption: string } }>(await patchPost(request("PATCH", `/posts/${created.postId}`, { token: me.accessToken, body: { caption: "edited" } }), params(created.postId)));
     expect(edited.post.caption).toBe("edited");
-    const before = await readJson<{ items: { id: string; clientId: string }[] }>(await listPosts(request("GET", "/posts", { token: me.accessToken })));
-    expect(before.items.find((item) => item.id === created.post.id)?.clientId).toMatch(/^[0-9a-f-]{36}$/); // a phone addresses its journal by clientId (hydration, deletePost)
-    const deleted = await readJson<{ gamification: { currentStreak: number } }>(await deletePost(request("DELETE", `/posts/${created.post.id}`, { token: me.accessToken }), params(created.post.id)));
-    expect(deleted.gamification.currentStreak).toBe(0); // no workout today: a text or meal post never counted the day (A22 G1 (a))
-    const after = await readJson<{ items: unknown[] }>(await listPosts(request("GET", "/posts", { token: me.accessToken })));
-    expect(after.items.length).toBe(before.items.length - 1);
-    expect((await getPost(request("GET", `/posts/${created.post.id}`, { token: me.accessToken }), params(created.post.id))).status).toBe(404);
+    const before = await journal(me);
+    expect(before.find((item) => item.id === created.postId)?.clientId).toMatch(/^[0-9a-f-]{36}$/); // a phone addresses its journal by clientId (hydration, deletePost)
+    const deleted = await readJson<{ gamification: { currentStreak: number } }>(await deletePost(request("DELETE", `/posts/${created.postId}`, { token: me.accessToken }), params(created.postId)));
+    expect(deleted.gamification.currentStreak).toBe(1); // the planned workout still counts today (E3)
+    expect(await journal(me)).toHaveLength(before.length - 1);
+    expect((await getPost(request("GET", `/posts/${created.postId}`, { token: me.accessToken }), params(created.postId))).status).toBe(404);
   });
 
   it("hides another user's journal post (404)", async () => {
     const other = await createUser("other-posts");
-    const theirs = await readJson<PostReply>(await createPost(request("POST", "/posts", { token: other.accessToken, body: meal("theirs") })));
-    expect((await getPost(request("GET", `/posts/${theirs.post.id}`, { token: me.accessToken }), params(theirs.post.id))).status).toBe(404);
+    const theirs = await postWorkout(other, { cardio: true });
+    expect((await getPost(request("GET", `/posts/${theirs.postId}`, { token: me.accessToken }), params(theirs.postId))).status).toBe(404);
   });
 });

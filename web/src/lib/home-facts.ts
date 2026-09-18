@@ -1,5 +1,6 @@
-// SPEC: A14 · A18.6a · A18.7 · A18.9 — the facts Home REPORTS, as opposed to the state it is IN: today's three
-// logging vectors, the week's seven marks with their done/planned counts, and what today actually held.
+// SPEC: A14 · A18.6a · A18.7 · A18.9 — the facts Home REPORTS, as opposed to the state it is IN: today's logging
+// vectors (Workout · Cardio; A22 G4: the macros row arrives with W8 and is absent while gated off), the week's seven marks with
+// their done/planned counts, and what today actually held.
 //
 // Twin of ios Features/Home/HomeModel+Facts.swift, split from today-state.ts for the same reason that file is split
 // from HomeModel.swift: the state machine answers "what day is this", these answer "what is there to report".
@@ -8,10 +9,10 @@ import { posts, sessions } from "@/lib/db";
 import { addDays, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { TimeUnits } from "@/lib/time-units";
 
-// SPEC: A14 — today's state for each of the three logging vectors. A measurement or nothing: `null`/false renders as
-// an invitation to log, never as a zero and never as "0/3" (A8, the same rule that strips the ring off the bridge).
-// Twin of ios VectorSlots.
-export interface VectorSlots { workoutDone: boolean; cardioMinutes: number | null; meals: number }
+// SPEC: A14 — today's state for each logging vector. A measurement or nothing: `null`/false renders as an invitation to log,
+// never as a zero and never as "0/3" (A8, the same rule that strips the ring off the bridge). A22 (owner-approved 2026-09-18):
+// the meal count is gone with the plate journal; G4's "Log macros" row reads nutrition Today once W8 exists. Twin of ios VectorSlots.
+export interface VectorSlots { workoutDone: boolean; cardioMinutes: number | null }
 
 // SPEC: A18.9 · A6 — what today actually held, in the sentence the journal already prints. The line is the one the
 // server STORED on the post at completion (lib/sessions.ts summaryFor), so this reads a fact rather than recomputing
@@ -27,10 +28,7 @@ export async function todaySummary(userId: ObjectId, todayKey: string): Promise<
 // SPEC: A14 — today per vector, the server twin of ios HomeModel.slots. A completed session of kind `cardio` is CARDIO,
 // not a workout: the same split A14 gives the post type, the journal row and the heat map. Ritual equality, never a score.
 export async function vectorSlots(userId: ObjectId, todayKey: string): Promise<VectorSlots> {
-  const [completed, mealCount] = await Promise.all([
-    (await sessions()).find({ userId, status: "completed", dayKey: todayKey }, { projection: { workoutKind: 1, exercises: 1 } }).toArray(),
-    (await posts()).countDocuments({ userId, dayKey: todayKey, type: "meal", deletedAt: null }),
-  ]);
+  const completed = await (await sessions()).find({ userId, status: "completed", dayKey: todayKey }, { projection: { workoutKind: 1, exercises: 1 } }).toArray();
   // A20.10 (2026-09-11) — cardio done ANYWHERE counts on this row. The `workoutKind === "cardio"` filter meant only a
   // standalone log filled it, so a cardio block inside a push day read "nothing logged today" on Home while Progress
   // reported the minutes. Twin of ios HomeModel.slots, changed in the same pass so the two cannot drift.
@@ -42,7 +40,6 @@ export async function vectorSlots(userId: ObjectId, todayKey: string): Promise<V
   return {
     workoutDone: completed.some((session) => session.workoutKind !== "cardio"),
     cardioMinutes: cardioSeconds > 0 ? Math.round(cardioSeconds / TimeUnits.secondsPerMinute) : null,
-    meals: mealCount,
   };
 }
 

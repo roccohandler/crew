@@ -14,7 +14,7 @@ async function seedUser(label: string, createdDay: string, postDays: string[], c
   const userId = new ObjectId();
   await (await users()).insertOne({ _id: userId, email: `${label}@example.com`, emailLower: `${label}@example.com`, authProvider: "email", displayName: label, profilePhotoKey: null, units: "lb", timezone: "UTC", reminderTime: null, eulaAcceptedAt: at(createdDay), createdAt: at(createdDay) });
   for (const day of postDays) {
-    await (await posts()).insertOne({ _id: new ObjectId(), clientId: `${label}-${day}`, userId, type: "meal", sessionId: null, photoKey: null, caption: "", mealTag: null, crewId, dayKey: day, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: at(day), deletedAt: null });
+    await (await posts()).insertOne({ _id: new ObjectId(), clientId: `${label}-${day}`, userId, type: "workout", sessionId: null, photoKey: null, caption: "", mealTag: null, crewId, dayKey: day, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: at(day), deletedAt: null });
   }
   if (crewId !== null) await (await crewMemberships()).insertOne({ _id: new ObjectId(), crewId, userId, joinedAt: at(createdDay), joinedDayKey: createdDay, mutedAt: null });
 }

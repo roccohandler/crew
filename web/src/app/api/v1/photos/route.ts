@@ -1,5 +1,6 @@
 // SPEC: docs/api.md POST photos — multipart file + purpose → EXIF/GPS stripped, auto-oriented, resized, JPEG ≤ ~300 KB,
-// stored under an unguessable key (E3, 8.7, 8.8) · T027
+// stored under an unguessable key (E3, 8.7, 8.8) · T027. A22 G2 (owner-approved 2026-09-18): the only purpose is the profile
+// picture — post photos left with the plate journal.
 import { ObjectId } from "mongodb";
 import { apiError, errorResponse, json } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     const file = form.get("file");
     const purpose = form.get("purpose");
     if (!(file instanceof File)) throw apiError("validation", "The `file` field must be an image.", HttpStatus.badRequest);
-    if (purpose !== "post" && purpose !== "profile") throw apiError("validation", "`purpose` must be post or profile.", HttpStatus.badRequest);
+    if (purpose !== "profile") throw apiError("validation", "`purpose` must be profile.", HttpStatus.badRequest);
     const photo = await uploadPhoto(new ObjectId(userId), file, purpose);
     await logEvent(userId, "photo_uploaded", { purpose, bytes: photo.bytes });
     return json({ photoKey: photo.photoKey, width: photo.width, height: photo.height, bytes: photo.bytes }, HttpStatus.created);

@@ -1,15 +1,14 @@
 // SPEC: W5 (owner-approved 2026-09-17) · E9 — a report is filed open; a human resolves it from the laptop (scripts/resolve-reports.ts →
 // lib/reports.ts): the named open reports flip to resolved with a resolvedAt, exactly those are returned, a second pass changes nothing,
 // and an unknown or malformed id is ignored. No route ever sets `resolved`.
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ObjectId } from "mongodb";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { POST as fileReport } from "@/app/api/v1/reports/route";
 import { closeDb, reports, resetDbForTests } from "@/lib/db";
 import { openReports, resolveReports } from "@/lib/reports";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
+import { postWorkout } from "./workout-post";
 
 let reporter: TestUser;
 let poster: TestUser;
@@ -24,7 +23,7 @@ afterAll(async () => {
 });
 
 async function fileOne(reason: string): Promise<string> {
-  const post = await readJson<{ post: { id: string } }>(await createPost(request("POST", "/posts", { token: poster.accessToken, body: { clientId: randomUUID(), type: "text", caption: "a line", shareToCrew: false, timezone: "UTC", isPlannedDay: false } })));
+  const post = { post: { id: (await postWorkout(poster, { cardio: true, caption: "a line" })).postId } }; // A22: a post is a workout post
   const filed = await fileReport(request("POST", "/reports", { token: reporter.accessToken, body: { targetType: "post", targetId: post.post.id, reason } }));
   expect(filed.status).toBe(201);
   return (await readJson<{ reportId: string }>(filed)).reportId;

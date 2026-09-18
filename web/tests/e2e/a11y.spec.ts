@@ -2,7 +2,7 @@
 // substitute: every page has one main landmark and one h1, every image has alt, every button/link has a name, every
 // field has a label, and (8.9) nothing scrolls horizontally from 360 to 1920 · 6.5 semantic landmarks, keyboard-complete · T043
 import { expect, test, type Page } from "@playwright/test";
-import { buildWeekAndSave, expectNoHorizontalScroll, fillWhenHydrated } from "./helpers";
+import { buildWeekAndSave, completeWorkoutViaApi, expectNoHorizontalScroll } from "./helpers";
 
 interface Audit { mains: number; h1s: number; unnamedImages: number; unnamedControls: string[]; unlabelledFields: string[] }
 
@@ -57,11 +57,9 @@ test("signed-in pages: landmarks, names, labels, no sideways scroll", async ({ p
 // One post is the whole difference between auditing an empty screen and auditing the screen the owner photographed.
 test("the real Home — not the bridge — carries landmarks, names and labels", async ({ page }) => {
   await buildWeekAndSave(page, { label: "a11y-real-home" });
-  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
-  await page.goto("/post");
-  await fillWhenHydrated(page, "Say something (or don't)", "eggs", "Post");
-  await page.getByRole("button", { name: "Post" }).click();
-  await expect(page).toHaveURL(/\/home(\?earned=.+)?$/, { timeout: 15_000 });
+  await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
+  await completeWorkoutViaApi(page, { cardio: true }); // A22: the post that ends the bridge is a workout post
+  await page.goto("/home");
 
   await expectAccessible(page, "/home");
 
@@ -70,7 +68,7 @@ test("the real Home — not the bridge — carries landmarks, names and labels",
   // flame naming a bare <div>, which ARIA prohibits and the audit above cannot see (it collects buttons and links).
   await expect(page.locator(".flame[role='img']")).toHaveAttribute("aria-label", /^Streak \d+$/);
   await expect(page.locator(".weekstrip[role='img']")).toHaveAttribute("aria-label", /^This week:.*\.$/);
-  for (const verb of ["Log workout", "Log cardio", "Log a meal"]) {
+  for (const verb of ["Log workout", "Log cardio"]) { // A22 G4: the macros row arrives with W8
     await expect(page.getByRole("link", { name: new RegExp(`^${verb}, (nothing logged today|.* today)$`) })).toBeVisible();
   }
 });

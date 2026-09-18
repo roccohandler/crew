@@ -1216,3 +1216,28 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   unedited. The crew's comeback BANNER (V37–V39, `quietDaysBetween`) is a different rule — silence in the stream — and is untouched;
   "engine and banner agree" in R-068 (4) is withdrawn. Why this reading: it awards less and follows the ruling's letter; the calendar
   reading would pay +50 for a single missed Monday on every three-day plan. Overturnable by an Appendix A line; V82 is append-only.
+
+- **R-070 · 2026-09-18 · A22 G1 (a), the rest-day BRIDGE — READING.** 1D's rest-day bridge CTA was "Start your streak — post a
+  meal"; the meal is gone and the ruling asks nothing of a rest day. The conservative in-spec reading keeps §1D's ONE control and
+  gives it the bonus workout A3 already offers on every rest day ("Start a bonus workout" → the next rotation workout; iOS opens the
+  BonusWorkoutSheet, web `/session/new?bonus=<kind>`); the copy stops promising a flame a rest day cannot light: "Your plan rests
+  today. Your first flame lights on your first planned workout." A workout-day bridge is unchanged. TodayState.rest loses its
+  `posted` payload on both platforms — nothing on a rest day depends on a post any more; the rest card reads "Nothing to do here. A
+  rest day asks nothing of your streak." and carries no control (A18.4's premise line is deleted with the requirement it explained).
+  Tagged `// GAP:` in TodayCard on both platforms. Overturnable by an Appendix A line.
+- **R-071 · 2026-09-18 · A22 G1 (a), the streak nudge — READING.** "Flow 4's rhythm reminder" nudged when "nothing was posted yet
+  today"; under G1 (a) the streak is at risk only on a PLANNED day with no completed workout, so `streakRiskDue` gates on
+  `isPlannedDay && !workoutDoneToday` (a rest day never nudges; the morning reminder already worked this way) and the copy names the
+  open workout — "Push day is still open. Finish it and the streak holds." — instead of the plate journal. The usual-post-time window
+  is unchanged. Recorded as a reading because G1 (a) speaks of the streak, not of notifications.
+- **R-072 · 2026-09-18 · A22 G2 / MEAL_POST_REMOVAL_MAP "Server" — READINGS.** (1) POST posts is REMOVED rather than narrowed: no
+  client creates a post through it once the composer is gone (a workout post rides PATCH sessions/[id] `post`); GET posts and
+  posts/[id] GET · PATCH caption · DELETE stay. (2) G11's post-creation limiter moves to that PATCH when the body carries `post` —
+  the spec limits post creation, and that is where posts are created now. (3) "Blob serves profile photos only": the read
+  (`readablePhoto`) serves `purpose: "profile"` rows alone — a legacy post photo is 404 to everyone, including its owner, until the
+  account's cascade deletes it; the upload accepts "profile" and nothing else. (4) A queued `createPost` sync op from an older phone is
+  refused per op as `postsRetired`, non-retryably, the A21.2 chatRetired shape — the phone holds it, the batch lands. (5) Legacy meal
+  and text rows stay readable on both platforms (the journal prints their caption or "Post"); nothing writes their kinds, photo keys,
+  meal tags or the backfill label again, and PostResponse drops those three fields. (6) The SwiftData LocalPost keeps its legacy stored
+  properties (photoKey, localPhotoPath, mealTag, earlierToday) untouched — dropping them is a schema change that waits for W9's
+  VersionedSchema; nothing writes them.

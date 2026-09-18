@@ -85,7 +85,7 @@ async function summaryFor(userId: ObjectId, doc: SessionDoc, completedAt: Date):
 async function createSessionPost(userId: ObjectId, doc: SessionDoc, post: NonNullable<PatchSessionInput["post"]>, timezone: string, now: Date): Promise<void> {
   const completedAt = doc.completedAt ?? now;
   await createPost(userId, {
-    clientId: post.clientId, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, caption: post.caption, photoKey: post.photoKey,
+    clientId: post.clientId, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, caption: post.caption,
     shareToCrew: post.shareToCrew, timezone, isPlannedDay: doc.isPlannedDay, workoutCompleted: true, createdAt: completedAt, dayKey: doc.dayKey,
     summary: await summaryFor(userId, doc, completedAt),
   }, now);

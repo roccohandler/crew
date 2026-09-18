@@ -53,7 +53,7 @@ export async function replacePlan(userId: ObjectId, input: PutPlanInput, now: Da
   return doc;
 }
 
-// SPEC: A1 — is this ISO weekday a training day? (rest day = not in trainingWeekdays); meal posts stamp isPlannedDay from it
+// SPEC: A1 — is this ISO weekday a training day? (rest day = not in trainingWeekdays); the reminder and the streak nudge read it (A22 G1 (a))
 export function isPlannedWeekday(plan: PlanDoc | null, weekday: number): boolean {
   return plan?.trainingWeekdays.includes(weekday) ?? false;
 }

@@ -2,10 +2,10 @@
 // chat 1,000; Flow 8 ≤ 15 exercises/day, ≤ 20 sets/exercise (G3); E9 age floor; G11/GAP ceilings) is enforced by exactly one
 // zod schema, at the limit (accepted) and one over (rejected). The numbers come from SpecConstants, never typed here (C7).
 import { describe, expect, it } from "vitest";
-import { createPostSchema, patchPostSchema, reactionSchema } from "@/lib/validate-posts";
+import { patchPostSchema, reactionSchema } from "@/lib/validate-posts";
 import { createCrewSchema, createReportSchema } from "@/lib/validate-crews";
 import { exerciseTemplateInputSchema, putPlanSchema, workoutTemplateInputSchema } from "@/lib/validate-plans";
-import { sessionExerciseInputSchema, setLogInputSchema, syncSchema } from "@/lib/validate-sessions";
+import { completionPostSchema, sessionExerciseInputSchema, setLogInputSchema, syncSchema } from "@/lib/validate-sessions";
 import { clientEventsSchema, registerSchema, timezoneSchema, updateMeSchema } from "@/lib/validate";
 import { TimeUnits } from "@/lib/time-units";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -17,16 +17,17 @@ const exerciseRow = (overrides: Partial<ReturnType<typeof exerciseTemplateInputS
 
 describe("input limits (8.3 validators)", () => {
   it("captions: the 280th character is accepted, the 281st rejected (E20)", () => {
-    const base = { clientId: uuid, type: "text" as const, shareToCrew: false, timezone: "UTC", isPlannedDay: false };
-    expect(createPostSchema.safeParse({ ...base, caption: text(SpecConstants.captionMaxChars) }).success).toBe(true);
-    expect(createPostSchema.safeParse({ ...base, caption: text(SpecConstants.captionMaxChars + 1) }).success).toBe(false);
+    const base = { clientId: uuid, shareToCrew: false }; // A22: the caption rides the session's completion post
+    expect(completionPostSchema.safeParse({ ...base, caption: text(SpecConstants.captionMaxChars) }).success).toBe(true);
+    expect(completionPostSchema.safeParse({ ...base, caption: text(SpecConstants.captionMaxChars + 1) }).success).toBe(false);
     expect(patchPostSchema.safeParse({ caption: text(SpecConstants.captionMaxChars + 1) }).success).toBe(false);
   });
 
-  it("a meal needs a photo or a line of text; a reaction must be one of the five (Flow 4, Flow 6)", () => {
-    const meal = { clientId: uuid, type: "meal" as const, shareToCrew: true, timezone: "UTC", isPlannedDay: false };
-    expect(createPostSchema.safeParse({ ...meal, caption: "   " }).success).toBe(false);
-    expect(createPostSchema.safeParse({ ...meal, photoKey: "k" }).success).toBe(true);
+  it("a workout post's caption stops at the limit and carries no photo (A22 G2); a reaction must be one of the five (Flow 6)", () => {
+    const post = { clientId: uuid, shareToCrew: true };
+    expect(completionPostSchema.safeParse({ ...post, caption: "x".repeat(SpecConstants.captionMaxChars) }).success).toBe(true);
+    expect(completionPostSchema.safeParse({ ...post, caption: "x".repeat(SpecConstants.captionMaxChars + 1) }).success).toBe(false);
+    expect("photoKey" in completionPostSchema.shape).toBe(false);
     for (const emoji of SpecConstants.reactionEmojis) expect(reactionSchema.safeParse({ emoji }).success).toBe(true);
     expect(reactionSchema.safeParse({ emoji: "👍" }).success).toBe(false);
   });

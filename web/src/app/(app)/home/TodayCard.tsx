@@ -6,17 +6,14 @@
 // *a way* to reach each, not a dedicated button each, and the log rows below are that way at a position that no longer
 // moves between states.
 //
-// A18 (2026-09-10), four changes, each answering something the owner asked about the shipped screen:
-//   A18.4 the rest card states its PREMISE, not only its reward — Crew's streak is daily and has no training-day
-//     exemption (V04: "rest day, silence → streak 0 at 3 AM"), so "recovery is part of the plan" and a Post a meal
-//     button read as a contradiction until the card says why a rest day counts. NOTE: this line exists ONLY because
-//     the streak is daily (A18.13); if the cadence ever moves to weeks it is deleted in the same commit.
-//   A18.9 the all-done card REPORTS THE DAY (the stored post summary — the journal's own sentence) and carries no
-//     control; it was the one state with no filled control and nothing to say.
-//   A18.6c the paused card gains "End the pause now", the string Settings already uses for the same action (6.6).
-//   A18.8 the bridge ABSORBS an open session instead of a second Resume banner appearing beside its one CTA (§1D).
-//   A18.3 the what's-next line has left this card on rest and all-done — it is the block above it now, which also
-//     dissolves the defect where it sat ABOVE the control when posted and BELOW it when not.
+// A18 (2026-09-10): A18.9 the all-done card REPORTS THE DAY (the stored post summary — the journal's own sentence) and carries
+// no control; A18.6c the paused card gains "End the pause now", the string Settings already uses (6.6); A18.8 the bridge ABSORBS
+// an open session instead of a second Resume banner appearing beside its one CTA (§1D); A18.3 the what's-next line has left this
+// card on rest and all-done — it is the block above it now.
+//
+// A22 G1 (a) (owner-approved 2026-09-18) — A REST DAY ASKS NOTHING. The rest card's premise line (A18.4: "Rest days count too —
+// post anything…") is deleted with the daily requirement it explained; the card carries no control and no stake. The plate
+// journal is gone, so the bridge's rest-day CTA ("Start your streak — post a meal") went with it (R-070 below).
 import Link from "next/link";
 import { dayLabel } from "@/lib/engine/day-label";
 import type { TodayState } from "@/lib/today-state";
@@ -27,32 +24,26 @@ type Props = {
   todayKey: string;
   openSessionId: string | null;
   bridgeLine: string | null; // A3 / §1D: the bridge's one line, and only the bridge's
-  streak: number;
+  bonusHref: string | null; // A22: the rest-day bridge's one control — the next rotation workout as a bonus (A3), when the plan has one
   todaySummaryLines: string[];
 };
-
-// SPEC: A17.1 · A18.4 · A8 · spec:452 — what today is worth AND why a rest day asks for anything at all. No countdown,
-// no notification, no time pressure: a fact about today, and then it stops. At streak 0 it never says "0-day streak".
-function stakeLine(posted: boolean, streak: number): string {
-  if (posted) return "Today counts.";
-  return streak > 0
-    ? `Rest days count too — post anything and your ${streak}-day streak holds.`
-    : "Rest days count too — one post lights your first flame.";
-}
 
 // Each state is its own small component, the way iOS branches inside one `switch` on TodayState: the dispatcher below
 // stays readable, and no branch can quietly grow past the size where a reader stops checking the others.
 
 // A18.8 — one CTA, and it takes the open session with it. The bridge lasts until the first POST and starting a workout
 // is not a post, so an abandoned first workout used to put a Resume banner beside this button (§1D: nothing competes).
-function BridgeCard({ workoutDay, openSessionId, bridgeLine }: { workoutDay: boolean; openSessionId: string | null; bridgeLine: string | null }) {
+// GAP: A22 G1 (a) — 1D's rest-day bridge lost its subject (the meal). The most conservative in-spec reading keeps §1D's ONE
+// control and gives it the bonus workout A3 already offers on every rest day; the copy stops promising a flame a rest day
+// cannot light (a bonus workout pays XP and leaves the streak, V70). R-070.
+function BridgeCard({ workoutDay, openSessionId, bridgeLine, bonusHref }: { workoutDay: boolean; openSessionId: string | null; bridgeLine: string | null; bonusHref: string | null }) {
   const resuming = openSessionId !== null;
-  const href = resuming ? `/session/${openSessionId}` : workoutDay ? "/session/new" : "/post";
-  const label = resuming ? "Resume your first workout" : workoutDay ? "Start your first workout" : "Start your streak — post a meal";
+  const href = resuming ? `/session/${openSessionId}` : workoutDay ? "/session/new" : bonusHref;
+  const label = resuming ? "Resume your first workout" : workoutDay ? "Start your first workout" : "Start a bonus workout";
   return (
     <div className="stack">
-      <p className="muted">Your first flame lights today.</p>
-      <Link className="button button--primary" href={href}>{label}</Link>
+      <p className="muted">{workoutDay || resuming ? "Your first flame lights today." : "Your plan rests today. Your first flame lights on your first planned workout."}</p>
+      {href === null ? null : <Link className="button button--primary" href={href}>{label}</Link>}
       {bridgeLine === null ? null : <p className="muted">{bridgeLine}</p>}
     </div>
   );
@@ -70,14 +61,12 @@ function PausedCard({ until, todayKey }: { until: string; todayKey: string }) {
   );
 }
 
-function RestCard({ posted, streak }: { posted: boolean; streak: number }) {
+// SPEC: Flow 5 · A22 G1 (a) — "a rest day asks nothing": no control, no stake, no premise. The block above names the next workout.
+function RestCard() {
   return (
     <section className="card stack stack--tight">
       <h2>Rest day — recovery is part of the plan.</h2>
-      <p className="muted">{stakeLine(posted, streak)}</p>
-      {posted
-        ? <Link className="button button--secondary" href="/post">Post another</Link>
-        : <Link className="button button--primary" href="/post">Post a meal</Link>}
+      <p className="muted">Nothing to do here. A rest day asks nothing of your streak.</p>
     </section>
   );
 }
@@ -113,10 +102,10 @@ function WorkoutCard({ today, openSessionId }: { today: Extract<TodayState, { ki
   );
 }
 
-export function TodayCard({ today, todayKey, openSessionId, bridgeLine, streak, todaySummaryLines }: Props) {
-  if (today.kind === "bridge") return <BridgeCard workoutDay={today.workoutDay} openSessionId={openSessionId} bridgeLine={bridgeLine} />;
+export function TodayCard({ today, todayKey, openSessionId, bridgeLine, bonusHref, todaySummaryLines }: Props) {
+  if (today.kind === "bridge") return <BridgeCard workoutDay={today.workoutDay} openSessionId={openSessionId} bridgeLine={bridgeLine} bonusHref={bonusHref} />;
   if (today.kind === "paused") return <PausedCard until={today.until} todayKey={todayKey} />;
-  if (today.kind === "rest") return <RestCard posted={today.posted} streak={streak} />;
+  if (today.kind === "rest") return <RestCard />;
   if (today.kind === "allDone") return <AllDoneCard todaySummaryLines={todaySummaryLines} />;
   return <WorkoutCard today={today} openSessionId={openSessionId} />;
 }

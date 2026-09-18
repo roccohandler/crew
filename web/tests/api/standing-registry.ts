@@ -5,23 +5,20 @@
 //   jsonBody    — ③ applies: "{" → 400 and {} → 400 in the standard error shape (false = no JSON body)
 //   validBody   — ④ applies when it carries clientId: the same body twice returns the same document id
 //   foreignPath — ① applies: a path to a resource owned by ANOTHER user, called as the test user → 403 or 404
-import { randomUUID } from "node:crypto";
-import { POST as createPostRoute } from "@/app/api/v1/posts/route";
 import { POST as createSessionRoute } from "@/app/api/v1/sessions/route";
 import type { TestUser } from "./fixtures";
 import { readJson, request } from "./http";
 import { samplePlanBody, sampleSessionBody } from "./plans-sessions";
+import { postWorkout } from "./workout-post";
 
 async function foreignSessionPath(_me: TestUser, other: TestUser): Promise<string> {
   const reply = await readJson<{ session: { id: string } }>(await createSessionRoute(request("POST", "/sessions", { token: other.accessToken, body: sampleSessionBody() })));
   return `/sessions/${reply.session.id}`;
 }
 
-const textPost = () => ({ clientId: randomUUID(), type: "text", caption: "standing check", shareToCrew: false, timezone: "UTC", isPlannedDay: false });
-
+// A22 (2026-09-18): a post exists only through a completed session, so the foreign post is the other user's posted workout
 async function foreignPostPath(_me: TestUser, other: TestUser): Promise<string> {
-  const reply = await readJson<{ post: { id: string } }>(await createPostRoute(request("POST", "/posts", { token: other.accessToken, body: textPost() })));
-  return `/posts/${reply.post.id}`;
+  return `/posts/${(await postWorkout(other, { cardio: true, timezone: "UTC" })).postId}`;
 }
 
 const foreignReactionPath = async (me: TestUser, other: TestUser) => `${await foreignPostPath(me, other)}/reactions`;
@@ -62,7 +59,6 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "sessions/[id]:GET": { jsonBody: false, foreignPath: foreignSessionPath },
   "sessions/[id]:PATCH": { jsonBody: true, foreignPath: foreignSessionPath, validBody: () => ({ timezone: "UTC" }) },
   "sync:POST": { jsonBody: true, validBody: () => ({ timezone: "UTC", ops: [] }) },
-  "posts:POST": { jsonBody: true, validBody: textPost, idField: "post" },
   "posts:GET": { jsonBody: false },
   "posts/[id]:GET": { jsonBody: false, foreignPath: foreignPostPath },
   "posts/[id]:PATCH": { jsonBody: true, foreignPath: foreignPostPath, validBody: () => ({ caption: "x" }) },

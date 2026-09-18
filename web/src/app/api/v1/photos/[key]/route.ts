@@ -1,4 +1,4 @@
-// SPEC: docs/api.md GET photos/[key] — auth-checked read: own photo or a crew-mate's. W5 (owner-approved 2026-09-17): the bytes
+// SPEC: docs/api.md GET photos/[key] — auth-checked read of a PROFILE photo (A22 G2): own or a crew-mate's. W5 (owner-approved 2026-09-17): the bytes
 // are STREAMED from either storage behind the auth check; no redirect to a blob URL ever leaves this route (blobs are private,
 // lib/blob.ts). A stranger gets 403 (8.7); an unknown key 404. Never cached beyond the caller. T027
 import { ObjectId } from "mongodb";

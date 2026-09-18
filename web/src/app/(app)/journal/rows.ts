@@ -1,19 +1,13 @@
 // SPEC: A6 — the Journal's rows, pure and server-only: one readable line per post (workout / cardio = the summary the server
-// wrote at completion, else the same line computed from the session; meal = "{Breakfast|Lunch|Dinner|Snack} · {time}" in the
-// user's zone), a day's "Rest day" tag, and the days newest first. The page renders; this file decides the words.
+// wrote at completion, else the same line computed from the session), a day's "Rest day" tag, and the days newest first. The page
+// renders; this file decides the words. A22 (owner-approved 2026-09-18): the plate journal is gone — a legacy meal or text row
+// (pre-A22) reads its caption, or the word "Post", and is never created again.
 import type { SessionDoc } from "@/lib/documents";
 import type { PostDoc } from "@/lib/documents-social";
 import { completionFacts } from "@/lib/engine/completion";
 import { isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
 import { TimeUnits } from "@/lib/time-units";
-
-const mealNames = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snack" } as const;
-
-// "4:31 PM" on the poster's clock (Intl carries the zone; the app ships in English)
-export function clockTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit" }).format(instant);
-}
 
 // SPEC: A6 — a workout post without a server summary (pre-A6) reads the same line computed from its session: sets from the
 // completion facts (V32: warm-ups excluded), wall-clock minutes rounded like the server's
@@ -23,16 +17,13 @@ export function summaryFromSession(session: SessionDoc, distanceUnit: string): s
   return sessionSummaryLine(session.workoutName, session.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, null, null, distanceUnit);
 }
 
-// SPEC: A6 — workout: "{summary}"; meal: "{Meal} · {time}" (+ " · earlier today" for a same-day backfill, Flow 4; the same
-// backfill read on a later day says "earlier that day"); a caption-less, tag-less plate is still "Meal · {time}"
-export function postLine(post: PostDoc, timeZone: string, sessionLine: string | null, isToday: boolean): string {
-  // A14: workout and cardio are two row types now; both read the server summary the completion wrote ("Push day · 12/12
-  // sets · 44 min" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into.
+// SPEC: A6 · A14 — workout and cardio are two row types; both read the server summary the completion wrote ("Push day · 12/12
+// sets · 44 min" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into. A22: a legacy row
+// of a retired kind reads its caption.
+export function postLine(post: PostDoc, sessionLine: string | null): string {
   if (post.type === "workout") return post.summary ?? sessionLine ?? "Workout ✓";
   if (post.type === "cardio") return post.summary ?? sessionLine ?? "Cardio ✓";
-  const meal = post.mealTag ? mealNames[post.mealTag] : "Meal";
-  const backfill = post.earlierToday ? (isToday ? " · earlier today" : " · earlier that day") : "";
-  return `${meal} · ${clockTime(post.createdAt, timeZone)}${backfill}`;
+  return post.caption || "Post";
 }
 
 // SPEC: A6 — "Rest day" tags a day that was not a training day and holds no workout (A1: rest = weekday ∉ trainingWeekdays)

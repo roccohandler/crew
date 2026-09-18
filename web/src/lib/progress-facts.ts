@@ -1,4 +1,4 @@
-// SPEC: Flow 9 — LAYER 1 did I show up (heat map, rings history, streaks, totals, meals/week) · LAYER 2 how much work (sets/week,
+// SPEC: Flow 9 — LAYER 1 did I show up (heat map, rings history, streaks, totals; A22: meals/week left with the plate journal) · LAYER 2 how much work (sets/week,
 // Push/Pull/Legs balance) · LAYER 3 am I stronger (only where weights were logged). Server-side facts for the web Progress page.
 // A2/A6: sets = strength work sets; mobility and cardio are minutes per week (facts, never targets). A1: planned = trainingWeekdays.
 import type { ObjectId } from "mongodb";
@@ -15,7 +15,7 @@ const RING_WEEKS = SpecConstants.progressRingHistoryWeeks;
 // A14: three marks, not two — a walk is no longer counted as a workout (it used to write a "workout" post, so every
 // count of workouts silently included cardio). Same hue, different fill treatment: law ⑥ gains no second colour.
 export interface DayCell { dayKey: string; workout: boolean; cardio: boolean; posted: boolean }
-export interface WeekRecord { weekKey: string; done: number; planned: number; sets: number; meals: number; cardioMinutes: number; mobilityMinutes: number }
+export interface WeekRecord { weekKey: string; done: number; planned: number; sets: number; cardioMinutes: number; mobilityMinutes: number }
 export interface ExerciseTrend { exerciseId: string; name: string; points: { dayKey: string; best: number }[] }
 
 // Done, non-warm-up sets of one exercise type across a week's sessions
@@ -26,12 +26,12 @@ function doneSetsOf(weekSessions: SessionDoc[], type: ExerciseType) {
 // SPEC: A2 — minutes are the sum of done hold/cardio seconds, rounded; a fact, never a target
 const minutesOf = (sets: { holdSeconds: number | null }[]) => Math.round(sets.reduce((sum, set) => sum + (set.holdSeconds ?? 0), 0) / TimeUnits.secondsPerMinute);
 
-function weekRecord(weekKey: string, completed: SessionDoc[], ownPosts: { dayKey: string; type: string }[], plannedWeekdays: number[]): WeekRecord {
+function weekRecord(weekKey: string, completed: SessionDoc[], plannedWeekdays: number[]): WeekRecord {
   const inWeek = (dayKey: string) => dayKey >= weekKey && dayKey < addDays(weekKey, TimeUnits.daysPerWeek);
   const weekSessions = completed.filter((session) => inWeek(session.dayKey));
   return {
     weekKey, done: new Set(weekSessions.map((session) => session.dayKey)).size, planned: plannedWeekdays.length,
-    sets: doneSetsOf(weekSessions, "strength").length, meals: ownPosts.filter((post) => post.type === "meal" && inWeek(post.dayKey)).length,
+    sets: doneSetsOf(weekSessions, "strength").length,
     cardioMinutes: minutesOf(doneSetsOf(weekSessions, "cardio")), mobilityMinutes: minutesOf(doneSetsOf(weekSessions, "mobility")),
   };
 }
@@ -62,7 +62,7 @@ export async function progressFacts(userId: ObjectId, timezone: string, plannedW
   const days: DayCell[] = [];
   for (let day = from; day <= todayKey; day = addDays(day, 1)) days.push({ dayKey: day, workout: workoutDays.has(day), cardio: cardioDays.has(day), posted: postDays.has(day) });
   const weeks: WeekRecord[] = [];
-  for (let offset = RING_WEEKS - 1; offset >= 0; offset -= 1) weeks.push(weekRecord(addDays(weekKeyFor(todayKey), -offset * TimeUnits.daysPerWeek), completed, ownPosts, plannedWeekdays));
+  for (let offset = RING_WEEKS - 1; offset >= 0; offset -= 1) weeks.push(weekRecord(addDays(weekKeyFor(todayKey), -offset * TimeUnits.daysPerWeek), completed, plannedWeekdays));
   // A14: `workouts` counts workouts — a standalone cardio session is not one. It used to be, because a cardio log wrote a
   // post of type "workout"; the totals line on Progress therefore reported walks as workouts.
   const workoutTotal = completed.filter((session) => session.workoutKind !== "cardio").length;

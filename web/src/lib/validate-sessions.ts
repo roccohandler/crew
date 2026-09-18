@@ -57,8 +57,7 @@ export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export const completionPostSchema = z.object({
   clientId: clientIdSchema,
   shareToCrew: z.boolean(),
-  caption: z.string().max(SpecConstants.captionMaxChars).optional(),
-  photoKey: z.string().min(1).optional(),
+  caption: z.string().max(SpecConstants.captionMaxChars).optional(), // A22 G2: the one optional line a workout post carries; no photo
 });
 
 export const patchSessionSchema = z.object({
@@ -72,7 +71,8 @@ export type PatchSessionInput = z.infer<typeof patchSessionSchema>;
 
 export const syncOpSchema = z.object({
   opId: z.string().min(1).max(SpecConstants.exerciseNameMaxChars),
-  // A21.2 / W3: "sendMessage" stays ACCEPTED here so an older phone's queued chat op is rejected per op as `chatRetired` (sync-ops.ts), never as a batch validation error
+  // A21.2 / W3: "sendMessage" stays ACCEPTED here so an older phone's queued chat op is rejected per op as `chatRetired` (sync-ops.ts), never as a batch validation error;
+  // A22 (2026-09-18): "createPost" likewise — a queued meal or text post is refused per op as `postsRetired`
   kind: z.enum(["createSession", "patchSession", "createPost", "deletePost", "sendMessage", "react", "unreact", "putPlan", "pause", "pushToken"]),
   payload: z.record(z.string(), z.unknown()),
 });

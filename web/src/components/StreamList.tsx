@@ -7,7 +7,6 @@ import { useState } from "react";
 import { PostMenu } from "@/components/PostMenu";
 import type { MemberDot } from "@/lib/crew-stream";
 import type { StreamItem } from "@/lib/api-client-crew";
-import { mealTagEmoji, type MealTag } from "@/lib/engine/meal-tag";
 import { SpecConstants } from "@/generated/spec-constants";
 
 export interface Moderation { onReport: (postId: string) => Promise<void>; onBlock: (userId: string) => Promise<void> }
@@ -23,12 +22,11 @@ function PostCard({ item, author, myUserId, onReact, moderation }: { item: Strea
       <div className="row row--between">
         <span className="whisper">{author.toUpperCase()}</span>
         <span className="row">
-          <span className="whisper">{item.post?.type === "workout" ? "Workout ✓" : item.post?.mealTag ? mealTagEmoji[item.post.mealTag as MealTag] : ""}</span>
+          <span className="whisper">{item.post?.type === "workout" ? "Workout ✓" : ""}</span>
           {item.userId === myUserId ? null : <PostMenu authorName={author} onReport={() => moderation.onReport(postId)} onBlock={() => moderation.onBlock(item.userId)} />}
         </span>
       </div>
       {item.post?.summary ? <p className="muted">{item.post.summary}</p> : null}
-      {item.post?.photoKey ? <img className="photo" src={`/api/v1/photos/${item.post.photoKey}`} alt="" /> : null}
       {item.post?.caption ? <p>{item.post.caption}</p> : null}
       <div className="row">
         {[...grouped.entries()].map(([emoji, who]) => <span key={emoji} className="chip" aria-pressed={who.includes(myUserId)}>{emoji} {who.length}</span>)}

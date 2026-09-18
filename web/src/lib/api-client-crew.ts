@@ -8,7 +8,7 @@ import type { NotificationPrefs } from "@/lib/documents";
 import type { PublicUser } from "@/lib/users";
 
 export interface CrewSummary { id: string; name: string; emoji: string; captainId: string; inviteLink: string | null; muted?: boolean }
-export interface StreamPost { id: string; type: string; caption: string; photoKey: string | null; mealTag: string | null; dayKey: string; summary: string | null }
+export interface StreamPost { id: string; type: string; caption: string; dayKey: string; summary: string | null } // A22: no photo, no meal tag
 export interface StreamItem { kind: "post" | "system"; at: string; userId: string; id?: string; body?: string; comeback?: boolean; reactions?: { emoji: string; userId: string }[]; post?: StreamPost }
 export interface StreamReply { items: StreamItem[]; pulse: { posted: number; total: number }; members: MemberDot[]; serverTime: string }
 export interface MyCrewReply { crew: CrewSummary | null; members?: MemberDot[]; pulse?: { posted: number; total: number } }

@@ -1,7 +1,9 @@
 // SPEC: docs/api.md POST sync — replay the offline queue IN ORDER, each op idempotent; per-op results, never a failed batch;
 // the server gamification state REPLACES the client's (5.6.3). Op kinds map to the same lib functions the routes use. A21.2 / W3
 // (2026-09-17): free-text chat is gone — a `sendMessage` op from an older phone is rejected PER OP, non-retryably (`chatRetired`),
-// so that phone's queue holds it instead of retrying forever, and the rest of its batch still lands. T023/T030/T041
+// so that phone's queue holds it instead of retrying forever, and the rest of its batch still lands. A22 (owner-approved
+// 2026-09-18): `createPost` takes the same shape (`postsRetired`) — the plate journal is gone and a workout post rides its
+// session's completion (patchSession `post`). T023/T030/T041
 import { ObjectId } from "mongodb";
 import { ZodError } from "zod";
 import { apiError, isApiError } from "@/lib/api-error";
@@ -9,12 +11,12 @@ import { pushTokens } from "@/lib/db";
 import { HttpStatus } from "@/lib/http-status";
 import { createPause } from "@/lib/pauses";
 import { replacePlan } from "@/lib/plans";
-import { createPost, deletePostByClientId } from "@/lib/posts";
+import { deletePostByClientId } from "@/lib/posts";
 import { react, reactablePost, unreact } from "@/lib/reactions";
 import { createSession, patchSession } from "@/lib/sessions";
 import { dayKeySchema, pushTokenSchema } from "@/lib/validate";
 import { putPlanSchema } from "@/lib/validate-plans";
-import { createPostSchema, deletePostOpSchema, reactionSchema } from "@/lib/validate-posts";
+import { deletePostOpSchema, reactionSchema } from "@/lib/validate-posts";
 import { createSessionSchema, patchSessionSchema, type SyncInput } from "@/lib/validate-sessions";
 
 export interface SyncOpResult {
@@ -28,6 +30,8 @@ type Op = SyncInput["ops"][number];
 
 // SPEC: A21.2 — the retired chat op: an ApiError, so the result is ok:false, retryable:false (the phone holds it — 5.6.3 poison)
 const chatRetired = () => apiError("chatRetired", "Crew chat was retired; this message can't be sent.", HttpStatus.badRequest);
+// SPEC: A22 — the retired post op: meal and text posts left the product; the phone holds the op, the batch lands
+const postsRetired = () => apiError("postsRetired", "Meal and text posts were retired; this post can't be created.", HttpStatus.badRequest);
 
 async function runContentOp(userId: ObjectId, op: Op, timezone: string): Promise<boolean> {
   if (op.kind === "createSession") { await createSession(userId, createSessionSchema.parse({ timezone, ...op.payload })); return true; }
@@ -36,11 +40,7 @@ async function runContentOp(userId: ObjectId, op: Op, timezone: string): Promise
     await patchSession(userId, sessionId, patchSessionSchema.parse({ timezone, ...rest }));
     return true;
   }
-  if (op.kind === "createPost") {
-    const body = createPostSchema.parse({ timezone, ...op.payload });
-    await createPost(userId, { ...body, sessionId: body.sessionId ? new ObjectId(body.sessionId) : undefined, createdAt: body.createdAt ? new Date(body.createdAt) : undefined });
-    return true;
-  }
+  if (op.kind === "createPost") throw postsRetired();
   if (op.kind === "deletePost") { await deletePostByClientId(userId, deletePostOpSchema.parse(op.payload).clientId); return true; }
   if (op.kind === "putPlan") { await replacePlan(userId, putPlanSchema.parse(op.payload)); return true; }
   return false;

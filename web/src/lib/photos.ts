@@ -1,5 +1,9 @@
-// SPEC: docs/api.md photos — upload (strip + resize + store, returns photoKey) and the auth-checked read (own photo, or a
-// crew-mate's). Part IX: profile photos and post photos get the same treatment (E1). T027
+// SPEC: docs/api.md photos — upload (strip + resize + store, returns photoKey) and the auth-checked read. A22 G2 (owner-approved
+// 2026-09-18): photos leave the product except the PROFILE picture (E1, A7) — `purpose` is "profile" and nothing else, and the
+// read serves profile photos only: the owner's, or a crew-mate's (the avatars in the stream and on Home). Rows uploaded with the
+// retired purpose "post" (the plate journal) stay in storage until the account's cascade deletes them and are served to no one.
+// W5 (owner-approved 2026-09-17): a signed-in stranger is REFUSED with 403 — the key is 128 random bits, so naming it reveals
+// nothing worth hiding, and the refusal is the fact; an unknown key is 404. T027
 import { ObjectId } from "mongodb";
 import { apiError, forbidden, notFound } from "@/lib/api-error";
 import { deleteStoredPhoto, newPhotoKey, processPhoto, storePhoto } from "@/lib/blob";
@@ -12,7 +16,10 @@ import { SpecConstants } from "@/generated/spec-constants";
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]);
 const MAX_SOURCE_BYTES = SpecConstants.photoMaxSourceMb * TimeUnits.msPerSecond * TimeUnits.msPerSecond;
 
-export async function uploadPhoto(ownerId: ObjectId, file: File, purpose: "post" | "profile", now: Date = new Date()): Promise<PhotoDoc> {
+// SPEC: A22 G2 — the one purpose a photo can be uploaded for
+export type PhotoPurpose = "profile";
+
+export async function uploadPhoto(ownerId: ObjectId, file: File, purpose: PhotoPurpose, now: Date = new Date()): Promise<PhotoDoc> {
   if (!ACCEPTED_TYPES.has(file.type)) throw apiError("validation", "Send a JPEG, PNG, HEIC or WebP photo.", HttpStatus.badRequest);
   if (file.size > MAX_SOURCE_BYTES) throw apiError("photoTooLarge", `That photo is over ${SpecConstants.photoMaxSourceMb} MB. Pick a smaller one.`, HttpStatus.payloadTooLarge);
   const processed = await processPhoto(Buffer.from(await file.arrayBuffer()));
@@ -23,11 +30,9 @@ export async function uploadPhoto(ownerId: ObjectId, file: File, purpose: "post"
   return doc;
 }
 
-// SPEC: 8.7 — the owner, or someone in the owner's crew (post photos are crew-only; profile photos are visible to crew-mates).
-// W5 (owner-approved 2026-09-17): a signed-in stranger is REFUSED with 403 — the key is 128 random bits, so naming it reveals
-// nothing worth hiding, and the refusal is the fact (docs/mvp-definition.md W5: "a cross-user 403 test"); an unknown key is 404.
+// SPEC: 8.7 · A22 G2 — a PROFILE photo: the owner's, or one of someone in the owner's crew. A legacy post photo is not found.
 export async function readablePhoto(viewerId: ObjectId, photoKey: string): Promise<PhotoDoc> {
-  const doc = await (await photos()).findOne({ photoKey });
+  const doc = await (await photos()).findOne({ photoKey, purpose: "profile" });
   if (doc === null) throw notFound("Photo");
   if (doc.ownerId.equals(viewerId)) return doc;
   const memberships = await crewMemberships();

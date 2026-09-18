@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { crewActivityDue, digestDue, reminderDue, streakRiskDue } from "@/lib/notification-eligibility";
 
 const allOn = { workoutReminder: true, streakRisk: true, crewActivity: true };
-const reminder = { reminderTime: "07:00", localTime: "07:00", isPlannedDay: true, workoutDoneToday: false, postedToday: false, paused: false, hasPushToken: true, alreadySentToday: false, prefs: allOn };
+const reminder = { reminderTime: "07:00", localTime: "07:00", isPlannedDay: true, workoutDoneToday: false, paused: false, hasPushToken: true, alreadySentToday: false, prefs: allOn };
 
 describe("notification eligibility", () => {
   it("reminder fires at the chosen time on a planned day, never when paused, done, rest, unset, already sent, or toggled off", () => {
@@ -20,11 +20,12 @@ describe("notification eligibility", () => {
     expect(reminderDue({ ...reminder, prefs: { ...allOn, streakRisk: false, crewActivity: false } })).toBe(true); // the other toggles are not its business
   });
 
-  it("streak-risk nudges once at the usual time only when a live streak has nothing posted, and only while its toggle is on", () => {
-    const risk = { currentStreak: 12, postedToday: false, paused: false, hasPushToken: true, alreadySentToday: false, localMinuteOfDay: 20 * 60, usualPostMinuteOfDay: 20 * 60, prefs: allOn };
+  it("streak-risk nudges once at the usual time only when a live streak's planned day has no completed workout, and only while its toggle is on", () => {
+    const risk = { currentStreak: 12, isPlannedDay: true, workoutDoneToday: false, paused: false, hasPushToken: true, alreadySentToday: false, localMinuteOfDay: 20 * 60, usualPostMinuteOfDay: 20 * 60, prefs: allOn };
     expect(streakRiskDue(risk)).toBe(true);
     expect(streakRiskDue({ ...risk, localMinuteOfDay: 19 * 60 })).toBe(false);
-    expect(streakRiskDue({ ...risk, postedToday: true })).toBe(false);
+    expect(streakRiskDue({ ...risk, workoutDoneToday: true })).toBe(false);
+    expect(streakRiskDue({ ...risk, isPlannedDay: false })).toBe(false); // A22 G1 (a): a rest day asks nothing
     expect(streakRiskDue({ ...risk, currentStreak: 0 })).toBe(false);
     expect(streakRiskDue({ ...risk, usualPostMinuteOfDay: null })).toBe(false);
     expect(streakRiskDue({ ...risk, paused: true })).toBe(false);

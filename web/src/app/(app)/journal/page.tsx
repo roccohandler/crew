@@ -23,7 +23,7 @@ export default async function JournalPage() {
     return (
       <div className="stack">
         <ProgressSegments active="journal" />
-        <EmptyState title="Your first post lands here." line="Workouts and meals stack up day by day." ctaTitle="Go to today" href="/home" />
+        <EmptyState title="Your first post lands here." line="Every workout you post stacks up here, day by day." ctaTitle="Go to today" href="/home" />
       </div>
     );
   }
@@ -42,7 +42,7 @@ export default async function JournalPage() {
         <section key={week.weekKey} className="stack" aria-label={weekHeader(week.weekKey, thisWeek)}>
           <h2 className="whisper">{weekHeader(week.weekKey, thisWeek)}</h2>
           {week.dayKeys.map((dayKey) => (
-            <JournalDay key={dayKey} dayKey={dayKey} todayKey={todayKey} dayPosts={docs.filter((post) => post.dayKey === dayKey)} trainingWeekdays={plan?.trainingWeekdays ?? []} timeZone={session.user.timezone} sessionLines={sessionLines} />
+            <JournalDay key={dayKey} dayKey={dayKey} todayKey={todayKey} dayPosts={docs.filter((post) => post.dayKey === dayKey)} trainingWeekdays={plan?.trainingWeekdays ?? []} sessionLines={sessionLines} />
           ))}
         </section>
       ))}

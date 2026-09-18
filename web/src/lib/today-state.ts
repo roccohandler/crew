@@ -16,7 +16,7 @@ export type TodayState =
   // A14: the card carries the day's ACTUAL rows and the mobility/cardio tail, built by the HomeLines twin so the two
   // platforms print the same words. The count stays — it just stops being the loudest thing on the card.
   | { kind: "workout"; name: string; workoutKind: string; exerciseCount: number; hasCardio: boolean; lines: HomeLine[]; tail: string | null }
-  | { kind: "rest"; posted: boolean }
+  | { kind: "rest" } // A22 G1 (a): a rest day asks nothing — no "posted" to report
   | { kind: "paused"; until: string }
   | { kind: "allDone" };
 
@@ -36,7 +36,7 @@ export interface HomeFacts {
   todayWorkoutKind: string | null; // A1: the rotation kind due today (null on rest, done, paused, no plan)
   weekMarks: string[]; // A18.6a / A18.7: the seven marks, Mon..Sun — computed HERE, as the iOS twin does, so the pause can be consulted
   todaySummaryLines: string[]; // A18.9: what today held, in the journal's own sentence
-  vectors: VectorSlots; // A14: today's Workout · Cardio · Meals row
+  vectors: VectorSlots; // A14: today's Workout · Cardio rows (A22 G4: the macros row arrives with W8)
 }
 
 // SPEC: A18.3 — the what's-next fact, split so the block above the card can title it and the bridge card can say it
@@ -93,9 +93,8 @@ export const nextUpLineOf = (facts: NextUpFacts | null): string | null => (facts
 
 export async function homeFacts(userId: ObjectId, timezone: string, now: Date = new Date()): Promise<HomeFacts> {
   const todayKey = dayKeyFor(now, timezone);
-  const [plan, todayPosts, lastPost, pause, membership, open] = await Promise.all([
+  const [plan, lastPost, pause, membership, open] = await Promise.all([
     findPlan(userId),
-    (await posts()).countDocuments({ userId, dayKey: todayKey, deletedAt: null }),
     (await posts()).findOne({ userId, deletedAt: null }, { sort: { dayKey: -1 }, projection: { dayKey: 1 } }),
     (await pauses()).findOne({ userId, startDay: { $lte: todayKey }, endDay: { $gt: todayKey } }),
     (await crewMemberships()).findOne({ userId }),
@@ -116,7 +115,7 @@ export async function homeFacts(userId: ObjectId, timezone: string, now: Date = 
   let today: TodayState;
   if (pause !== null) today = { kind: "paused", until: pause.endDay };
   else if (lastPost === null) today = { kind: "bridge", workoutDay: workout !== null };
-  else if (todayEntry === null || todayEntry.state === "rest") today = { kind: "rest", posted: todayPosts > 0 };
+  else if (todayEntry === null || todayEntry.state === "rest") today = { kind: "rest" };
   else if (workout === null) today = { kind: "allDone" };
   else {
     const rows: HomeExercise[] = workout.exercises.map((row) => ({ name: row.name, type: row.type, targetSets: row.targetSets, targetReps: row.targetReps, targetRepsMax: row.targetRepsMax ?? null, holdSeconds: row.holdSeconds ?? null, order: row.order }));

@@ -1,4 +1,4 @@
-// SPEC: Flow 9 layer 1 — the heat map; tap a day → that day's workout + plates; Part III law ④ (ember fills = progress; a missed
+// SPEC: Flow 9 layer 1 — the heat map; tap a day → that day's workouts; Part III law ④ (ember fills = progress; a missed
 // day is neutral, never red). A6: each day is named by its readable label (Today · Yesterday · Mon · Mon Sep 8), never raw
 // ISO. Mirrors ios HeatMapView. Keyboard-complete: every day is a link.
 import Link from "next/link";

@@ -11,16 +11,17 @@ export interface PostDoc {
   // workouts silently included walks. This is a DISPLAY/ANALYSIS type only — the gamification engine's PostKind stays
   // "workout" | "meal" | "text" and a cardio post maps to "workout" at the boundary (gamification-store.ts), so XP, the
   // streak and V24/V25/V26/V30/V31 are byte-identical to before. Ritual equality, not magnitude equality (§5).
+  // A22 (2026-09-18): "meal" | "text" are LEGACY values — the plate journal is gone and nothing writes them; rows keep reading.
   type: "workout" | "cardio" | "meal" | "text";
   sessionId: ObjectId | null;
-  photoKey: string | null; // never editable (E3)
-  caption: string; // ≤ captionMaxChars
-  mealTag: "breakfast" | "lunch" | "dinner" | "snack" | null;
+  photoKey: string | null; // LEGACY (A22 G2): photos left every post; never written since 2026-09-18, never editable (E3)
+  caption: string; // ≤ captionMaxChars (A22 G2: the optional line on a workout post)
+  mealTag: "breakfast" | "lunch" | "dinner" | "snack" | null; // LEGACY (A22): never written since 2026-09-18
   crewId: ObjectId | null; // the crew it was shared to at creation; null = journal only
   dayKey: DayKey; // server clock (E15); fixed at creation (V10)
   isPlannedDay: boolean; // stamped at creation so recompute equals apply (V36 note)
   workoutCompleted: boolean;
-  earlierToday: boolean; // same-day backfill label (Flow 4)
+  earlierToday: boolean; // LEGACY (A22): the same-day backfill left with the plate journal; always false since 2026-09-18
   summary?: string; // A6: one readable line set by the server at workout completion ("Push day · 12/12 sets · 44 min", "Walk · 25 min · 2.1 km")
   createdAt: Date;
   deletedAt: Date | null; // post ≠ log (E3)

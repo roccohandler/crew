@@ -2,14 +2,12 @@
 // Complete hidden once today counts; 1C: authenticate once per device; Flow 6: the reaction lands on the poster's own card).
 // The crewmate's side is journey ③; here only the receipt matters, so the mate acts through the API. T035 (web half) / T039
 import { expect, test } from "@playwright/test";
-import { buildWeekAndSave, ensureTodayHasAWorkout, expectNoHorizontalScroll, fromFreshIp, unique, waitForHydration } from "./helpers";
+import { buildWeekAndSave, completeWorkoutViaApi, ensureTodayHasAWorkout, expectNoHorizontalScroll, fromFreshIp, unique, waitForHydration } from "./helpers";
 
-// Yesterday's member: the first flame is already lit (a meal post) and today is a planned day whatever the weekday — the
-// journey starts where a returning user starts, not on day one.
+// Yesterday's member: a post already exists (A22: a shared cardio log — it never fills the planned slot) and today is a planned
+// day whatever the weekday — the journey starts where a returning user starts, not on day one.
 async function makeReturning(page: import("@playwright/test").Page): Promise<void> {
-  const me = (await (await page.request.get("/api/v1/users/me")).json()) as { user: { timezone: string } };
-  const lit = await page.request.post("/api/v1/posts", { data: { clientId: crypto.randomUUID(), type: "meal", caption: "overnight oats", shareToCrew: true, timezone: me.user.timezone, isPlannedDay: false } });
-  expect(lit.status()).toBe(201);
+  await completeWorkoutViaApi(page, { cardio: true, shareToCrew: true, caption: "overnight oats" });
   await ensureTodayHasAWorkout(page);
 }
 
@@ -17,7 +15,7 @@ test("a returning member logs in, fast-logs today in three taps, and a crewmate'
   const captainContext = await browser.newContext();
   const captain = await captainContext.newPage();
   const email = await buildWeekAndSave(captain, { label: "returning" });
-  await expect(captain.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
+  await expect(captain.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
   await makeReturning(captain);
   const created = await captain.request.post("/api/v1/crews", { data: { name: unique("Night Shift").slice(0, 30), emoji: "🌙" } });
   expect(created.status()).toBe(201);
@@ -44,7 +42,7 @@ test("a returning member logs in, fast-logs today in three taps, and a crewmate'
   await captain.getByLabel("Password").fill("journey password 1");
   await captain.getByRole("button", { name: "Log in" }).click();
   await expect(captain).toHaveURL(/\/home$/, { timeout: 15_000 });
-  await expect(captain.getByText("Your first flame lights today.")).toHaveCount(0);
+  await expect(captain.getByText(/^Your (first flame lights today|plan rests today)\./)).toHaveCount(0);
   await expectNoHorizontalScroll(captain);
 
   // fast-log: Home → Quick complete → celebration → Done (three taps, S07)

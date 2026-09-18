@@ -19,7 +19,7 @@
 //
 // This is the web half. The iOS matrix still needs a Mac and stays owed in debt.md.
 import { expect, test, type Page } from "@playwright/test";
-import { buildWeekAndSave, fillWhenHydrated, expectNoHorizontalScroll } from "./helpers";
+import { buildWeekAndSave, completeWorkoutViaApi, expectNoHorizontalScroll } from "./helpers";
 
 // The three sizes 6.7 names: the smallest device, a current standard, and the largest.
 const SIZES = [
@@ -56,11 +56,9 @@ const MAX_GAP_FRACTION = 0.25;
 // first post exists. Every assertion below is about a REAL day, which is the state the owner was looking at.
 async function homeAfterFirstPost(page: Page, label: string): Promise<void> {
   await buildWeekAndSave(page, { label });
-  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
-  await page.goto("/post");
-  await fillWhenHydrated(page, "Say something (or don't)", "eggs", "Post"); // waits for hydration and fills; the click is separate
-  await page.getByRole("button", { name: "Post" }).click();
-  await expect(page).toHaveURL(/\/home(\?earned=.+)?$/, { timeout: 15_000 });
+  await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
+  await completeWorkoutViaApi(page, { cardio: true }); // A22: the post that ends the bridge is a workout post; a cardio log leaves the day's state alone
+  await page.goto("/home");
 }
 
 // 6.7 — "no truncated CTA labels anywhere". A label clipped by its own box has scrollWidth > clientWidth.
@@ -135,13 +133,13 @@ test("Home: every numeral is named, and the week strip says the same thing to th
   expect(spoken, "the spoken sentence never uses the visible abbreviations").not.toMatch(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/);
 
   // A18.1 — the flame's caption. The ring's is asserted only when the ring renders: A18.2 hides it until the week
-  // holds a completed workout, and this fixture has posted a meal rather than trained.
+  // holds a completed workout, and this fixture has logged a walk rather than trained.
   await expect(page.getByText("day streak", { exact: true })).toBeVisible();
   const ring = page.locator(".ring");
   if (await ring.count() > 0) await expect(page.getByText("workouts this week", { exact: true })).toBeVisible();
 
   // A18.5 — the log rows read verb-first. The owner called the previous noun-over-value cells "three strange divs".
-  for (const verb of ["Log workout", "Log cardio", "Log a meal"]) {
+  for (const verb of ["Log workout", "Log cardio"]) { // A22 G4: the macros row arrives with W8
     await expect(page.getByRole("link", { name: new RegExp(`^${verb},`) })).toBeVisible();
   }
 });

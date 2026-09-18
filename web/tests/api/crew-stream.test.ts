@@ -10,11 +10,11 @@ import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
 import { POST as joinCrew } from "@/app/api/v1/crews/join/route";
 import { GET as myCrew, POST as createCrew } from "@/app/api/v1/crews/route";
 import { DELETE as unreact, POST as react } from "@/app/api/v1/posts/[id]/reactions/route";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { closeDb, messages, resetDbForTests } from "@/lib/db";
 import { SpecConstants } from "@/generated/spec-constants";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
+import { postWorkout } from "./workout-post";
 
 type Feed = { items: { kind: string; userId: string; body?: string; reactions?: { emoji: string; userId: string }[] }[]; pulse: { posted: number; total: number }; members: { id: string }[] };
 type Mine = { members: { id: string }[]; pulse: { posted: number; total: number } };
@@ -34,8 +34,7 @@ beforeAll(async () => {
   const crew = await readJson<{ crew: { id: string; inviteLink: string } }>(await createCrew(request("POST", "/crews", { token: captain.accessToken, body: { name: "Dawn Patrol", emoji: "🌅" } })));
   crewId = crew.crew.id;
   await joinCrew(request("POST", "/crews/join", { token: alex.accessToken, body: { token: crew.crew.inviteLink.split("/join/")[1] } }));
-  const post = await readJson<{ post: { id: string } }>(await createPost(request("POST", "/posts", { token: captain.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "eggs", shareToCrew: true, timezone: "UTC", isPlannedDay: false } })));
-  postId = post.post.id;
+  postId = (await postWorkout(captain, { cardio: true, shareToCrew: true, caption: "eggs", timezone: "UTC" })).postId; // A22: a post is a workout post
 });
 afterAll(async () => {
   await closeDb();

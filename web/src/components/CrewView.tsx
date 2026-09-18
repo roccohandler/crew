@@ -21,7 +21,7 @@ function SoloState({ onStart }: { onStart: () => void }) {
   return (
     <EmptyState title="Start a crew" line="Two to ten friends. A link, a name, an emoji." ctaTitle="Start a crew" onClick={onStart}>
       <ul className="loop">
-        <li>Post a workout or a meal photo.</li>
+        <li>Finish a workout and post it.</li>
         <li>It lands here for your crew.</li>
         <li>They react 🔥💪👏😂❤️.</li>
       </ul>

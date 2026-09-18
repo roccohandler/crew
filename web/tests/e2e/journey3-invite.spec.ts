@@ -2,13 +2,13 @@
 // A21.3 / W4 (owner-approved 2026-09-17): the phone path on web — hero "I have an invite" → paste the code or the link → the crew's
 // landing page → "Copy code"; 1C: the joiner meets the profile-photo prompt once on the Crew page.
 import { expect, test } from "@playwright/test";
-import { buildWeekAndSave, expectNoHorizontalScroll, fromFreshIp, unique } from "./helpers";
+import { buildWeekAndSave, completeWorkoutViaApi, expectNoHorizontalScroll, fromFreshIp, unique } from "./helpers";
 
 test("an invite link lands, joins on web, and a reaction shows in the stream", async ({ browser }) => {
   const captainContext = await browser.newContext();
   const captain = await captainContext.newPage();
   await buildWeekAndSave(captain, { label: "captain" });
-  await expect(captain.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
+  await expect(captain.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
   const created = await captain.request.post("/api/v1/crews", { data: { name: unique("Dawn Patrol").slice(0, 30), emoji: "🌅" } });
   expect(created.status()).toBe(201);
   const { crew } = (await created.json()) as { crew: { name: string; inviteLink: string } };
@@ -29,8 +29,7 @@ test("an invite link lands, joins on web, and a reaction shows in the stream", a
   await expect(paster.getByRole("button", { name: /Code copied|Select the code above/ })).toBeVisible();
   await expectNoHorizontalScroll(paster);
   await pasterContext.close();
-  const shared = await captain.request.post("/api/v1/posts", { data: { clientId: crypto.randomUUID(), type: "meal", caption: "who's in at 6am", shareToCrew: true, timezone: "UTC", isPlannedDay: false } });
-  expect(shared.status()).toBe(201);
+  await completeWorkoutViaApi(captain, { cardio: true, shareToCrew: true, caption: "who's in at 6am" }); // A22: a shared post is a workout post
 
   const joinerContext = await browser.newContext();
   const joiner = await joinerContext.newPage();
@@ -56,9 +55,8 @@ test("an invite link lands, joins on web, and a reaction shows in the stream", a
   await joiner.getByRole("button", { name: "Not now" }).click();
   await expect(joiner.getByText("Add a photo so your crew knows it's you.")).toHaveCount(0);
 
-  const later = await captain.request.post("/api/v1/posts", { data: { clientId: crypto.randomUUID(), type: "meal", caption: "second plate", shareToCrew: true, timezone: "UTC", isPlannedDay: false } });
-  expect(later.status()).toBe(201);
-  await expect(joiner.getByText("second plate")).toBeVisible({ timeout: 15_000 });
+  await completeWorkoutViaApi(captain, { cardio: true, shareToCrew: true, caption: "second session" });
+  await expect(joiner.getByText("second session")).toBeVisible({ timeout: 15_000 });
   await joiner.getByRole("button", { name: "React" }).last().click();
   await joiner.getByRole("button", { name: "React 🔥" }).click();
   await expect(joiner.getByText("🔥 1")).toBeVisible({ timeout: 15_000 });

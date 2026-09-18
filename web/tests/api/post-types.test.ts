@@ -3,9 +3,9 @@
 //
 // The load-bearing assertion in this file is the SECOND one. Splitting the post type is only safe because the gamification
 // engine never sees it: `PostKind` stays "workout" | "meal" | "text" and gamification-store maps a cardio post to "workout"
-// at the boundary. So a walk still earns +25, still sustains the streak, and V24/V25/V26/V30/V31 stay green WITHOUT being
-// re-expected — which is what lets A14 ship with no vector change at all. If someone ever "tidies" that map away, the
-// recompute test below goes red instead of a user silently losing XP.
+// at the boundary. So a walk still earns +25 and, on a planned day, counts the day (A22 G1 (a), 2026-09-18: never on a rest
+// day — V70), and the vectors stay green WITHOUT being re-expected. If someone ever "tidies" that map away, the recompute test
+// below goes red instead of a user silently losing XP.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PUT as putPlan } from "@/app/api/v1/plans/route";
 import { PATCH as patchSession } from "@/app/api/v1/sessions/[id]/route";
@@ -65,8 +65,8 @@ describe("A14 post types", () => {
   it("the journal reads a cardio row from the same summary a workout row uses", async () => {
     const cardio = await postFor("6a1c0e2a-8f9b-4c1e-9d10-00000000a002");
     const workout = await postFor("6a1c0e2a-8f9b-4c1e-9d10-00000000a001");
-    expect(postLine(cardio, "America/Los_Angeles", null, true)).toBe("Walk · 25 min");
-    expect(postLine(workout, "America/Los_Angeles", null, true)).toContain("Push day");
+    expect(postLine(cardio, null)).toBe("Walk · 25 min");
+    expect(postLine(workout, null)).toContain("Push day");
   });
 
   // A day you walked is not tagged "Rest day" — the tag describes what you did, and this is exactly the pre-A14 reading
@@ -74,7 +74,7 @@ describe("A14 post types", () => {
   it("a cardio post suppresses the Rest day tag exactly as it did before the split", async () => {
     const cardio = await postFor("6a1c0e2a-8f9b-4c1e-9d10-00000000a002");
     expect(isRestDay(cardio.dayKey, [cardio], [])).toBe(false);
-    const meal = { ...cardio, type: "meal" } as PostDoc;
-    expect(isRestDay(meal.dayKey, [meal], [])).toBe(true);
+    const legacyMeal = { ...cardio, type: "meal" } as PostDoc; // A22: a pre-2026-09-18 plate-journal row still leaves the tag on
+    expect(isRestDay(legacyMeal.dayKey, [legacyMeal], [])).toBe(true);
   });
 });

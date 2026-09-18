@@ -53,6 +53,31 @@ export async function ensureTodayHasAWorkout(page: Page): Promise<void> {
   expect(saved.status()).toBe(200);
 }
 
+// A22 (2026-09-18): the plate journal is gone, so "a post" in a journey is a WORKOUT post — created the one way the product creates
+// one, a session completed with its post (S10 · A21.9), through the API the session screen itself calls. A standalone cardio log
+// (A2) never fills a planned slot, so Home's state is untouched by it; a strength session on a training day is the day's workout.
+export async function completeWorkoutViaApi(page: Page, options: { cardio?: boolean; shareToCrew?: boolean; caption?: string; headers?: Record<string, string> }): Promise<{ sessionId: string; earned: string[] }> {
+  const headers = options.headers ?? {};
+  const me = (await (await page.request.get("/api/v1/users/me", { headers })).json()) as { user: { timezone: string } };
+  const cardio = options.cardio === true;
+  const set = cardio
+    ? { targetReps: 0, actualReps: 0, weight: null, holdSeconds: 1500, distanceMeters: null, isWarmup: false, done: true }
+    : { targetReps: 10, actualReps: 10, weight: null, holdSeconds: null, isWarmup: false, done: true };
+  const exercise = cardio
+    ? { exerciseId: "walk", name: "Walk", equipment: "bodyweight", type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: 1500, order: 0, sets: [set] }
+    : { exerciseId: "push-up", name: "Push-Up", equipment: "bodyweight", type: "strength", targetSets: 1, targetReps: 10, holdSeconds: null, order: 0, sets: [set] };
+  const snapshot = cardio ? { name: "Walk", kind: "cardio", isPlannedDay: false, exercises: [exercise] } : { name: "Push day", kind: "push", isPlannedDay: true, exercises: [exercise] };
+  const created = await page.request.post("/api/v1/sessions", { headers, data: { clientId: crypto.randomUUID(), timezone: me.user.timezone, startedAt: new Date().toISOString(), workoutSnapshot: snapshot } });
+  expect(created.status()).toBe(201);
+  const { session } = (await created.json()) as { session: { id: string } };
+  const post: Record<string, unknown> = { clientId: crypto.randomUUID(), shareToCrew: options.shareToCrew ?? false };
+  if (options.caption !== undefined) post.caption = options.caption;
+  const done = await page.request.patch(`/api/v1/sessions/${session.id}`, { headers, data: { timezone: me.user.timezone, status: "completed", post } });
+  expect(done.status()).toBe(200);
+  const reply = (await done.json()) as { gamification?: { newAchievementIds?: string[] } };
+  return { sessionId: session.id, earned: reply.gamification?.newAchievementIds ?? [] };
+}
+
 // Server-rendered pages hydrate after load; a fill that lands before React attaches its handlers never reaches state (seen on
 // WebKit at 375). React marks a mounted element with its internal props key — wait for it, then fill.
 export async function waitForHydration(page: Page, selector: string): Promise<void> {

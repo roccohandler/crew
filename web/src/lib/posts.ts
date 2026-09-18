@@ -1,6 +1,8 @@
-// SPEC: docs/api.md posts — create (server dayKey, idempotent on clientId), the journal shape, delete keeps the log (E3).
-// Shared by the posts route (T026/T027), session completion (S10: your workout is now a POST) and sync. Part IX Post.
-// A6: a workout post carries the summary line the server wrote at completion; it rides into the journal and the crew stream.
+// SPEC: docs/api.md posts — the journal shape, delete keeps the log (E3); a post is CREATED only by the session that completes
+// it (S10: your workout is now a POST · A21.9) and by the sync replay of that completion. Part IX Post. A6: a workout post carries
+// the summary line the server wrote at completion; it rides into the journal and the crew stream. A22 (owner-approved 2026-09-18):
+// meal and text posts, photos on posts, meal tags and the same-day backfill label are gone with the plate journal — legacy rows
+// keep their fields for reading, nothing writes them.
 import { ObjectId } from "mongodb";
 import { crewMemberships, posts } from "@/lib/db";
 import type { PostDoc } from "@/lib/documents-social";
@@ -8,16 +10,13 @@ import { serverDayKey } from "@/lib/server-clock";
 
 export interface NewPost {
   clientId: string;
-  type: "workout" | "cardio" | "meal" | "text"; // A14: "cardio" is written by session completion only, never by a client
-  sessionId?: ObjectId;
-  photoKey?: string;
-  caption?: string;
-  mealTag?: "breakfast" | "lunch" | "dinner" | "snack";
+  type: "workout" | "cardio"; // A14: "cardio" is written by session completion only, never by a client
+  sessionId: ObjectId;
+  caption?: string; // A22 G2: an optional line ≤ captionMaxChars on a workout post
   shareToCrew: boolean;
   timezone: string;
   isPlannedDay: boolean;
   workoutCompleted: boolean;
-  earlierToday?: boolean;
   summary?: string; // A6: set by session completion only; clients never send one
   createdAt?: Date; // the client's creation instant, reconciled by server-clock.ts
   dayKey?: string; // sessions pass their own (completion) dayKey
@@ -28,23 +27,20 @@ export interface PostResponse {
   clientId: string; // the id the creating client chose — a phone addresses its journal by it (hydration, deletePost)
   type: PostDoc["type"];
   sessionId: string | null;
-  photoKey: string | null;
   caption: string;
-  mealTag: PostDoc["mealTag"];
   crewId: string | null;
   dayKey: string;
   isPlannedDay: boolean;
   workoutCompleted: boolean;
-  earlierToday: boolean;
   summary: string | null; // A6
   createdAt: string;
 }
 
 export function postResponse(doc: PostDoc): PostResponse {
   return {
-    id: doc._id.toHexString(), clientId: doc.clientId, type: doc.type, sessionId: doc.sessionId?.toHexString() ?? null, photoKey: doc.photoKey, caption: doc.caption,
-    mealTag: doc.mealTag, crewId: doc.crewId?.toHexString() ?? null, dayKey: doc.dayKey, isPlannedDay: doc.isPlannedDay,
-    workoutCompleted: doc.workoutCompleted, earlierToday: doc.earlierToday, summary: doc.summary ?? null, createdAt: doc.createdAt.toISOString(),
+    id: doc._id.toHexString(), clientId: doc.clientId, type: doc.type, sessionId: doc.sessionId?.toHexString() ?? null, caption: doc.caption,
+    crewId: doc.crewId?.toHexString() ?? null, dayKey: doc.dayKey, isPlannedDay: doc.isPlannedDay,
+    workoutCompleted: doc.workoutCompleted, summary: doc.summary ?? null, createdAt: doc.createdAt.toISOString(),
   };
 }
 
@@ -64,15 +60,15 @@ export async function createPost(userId: ObjectId, input: NewPost, now: Date = n
     clientId: input.clientId,
     userId,
     type: input.type,
-    sessionId: input.sessionId ?? null,
-    photoKey: input.photoKey ?? null,
+    sessionId: input.sessionId,
+    photoKey: null, // A22 G2: legacy field — never written since 2026-09-18
     caption: input.caption ?? "",
-    mealTag: input.mealTag ?? null,
+    mealTag: null, // A22: legacy field — never written since 2026-09-18
     crewId: input.shareToCrew ? await currentCrewId(userId) : null,
     dayKey: input.dayKey ?? serverDayKey(createdAt, input.timezone, now),
     isPlannedDay: input.isPlannedDay,
     workoutCompleted: input.workoutCompleted,
-    earlierToday: input.earlierToday ?? false,
+    earlierToday: false, // A22: legacy field — the same-day backfill left with the plate journal
     createdAt: createdAt.getTime() <= now.getTime() ? createdAt : now,
     deletedAt: null,
   };

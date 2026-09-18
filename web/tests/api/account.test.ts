@@ -2,13 +2,11 @@
 // deleted, 404s everywhere after · 8.2 Pause: create/end; overlap rejected; XP suppression server-enforced (V20) · E18 re-signup ·
 // A7: notification toggles round-trip (absent = all on, partial PATCH merges); a profile photo key must be the caller's own.
 // W5 (2026-09-17): the cascade crawl — a crew-mate's reaction on the user's post, the reports the user filed, the outbox rows — finds nothing left.
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
 import { POST as joinCrew } from "@/app/api/v1/crews/join/route";
 import { POST as createCrew } from "@/app/api/v1/crews/route";
 import { DELETE as endPause, POST as createPause } from "@/app/api/v1/pause/route";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { GET as exportData } from "@/app/api/v1/users/me/export/route";
 import { DELETE as deleteMe, GET as getMe, PATCH as patchMe } from "@/app/api/v1/users/me/route";
 import { POST as register } from "@/app/api/v1/auth/register/route";
@@ -19,6 +17,7 @@ import { addDays, dayKeyFor } from "@/lib/engine/day-key";
 import { ObjectId } from "mongodb";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
+import { postWorkout } from "./workout-post";
 
 let me: TestUser;
 let mate: TestUser;
@@ -33,7 +32,7 @@ beforeAll(async () => {
   const crew = await readJson<{ crew: { id: string; inviteLink: string } }>(await createCrew(request("POST", "/crews", { token: me.accessToken, body: { name: "Export Crew", emoji: "📦" } })));
   crewId = crew.crew.id;
   await joinCrew(request("POST", "/crews/join", { token: mate.accessToken, body: { token: crew.crew.inviteLink.split("/join/")[1] } }));
-  await createPost(request("POST", "/posts", { token: me.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "shared plate", shareToCrew: true, timezone: "UTC", isPlannedDay: false } }));
+  await postWorkout(me, { cardio: true, shareToCrew: true, caption: "shared session", timezone: "UTC" }); // A22: a post is a workout post
 });
 afterAll(async () => {
   await closeDb();
@@ -49,7 +48,7 @@ describe("pause", () => {
     expect((await createPause(request("POST", "/pause", { token: mate.accessToken, body: { startDay: today(), endDay: addDays(today(), 22), timezone: "UTC" } }))).status).toBe(400);
     const before = await readJson<{ gamification: { totalXP: number } }>(await getMe(request("GET", "/users/me", { token: mate.accessToken })));
     await createPause(request("POST", "/pause", { token: mate.accessToken, body: { startDay: today(), endDay: addDays(today(), 3), timezone: "UTC" } }));
-    const during = await readJson<{ gamification: { totalXP: number; currentStreak: number } }>(await createPost(request("POST", "/posts", { token: mate.accessToken, body: { clientId: randomUUID(), type: "text", caption: "paused post", shareToCrew: false, timezone: "UTC", isPlannedDay: false } })));
+    const during = await postWorkout(mate, { cardio: true, timezone: "UTC" }); // V79: a workout completed inside the pause pays nothing
     expect(during.gamification.totalXP).toBe(before.gamification.totalXP);
     expect((await endPause(request("DELETE", "/pause", { token: mate.accessToken }))).status).toBe(200);
   });

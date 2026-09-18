@@ -21,7 +21,6 @@ import { ObjectId } from "mongodb";
 import { PUT as putPlan } from "@/app/api/v1/plans/route";
 import { POST as createSession } from "@/app/api/v1/sessions/route";
 import { PATCH as patchSession } from "@/app/api/v1/sessions/[id]/route";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { closeDb, resetDbForTests } from "@/lib/db";
 import { dayKeyFor, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { createPause } from "@/lib/pauses";
@@ -42,9 +41,10 @@ async function savePlan(user: TestUser, days: number[]): Promise<void> {
   expect((await putPlan(request("PUT", "/plans", { token: user.accessToken, body: samplePlanBody(days) }))).status).toBe(200);
 }
 
-async function postMeal(user: TestUser): Promise<void> {
-  const created = await createPost(request("POST", "/posts", { token: user.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "eggs", timezone: TZ, shareToCrew: false, isPlannedDay: false } }));
-  expect(created.status).toBe(201);
+// A22 (2026-09-18): the plate journal is gone — the post that ends §1D's bridge is a WORKOUT post. A standalone cardio log (A2) is
+// the cheapest one: it never fills a planned slot, so the day's state is judged exactly as before.
+async function leaveBridge(user: TestUser): Promise<void> {
+  await completeSession(user, sampleCardioSessionBody({ timezone: TZ, minutes: 5 }));
 }
 
 // A completed session, at the real now, through the real create + complete handlers. A cardio log arrives already
@@ -93,8 +93,7 @@ describe("today-state — the five states (S07)", () => {
   it("a completed training day reads allDone, and A18.9 reports what the day held in the journal's own sentence", async () => {
     const user = await createUser("ts-alldone", TZ);
     await savePlan(user, [todayIso]);
-    await postMeal(user); // off the bridge
-    await completeSession(user, sampleSessionBody({ timezone: TZ }), 1);
+    await completeSession(user, sampleSessionBody({ timezone: TZ }), 1); // the completion's post ends the bridge
 
     const facts = await homeFacts(oid(user), TZ, today);
     expect(facts.today.kind).toBe("allDone");
@@ -105,11 +104,11 @@ describe("today-state — the five states (S07)", () => {
     expect(facts.ringPlanned).toBe(1);
   });
 
-  it("a non-training day reads rest, and `posted` flips with the day's posts", async () => {
+  it("a non-training day reads rest — and asks nothing (A22 G1 (a)): no `posted` to report", async () => {
     const user = await createUser("ts-rest", TZ);
     await savePlan(user, [someOtherDay]);
-    await postMeal(user);
-    expect((await homeFacts(oid(user), TZ, today)).today).toEqual({ kind: "rest", posted: true });
+    await leaveBridge(user);
+    expect((await homeFacts(oid(user), TZ, today)).today).toEqual({ kind: "rest" });
   });
 });
 
@@ -148,7 +147,7 @@ describe("today-state — the pause (Flow 7 · V20 · A18.6)", () => {
   it("A18.6 — a frozen plan offers no planned-workout controls, states no misses, and shows no ring", async () => {
     const user = await createUser("ts-paused", TZ);
     await savePlan(user, [1, 2, 3, 4, 5, 6, 7]); // every day trains, so every past day this week would be a miss
-    await postMeal(user);
+    await leaveBridge(user);
     // A pause covering this ISO week from its MONDAY, still running. The window has to start at the week boundary,
     // not "three days ago": on a Friday a three-day lookback leaves Monday OUTSIDE the pause, and a planned Monday
     // before a pause began is a genuine miss — the code was right and the first version of this test was wrong
@@ -177,13 +176,11 @@ describe("today-state — the vectors and the what's-next fact (A14 · A18.3)", 
   it("A14 — a standalone cardio log fills the cardio slot, never the workout slot, and never a planned ring slot", async () => {
     const user = await createUser("ts-cardio", TZ);
     await savePlan(user, [someOtherDay]); // today is a REST day, so a cardio log cannot be confused with a planned one
-    await postMeal(user);
     await completeSession(user, sampleCardioSessionBody({ timezone: TZ, minutes: 25 }));
 
     const facts = await homeFacts(oid(user), TZ, today);
     expect(facts.vectors.cardioMinutes).toBe(25);
     expect(facts.vectors.workoutDone).toBe(false);
-    expect(facts.vectors.meals).toBe(1);
     expect(facts.weekMarks[todayIso - 1]).toBe("today"); // A2: a cardio log never fills a planned slot
     expect(facts.ringDone).toBe(0);
   });
@@ -195,7 +192,6 @@ describe("today-state — the vectors and the what's-next fact (A14 · A18.3)", 
   it("A20.10 — a cardio block inside a workout fills the cardio row, and the day is still a workout", async () => {
     const user = await createUser("ts-cardio-in-workout", TZ);
     await savePlan(user, [todayIso]); // today IS a training day: the session is a planned workout
-    await postMeal(user);
     const base = sampleSessionBody({ timezone: TZ });
     const body = {
       ...base,
@@ -220,7 +216,7 @@ describe("today-state — the vectors and the what's-next fact (A14 · A18.3)", 
   it("A18.3 — the what's-next fact comes in two halves, and the one-sentence form is byte-identical to A3's", async () => {
     const user = await createUser("ts-nextup", TZ);
     await savePlan(user, [1, 3, 5]);
-    await postMeal(user);
+    await leaveBridge(user);
     const facts = await homeFacts(oid(user), TZ, THURSDAY); // Friday is a training day, so it is "Tomorrow"
     expect(facts.today.kind).toBe("rest");
     expect(facts.nextUp?.heading).toBe("Tomorrow");
@@ -231,7 +227,7 @@ describe("today-state — the vectors and the what's-next fact (A14 · A18.3)", 
   it("A3 — an undone training day says nothing about what is next: the card IS what is next", async () => {
     const user = await createUser("ts-training", TZ);
     await savePlan(user, [todayIso]);
-    await postMeal(user);
+    await leaveBridge(user); // a cardio log never fills the planned slot (A2), so today is still the undone training day
     const facts = await homeFacts(oid(user), TZ, today);
     expect(facts.today.kind).toBe("workout");
     expect(facts.nextUp).toBeNull();

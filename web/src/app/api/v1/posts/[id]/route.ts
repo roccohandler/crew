@@ -1,5 +1,5 @@
-// SPEC: docs/api.md posts/[id] — GET own (or a crew-mate's); PATCH caption (photos never editable, E3); DELETE keeps the log
-// and never retro-breaks the streak (E3) — the server recompute is the truth · T026
+// SPEC: docs/api.md posts/[id] — GET own (or a crew-mate's); PATCH caption (A22 G2: the optional line ≤ captionMaxChars on a
+// workout post); DELETE keeps the log and never retro-breaks the streak (E3) — the server recompute is the truth · T026
 import { ObjectId } from "mongodb";
 import { errorResponse, json, notFound } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";

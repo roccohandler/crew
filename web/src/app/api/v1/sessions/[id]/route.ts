@@ -5,6 +5,7 @@ import { errorResponse, json } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
 import { logEvent } from "@/lib/events";
 import { recomputeAndStore } from "@/lib/gamification-store";
+import { limitPostCreation } from "@/lib/rate-limit";
 import { findOwnSession, patchSession, sessionResponse } from "@/lib/sessions";
 import { patchSessionSchema } from "@/lib/validate-sessions";
 
@@ -25,6 +26,7 @@ export async function PATCH(req: Request, context: Context) {
     const userId = await requireUser(req);
     const { id } = await context.params;
     const body = patchSessionSchema.parse(await req.json());
+    if (body.post !== undefined) await limitPostCreation(userId); // SPEC: G11 — a workout post is post creation, the only kind left (A22)
     const session = await patchSession(new ObjectId(userId), id, body);
     const gamification = await recomputeAndStore(userId);
     if (session.status === "completed") await logEvent(userId, "workout_completed", { planned: session.isPlannedDay, dayKey: session.dayKey });

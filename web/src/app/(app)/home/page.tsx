@@ -1,6 +1,7 @@
 // SPEC: S07 Home on web — the bridge until the first post (1D), today-state, streak flame, weekly ring, crew strip absent for solo;
-// ≤ 3 taps to fast-log (Quick complete). A3 (owner-directed 2026-09-08): a camera button (Post a meal) on every non-bridge state,
-// the what's-next line, Log cardio, Bonus workout. Server-rendered from the same facts the API exposes. T036/T037
+// ≤ 3 taps to fast-log (Quick complete). A3 (owner-directed 2026-09-08): the what's-next line, Log cardio, Bonus workout. A22
+// (owner-approved 2026-09-18): the camera button and every meal CTA are gone with the plate journal. Server-rendered from the
+// same facts the API exposes. T036/T037
 import { ObjectId } from "mongodb";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -30,8 +31,10 @@ import { NextUpBlock, WeekHeader } from "@/app/(app)/home/HomeHeader";
 // opened the bonus sheet. Note what a paused bonus actually pays: ZERO, not +25 — V20 expects [] for a workout
 // completed inside a pause window, and gamification-post.ts implements it. It is allowed, it simply earns nothing,
 // which is what "pauses without penalty" means in both directions.
+// A22 / R-070 — the rest-day BRIDGE offers the same bonus workout (its one control, §1D), so it is in the list too.
 async function bonusKindFor(userId: ObjectId, facts: HomeFacts): Promise<string | null> {
-  if (facts.today.kind !== "rest" && facts.today.kind !== "allDone" && facts.today.kind !== "paused") return null;
+  const restLike = facts.today.kind === "rest" || facts.today.kind === "allDone" || facts.today.kind === "paused" || (facts.today.kind === "bridge" && !facts.today.workoutDay);
+  if (!restLike) return null;
   const plan = await findPlan(userId);
   return plan === null ? null : (await rotationFor(userId, plan, facts.todayKey)).nextKind;
 }
@@ -80,7 +83,7 @@ function title(today: HomeFacts["today"]): string {
 // SPEC: A17.2 / H019 — everything from the card down is ONE bottom-anchored group, so the slack lands as a section
 // break under the header rather than as a hole between the card and the vector row. Twin of the iOS Spacer moving
 // above TodayCard: the day's ink-filled primary is now in the thumb zone on every state.
-function BottomGroup({ facts, streak, bonusKind, userId, isBridge }: { facts: HomeFacts; streak: number; bonusKind: string | null; userId: ObjectId; isBridge: boolean }) {
+function BottomGroup({ facts, bonusKind, userId, isBridge }: { facts: HomeFacts; bonusKind: string | null; userId: ObjectId; isBridge: boolean }) {
   // H008 — the twin divergence. iOS opens the BonusWorkoutSheet on a rest day; web went to "/plan", which answers a
   // question the user did not ask and leaves the screen entirely. Both offer the bonus workout now; "/plan" survives
   // only as the last resort when the plan has no next kind to offer.
@@ -89,7 +92,7 @@ function BottomGroup({ facts, streak, bonusKind, userId, isBridge }: { facts: Ho
     : bonusKind !== null ? `/session/new?bonus=${bonusKind}` : "/plan";
   return (
     <div className="stack stack--sections stack--bottom">
-      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} bridgeLine={nextUpLineOf(facts.nextUp)} streak={streak} todaySummaryLines={facts.todaySummaryLines} />
+      <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} bridgeLine={nextUpLineOf(facts.nextUp)} bonusHref={bonusKind === null ? null : `/session/new?bonus=${bonusKind}`} todaySummaryLines={facts.todaySummaryLines} />
       {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
       {/* A14 — the three vectors as peers; every standalone duplicate that used to sit here or in the card is gone
           (A17.3). A17.1 / H034 — sectionGap, not the 8 px "within one group" stack: the layout used to assert the
@@ -117,14 +120,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const isBridge = facts.today.kind === "bridge";
   return (
     <div className="stack stack--page">
-      <div className="row row--between">
-        <h1>{title(facts.today)}</h1>
-        {/* A3 gave every non-bridge state a camera. A18.10 NARROWS it: not on a state whose CARD already offers a meal
-            CTA. On the rest day the owner photographed, posting was reachable three ways at three weights — an
-            unlabelled glyph, a filled card primary and a slot — and Apple's own navigation guidance names that
-            redundancy as a cause of confusion. Twin of ios HomeScreen.showsCameraButton. */}
-        {!isBridge && facts.today.kind !== "rest" ? <Link className="button button--text" href="/post" aria-label="Post a meal"><span aria-hidden="true">📷</span></Link> : null}
-      </div>
+      <h1>{title(facts.today)}</h1>
       <EarnedAchievements ids={unlocked} />
       {facts.openSessionId && facts.openSessionStale ? <StaleSessionPrompt id={facts.openSessionId} workoutName={facts.openSessionName ?? "Your workout"} timezone={session.user.timezone} /> : null}
       {/* A18.8 — NOT on the bridge. The bridge lasts until the first POST and starting a workout is not a post, so an
@@ -133,7 +129,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" && !isBridge ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
       <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} shields={state?.shields ?? 0} isBridge={isBridge} />
       <NextUpBlock facts={facts} />
-      <BottomGroup facts={facts} streak={state?.currentStreak ?? 0} bonusKind={bonusKind} userId={userId} isBridge={isBridge} />
+      <BottomGroup facts={facts} bonusKind={bonusKind} userId={userId} isBridge={isBridge} />
     </div>
   );
 }

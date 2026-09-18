@@ -1,9 +1,7 @@
 // SPEC: seed achievements rules · V35 (earned achievements survive deletion/undo — server side) · E8 (unlocks ride the
 // completion reply) · 5.6.4 (every mutation ends with recomputeAndStore, which now runs the awarding pass). T006 debt repaid.
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DELETE as deletePost } from "@/app/api/v1/posts/[id]/route";
-import { POST as createPost } from "@/app/api/v1/posts/route";
 import { PATCH as patchSession } from "@/app/api/v1/sessions/[id]/route";
 import { POST as createSession } from "@/app/api/v1/sessions/route";
 import { GET as getMe } from "@/app/api/v1/users/me/route";
@@ -11,6 +9,7 @@ import { closeDb, resetDbForTests } from "@/lib/db";
 import { createUser, type TestUser } from "./fixtures";
 import { readJson, request } from "./http";
 import { doneSets, sampleSessionBody } from "./plans-sessions";
+import { postWorkout } from "./workout-post";
 
 let me: TestUser;
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -26,25 +25,28 @@ afterAll(async () => {
 });
 
 describe("achievements awarding pass", () => {
-  it("the first post earns First flame once; deleting the post never takes it back (V35)", async () => {
-    const first = await readJson<Reply>(await createPost(request("POST", "/posts", { token: me.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "eggs", shareToCrew: false, timezone: "UTC", isPlannedDay: false } })));
-    expect(first.gamification.newAchievementIds).toEqual(["first-flame"]);
-    expect(first.gamification.earnedAchievementIds).toEqual(["first-flame"]);
-    const second = await readJson<Reply>(await createPost(request("POST", "/posts", { token: me.accessToken, body: { clientId: randomUUID(), type: "meal", caption: "lunch", shareToCrew: false, timezone: "UTC", isPlannedDay: false } })));
+  // A22 (2026-09-18): the first post is the first workout's post, so the completion that writes it lights First flame AND Showed up
+  it("the first posted workout earns First flame (and Showed up) once; deleting the post never takes them back (V35)", async () => {
+    const first = await postWorkout(me, { timezone: "UTC" });
+    expect(first.gamification.newAchievementIds).toEqual(["first-flame", "showed-up"]);
+    expect(first.gamification.earnedAchievementIds).toEqual(["first-flame", "showed-up"]);
+    const second = await postWorkout(me, { timezone: "UTC" });
     expect(second.gamification.newAchievementIds).toEqual([]);
-    const gone = await readJson<Reply>(await deletePost(request("DELETE", `/posts/${first.post?.id}`, { token: me.accessToken }), params(first.post?.id ?? "")));
-    expect(gone.gamification.earnedAchievementIds).toEqual(["first-flame"]);
+    const gone = await readJson<Reply>(await deletePost(request("DELETE", `/posts/${first.postId}`, { token: me.accessToken }), params(first.postId)));
+    expect(gone.gamification.earnedAchievementIds).toEqual(["first-flame", "showed-up"]);
     const profile = await readJson<{ gamification: { earnedAchievementIds: string[] } }>(await getMe(request("GET", "/users/me", { token: me.accessToken })));
-    expect(profile.gamification.earnedAchievementIds).toEqual(["first-flame"]);
+    expect(profile.gamification.earnedAchievementIds).toEqual(["first-flame", "showed-up"]);
   });
 
-  it("completing the first workout earns Showed up on the completion reply (E8)", async () => {
+  // A21.9: a completion without `post` records the workout and creates NO post — Showed up, no First flame
+  it("completing the first workout without posting it earns Showed up alone on the completion reply (E8)", async () => {
+    const runner = await createUser("runner", "UTC");
     const body = sampleSessionBody({ timezone: "UTC", isPlannedDay: false });
-    const created = await readJson<Reply>(await createSession(request("POST", "/sessions", { token: me.accessToken, body })));
+    const created = await readJson<Reply>(await createSession(request("POST", "/sessions", { token: runner.accessToken, body })));
     const sessionId = created.session?.id ?? "";
     expect(sessionId).not.toBe("");
-    const done = await readJson<Reply>(await patchSession(request("PATCH", `/sessions/${sessionId}`, { token: me.accessToken, body: { timezone: "UTC", exercises: doneSets(body, 3), status: "completed" } }), params(sessionId)));
+    const done = await readJson<Reply>(await patchSession(request("PATCH", `/sessions/${sessionId}`, { token: runner.accessToken, body: { timezone: "UTC", exercises: doneSets(body, 3), status: "completed" } }), params(sessionId)));
     expect(done.gamification.newAchievementIds).toEqual(["showed-up"]);
-    expect(done.gamification.earnedAchievementIds).toEqual(["first-flame", "showed-up"]);
+    expect(done.gamification.earnedAchievementIds).toEqual(["showed-up"]);
   });
 });

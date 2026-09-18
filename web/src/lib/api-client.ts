@@ -1,4 +1,4 @@
-// SPEC: 5.6.5 lib/api-client.ts — one typed function per endpoint, names identical to Api.swift (createSession, createPost…).
+// SPEC: 5.6.5 lib/api-client.ts — one typed function per endpoint, names identical to Api.swift (createSession, patchSession…).
 // Cookie auth (credentials: include); on 401 the client refreshes once through auth/refresh and retries (G11 rotation).
 // No generics (C1): apiFetch returns unknown and every endpoint function names its reply type. Crews + settings live in
 // api-client-crew.ts (C9 cap). A1: PlanReply carries trainingWeekdays; A2: sessions carry workoutKind and distanceMeters.
@@ -65,14 +65,13 @@ export const createSession = async (body: unknown) => (await postJson("/sessions
 export const getSession = async (id: string) => (await apiFetch(`/sessions/${id}`)) as SessionReply;
 export const patchSession = async (id: string, body: unknown) => (await patchJson(`/sessions/${id}`, body)) as SessionReply;
 
-export interface PostReply { post: { id: string; dayKey: string }; gamification: GamificationReply }
-export const createPost = async (body: unknown) => (await postJson("/posts", body)) as PostReply;
 export const deletePost = async (id: string) => (await deleteJson(`/posts/${id}`)) as { ok: true; gamification: PublicState };
 
 // docs/api.md POST events — the funnel steps a client recorded, each with its own `at` (lib/funnel.ts queues them pre-auth)
 export const logClientEvents = async (batch: { name: string; at: string; props?: Record<string, string | number | boolean | null> }[]) => (await postJson("/events", { events: batch })) as { accepted: number };
 
-export async function uploadPhoto(file: File, purpose: "post" | "profile"): Promise<{ photoKey: string }> {
+// A22 G2: the profile picture is the only photo left
+export async function uploadPhoto(file: File, purpose: "profile"): Promise<{ photoKey: string }> {
   const form = new FormData();
   form.set("file", file);
   form.set("purpose", purpose);

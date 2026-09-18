@@ -60,8 +60,8 @@ follows `COOKIE_SECURE` when set and DEFAULTS TO ON in production (`NODE_ENV=pro
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| POST `photos` | multipart `file` (image/jpeg, image/png, image/heic) + `purpose` ∈ {post, profile} | `sharp`: strip ALL metadata (EXIF/GPS), auto-orient, resize to ≤ 1600 px long edge, JPEG ≤ ~`imageUploadMaxKb`; store in Vercel Blob under an unguessable key; returns `{ photoKey }` | `validation` (type/size), `photoTooLarge` 413 |
-| GET `photos/[key]` | — (auth) | **W5 (2026-09-17): STREAMS the bytes** (`image/jpeg`, `cache-control: private`) from either storage only if the caller may see it (own photo, or a crew-mate's) — blobs are PRIVATE (`access: "private"`, read server-side with the store token) and no redirect to a blob URL ever leaves the route (8.7) | `unauthorized` 401 (no session), `forbidden` 403 (a signed-in stranger), `notFound` 404 (unknown key) |
+| POST `photos` | multipart `file` (image/jpeg, image/png, image/heic) + `purpose` = profile (A22 G2, 2026-09-18: post photos left with the plate journal; any other purpose is `validation`) | `sharp`: strip ALL metadata (EXIF/GPS), auto-orient, resize to ≤ 1600 px long edge, JPEG ≤ ~`imageUploadMaxKb`; store in Vercel Blob under an unguessable key; returns `{ photoKey }` | `validation` (type/size), `photoTooLarge` 413 |
+| GET `photos/[key]` | — (auth) | **W5 (2026-09-17): STREAMS the bytes** (`image/jpeg`, `cache-control: private`) from either storage only if the caller may see it (a PROFILE photo — own, or a crew-mate's; A22 G2: a legacy post photo is `notFound`) — blobs are PRIVATE (`access: "private"`, read server-side with the store token) and no redirect to a blob URL ever leaves the route (8.7) | `unauthorized` 401 (no session), `forbidden` 403 (a signed-in stranger), `notFound` 404 (unknown key) |
 
 ## Plans — `plans` (T023)
 
@@ -83,10 +83,10 @@ follows `COOKIE_SECURE` when set and DEFAULTS TO ON in production (`NODE_ENV=pro
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| POST `posts` | `createPostSchema` { clientId, type: workout \| meal \| text, sessionId?, photoKey?, caption? (≤ `captionMaxChars`), mealTag?, shareToCrew, timezone, isPlannedDay, workoutCompleted?, earlierToday?, createdAt? } | create (server dayKey; same-day backfill only — `backfillMaxDaysBack` = 0), idempotent on `clientId`; `recomputeAndStore`; rate-limited | `validation`, `rateLimited` |
-| GET `posts` | ?from=&to= | the user's journal (forever); every post carries its `clientId` — a phone addresses its journal by it (hydration, `deletePost`). Post shape: `{ id, clientId, type, sessionId, photoKey, caption, mealTag, crewId, dayKey, isPlannedDay, workoutCompleted, earlierToday, summary, createdAt }` — `summary` (A6) is the server-written line of a workout post (`"Push day · 12/12 sets · 44 min"`, `"Walk · 25 min · 2.1 km"`), null on meals and on posts made before A6; clients never send it | — |
+| POST `posts` | — | **REMOVED 2026-09-18 (A22, owner-approved)**: the plate journal (meal and text posts) left the product; a workout post is created by the session that completes it (PATCH `sessions/[id]` `post`). A queued `createPost` sync op is refused per op as `postsRetired`. | — |
+| GET `posts` | ?from=&to= | the user's journal (forever); every post carries its `clientId` — a phone addresses its journal by it (hydration, `deletePost`). Post shape: `{ id, clientId, type, sessionId, caption, crewId, dayKey, isPlannedDay, workoutCompleted, summary, createdAt }` — `summary` (A6) is the server-written line of a workout post (`"Push day · 12/12 sets · 44 min"`, `"Walk · 25 min · 2.1 km"`), null on meals and on posts made before A6; clients never send it | — |
 | GET `posts/[id]` | — | one post (own, or a crew-mate's within the stream window) | `notFound` |
-| PATCH `posts/[id]` | `patchPostSchema` { caption } | edit the caption; photos are never editable (E3) | `notFound`, `validation` |
+| PATCH `posts/[id]` | `patchPostSchema` { caption } | edit the workout post's caption (A22 G2: the one optional line, ≤ `captionMaxChars`) | `notFound`, `validation` |
 | DELETE `posts/[id]` | — | delete the post; sets and streak untouched (E3; same-day gamification per V34 is the CLIENT's optimistic undo — the server recompute is the truth) | `notFound` |
 | POST `posts/[id]/reactions` | `reactionSchema` { emoji ∈ `reactionEmojis` } | react (UNIQUE per user-target; a second emoji replaces the first); `reactionXpDailyCap` server-enforced | `notFound`, `validation`, `notInCrew` 403 |
 | DELETE `posts/[id]/reactions` | — | un-react (tap again, E20) | `notFound` |
@@ -112,7 +112,7 @@ A21.2 / W3 (owner-approved 2026-09-17): free-text chat is GONE. `POST crews/[id]
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| POST `sync` | `syncSchema` { timezone, ops: [ { opId, kind ∈ OpKind, payload } ] } — `payload` is the op's JSON object (never a string); `patchSession` names the session by `sessionId` = its clientId; `deletePost` = { clientId } | replay the offline queue IN ORDER (createSession · patchSession · createPost · deletePost · sendMessage · react · unreact · putPlan · pause · pushToken), each idempotent; returns per-op results + the server `gamification` state, which REPLACES the client's (5.6.3 reconcile); device-clock skew reconciled to server time | per-op errors in the result array, never a failed batch |
+| POST `sync` | `syncSchema` { timezone, ops: [ { opId, kind ∈ OpKind, payload } ] } — `payload` is the op's JSON object (never a string); `patchSession` names the session by `sessionId` = its clientId; `deletePost` = { clientId }; A22 (2026-09-18): a `createPost` op is refused per op as `postsRetired`, non-retryably | replay the offline queue IN ORDER (createSession · patchSession · createPost · deletePost · sendMessage · react · unreact · putPlan · pause · pushToken), each idempotent; returns per-op results + the server `gamification` state, which REPLACES the client's (5.6.3 reconcile); device-clock skew reconciled to server time | per-op errors in the result array, never a failed batch |
 
 ## Pause — `pause` (T041)
 
