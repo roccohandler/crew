@@ -101,13 +101,13 @@ final class SyncQueueTests: XCTestCase {
     func testReconcileWaitsWhileAPostOpIsUndelivered() async throws {
         let server = GamificationStateDTO(currentStreak: 0, longestStreak: 0, totalXP: 0, level: 1, shields: 0, lastCountedDayKey: nil, earnedAchievementIds: [])
         let (queue, store) = makeQueue { op in
-            let ok = op.kind != OpKind.createPost.rawValue
+            let ok = op.kind != OpKind.patchSession.rawValue // A22: the completion inside patchSession is the one op that carries a post
             return SyncResponseDTO(results: [SyncOpResultDTO(opId: op.opId, ok: ok, error: ok ? nil : "rejected", retryable: false)], gamification: server)
         }
         signIn()
         let local = try store.gamificationState(for: "u1")
         local.currentStreak = 7
-        try queue.enqueue(.createPost, payload: Payload(clientId: "m"))
+        try queue.enqueue(.patchSession, payload: Payload(clientId: "m"))
         try queue.enqueue(.react, payload: Payload(clientId: "n"))
         guard case .held = await queue.processNext() else { return XCTFail("the post op is held") }
         guard case .sent = await queue.processNext() else { return XCTFail("the reaction goes out") }

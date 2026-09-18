@@ -53,6 +53,17 @@ export async function ensureTodayHasAWorkout(page: Page): Promise<void> {
   expect(saved.status()).toBe(200);
 }
 
+// The opposite of ensureTodayHasAWorkout: today (the 3 AM day Home judges) leaves the plan, so Home is the REST day on any weekday
+export async function ensureTodayIsARestDay(page: Page): Promise<void> {
+  const me = (await (await page.request.get("/api/v1/users/me")).json()) as { user: { timezone: string } };
+  const today = isoWeekday(dayKeyFor(new Date(), me.user.timezone));
+  const plan = (await (await page.request.get("/api/v1/plans")).json()) as { trainingWeekdays: number[]; workouts: object[] };
+  if (!plan.trainingWeekdays.includes(today)) return;
+  const others = plan.trainingWeekdays.filter((day) => day !== today);
+  const saved = await page.request.put("/api/v1/plans", { data: { trainingWeekdays: others.length > 0 ? others : [(today % 7) + 1], workouts: plan.workouts } });
+  expect(saved.status()).toBe(200);
+}
+
 // A22 (2026-09-18): the plate journal is gone, so "a post" in a journey is a WORKOUT post — created the one way the product creates
 // one, a session completed with its post (S10 · A21.9), through the API the session screen itself calls. A standalone cardio log
 // (A2) never fills a planned slot, so Home's state is untouched by it; a strength session on a training day is the day's workout.

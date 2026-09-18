@@ -47,8 +47,8 @@ test("public pages: landmarks, names, labels, no sideways scroll", async ({ page
 
 test("signed-in pages: landmarks, names, labels, no sideways scroll", async ({ page }) => {
   await buildWeekAndSave(page, { label: "a11y" });
-  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
-  for (const path of ["/home", "/post", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio"]) await expectAccessible(page, path);
+  await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
+  for (const path of ["/home", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio"]) await expectAccessible(page, path); // A22: /post is gone
 });
 
 // J033 (A18) — THE AUDIT ABOVE HAS ONLY EVER SEEN THE BRIDGE. `buildWeekAndSave` leaves a brand-new account with no
@@ -76,7 +76,7 @@ test("the real Home — not the bridge — carries landmarks, names and labels",
 // 8.9: 360 → 1920, nothing scrolls sideways; 6.7 single column stays a column
 test("responsiveness sweep on the two densest pages", async ({ page }) => {
   await buildWeekAndSave(page, { label: "widths" });
-  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
   for (const width of [360, 414, 600, 1024, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of ["/plan", "/session/new"]) {

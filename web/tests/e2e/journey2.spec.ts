@@ -50,7 +50,7 @@ test("a returning member logs in, fast-logs today in three taps, and a crewmate'
   await captain.getByRole("button", { name: "Quick complete" }).click();
   await expect(captain).toHaveURL(/\/session\/[a-f0-9]+\/done(\?earned=.+)?$/, { timeout: 15_000 });
   await expect(captain.getByText(/^\d+\/\d+ sets · \d+ min/)).toBeVisible();
-  await expect(captain.getByText("Showed up")).toBeVisible(); // E8: the first completion unlocks Showed up
+  // (E8's "Showed up" is not asserted here any more: A22 seeds the returning member with a walk, and that completion already earned it)
   await expectNoHorizontalScroll(captain);
   await captain.getByRole("link", { name: "Done" }).click();
   await expect(captain.getByRole("heading", { name: "Done for today." })).toBeVisible();

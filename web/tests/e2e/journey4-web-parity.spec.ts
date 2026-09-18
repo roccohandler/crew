@@ -6,7 +6,7 @@ import { buildWeekAndSave, ensureTodayHasAWorkout, expectNoHorizontalScroll } fr
 
 test("plan build then a full workout log on web, keyboard-first", async ({ page }) => {
   await buildWeekAndSave(page, { label: "j4" });
-  await expect(page.getByText("Your first flame lights today.")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
   await ensureTodayHasAWorkout(page); // Mon/Wed/Fri by default; the log must run on any weekday
   await page.goto("/session/new");
   await expect(page.getByText(/\/\d+ sets/)).toBeVisible({ timeout: 15_000 });

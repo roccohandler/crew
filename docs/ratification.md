@@ -1241,3 +1241,11 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   meal tags or the backfill label again, and PostResponse drops those three fields. (6) The SwiftData LocalPost keeps its legacy stored
   properties (photoKey, localPhotoPath, mealTag, earlierToday) untouched — dropping them is a schema change that waits for W9's
   VersionedSchema; nothing writes them.
+
+- **R-073 · 2026-09-18 · A22 × A17.2, the rest-day hole — READING + FIX.** A22 took the rest card's control and the meal row away
+  (~108 px of content). Home bottom-anchors its day group (6.7, A17.2), so on a rest day all of that slack became ONE gap above the
+  card: 217 px (25.4%) at 393×852 and about a third of a Pro Max — the hole A17.2 removed, and the first red of the layout gate since
+  it was written (it had passed in CI only because that run fell on a training day). On a REST day the group now FLOATS — the slack
+  is split above and below it (web: `.stack--floating`; iOS: a second Spacer on `.rest`) — so no single gap outgrows the group it
+  introduces, the log rows stay in the thumb half, and every other state keeps its bottom anchor. The layout test measures both a rest
+  day and a training day on any weekday (`ensureTodayIsARestDay`). Why a reading: A22 did not speak about layout; A17.2's limit did.

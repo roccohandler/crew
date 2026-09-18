@@ -12,7 +12,9 @@ final class CelebrationPostTests: XCTestCase {
     private let friday = ISO8601DateFormatter().date(from: "2026-09-04T18:00:00-07:00")!
 
     private func completedOutcome(in store: Store) throws -> CelebrationOutcome {
-        let plan = PlanGenerator.generatePlan(days: [5], experience: "brandNew", seed: .shared)
+        // Mon/Wed/Fri, not Friday alone: under A22 G1 (a) a one-day plan is a PERFECT WEEK the moment its one workout is done (+150 and a
+        // shield, V73), and this test is about the post and the tap, not about that
+        let plan = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", seed: .shared)
         try PlanLocal.replace(plan, userId: userId, updatedAt: friday, store: store)
         let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
         return try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, now: friday, store: store))

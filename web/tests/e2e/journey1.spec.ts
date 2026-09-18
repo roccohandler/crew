@@ -20,7 +20,7 @@ test("fresh visitor builds a week, saves it, and lights the first flame with the
   await expect(page.getByText("First flame")).toBeVisible();
   await expectNoHorizontalScroll(page);
   await page.getByRole("link", { name: "Done" }).click();
-  await expect(page.getByRole("heading", { name: "Done for today" })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Done for today", exact: true })).toBeVisible({ timeout: 15_000 }); // the page title; the card's own heading ends with a full stop
   await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toHaveCount(0);
   await expect(page.getByLabel("Streak 1")).toBeVisible();
   await expectNoHorizontalScroll(page);

@@ -57,9 +57,9 @@ final class HomeStatesTests: XCTestCase {
         try await launchHome(trainingDayOffset: 1, name: "Home Rest") // today trains nothing; tomorrow does
         expectTitle("Rest day")
 
-        // A18.1 — the two bare numerals are named where they sit. The ring is NOT asserted here: A18.2 renders it only
-        // once the week holds a completed workout, and this member has logged a walk rather than trained.
-        XCTAssertTrue(app.staticTexts["day streak"].exists, "A18.1 — the flame's numeral is unnamed again")
+        // A8 · A22 G1 (a) — this member has logged a walk on a rest day: it pays XP and counts no day, so the streak is 0 and the
+        // flame carries NO caption (never a zero as a verdict). The caption itself (A18.1) is asserted where a day has counted: all-done.
+        XCTAssertFalse(app.staticTexts["day streak"].exists, "A8 — a streak of 0 is captioned as a verdict again")
         // A17.1 — the sentence that names the strip's colours in place
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'This week:'")).firstMatch.exists)
         // A22 G1 (a) — the card asks nothing: no control, no stake, no premise (A18.4's line is gone with the daily requirement)
@@ -95,6 +95,8 @@ final class HomeStatesTests: XCTestCase {
         if notNow.waitForExistence(timeout: 5) { notNow.tap() }
 
         expectTitle("Done for today")
+        // A18.1 — the planned workout counted the day (V67), so the flame's numeral is named where it sits
+        XCTAssertTrue(app.staticTexts["day streak"].waitForExistence(timeout: 10), "A18.1 — the flame's numeral is unnamed again")
         // A18.9 — the day, reported in the journal's own sentence, and no control: the day is closed
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Push day · '")).firstMatch.waitForExistence(timeout: 10), "A18.9 — the all-done card reports nothing about the day it just closed")
         expectLogRows()

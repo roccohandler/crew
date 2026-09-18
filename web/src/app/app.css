@@ -143,6 +143,14 @@ a {
   margin-top: auto;
 }
 
+/* A22 / R-073 — a rest day asks nothing, so its card carries no control and the page holds ~108 px less than it did. Bottom-anchored,
+   all of that slack became ONE gap above the card — 25% of a standard phone and a third of a Pro Max, the hole A17.2 removed. On a
+   rest day the group FLOATS: the slack is split above and below it, the log rows stay in the thumb half, and no single gap outgrows
+   the group it introduces. Twin of the iOS second Spacer on `.rest` (HomeScreen). */
+.stack--bottom.stack--floating {
+  margin-bottom: auto;
+}
+
 .row {
   display: flex;
   align-items: center;

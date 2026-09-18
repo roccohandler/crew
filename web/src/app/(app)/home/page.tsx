@@ -91,7 +91,7 @@ function BottomGroup({ facts, bonusKind, userId, isBridge }: { facts: HomeFacts;
     ? (facts.openSessionId ? `/session/${facts.openSessionId}` : "/session/new")
     : bonusKind !== null ? `/session/new?bonus=${bonusKind}` : "/plan";
   return (
-    <div className="stack stack--sections stack--bottom">
+    <div className={facts.today.kind === "rest" ? "stack stack--sections stack--bottom stack--floating" : "stack stack--sections stack--bottom"}>{/* R-073: a rest day floats */}
       <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} bridgeLine={nextUpLineOf(facts.nextUp)} bonusHref={bonusKind === null ? null : `/session/new?bonus=${bonusKind}`} todaySummaryLines={facts.todaySummaryLines} />
       {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
       {/* A14 — the three vectors as peers; every standalone duplicate that used to sit here or in the card is gone

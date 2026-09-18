@@ -106,6 +106,9 @@ struct HomeScreen: View {
                             }
                         }
                     }
+                    // A22 / R-073 — a rest day's card carries no control, so bottom-anchored the slack became one hole above it (the
+                    // defect A17.2 removed). On a rest day the group floats: this second flexible space splits the slack in two.
+                    if case .rest = model.today { Spacer(minLength: 0) }
                 }
                 .padding(EmberTokens.Spacing.space16)
                 .frame(minHeight: proxy.size.height, alignment: .top)

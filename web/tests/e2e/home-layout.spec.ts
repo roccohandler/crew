@@ -19,7 +19,7 @@
 //
 // This is the web half. The iOS matrix still needs a Mac and stays owed in debt.md.
 import { expect, test, type Page } from "@playwright/test";
-import { buildWeekAndSave, completeWorkoutViaApi, expectNoHorizontalScroll } from "./helpers";
+import { buildWeekAndSave, completeWorkoutViaApi, ensureTodayHasAWorkout, ensureTodayIsARestDay, expectNoHorizontalScroll } from "./helpers";
 
 // The three sizes 6.7 names: the smallest device, a current standard, and the largest.
 const SIZES = [
@@ -47,6 +47,11 @@ const SIZES = [
 //      eight users did not realise the page scrolled. The bottom group measures 346 px here against a 212 px gap.
 //   2. And an absolute ceiling as a share of the viewport, so it can never grow back toward what was photographed.
 //
+// A22 / R-073 (2026-09-18): the rest day lost its card control and a log row (~108 px), and bottom-anchored that slack became ONE gap
+// of 217 px (25.4%) at 393×852 and a third of a Pro Max — this gate's first red since it was written, on the first rest-day run
+// after A22. The rest day FLOATS now (the slack is split above and below the group), and the test measures BOTH day kinds on
+// whatever weekday it runs, instead of whichever one the calendar happened to give it.
+//
 // Note what clause 1 and the SE row together say: on the smallest phone the anchor has ALREADY collapsed, so 6.7's
 // "primary actions stay bottom-anchored regardless of how much canvas exists above" holds there by accident rather
 // than by mechanism. A `Spacer` inside scrolling content is not an anchor. Recorded in debt.md.
@@ -54,10 +59,13 @@ const MAX_GAP_FRACTION = 0.25;
 
 // §1D — the bridge carries one CTA and nothing else, so the strip, its sentence and the log rows appear only once a
 // first post exists. Every assertion below is about a REAL day, which is the state the owner was looking at.
-async function homeAfterFirstPost(page: Page, label: string): Promise<void> {
+// `trained`: A22 G1 (a) — only a completed PLANNED workout counts a day, and the flame's caption shows from streak 1 (A8: never a
+// zero as a verdict), so the test that reads the caption trains today; every other test logs a walk, which leaves the day's state alone.
+async function homeAfterFirstPost(page: Page, label: string, trained = false): Promise<void> {
   await buildWeekAndSave(page, { label });
   await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
-  await completeWorkoutViaApi(page, { cardio: true }); // A22: the post that ends the bridge is a workout post; a cardio log leaves the day's state alone
+  if (trained) await ensureTodayHasAWorkout(page);
+  await completeWorkoutViaApi(page, { cardio: !trained }); // A22: the post that ends the bridge is a workout post
   await page.goto("/home");
 }
 
@@ -94,8 +102,15 @@ async function largestGap(page: Page): Promise<{ gap: number; follows: number }>
 
 test("Home: the primary action is in the thumb half, nothing truncates, and there is no giant hole — at every size 6.7 names", async ({ page }) => {
   await homeAfterFirstPost(page, "home-layout");
+  for (const day of ["rest day", "training day"]) {
+    if (day === "rest day") await ensureTodayIsARestDay(page); else await ensureTodayHasAWorkout(page);
+    await measureHome(page, day);
+  }
+});
 
-  for (const size of SIZES) {
+async function measureHome(page: Page, day: string): Promise<void> {
+  for (const base of SIZES) {
+    const size = { ...base, name: `${base.name} (${day})` };
     await page.setViewportSize({ width: size.width, height: size.height });
     await page.goto("/home");
     await page.waitForLoadState("networkidle");
@@ -115,14 +130,14 @@ test("Home: the primary action is in the thumb half, nothing truncates, and ther
     expect(gap, `at ${size.name} the largest gap (${Math.round(gap)} px) must not exceed the ${Math.round(follows)} px group it introduces`).toBeLessThanOrEqual(follows);
     expect(gap, `at ${size.name} the largest gap between Home's blocks, in px`).toBeLessThan(size.height * MAX_GAP_FRACTION);
   }
-});
+}
 
 // A17.1 — the sentence is the fix for "I don't know what the colours are for". If it ever stops rendering, the marks
 // go back to being undecodable and nothing else on the screen would fail.
 // A18.1 — and the two captions, for the same reason one level up: the owner read the sentence and still asked "what
 // is the 1/3?", because the sentence never says the word "workouts" and nothing names the flame's numeral either.
 test("Home: every numeral is named, and the week strip says the same thing to the eye and to VoiceOver", async ({ page }) => {
-  await homeAfterFirstPost(page, "home-sentence");
+  await homeAfterFirstPost(page, "home-sentence", true);
   await page.goto("/home");
   await page.waitForLoadState("networkidle");
 
@@ -133,7 +148,7 @@ test("Home: every numeral is named, and the week strip says the same thing to th
   expect(spoken, "the spoken sentence never uses the visible abbreviations").not.toMatch(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/);
 
   // A18.1 — the flame's caption. The ring's is asserted only when the ring renders: A18.2 hides it until the week
-  // holds a completed workout, and this fixture has logged a walk rather than trained.
+  // holds a completed workout — this fixture trained today, so both captions are on screen.
   await expect(page.getByText("day streak", { exact: true })).toBeVisible();
   const ring = page.locator(".ring");
   if (await ring.count() > 0) await expect(page.getByText("workouts this week", { exact: true })).toBeVisible();
