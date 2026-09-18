@@ -44,6 +44,7 @@ struct CrewApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .preferredColorScheme(.light) // A21.10 as amended 2026-09-18 (owner): LIGHT ALWAYS — the SwiftUI half; Info.plist's UIUserInterfaceStyle is the UIKit half (alerts, keyboards, share sheets)
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { SyncDriver.foreground() } } // E6: what was logged goes out
     }

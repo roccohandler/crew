@@ -663,7 +663,12 @@ before it is touched.
 
 - Build 145 on the owner's phone rendered dark because the phone is set to dark and the app followed it (UIUserInterfaceStyle
   Automatic). The owner said three times it should not be dark → recorded in Appendix A as "LIGHT ALWAYS", amending A21.10.
-- iOS: `INFOPLIST_KEY_UIUserInterfaceStyle: Light` (project.yml). Web: `render-ember.mjs` emits `color-scheme: light` and no
+- **Correction (build 147 was still dark):** `INFOPLIST_KEY_UIUserInterfaceStyle` is honoured only when Xcode GENERATES the
+  Info.plist, and the Crew target's plist is written explicitly by xcodegen from `info.properties` — so that build setting (Automatic
+  before, Light in 19644c7) never reached the app; the app had simply followed the phone by default all along. The real switch is
+  `UIUserInterfaceStyle: Light` inside `info.properties`, shipped in the follow-up commit together with `.preferredColorScheme(.light)`
+  on the root view (the SwiftUI half; the plist key is the UIKit half — alerts, keyboards, share sheets).
+- iOS (as corrected above): `UIUserInterfaceStyle: Light` in the Info.plist properties. Web: `render-ember.mjs` emits `color-scheme: light` and no
   `prefers-color-scheme: dark` block; `app.css` says `color-scheme: light`; Generated regenerated. Dark hex values stay in
   `shared/design-tokens.json`, unused (law ⑤ untouched). `Journey4_ScreensTests` keeps the light walk (launched with the phone
   claiming dark, to prove Crew stays light) and drops the dark test. mvp-definition's A21.10 row and the debt entry updated.
