@@ -229,6 +229,58 @@ enum SpecConstants {
     /// SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8
     static let dayLabelWeekdayWithinDays: Int = 6
 
+    // MARK: nutrition
+    /// SPEC: A16.c; nutrition addendum §6; A22 G3 — the nutrition surface exists only at 18+ (the app itself stays 13+)
+    static let nutritionAdultAgeYears: Int = 18
+    /// SPEC: nutrition addendum §3 — a bodyweight is entered to one decimal and carried as TENTHS of its unit (integer arithmetic on both engines)
+    static let bodyweightEntryScale: Int = 10
+    /// SPEC: nutrition addendum §3 — kilograms are carried as hundredths through the derivation
+    static let bodyweightKilogramScale: Int = 100
+    /// SPEC: GAP (agent, 2026-09-18; R-074): the addendum names no bodyweight bounds — below 30 kg the entry is refused as a typo, in either unit
+    static let bodyweightMinKg: Int = 30
+    /// SPEC: GAP (agent, 2026-09-18; R-074): above 300 kg the entry is refused as a typo, in either unit
+    static let bodyweightMaxKg: Int = 300
+    /// SPEC: nutrition addendum §3 — energy estimate, maintenance only (Q1, 2026-09-18: there is no goal)
+    static let kcalPerKgMaintenance: Int = 33
+    /// SPEC: nutrition addendum §3; A16 protein-first — 1.8 g/kg, scaled by macroFactorScale
+    static let proteinGramsPerKgScaled: Int = 18
+    /// SPEC: nutrition addendum §3; A16's floor — 0.5 g/kg, scaled by macroFactorScale
+    static let fatFloorGramsPerKgScaled: Int = 5
+    /// SPEC: nutrition addendum §3 — the divisor of the two per-kilogram factors
+    static let macroFactorScale: Int = 10
+    /// SPEC: nutrition addendum §3; A16 — fat is at least 20 % of the energy estimate
+    static let fatFloorPercentOfEnergy: Int = 20
+    /// SPEC: nutrition addendum §3 — the divisor of fatFloorPercentOfEnergy
+    static let macroPercentScale: Int = 100
+    /// SPEC: nutrition addendum §3 — Atwater
+    static let kcalPerGramProtein: Int = 4
+    /// SPEC: nutrition addendum §3 — Atwater
+    static let kcalPerGramCarbs: Int = 4
+    /// SPEC: nutrition addendum §3 — Atwater
+    static let kcalPerGramFat: Int = 9
+    /// SPEC: nutrition addendum §3 — derived grams round half-up to the nearest 5
+    static let macroGramsRoundTo: Int = 5
+    /// SPEC: GAP (agent, 2026-09-18; R-074): the energy estimate rounds to 50 kcal, so 80 kg and 176 lb derive the same four lines (V58) and an estimate never reads as a measurement
+    static let energyKcalRoundTo: Int = 50
+    /// SPEC: GAP (agent, 2026-09-18; R-074): §2 'grams are integers within bounds' — one saved meal, quick add or log carries 0–500 g of each macro
+    static let macroGramsMaxPerEntry: Int = 500
+    /// SPEC: GAP (agent, 2026-09-18; R-074): a daily target carries 0–1000 g of each macro
+    static let macroTargetGramsMax: Int = 1000
+    /// SPEC: nutrition addendum §2 — savedMeals.name
+    static let savedMealNameMaxChars: Int = 40
+    /// SPEC: GAP (agent, 2026-09-18; R-074): a user keeps at most 100 saved meals
+    static let savedMealsMax: Int = 100
+    /// SPEC: nutrition addendum §1, §2 — a daily template of 1–6 slots
+    static let dayTemplateMaxSlots: Int = 6
+    /// SPEC: GAP (agent, 2026-09-18; R-074): §2 names a slot label and no length — 20 characters
+    static let dayTemplateSlotLabelMaxChars: Int = 20
+    /// SPEC: GAP (agent, 2026-09-18; R-074): one day holds at most 50 logs (an abuse bound, never a target)
+    static let mealLogsPerDayMax: Int = 50
+    /// SPEC: nutrition addendum §5 — the chains actually shipped in shared/seed/fast-food.json, stated honestly (the addendum proposed ~10; four are HELD with reasons in docs/fast-food-seed-sources.md)
+    static let fastFoodChainCount: Int = 6
+    /// SPEC: nutrition addendum §5 — every shipped chain carries at least 15 items read from its own published nutrition facts
+    static let fastFoodItemsPerChainMin: Int = 15
+
     // MARK: reminders
     /// SPEC: Decision Registry G12 (2026-09-04) — no silent default; 7:30 AM pre-filled at the post-first-workout opt-in
     static let reminderSuggestedMinuteOfDay: Int = 450

@@ -194,7 +194,22 @@ function checkSetRemovalCase(id, where, item, fail) {
   if (!expect.removed && JSON.stringify(expect.sets) !== JSON.stringify(sets)) fail(id, `${where}: a refused removal returns the sets unchanged`);
 }
 
+// SPEC: README kind `nutrition` (V57–V65) — every case names a known op and carries an `expect` (null is a legitimate answer)
+const NUTRITION_OPS = ["derive", "carbs", "remaining", "logging", "gameEvents", "bodyweightOf", "availability"];
+const isGrams = (thing) => thing !== null && typeof thing === "object" && ["proteinG", "carbsG", "fatG"].every((key) => Number.isInteger(thing[key]) && thing[key] >= 0);
+function checkNutritionCase(id, where, item, fail) {
+  if (!NUTRITION_OPS.includes(item.op)) return fail(id, `${where}: op must be one of ${NUTRITION_OPS.join(" | ")}`);
+  if (!("expect" in item)) fail(id, `${where}: needs expect`);
+  if (item.op === "derive" && (!Number.isInteger(item.bodyweightTenths) || !["lb", "kg"].includes(item.unit))) fail(id, `${where}: derive needs bodyweightTenths + unit lb|kg`);
+  if (item.op === "carbs" && !["energyKcal", "proteinG", "fatG"].every((key) => Number.isInteger(item[key]))) fail(id, `${where}: carbs needs energyKcal, proteinG, fatG`);
+  if (item.op === "remaining" && (!isGrams(item.targets) || !Array.isArray(item.logs) || !item.logs.every(isGrams))) fail(id, `${where}: remaining needs targets + logs in grams`);
+  if (item.op === "logging" && (!Array.isArray(item.logs) || !Array.isArray(item.entries) || ![...item.logs, ...item.entries].every((log) => isGrams(log) && typeof log.clientId === "string"))) fail(id, `${where}: logging needs logs + entries with clientId and grams`);
+  if (item.op === "gameEvents" && (!Array.isArray(item.logs) || item.expect?.eventCount !== 0)) fail(id, `${where}: a macro entry is never a game event — expect.eventCount must be 0 (clause ③)`);
+  if (item.op === "availability" && (!(item.birthYear === null || Number.isInteger(item.birthYear)) || !Number.isInteger(item.currentYear) || !["available", "askBirthYear", "absent"].includes(item.expect))) fail(id, `${where}: availability needs birthYear|null, currentYear and a known answer`);
+}
+
 export const shapeChecks = {
+  nutrition: withCases(checkNutritionCase),
   achievements: withCases(checkAchievementCase),
   weightUnits: withCases(checkWeightUnitsCase),
   setRemoval: withCases(checkSetRemovalCase),

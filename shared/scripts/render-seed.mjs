@@ -25,6 +25,8 @@ export function renderSeedDataSwift(seeds) {
     `    static let planTemplatesJSON = ${swiftRawString(seeds.planTemplates)}`,
     "    /// shared/seed/achievements.json",
     `    static let achievementsJSON = ${swiftRawString(seeds.achievements)}`,
+    "    /// shared/seed/fast-food.json (nutrition addendum §5)",
+    `    static let fastFoodJSON = ${swiftRawString({ chains: seeds.fastFood.chains, items: seeds.fastFood.items })}`,
     "}", "",
   ].join("\n");
 }
@@ -47,16 +49,20 @@ export interface SeedPlanTemplates {
   templates: Record<WorkoutKind, Record<Experience, string[]>>; // A21.1: kind → experience → exercise ids (no equipment tier)
   mobilityBlocks: Record<WorkoutKind, string[]>;
 }
-export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }`;
+export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }
+export interface SeedFastFoodChain { id: string; name: string; icon: string; sourceUrl: string; retrievedOn: string }
+export interface SeedFastFoodItem { id: string; chainId: string; name: string; servingLabel: string; proteinG: number; carbsG: number; fatG: number }
+export interface SeedFastFood { chains: SeedFastFoodChain[]; items: SeedFastFoodItem[] }`;
 
 export function renderSeedTs(seeds) {
-  const { exercises, planTemplates, achievements } = seeds;
+  const { exercises, planTemplates, achievements, fastFood } = seeds;
   return [
     tsHeader, "", seedTypes, "",
     `export const regionOfPattern: Record<Pattern, Region> = ${JSON.stringify(exercises.enums.region, null, 2)};`,
     `export const exercises: SeedExercise[] = ${JSON.stringify(exercises.exercises, null, 2)};`,
     `export const planTemplates: SeedPlanTemplates = ${JSON.stringify({ targets: planTemplates.targets, split: planTemplates.split, workoutNames: planTemplates.workoutNames, templates: planTemplates.templates, mobilityBlocks: planTemplates.mobilityBlocks }, null, 2)};`,
     `export const achievements: SeedAchievement[] = ${JSON.stringify(achievements.achievements, null, 2)};`,
+    `export const fastFood: SeedFastFood = ${JSON.stringify({ chains: fastFood.chains, items: fastFood.items }, null, 2)};`,
     "",
   ].join("\n");
 }

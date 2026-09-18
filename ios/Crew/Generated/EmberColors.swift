@@ -34,6 +34,18 @@ enum EmberColors {
     static let emberText = emberColor(light: 0xB84D00, dark: 0xFF7A1F)
     /// ≤10% Ember — tints & ring tracks · light #FFEFE3 · dark #33241A
     static let emberTint = emberColor(light: 0xFFEFE3, dark: 0x33241A)
+    /// Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone. · light #2E4E28 · dark #BDD9B9
+    static let macroProtein = emberColor(light: 0x2E4E28, dark: 0xBDD9B9)
+    /// Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text). · light #5A8EB4 · dark #3D7392
+    static let macroCarbs = emberColor(light: 0x5A8EB4, dark: 0x3D7392)
+    /// Macro identity — fat (mulberry). Nutrition surfaces ONLY; identity, never status. Outline + hairline. 8.84:1 on bone. · light #6C315F · dark #DAADDB
+    static let macroFat = emberColor(light: 0x6C315F, dark: 0xDAADDB)
+    /// Macro bar track — protein · light #D9DDD4 · dark #42473D
+    static let macroProteinTrack = emberColor(light: 0xD9DDD4, dark: 0x42473D)
+    /// Macro bar track — carbs · light #E0E7EB · dark #212D33
+    static let macroCarbsTrack = emberColor(light: 0xE0E7EB, dark: 0x212D33)
+    /// Macro bar track — fat · light #E3D8DD · dark #4A3C46
+    static let macroFatTrack = emberColor(light: 0xE3D8DD, dark: 0x4A3C46)
     /// Semantic — success (single value in spec; both modes) · light #3E8E5A · dark #3E8E5A
     static let success = emberColor(light: 0x3E8E5A, dark: 0x3E8E5A)
     /// Semantic — danger (berry, never near orange; single value in spec; both modes) · light #D64550 · dark #D64550

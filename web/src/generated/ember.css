@@ -32,6 +32,18 @@
   --ember-ember-text: #B84D00;
   /* ≤10% Ember — tints & ring tracks */
   --ember-ember-tint: #FFEFE3;
+  /* Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone. */
+  --ember-macro-protein: #2E4E28;
+  /* Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text). */
+  --ember-macro-carbs: #5A8EB4;
+  /* Macro identity — fat (mulberry). Nutrition surfaces ONLY; identity, never status. Outline + hairline. 8.84:1 on bone. */
+  --ember-macro-fat: #6C315F;
+  /* Macro bar track — protein */
+  --ember-macro-protein-track: #D9DDD4;
+  /* Macro bar track — carbs */
+  --ember-macro-carbs-track: #E0E7EB;
+  /* Macro bar track — fat */
+  --ember-macro-fat-track: #E3D8DD;
   /* Semantic — success (single value in spec; both modes) */
   --ember-success: #3E8E5A;
   /* Semantic — danger (berry, never near orange; single value in spec; both modes) */
@@ -82,6 +94,12 @@
     --ember-ember: #FF7A1F;
     --ember-ember-text: #FF7A1F;
     --ember-ember-tint: #33241A;
+    --ember-macro-protein: #BDD9B9;
+    --ember-macro-carbs: #3D7392;
+    --ember-macro-fat: #DAADDB;
+    --ember-macro-protein-track: #42473D;
+    --ember-macro-carbs-track: #212D33;
+    --ember-macro-fat-track: #4A3C46;
     --ember-success: #3E8E5A;
     --ember-danger: #D64550;
 }

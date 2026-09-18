@@ -65,6 +65,15 @@ const GRAPHICAL: { what: string; fg: string; bg: string }[] = [
   { what: "outline control · boundary on a card", fg: "controlOutline", bg: "card" },
   { what: "crew dot · not posted ring", fg: "secondaryText", bg: "card" },
   { what: "crew dot · posted", fg: "ember", bg: "card" },
+  // nutrition addendum §4 · ux-plan 7.4 — the three macro identity fills, on both surfaces a bar is drawn on. Carbs measures 2.8:1
+  // against its own TRACK, which is exactly why its fill carries an ink hairline and every bar a numeric label (encoders ④ and ③):
+  // the ratio that matters for the fill is against the surface, and that one is gated here.
+  { what: "macro bar · protein fill on the canvas", fg: "macroProtein", bg: "canvas" },
+  { what: "macro bar · protein fill on a card", fg: "macroProtein", bg: "card" },
+  { what: "macro bar · carbs fill on the canvas", fg: "macroCarbs", bg: "canvas" },
+  { what: "macro bar · carbs fill on a card", fg: "macroCarbs", bg: "card" },
+  { what: "macro bar · fat fill on the canvas", fg: "macroFat", bg: "canvas" },
+  { what: "macro bar · fat fill on a card", fg: "macroFat", bg: "card" },
 ];
 
 const TEXT: { what: string; fg: string; bg: string }[] = [

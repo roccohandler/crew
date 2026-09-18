@@ -19,6 +19,7 @@ function readSeeds() {
     exercises: JSON.parse(readFileSync(join(seedDir, "exercises.json"), "utf8")),
     planTemplates: JSON.parse(readFileSync(join(seedDir, "plan-templates.json"), "utf8")),
     achievements: JSON.parse(readFileSync(join(seedDir, "achievements.json"), "utf8")),
+    fastFood: JSON.parse(readFileSync(join(seedDir, "fast-food.json"), "utf8")), // nutrition addendum §5
   };
   for (const [name, doc] of Object.entries(seeds)) if (JSON.stringify(doc).includes('"#')) throw new Error(`seed ${name}: the sequence "# would break the Swift raw string`);
   return seeds;

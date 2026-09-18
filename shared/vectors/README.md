@@ -114,6 +114,21 @@ session's `completed`), judging every day up to `asOfDayKey`. The vector's `trai
 when absent) is the plan: every synthesized post carries it as `plannedWeekdays`, and a day before
 `asOfDayKey` is required only when its weekday is in it (V77, V78; A22 G1 (a)).
 
+## kind: `nutrition` — the nutrition twins (V57–V65; nutrition addendum §3, §4, §6, §7)
+
+`cases[]`, each with an `op` and an `expect`:
+- `derive { bodyweightTenths, unit: lb|kg }` → `deriveTargets`: `{ energyKcal, proteinG, carbsG, fatG, carbsOverageKcal }`. A
+  bodyweight is TENTHS of its unit; kilograms are carried as hundredths (the exact international pound, half-up); energy =
+  kg × `kcalPerKgMaintenance` rounded to `energyKcalRoundTo`; protein = kg × 1.8; fat = max(`fatFloorPercentOfEnergy` of the
+  energy ÷ 9, 0.5 g/kg); carbs = the rest ÷ 4; grams round half-up to `macroGramsRoundTo`. Integers only, on both engines.
+- `carbs { energyKcal, proteinG, fatG }` → `{ carbsG, carbsOverageKcal }`: floored at 0, the overage stated (V60).
+- `remaining { targets, logs }` → `{ protein, carbs, fat, calories }`, each `{ logged, target, toGo, over }`; the calorie line
+  is the macros in Atwater kilocalories on both sides (V61).
+- `logging { logs, entries }` → the logs after each entry is logged in order, idempotent on `clientId` (V62).
+- `gameEvents { logs }` → `{ eventCount: 0 }` — a macro entry is never a game event (V63, clause ③; the checker refuses any other count).
+- `bodyweightOf { targets | null }` → `{ bodyweightTenths, unit } | null` — the bodyweight lives inside the targets (V64).
+- `availability { birthYear | null, currentYear }` → `available | askBirthYear | absent` (V65; `nutritionAdultAgeYears`).
+
 ## kind: `pauseValidation` — SettingsModel.pause(until) / POST /api/v1/pause
 
 `cases[]`: `{ today, startDay, endDay, existingPauses }` → `{ accepted, reason? }` with reasons

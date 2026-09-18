@@ -11,6 +11,9 @@ import { apply, initialState, publicState, type Award, type GameEvent, type Paus
 import { recompute, type PostFacts, type ReactionFacts, type SessionFacts } from "@/lib/engine/gamification-recompute";
 import { validatePauseRequest } from "@/lib/engine/pause-validation";
 import { normalizedForCompare, weightIn, type WeightUnit } from "@/lib/engine/weight-units";
+import { gameEvents, logging, remaining, type MealLogFacts } from "@/lib/engine/macro-day";
+import { availability } from "@/lib/engine/nutrition-gate";
+import { bodyweightOf, carbs, deriveTargets, type TargetsFacts } from "@/lib/engine/nutrition-targets";
 import { removeSet, setsPlanned, type RemovableSet } from "@/lib/engine/set-removal";
 
 const vectorsDir = join(process.cwd(), "..", "shared", "vectors");
@@ -52,6 +55,23 @@ function runApply(vector: Vector) {
 
 function runCompletion(vector: Vector) {
   for (const item of vector.cases as { sets: SetFacts[]; expect: unknown }[]) expect(completionFacts(item.sets), vector.id).toEqual(item.expect);
+}
+
+// SPEC: README kind `nutrition` (V57–V65)
+interface NutritionCase { op: string; expect: unknown; bodyweightTenths: number; unit: WeightUnit; energyKcal: number; proteinG: number; fatG: number; targets: TargetsFacts | null; logs: MealLogFacts[]; entries: MealLogFacts[]; birthYear: number | null; currentYear: number }
+function nutritionAnswer(item: NutritionCase): unknown {
+  if (item.op === "derive") return deriveTargets(item.bodyweightTenths, item.unit);
+  if (item.op === "carbs") return carbs(item.energyKcal, item.proteinG, item.fatG);
+  if (item.op === "remaining" && item.targets !== null) return remaining(item.targets, item.logs);
+  if (item.op === "logging") return item.entries.reduce((logs, entry) => logging(entry, logs), item.logs);
+  if (item.op === "gameEvents") return { eventCount: gameEvents(item.logs).length };
+  if (item.op === "bodyweightOf") return bodyweightOf(item.targets);
+  if (item.op === "availability") return availability(item.birthYear, item.currentYear);
+  throw new Error(`no nutrition op ${item.op}`);
+}
+
+function runNutrition(vector: Vector) {
+  (vector.cases as NutritionCase[]).forEach((item, index) => expect(nutritionAnswer(item), `${vector.id} cases[${index}] ${item.op}`).toEqual(item.expect));
 }
 
 function runRecompute(vector: Vector) {
@@ -117,7 +137,7 @@ const runners: Record<string, (vector: Vector) => void> = {
   achievements: runAchievements,
   weightUnits: runWeightUnits,
   setRemoval: runSetRemoval,
-  dayKey: runDayKey, apply: runApply, completion: runCompletion, recompute: runRecompute,
+  dayKey: runDayKey, apply: runApply, completion: runCompletion, recompute: runRecompute, nutrition: runNutrition,
   pauseValidation: runPauseValidation, crewPulse: runCrewPulse, crewWeeklyRing: runCrewWeeklyRing, comebackBanner: runComebackBanner,
 };
 

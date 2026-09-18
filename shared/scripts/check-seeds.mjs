@@ -118,6 +118,45 @@ if (existsSync(join(repoRoot, "shared/seed/achievements.json"))) {
   console.log(`achievements.json: ${achievements.achievements.length} achievements`);
 }
 
+// SPEC: nutrition addendum §5 — the fast-food seed. Flow 4 clause ①'s mechanism lives here: no food is judged, ranked or pictured.
+{
+  const fastFood = read("shared/seed/fast-food.json");
+  const QUALITY_WORDS = /\b(healthy|healthier|clean|junk|lite|light|guilt[- ]?free|guiltless|skinny|fit|smart|cheat|sinful|naughty|superfood)\b/i;
+  const ICONS = ["fork.knife", "cup.and.saucer", "takeoutbag.and.cup.and.straw"];
+  const CHAIN_KEYS = ["id", "name", "icon", "sourceUrl", "retrievedOn"];
+  const ITEM_KEYS = ["id", "chainId", "name", "servingLabel", "proteinG", "carbsG", "fatG"];
+  const onlyKeys = (thing, keys) => Object.keys(thing).every((key) => keys.includes(key)) && keys.every((key) => key in thing);
+  const chainIds = fastFood.chains.map((chain) => chain.id);
+  for (const chain of fastFood.chains) {
+    if (!onlyKeys(chain, CHAIN_KEYS)) fail(`fast-food: chain ${chain.id} must carry exactly ${CHAIN_KEYS.join(", ")} — no logo, no image, no rating, no rank`);
+    if (!/^[a-z0-9-]+$/.test(chain.id) || typeof chain.name !== "string" || chain.name.length === 0) fail(`fast-food: chain ${chain.id} needs a kebab-case id and a name`);
+    if (!ICONS.includes(chain.icon)) fail(`fast-food: chain ${chain.id} icon must be one of the neutral set (${ICONS.join(", ")})`);
+    if (!/^https:\/\//.test(chain.sourceUrl) || !/^\d{4}-\d{2}-\d{2}$/.test(chain.retrievedOn)) fail(`fast-food: chain ${chain.id} needs an https sourceUrl and a retrievedOn date`);
+    if (fastFood.items.filter((item) => item.chainId === chain.id).length < K("nutrition", "fastFoodItemsPerChainMin")) fail(`fast-food: chain ${chain.id} has fewer than ${K("nutrition", "fastFoodItemsPerChainMin")} items`);
+  }
+  if (new Set(chainIds).size !== chainIds.length) fail("fast-food: duplicate chain id");
+  if (fastFood.chains.length !== K("nutrition", "fastFoodChainCount")) fail(`fast-food: ${fastFood.chains.length} chains, spec-constants says ${K("nutrition", "fastFoodChainCount")} — counts are stated honestly, in one place`);
+  const itemIds = new Set();
+  let previous = null;
+  for (const item of fastFood.items) {
+    if (!onlyKeys(item, ITEM_KEYS)) fail(`fast-food: item ${item.id} must carry exactly ${ITEM_KEYS.join(", ")}`);
+    if (itemIds.has(item.id)) fail(`fast-food: duplicate item id ${item.id}`);
+    itemIds.add(item.id);
+    if (!chainIds.includes(item.chainId) || !String(item.id).startsWith(`${item.chainId}/`)) fail(`fast-food: item ${item.id} must belong to a listed chain and carry its id as a prefix`);
+    for (const field of ["name", "servingLabel"]) {
+      if (typeof item[field] !== "string" || item[field].length === 0) fail(`fast-food: item ${item.id} needs ${field}`);
+      const hit = typeof item[field] === "string" ? item[field].match(QUALITY_WORDS) : null;
+      if (hit) fail(`fast-food: item ${item.id}.${field} carries a quality word ("${hit[0]}") — no food is judged (clause ①)`);
+    }
+    if (String(item.name).length > K("nutrition", "savedMealNameMaxChars") + K("nutrition", "savedMealNameMaxChars")) fail(`fast-food: item ${item.id} name is unreasonably long`);
+    for (const field of ["proteinG", "carbsG", "fatG"]) if (!Number.isInteger(item[field]) || item[field] < 0 || item[field] > K("nutrition", "macroGramsMaxPerEntry")) fail(`fast-food: item ${item.id}.${field} must be an integer 0–${K("nutrition", "macroGramsMaxPerEntry")}`);
+    const order = [chainIds.indexOf(item.chainId), item.name];
+    if (previous !== null && (order[0] < previous[0] || (order[0] === previous[0] && order[1] < previous[1]))) fail(`fast-food: item ${item.id} is out of order — items sort by chain, then by name (a sort is not a ranking)`);
+    previous = order;
+  }
+  console.log(`fast-food.json: ${fastFood.chains.length} chains, ${fastFood.items.length} items — published facts only, no judgement words, no pictures`);
+}
+
 const countByType = seed.enums.type.map((type) => `${seed.exercises.filter((exercise) => exercise.type === type).length} ${type}`);
 console.log(`exercises.json: ${seed.exercises.length} exercises (${countByType.join(", ")}) — gym-only, no home cues`);
 const kinds = Object.keys(templates.templates).length;

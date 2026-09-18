@@ -85,6 +85,12 @@
       "role": "≤10% Ember — tints & ring tracks",
       "spec": "Part III table"
     },
+    "macroProtein": { "light": "#2E4E28", "dark": "#BDD9B9", "role": "Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+    "macroCarbs": { "light": "#5A8EB4", "dark": "#3D7392", "role": "Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text).", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+    "macroFat": { "light": "#6C315F", "dark": "#DAADDB", "role": "Macro identity — fat (mulberry). Nutrition surfaces ONLY; identity, never status. Outline + hairline. 8.84:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+    "macroProteinTrack": { "light": "#D9DDD4", "dark": "#42473D", "role": "Macro bar track — protein", "spec": "ux-plan 7.4" },
+    "macroCarbsTrack": { "light": "#E0E7EB", "dark": "#212D33", "role": "Macro bar track — carbs", "spec": "ux-plan 7.4" },
+    "macroFatTrack": { "light": "#E3D8DD", "dark": "#4A3C46", "role": "Macro bar track — fat", "spec": "ux-plan 7.4" },
     "success": {
       "light": "#3E8E5A",
       "dark": "#3E8E5A",

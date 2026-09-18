@@ -1,0 +1,152 @@
+{
+  "file": "nutrition.vectors.json",
+  "spec": "Part VIII 8.1 — V57–V65, reserved by A16 and allocated by the nutrition addendum §7 (RATIFIED 2026-09-18; Q1 maintenance only, Q2 calories as a fourth line): target derivation, the carbs floor, remaining macros, idempotent logging, no XP for an entry (clause ③, load-bearing), the bodyweight lives inside the targets, and the 18+ gate (A16.c · A22 G3).",
+  "vectors": [
+    {
+      "id": "V57",
+      "title": "derive targets at 80 kg",
+      "spec": "8.1 V57; nutrition addendum §3",
+      "kind": "nutrition",
+      "rule": "80.0 kg: energy 80 × 33 = 2640 → 2650 (rounds to energyKcalRoundTo); protein 80 × 1.8 = 144 → 145; fat max(20 % of 2650 ÷ 9 = 58.9 → 60, floor 0.5 × 80 = 40) = 60; carbs (2650 − 580 − 540) ÷ 4 = 382.5 → 385. Grams round half-up to macroGramsRoundTo.",
+      "cases": [
+        { "op": "derive", "bodyweightTenths": 800, "unit": "kg", "expect": { "energyKcal": 2650, "proteinG": 145, "carbsG": 385, "fatG": 60, "carbsOverageKcal": 0 } }
+      ]
+    },
+    {
+      "id": "V58",
+      "title": "176 lb derives the same four lines as 80 kg",
+      "spec": "8.1 V58; nutrition addendum §3; A9",
+      "kind": "nutrition",
+      "rule": "176.0 lb is 79.83 kg by the exact international pound (integer half-up). The rounding steps absorb the difference: the same energy, protein, fat and carbs as V57 — a unit preference never changes a target.",
+      "cases": [
+        { "op": "derive", "bodyweightTenths": 1760, "unit": "lb", "expect": { "energyKcal": 2650, "proteinG": 145, "carbsG": 385, "fatG": 60, "carbsOverageKcal": 0 } }
+      ]
+    },
+    {
+      "id": "V59",
+      "title": "the fat floor holds at the lightest and the heaviest bodyweight",
+      "spec": "8.1 V59; nutrition addendum §3 (A16's floor); R-074",
+      "kind": "nutrition",
+      "rule": "Fat is never below fatFloorGramsPerKg × kg. With the ratified maintenance factors the energy rule gives 0.73 g/kg, above the 0.5 g/kg floor at every bodyweight, so the floor is a guard that never binds (R-074): at 30.0 kg fat is 20 (floor 15); at 150.0 kg fat is 110 (floor 75).",
+      "cases": [
+        { "op": "derive", "bodyweightTenths": 300, "unit": "kg", "expect": { "energyKcal": 1000, "proteinG": 55, "carbsG": 150, "fatG": 20, "carbsOverageKcal": 0 } },
+        { "op": "derive", "bodyweightTenths": 1500, "unit": "kg", "expect": { "energyKcal": 4950, "proteinG": 270, "carbsG": 720, "fatG": 110, "carbsOverageKcal": 0 } }
+      ]
+    },
+    {
+      "id": "V60",
+      "title": "carbs floor at zero and the overage is stated",
+      "spec": "8.1 V60; nutrition addendum §3 (carbs)",
+      "kind": "nutrition",
+      "rule": "Carbs are what the energy leaves after protein and fat. When protein and fat alone exceed it (grams the user typed), carbs are 0 and the overage is a number on its own line — a measurement, never a warning. The derived case shows the ordinary remainder.",
+      "cases": [
+        { "op": "carbs", "energyKcal": 1500, "proteinG": 300, "fatG": 100, "expect": { "carbsG": 0, "carbsOverageKcal": 600 } },
+        { "op": "carbs", "energyKcal": 2650, "proteinG": 145, "fatG": 60, "expect": { "carbsG": 385, "carbsOverageKcal": 0 } },
+        { "op": "carbs", "energyKcal": 1120, "proteinG": 145, "fatG": 60, "expect": { "carbsG": 0, "carbsOverageKcal": 0 } }
+      ]
+    },
+    {
+      "id": "V61",
+      "title": "remaining = target − logged, floored at zero; over is the other side",
+      "spec": "8.1 V61; nutrition addendum §4 (Today); clause ②",
+      "kind": "nutrition",
+      "rule": "Each line carries logged, target, toGo and over; toGo and over are never both above 0. The calorie line is the macros in Atwater kilocalories on both sides (4 · 4 · 9), so it agrees with the grams the user set.",
+      "cases": [
+        {
+          "op": "remaining",
+          "targets": { "proteinG": 145, "carbsG": 385, "fatG": 60 },
+          "logs": [ { "clientId": "a", "proteinG": 40, "carbsG": 50, "fatG": 20 }, { "clientId": "b", "proteinG": 30, "carbsG": 0, "fatG": 10 } ],
+          "expect": {
+            "protein": { "logged": 70, "target": 145, "toGo": 75, "over": 0 },
+            "carbs": { "logged": 50, "target": 385, "toGo": 335, "over": 0 },
+            "fat": { "logged": 30, "target": 60, "toGo": 30, "over": 0 },
+            "calories": { "logged": 750, "target": 2660, "toGo": 1910, "over": 0 }
+          }
+        },
+        {
+          "op": "remaining",
+          "targets": { "proteinG": 145, "carbsG": 385, "fatG": 60 },
+          "logs": [ { "clientId": "c", "proteinG": 10, "carbsG": 0, "fatG": 70 } ],
+          "expect": {
+            "protein": { "logged": 10, "target": 145, "toGo": 135, "over": 0 },
+            "carbs": { "logged": 0, "target": 385, "toGo": 385, "over": 0 },
+            "fat": { "logged": 70, "target": 60, "toGo": 0, "over": 10 },
+            "calories": { "logged": 670, "target": 2660, "toGo": 1990, "over": 0 }
+          }
+        },
+        {
+          "op": "remaining",
+          "targets": { "proteinG": 145, "carbsG": 385, "fatG": 60 },
+          "logs": [],
+          "expect": {
+            "protein": { "logged": 0, "target": 145, "toGo": 145, "over": 0 },
+            "carbs": { "logged": 0, "target": 385, "toGo": 385, "over": 0 },
+            "fat": { "logged": 0, "target": 60, "toGo": 60, "over": 0 },
+            "calories": { "logged": 0, "target": 2660, "toGo": 2660, "over": 0 }
+          }
+        }
+      ]
+    },
+    {
+      "id": "V62",
+      "title": "a template slot logs its saved meal's grams once (idempotent clientId)",
+      "spec": "8.1 V62; nutrition addendum §2 (mealLogs); 8.2 ④",
+      "kind": "nutrition",
+      "rule": "A log is idempotent on its clientId: the same slot tapped twice — or replayed by the queue — logs once; a second entry with its own clientId is a second log.",
+      "cases": [
+        {
+          "op": "logging",
+          "logs": [],
+          "entries": [
+            { "clientId": "slot-1", "proteinG": 35, "carbsG": 40, "fatG": 12 },
+            { "clientId": "slot-1", "proteinG": 35, "carbsG": 40, "fatG": 12 },
+            { "clientId": "quick-1", "proteinG": 20, "carbsG": 0, "fatG": 5 }
+          ],
+          "expect": [
+            { "clientId": "slot-1", "proteinG": 35, "carbsG": 40, "fatG": 12 },
+            { "clientId": "quick-1", "proteinG": 20, "carbsG": 0, "fatG": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V63",
+      "title": "a meal log is never a game event: zero XP, no streak, no day.meals (load-bearing, clause ③)",
+      "spec": "8.1 V63; Flow 4 clause ③; nutrition addendum §2",
+      "kind": "nutrition",
+      "rule": "gameEvents(logs) is empty for any day of logs, so folding it over a state changes nothing: no XP, no streak, no shield, no achievement. This is the single place a macro entry could ever become a game event.",
+      "cases": [
+        {
+          "op": "gameEvents",
+          "logs": [ { "clientId": "a", "proteinG": 40, "carbsG": 50, "fatG": 20 }, { "clientId": "b", "proteinG": 30, "carbsG": 0, "fatG": 10 }, { "clientId": "c", "proteinG": 10, "carbsG": 0, "fatG": 70 } ],
+          "expect": { "eventCount": 0 }
+        },
+        { "op": "gameEvents", "logs": [], "expect": { "eventCount": 0 } }
+      ]
+    },
+    {
+      "id": "V64",
+      "title": "the bodyweight lives inside the targets: delete them and none is left",
+      "spec": "8.1 V64; E1's exception; nutrition addendum §2 (nutritionTargets)",
+      "kind": "nutrition",
+      "rule": "bodyweightOf(targets) reads the one bodyweight in the system out of the targets document; with the targets deleted (null) there is no bodyweight anywhere.",
+      "cases": [
+        { "op": "bodyweightOf", "targets": { "bodyweightTenths": 1760, "unit": "lb", "proteinG": 145, "carbsG": 385, "fatG": 60, "source": "derived" }, "expect": { "bodyweightTenths": 1760, "unit": "lb" } },
+        { "op": "bodyweightOf", "targets": null, "expect": null }
+      ]
+    },
+    {
+      "id": "V65",
+      "title": "the nutrition surface is unreachable for a 17-year-old",
+      "spec": "8.1 V65; A16.c; nutrition addendum §6; A22 G3",
+      "kind": "nutrition",
+      "rule": "currentYear − birthYear ≥ nutritionAdultAgeYears → available; younger → absent (no row, no copy, no upsell); no birth year on the account → askBirthYear, once, when Nutrition is opened.",
+      "cases": [
+        { "op": "availability", "birthYear": 2009, "currentYear": 2026, "expect": "absent" },
+        { "op": "availability", "birthYear": 2008, "currentYear": 2026, "expect": "available" },
+        { "op": "availability", "birthYear": 2013, "currentYear": 2026, "expect": "absent" },
+        { "op": "availability", "birthYear": null, "currentYear": 2026, "expect": "askBirthYear" }
+      ]
+    }
+  ]
+}

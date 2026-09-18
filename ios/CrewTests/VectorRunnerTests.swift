@@ -22,6 +22,7 @@ final class VectorRunnerTests: XCTestCase {
                 case "weightUnits": try runWeightUnits(id: id, vector: vector)
                 case "setRemoval": try runSetRemoval(id: id, vector: vector)
                 case "crewPulse", "crewWeeklyRing", "comebackBanner": continue // VectorRunnerCrewTests
+                case "nutrition": continue // VectorRunnerNutritionTests
                 default: XCTFail("\(id): no runner for kind \(vector["kind"] ?? "?")")
                 }
                 checked += 1
@@ -30,7 +31,7 @@ final class VectorRunnerTests: XCTestCase {
         // Every vector is run by one of the two runners: the counts must add up to the files' own total, or a fixture was
         // added that neither engine half sees (8.1 — the whole suite is the gate, not the part that happens to be wired).
         let total = try VectorFiles.load().reduce(0) { $0 + $1.vectors.filter { $0["retired"] == nil }.count }
-        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { $0["retired"] == nil && ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
+        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { $0["retired"] == nil && ["crewPulse", "crewWeeklyRing", "comebackBanner", "nutrition"].contains($0["kind"] as? String ?? "") }.count } // the other two runners' kinds
         XCTAssertEqual(checked, total - crewKinds)
         XCTAssertGreaterThan(checked, 0)
     }
