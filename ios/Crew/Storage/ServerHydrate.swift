@@ -1,33 +1,83 @@
 // SPEC: 1C (a Crew user authenticates ONCE per device — the Keychain outlives a reinstall, so a signed-in phone can wake with an
 // empty Store) · 1D (the bridge persists until the first post EXISTS — the account's journal counts, not this phone's) · E6 (the
 // phone holds the truth it judges from: plan, journal, sessions, gamification, crew) · 5.6.3 (gamification: server state
-// REPLACES local). A signed-in phone whose Store holds neither a plan nor a post pulls everything once, before Home judges today
-// (RootView); a login without a draft pulls the same way (OnboardingModel). A phone with any local truth pulls nothing here —
-// the queue and the reconcile keep it current. A1/A2/A6 (2026-09-08): the plan arrives with its trainingWeekdays (PlanLocal), a
-// session with its workoutKind and set distances, a post with its summary line. Plain functions (C2). WRITTEN — UNVERIFIED
-// (needs Mac). T024 / T035 / T042
+// REPLACES local). A signed-in phone whose Store holds neither a plan nor a post pulls everything once; a phone with any local
+// truth pulls nothing here — the queue and the reconcile keep it current. OWNER-DIRECTED 2026-09-18 ("launch: real UI first"):
+// the pull no longer gates any screen. Home draws at once from the Store; the four independent pulls (plan, journal, sessions,
+// account) run IN PARALLEL and each landing bumps `state.revision`, which Home answers by re-reading the Store — the real screen
+// fills progressively; the crew follows. `state.isPulling` is what Home reads to say "syncing" instead of "build your week" on an
+// empty Store, and `state.failedOffline` is what turns that into a retryable line when the plan could not be reached at all
+// (E6: offline is not a failure of the account). A1/A2/A6 (2026-09-08): the plan arrives with its trainingWeekdays (PlanLocal), a
+// session with its workoutKind and set distances, a post with its summary line. Plain functions (C2) plus one @Observable state
+// holder. WRITTEN — UNVERIFIED (needs Mac). T024 / T035 / T042
 
 import Foundation
+import Observation
 import SwiftData
+
+// The hydrate's three facts, published for Home (5.6.6: the screen reads them, decides nothing)
+@Observable
+@MainActor
+final class HydrationState {
+    var isPulling = false
+    var failedOffline = false // the plan could not be reached at all — a retry line, never "build your week"
+    var revision = 0          // bumps as each piece lands; Home re-reads the Store on every bump (progressive fill)
+}
 
 @MainActor
 enum ServerHydrate {
+    static let state = HydrationState()
+
     static func isEmpty(userId: String, store: Store) -> Bool {
         let hasPlan = (try? store.plan(for: userId)) != nil
         let hasPost = !((try? store.allPosts(for: userId)) ?? []).isEmpty
         return !hasPlan && !hasPost
     }
 
+    // SPEC: owner-directed 2026-09-18 — background sync, progressive fill: the four independent pulls run at once; nothing waits on
+    // anything else; the crew snapshot follows through the writer the Crew tab uses (6.1 offline: last-synced)
     static func pullIfEmpty(userId: String, store: Store) async {
-        guard isEmpty(userId: userId, store: store) else { return }
-        await PlanLocal.pullFromServer(userId: userId, store: store)
+        guard isEmpty(userId: userId, store: store), !state.isPulling else { return }
+        state.isPulling = true
+        state.failedOffline = false
+        defer { state.isPulling = false }
+        async let plan: Void = pullPlan(userId: userId, store: store)
+        async let journal: Void = pullJournal(userId: userId, store: store)
+        async let sessions: Void = pullSessions(userId: userId, store: store)
+        async let account: Void = pullAccount(userId: userId, store: store)
+        _ = await (plan, journal, sessions, account)
+        await CrewModel(store: store).refresh()
+        state.revision += 1
+    }
+
+    // The plan is the one pull whose failure Home must be able to name: offline → a retry line; a 404 (no plan on the server) or a
+    // server fault → Home's real empty state, and the next foreground pulls again
+    private static func pullPlan(userId: String, store: Store) async {
+        do {
+            let plan = try await Api.shared.getPlan()
+            try? PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: store)
+        } catch AppError.offline {
+            state.failedOffline = true
+        } catch {}
+        state.revision += 1
+    }
+
+    private static func pullJournal(userId: String, store: Store) async {
         if let journal = try? await Api.shared.myPosts() { try? writeJournal(journal.items, userId: userId, store: store) }
+        state.revision += 1
+    }
+
+    private static func pullSessions(userId: String, store: Store) async {
         if let history = try? await Api.shared.mySessions() { try? writeSessions(history.items, userId: userId, store: store) }
+        state.revision += 1
+    }
+
+    private static func pullAccount(userId: String, store: Store) async {
         if let me = try? await Api.shared.me() {
             try? replaceGamification(me.gamification, userId: userId, store: store)
             try? writePause(me.pause, userId: userId, store: store) // A20.10: `me` already carries it — no second request
         }
-        await CrewModel(store: store).refresh() // the crew snapshot (6.1 offline: last-synced) through the writer the Crew tab uses
+        state.revision += 1
     }
 
     // SPEC: A20.10 (2026-09-11) · Flow 7 — A PAUSE IS A SERVER FACT AND THE PHONE MUST BE ABLE TO LEARN IT.
@@ -53,19 +103,6 @@ enum ServerHydrate {
     static func pullPause(userId: String, store: Store) async {
         guard let reply = try? await Api.shared.currentPause() else { return } // offline is not a failure (E6): keep what we have
         try? writePause(reply.pause, userId: userId, store: store)
-    }
-
-    // 1A/6.1: RootView shows Home's skeleton while the pull runs, but never longer than hydrationMaxWaitSeconds — after that Home
-    // opens with what has arrived and the pull finishes behind it (Home re-reads the Store on its next foreground)
-    static func pullIfEmptyBounded(userId: String, store: Store) async {
-        guard isEmpty(userId: userId, store: store) else { return }
-        let pull = Task { await pullIfEmpty(userId: userId, store: store) }
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await pull.value }
-            group.addTask { _ = try? await Task.sleep(for: .seconds(SpecConstants.hydrationMaxWaitSeconds)) }
-            _ = await group.next()
-            group.cancelAll()
-        }
     }
 
     // GET posts → LocalPost rows, delivered already (never re-queued); a row the phone has is left alone. A workout post's

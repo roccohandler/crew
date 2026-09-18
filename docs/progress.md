@@ -659,6 +659,21 @@ Identifiers & Profiles → Certificates, revoke every "Apple Development" certif
 is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
 commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
 before it is touched.
+## 2026-09-18 — OWNER-DIRECTED "LAUNCH: REAL UI FIRST" — SHIPPED (and the light ruling corrected: build 147 was still dark)
+
+- **Light, corrected.** `INFOPLIST_KEY_UIUserInterfaceStyle` only applies to a GENERATED Info.plist; Crew's is written by xcodegen from
+  `info.properties`, so build 147 still followed the phone. `UIUserInterfaceStyle: Light` now sits in `info.properties` and the root
+  view carries `.preferredColorScheme(.light)` — build 148 (run 35309613003).
+- **The skeleton, removed.** The owner: "this loading skeleton is awful, it looks nothing like the actual layout" + the HIG hierarchy
+  (local first → background sync → progressive fill → small indicators). Recorded in Appendix A ("LAUNCH: REAL UI FIRST", with
+  markers at 1A and 6.1) and executed: RootView shows the tabs the moment a session exists (`HomeSkeleton`, `pullIfEmptyBounded`
+  and `hydrationMaxWaitSeconds` deleted); `ServerHydrate` pulls plan / journal / sessions / account IN PARALLEL and publishes
+  `HydrationState` (isPulling · failedOffline · revision) — Home re-reads the Store on every bump (progressive fill); Home's `.loading`
+  is its own header plus one card "Syncing your week from your account…" (`LoadingLine`), an unreachable plan is a retryable line
+  never "Build your week"; a fresh-phone login no longer waits for the pull; `ListSkeleton` on Crew / Progress / the editor became a
+  `LoadingLine` sentence; `Skeleton.swift` deleted; `skeletonPlaceholderRows` left spec-constants. ShellStatesTests covers the new
+  `.loading` and the unreachable line.
+- NEXT: the build after this commit is the one to smoke-test (light, no skeleton). Still owed by the owner: Build B, A22's G1–G4.
 ## 2026-09-18 — OWNER RULING: LIGHT ALWAYS (amends A21.10) — SHIPPED
 
 - Build 145 on the owner's phone rendered dark because the phone is set to dark and the app followed it (UIUserInterfaceStyle

@@ -90,9 +90,10 @@ extension OnboardingModel {
             if let draft {
                 let plan = try await Api.shared.putPlan(draft)
                 try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: .shared)
-            } else {
-                await ServerHydrate.pullIfEmpty(userId: userId, store: .shared) // a login on a fresh phone: plan, journal, sessions, gamification, crew
             }
+            // 2026-09-18 (owner-directed, "launch: real UI first"): a login on a fresh phone no longer waits here for the account to
+            // arrive — the session is stored, RootView shows the tabs at once, and MainTabs' .task runs ServerHydrate.pullIfEmpty behind
+            // a Home that says "syncing" and fills piece by piece
             if let inviteToken, (try? await Api.shared.joinCrew(token: inviteToken)) == nil { _ = LandingFlags.consumeCrewTab() } // the code died in between: Home, not an empty Crew tab
             draftStore.clear()
         } catch let error as AppError {

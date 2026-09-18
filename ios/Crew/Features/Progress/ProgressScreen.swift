@@ -55,7 +55,7 @@ struct ProgressScreen: View {
 
     @ViewBuilder private var charts: some View {
         switch loadState {
-        case .loading: ListSkeleton()
+        case .loading: LoadingLine(line: "Adding up your weeks…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
         case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout and every plate lands here.", ctaTitle: "Go to today", action: onGoHome) // W6: the CTA is the day, not a composer
         case .failed(let line): ErrorState(line: line) { load() }
         case .ready, .offline: content

@@ -25,7 +25,7 @@ struct PlanScreen: View {
         NavigationStack(path: $path) {
             Group {
                 switch loadState {
-                case .loading: ListSkeleton(rows: TimeUnits.daysPerWeek)
+                case .loading: LoadingLine(line: "Opening your week…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
                 case .ready: weekMap
                 case .offline: VStack(spacing: 0) { OfflineBanner(lastSyncedLine: "Your plan is on this phone — edits sync later."); weekMap }
                 case .empty: EmptyState(title: "No plan yet", line: "Answer three questions and your week is built.", ctaTitle: "Build my week") { rebuilding = true }

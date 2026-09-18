@@ -20,7 +20,7 @@ struct WorkoutEditorScreen: View {
 
     var body: some View {
         Group {
-            if let draft = model.drafts[kind] { list(draft) } else { ListSkeleton() }
+            if let draft = model.drafts[kind] { list(draft) } else { LoadingLine(line: "Opening the workout…").padding(EmberTokens.Spacing.space16) } // 6.1 (2026-09-18): a line, not a skeleton
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle(model.name(ofKind: kind))

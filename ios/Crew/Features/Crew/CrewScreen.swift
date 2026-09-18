@@ -35,7 +35,7 @@ struct CrewScreen: View {
         NavigationStack {
             Group {
                 switch loadState {
-                case .loading: ListSkeleton()
+                case .loading: LoadingLine(line: "Loading your crew…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
                 case .solo: CrewSoloView(onStart: { showsCreate = true }, onHaveInvite: { showsJoinByCode = true })
                 case .failed(let line): ErrorState(line: line) { Task { await model.refresh() } }
                 case .ready, .offline: content

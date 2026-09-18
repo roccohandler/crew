@@ -338,8 +338,6 @@ enum SpecConstants {
     static let webMinViewportPx: Int = 360
     /// SPEC: 6.7 — no horizontal scroll 360–1920
     static let webMaxViewportPx: Int = 1920
-    /// SPEC: GAP (agent, 2026-09-05): Five States Law loading state — placeholder rows in a list skeleton
-    static let skeletonPlaceholderRows: Int = 3
     /// SPEC: GAP (agent, 2026-09-05): S11 caption field grows to three lines before it scrolls (captions are ≤ captionMaxChars)
     static let captionComposerMaxLines: Int = 3
 
@@ -366,8 +364,6 @@ enum SpecConstants {
     static let streamPollIntervalMaxSeconds: Int = 10
     /// SPEC: GAP (agent, 2026-09-05): 5.6.3 names no batch size — one sync replay carries at most 1000 ops
     static let syncBatchMaxOps: Int = 1000
-    /// SPEC: GAP (agent, 2026-09-06): 1A/6.1 — a signed-in phone with an empty Store (a reinstall: the Keychain outlives the app, 1C) shows Home's skeleton while it pulls its account from the server, never longer than this; then Home opens with what has arrived
-    static let hydrationMaxWaitSeconds: Int = 10
 
     // MARK: authAndPolicy
     /// SPEC: Part IV email table; 8.2 Auth — single-use token, 30-min expiry

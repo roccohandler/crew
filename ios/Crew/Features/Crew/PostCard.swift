@@ -77,7 +77,8 @@ struct PostPhoto: View {
 
     var body: some View {
         ZStack {
-            if let image { Image(uiImage: image).resizable().scaledToFill() } else { SkeletonBlock(height: EmberTokens.Size.skeletonHero) }
+            // 6.1 (2026-09-18): a photo still arriving holds its own frame with a small indicator — progressive loading of the one thing that is late, not a skeleton of the card
+            if let image { Image(uiImage: image).resizable().scaledToFill() } else { Rectangle().fill(EmberColors.hairline).frame(height: EmberTokens.Size.skeletonHero).overlay(ProgressView().controlSize(.small).tint(EmberColors.secondaryText)).accessibilityHidden(true) }
         }
         .frame(maxWidth: .infinity, maxHeight: EmberTokens.Size.skeletonHero + EmberTokens.Size.skeletonHero)
         .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))

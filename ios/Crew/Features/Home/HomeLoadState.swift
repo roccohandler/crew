@@ -13,6 +13,12 @@
 // discover the network itself. `SyncQueue` already distinguishes "offline" from "failed" for E6 ("no network is not a
 // failed attempt") and now publishes it; `.ready` and `.offline` render identical content, and the thin banner is the
 // whole difference.
+//
+// 2026-09-18 (owner-directed, "launch: real UI first") — `.loading` is REACHABLE now, and it means one thing: the Store is
+// empty because this phone was just (re)installed and ServerHydrate is pulling the account behind the screen. Home renders it
+// as its real chrome plus one line that says so — never a skeleton — and fills as each piece lands. When that pull could not
+// reach the server at all (`unreachable`), an empty Store must NOT read "Build your week" (the plan exists, on the server):
+// it is a retryable failure with its own line.
 
 import Foundation
 
@@ -25,8 +31,12 @@ enum HomeLoadState: Equatable {
 
     // Order matters and is stated once: an error outranks everything (there is nothing to show), no plan outranks
     // the network (the fix is onboarding, not a reconnect), and offline is a qualifier on a screen that already works.
-    static func of(loadError: String?, hasPlan: Bool, offline: Bool) -> HomeLoadState {
+    static let unreachableLine = "Couldn't reach your plan yet. Check your connection and try again."
+
+    static func of(loadError: String?, hasPlan: Bool, offline: Bool, syncing: Bool = false, unreachable: Bool = false) -> HomeLoadState {
         if let loadError { return .failed(loadError) }
+        if !hasPlan && syncing { return .loading }
+        if !hasPlan && unreachable { return .failed(unreachableLine) }
         if !hasPlan { return .empty }
         return offline ? .offline : .ready
     }

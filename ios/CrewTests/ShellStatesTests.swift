@@ -17,6 +17,11 @@ final class ShellStatesTests: XCTestCase {
     func testHomeReachesEveryOneOfItsFiveStates() {
         let initial: HomeLoadState = .loading
         XCTAssertEqual(initial, .loading)
+        // 2026-09-18 (owner-directed, "launch: real UI first"): `.loading` is REACHABLE — an empty Store while the reinstall pull runs;
+        // and an empty Store whose pull could not reach the server is a retryable failure, never "Build your week"
+        XCTAssertEqual(HomeLoadState.of(loadError: nil, hasPlan: false, offline: false, syncing: true), .loading)
+        XCTAssertEqual(HomeLoadState.of(loadError: nil, hasPlan: false, offline: true, syncing: false, unreachable: true), .failed(HomeLoadState.unreachableLine))
+        XCTAssertEqual(HomeLoadState.of(loadError: nil, hasPlan: true, offline: false, syncing: true), .ready, "a phone with a plan never shows the syncing card")
         XCTAssertEqual(HomeLoadState.of(loadError: "Couldn't load that.", hasPlan: true, offline: false), .failed("Couldn't load that."))
         XCTAssertEqual(HomeLoadState.of(loadError: nil, hasPlan: false, offline: false), .empty)
         XCTAssertEqual(HomeLoadState.of(loadError: nil, hasPlan: true, offline: false), .ready)
@@ -44,7 +49,7 @@ final class ShellStatesTests: XCTestCase {
         _ = WeeklyRing(done: 2, planned: 4)
         _ = StreakFlame(streak: 0, paused: false)
         _ = AvatarView(displayName: "Sam Rivera", image: nil)
-        _ = HomeSkeleton()
+        _ = LoadingLine(line: "Syncing your week from your account…") // 2026-09-18: the skeletons are gone; this is the one loading affordance
         XCTAssertEqual(EmberTokens.Haptic.allCases.count, 4)
     }
 

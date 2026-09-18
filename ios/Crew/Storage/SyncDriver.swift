@@ -81,6 +81,7 @@ enum SyncDriver {
     private static func drainThenPullPause() async {
         await SyncQueue.shared.drain()
         guard let userId = AuthStore.shared.currentUser?.id else { return }
+        await ServerHydrate.pullIfEmpty(userId: userId, store: Store.shared) // 2026-09-18: a reinstall that woke offline fills the moment the network is back (a no-op on any Store with a plan or a post)
         await ServerHydrate.pullPause(userId: userId, store: Store.shared)
     }
 }

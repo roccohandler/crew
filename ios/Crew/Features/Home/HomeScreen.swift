@@ -24,10 +24,10 @@ struct HomeScreen: View {
         NavigationStack {
             Group {
                 switch loadState {
-                case .loading: HomeSkeleton()
+                case .loading: syncing
                 case .ready, .offline: content
                 case .empty: EmptyState(title: "Build your week", line: "Three questions and your plan is ready.", ctaTitle: "Build my week") { rebuilding = true }
-                case .failed(let line): ErrorState(line: line) { load() }
+                case .failed(let line): ErrorState(line: line) { Task { await ServerHydrate.pullIfEmpty(userId: model.userId, store: model.store) }; load() } // an unreached plan pulls again
                 }
             }
             .background(EmberColors.canvas.ignoresSafeArea())
@@ -51,6 +51,7 @@ struct HomeScreen: View {
             .sheet(isPresented: $choosingBonus) { BonusWorkoutSheet(workouts: model.bonusWorkouts) { workout in choosingBonus = false; activeSession = model.startBonus(workout) } }
             .task { model.postUnanswered(); load() } // A21.9: a celebration the app died under posts privately first
             .onChange(of: scenePhase) { _, phase in if phase == .active, loaded { load() } } // E8/V04: elapsed days are judged on every foreground
+            .onChange(of: ServerHydrate.state.revision) { _, _ in load() } // 2026-09-18: each piece of the reinstall pull lands → the real screen fills
             .modifier(EdgePrompts(model: model, onKeepGoing: { activeSession = model.keepGoingWithStaleSession() }, onRebuild: { rebuilding = true }))
         }
     }
@@ -121,6 +122,19 @@ struct HomeScreen: View {
         }
     }
 
+    // SPEC: 6.1 as amended 2026-09-18 (owner-directed, "launch: real UI first") — the reinstall wait is Home's OWN chrome: the header
+    // as it stands (an empty week, a cold flame) and one card that says what is arriving, with a small indicator; never a skeleton.
+    // Each pull that lands re-reads the Store (onChange of ServerHydrate.state.revision) and the card gives way to the day.
+    private var syncing: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
+                HomeHeader(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, week: model.weeklyRing, isBridge: false, isPaused: false)
+                Card { LoadingLine(line: "Syncing your week from your account…") }
+            }
+            .padding(EmberTokens.Spacing.space16)
+        }
+    }
+
     // Ink, like every control (Part III law ①); the label is the a11y name — the glyph alone says nothing to VoiceOver
     private var postButton: some View {
         // 6.3: a bare toolbar Image is hit-tested at the glyph (~22×18 pt) plus whatever padding UIKit happens to add;
@@ -170,7 +184,7 @@ struct HomeScreen: View {
     // model is the pattern CrewScreen.swift:21-26 already uses, and it deletes the whole class of bug.
     private var loadState: HomeLoadState {
         guard loaded else { return .loading }
-        return HomeLoadState.of(loadError: model.loadError, hasPlan: model.hasPlan, offline: model.offline)
+        return HomeLoadState.of(loadError: model.loadError, hasPlan: model.hasPlan, offline: model.offline, syncing: ServerHydrate.state.isPulling, unreachable: ServerHydrate.state.failedOffline)
     }
 
     private func load() {
