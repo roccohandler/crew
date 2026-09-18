@@ -2,7 +2,6 @@
 // T036/T039. A22 (owner-approved 2026-09-18): the plate journal is gone, so the first post IS the first workout (S10 · A21.9);
 // the bridge offers "Start your first workout" on a training day and a bonus workout on a rest day (R-070).
 import { expect, test } from "@playwright/test";
-import { dayKeyFor, isoWeekday } from "../../src/lib/engine/day-key";
 import { buildWeekAndSave, completeWorkoutViaApi, ensureTodayHasAWorkout, expectNoHorizontalScroll } from "./helpers";
 
 test("fresh visitor builds a week, saves it, and lights the first flame with the first workout", async ({ page }) => {
@@ -28,10 +27,7 @@ test("fresh visitor builds a week, saves it, and lights the first flame with the
   await page.goto("/plan");
   await expect(page.getByRole("heading", { name: "Your week" })).toBeVisible();
   await expect(page.getByText("Workouts rotate Push → Pull → Legs, so each gets equal time. Changes apply from your next workout on.")).toBeVisible();
-  const me = (await (await page.request.get("/api/v1/users/me")).json()) as { user: { timezone: string } };
-  const today = isoWeekday(dayKeyFor(new Date(), me.user.timezone));
-  if (today <= 5) await expect(page.getByRole("link", { name: /· Push day/ }).or(page.getByRole("link", { name: /· Pull day/ }))).toBeVisible(); // the first planned day from today gets the next rotation kind
-  else await expect(page.locator("li.card.muted", { hasText: /^Monday$/ })).toBeVisible(); // a weekend run: every training day is behind us — the day alone, no word, no dash, no red (W6)
+  await expect(page.getByRole("link", { name: /· ✓ Push day/ })).toBeVisible(); // today trains (ensureTodayHasAWorkout) and is done: the week map says so, whatever weekday this runs on
   await expect(page.getByRole("button", { name: "Change days" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Rebuild my week" })).toBeVisible();
   await expectNoHorizontalScroll(page);

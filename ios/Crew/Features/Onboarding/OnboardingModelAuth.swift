@@ -90,6 +90,10 @@ extension OnboardingModel {
             if let draft {
                 let plan = try await Api.shared.putPlan(draft)
                 try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: .shared)
+                // RootView showed the tabs the moment the session existed, so Home has ALREADY read a Store with no plan in it and the
+                // reinstall pull is running behind it (CI run 35324701048: journey ① sat on "Syncing your week…" for 20 s). The plan
+                // just landed locally — say so, and Home re-reads the Store now instead of waiting for a pull that has nothing to bring.
+                ServerHydrate.state.revision += 1
             }
             // 2026-09-18 (owner-directed, "launch: real UI first"): a login on a fresh phone no longer waits here for the account to
             // arrive — the session is stored, RootView shows the tabs at once, and MainTabs' .task runs ServerHydrate.pullIfEmpty behind
