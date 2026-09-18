@@ -71,12 +71,27 @@ function compare(currentPath, baselinePath) {
   const current = decodePng(currentPath), baseline = decodePng(baselinePath);
   if (!current || !baseline) return { verdict: "changed", detail: "not a PNG this script decodes — compared as bytes" };
   if (current.width !== baseline.width || current.height !== baseline.height) return { verdict: "changed", detail: `size ${baseline.width}×${baseline.height} → ${current.width}×${current.height}` };
-  let moved = 0;
-  for (let pixel = 0; pixel < current.width * current.height; pixel += 1) {
+  // A pixel has moved only when NO baseline pixel within one step of it matches. Run 35331112870 (a whitespace-only commit) showed why:
+  // iOS 26's floating tab bar lands a pixel to the side from one run to the next, and every glyph edge in it counted as a change.
+  const near = (pixel, other) => {
     for (let channel = 0; channel < 3; channel += 1) {
-      const a = current.pixels[pixel * current.bytesPerPixel + channel * current.step];
-      const b = baseline.pixels[pixel * baseline.bytesPerPixel + channel * baseline.step];
-      if (Math.abs(a - b) > channelTolerance) { moved += 1; break; }
+      if (Math.abs(current.pixels[pixel * current.bytesPerPixel + channel * current.step] - baseline.pixels[other * baseline.bytesPerPixel + channel * baseline.step]) > channelTolerance) return false;
+    }
+    return true;
+  };
+  let moved = 0;
+  for (let y = 0; y < current.height; y += 1) {
+    for (let x = 0; x < current.width; x += 1) {
+      const pixel = y * current.width + x;
+      if (near(pixel, pixel)) continue;
+      let shifted = false;
+      for (let dy = -1; dy <= 1 && !shifted; dy += 1) {
+        for (let dx = -1; dx <= 1 && !shifted; dx += 1) {
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && ny >= 0 && nx < current.width && ny < current.height && near(pixel, ny * current.width + nx)) shifted = true;
+        }
+      }
+      if (!shifted) moved += 1;
     }
   }
   const share = moved / (current.width * current.height);
@@ -123,7 +138,7 @@ const lines = [
   ...section("New (no baseline)", groups.added),
   ...section("Removed (a baseline the tour no longer produced — the step's element was missing, or the flow was skipped)", groups.removed),
   ...section("Unchanged", groups.unchanged),
-  `Tolerance: a channel moves by more than ${channelTolerance}/255, on more than ${changedShare * 100}% of the screen.`,
+  `Tolerance: a channel moves by more than ${channelTolerance}/255 against every baseline pixel within one step, on more than ${changedShare * 100}% of the screen.`,
 ];
 writeFileSync(join(outDir, "CHANGES.md"), `${lines.join("\n")}\n`);
 console.log(`tour-diff: ${current.length} shot(s) — ${summary}`);
