@@ -35,6 +35,22 @@ function Field({ name, label, type, autoComplete, value, error, onChange, onExit
   );
 }
 
+// SPEC: W5 (2026-09-17) — the Apple button submits a GET form to the server's start route (docs/api.md auth/apple/start): the page's
+// query (eula, next) rides as hidden fields, and the browser's timezone is read ON SUBMIT — never at render, so the server and the
+// client draw the same markup — so an Apple account keys its days right (E8). A plain navigation, not a script-driven one. The form
+// itself is a SIBLING of the save form (a form inside a form is not HTML); the button inside the save form names it by `form=`.
+const APPLE_FORM_ID = "apple-start";
+
+function AppleStartForm({ appleHref }: { appleHref: string }) {
+  const start = new URL(appleHref, "http://crew.local");
+  return (
+    <form id={APPLE_FORM_ID} method="get" action={start.pathname} onSubmit={(event) => { const tz = event.currentTarget.elements.namedItem("tz"); if (tz instanceof HTMLInputElement) tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone; }}>
+      {[...start.searchParams.entries()].map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
+      <input type="hidden" name="tz" value="" />
+    </form>
+  );
+}
+
 export function SaveForm({ appleHref, onSaved }: { appleHref: string; onSaved: () => Promise<void> }) {
   const [fields, setFields] = useState<Fields>({ displayName: "", email: "", password: "", birthYear: "" });
   const [errors, setErrors] = useState<Record<FieldName, string>>({ displayName: "", email: "", password: "", birthYear: "" });
@@ -60,15 +76,18 @@ export function SaveForm({ appleHref, onSaved }: { appleHref: string; onSaved: (
 
   const labels: Record<FieldName, [string, string, string]> = { displayName: ["Name", "text", "name"], email: ["Email", "email", "username"], password: ["Password", "password", "new-password"], birthYear: ["Birth year", "text", "bday-year"] };
   return (
+    <>
     <form className="stack" onSubmit={submit} noValidate>
       <h1>Save your plan</h1>
       <p className="muted">The plan is yours. An account is how you keep it.</p>
-      <a className="button button--primary" href={appleHref} rel="nofollow">Sign in with Apple</a>
+      <button type="submit" form={APPLE_FORM_ID} className="button button--primary">Sign in with Apple</button>
       <p className="whisper">or with email</p>
       {names.map((name) => <Field key={name} name={name} label={labels[name][0]} type={labels[name][1]} autoComplete={labels[name][2]} value={fields[name]} error={errors[name]} onChange={(value) => setFields({ ...fields, [name]: value })} onExit={() => setErrors({ ...errors, [name]: validateField(name, fields[name]) })} />)}
       <p className="whisper">By saving you agree to the terms. Crew is for people {SpecConstants.minimumAgeYears} and up.</p>
       {serverError ? <p className="danger" role="alert">{serverError}</p> : null}
       <button type="submit" className="button button--primary" disabled={saving}>{saving ? "Saving…" : "Save your plan"}</button>
     </form>
+    <AppleStartForm appleHref={appleHref} />
+    </>
   );
 }

@@ -50,6 +50,7 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "auth/login:POST": { public: true, jsonBody: true },
   "auth/apple:POST": { public: true, jsonBody: true },
   "auth/apple/callback:POST": { public: true, jsonBody: false },
+  "auth/apple/start:GET": { public: true, jsonBody: false }, // W5: mints the nonce + signed state, 303 to Apple
   "auth/refresh:POST": { public: true, jsonBody: true },
   "auth/logout:POST": { jsonBody: true },
   "auth/reset:POST": { public: true, jsonBody: true },

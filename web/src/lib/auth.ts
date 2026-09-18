@@ -12,7 +12,7 @@ export const ACCESS_COOKIE = "crew_access";
 export const REFRESH_COOKIE = "crew_refresh";
 const REFRESH_COOKIE_PATH = "/api/v1/auth";
 
-function secretKey(): Uint8Array {
+export function secretKey(): Uint8Array {
   const secret = process.env.JWT_SECRET ?? "";
   if (secret.length < CryptoParams.jwtSecretMinBytes) throw new Error("JWT_SECRET must be at least 32 bytes (see .env.example)");
   return new TextEncoder().encode(secret);
@@ -62,8 +62,16 @@ export function isIosClient(req: Request): boolean {
   return req.headers.get("x-crew-client") === "ios";
 }
 
+// SPEC: 8.7 · W5 (owner-approved 2026-09-17) — `Secure` follows COOKIE_SECURE when set, and DEFAULTS TO ON in production
+// (NODE_ENV, which Vercel sets), so an unset variable can no longer ship a session cookie over plain HTTP
+export function cookieSecureFlag(): boolean {
+  const configured = process.env.COOKIE_SECURE;
+  if (configured !== undefined && configured.length > 0) return configured === "true";
+  return process.env.NODE_ENV === "production";
+}
+
 function serializeCookie(name: string, value: string, maxAgeSeconds: number, path: string): string {
-  const secure = process.env.COOKIE_SECURE === "true" ? "; Secure" : "";
+  const secure = cookieSecureFlag() ? "; Secure" : "";
   return `${name}=${encodeURIComponent(value)}; Path=${path}; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure}`;
 }
 

@@ -1,8 +1,11 @@
 // SPEC: T012 (Verify: auth suite + manual device check) · docs/api.md POST auth/apple + the web callback ·
 // E9 gates on first sign-in · E18 (a returning subject signs straight in). Real jose verification against a local JWKS.
+// W5 (2026-09-17): the web flow is state/nonce bound — start route → signed state + nonce cookie → Apple echoes the nonce → callback
+// accepts only the matching triple; every failure lands on /login?apple=failed.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST as appleSignIn } from "@/app/api/v1/auth/apple/route";
 import { POST as appleCallback } from "@/app/api/v1/auth/apple/callback/route";
+import { GET as appleStart } from "@/app/api/v1/auth/apple/start/route";
 import { closeDb, resetDbForTests, users } from "@/lib/db";
 import { startFakeApple, type FakeApple } from "./apple-jwks";
 import { readJson, request } from "./http";
@@ -54,15 +57,46 @@ describe("auth/apple", () => {
     expect((await readJson(response)).error).toMatchObject({ code: "eulaRequired" });
   });
 
-  it("web callback: verifies the form post, sets cookies, and redirects into the app", async () => {
-    const token = await apple.sign({ sub: "web.sub.1", email: "web@example.com" }, { audience: SERVICES_ID });
-    const form = new URLSearchParams({ id_token: token, state: "tz=Europe/Berlin&eula=1&by=1990&next=/home", user: JSON.stringify({ name: { firstName: "Sam", lastName: "Web" } }) });
-    const req = new Request("http://localhost:3000/api/v1/auth/apple/callback", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: form.toString() });
-    const response = await appleCallback(req);
+  // W5 — the start route: a signed state and a nonce, in the Apple URL and in the browser's cookie
+  async function startWeb(): Promise<{ state: string; nonce: string; cookie: string }> {
+    const started = await appleStart(new Request("http://localhost:3000/api/v1/auth/apple/start?eula=1&next=%2Fhome&tz=Europe%2FBerlin&by=1990"));
+    expect(started.status).toBe(303);
+    const location = new URL(started.headers.get("location") ?? "");
+    expect(`${location.origin}${location.pathname}`).toBe("https://appleid.apple.com/auth/authorize");
+    const state = location.searchParams.get("state") ?? "";
+    const nonce = location.searchParams.get("nonce") ?? "";
+    expect(state.split(".")).toHaveLength(3); // a JWT, not the old plain query string
+    expect(nonce.length).toBeGreaterThan(0);
+    const cookie = started.headers.getSetCookie().find((line) => line.startsWith("crew_apple_nonce=")) ?? "";
+    expect(cookie).toContain("SameSite=None; Secure"); // Apple's cross-site form POST must carry it
+    return { state, nonce, cookie: cookie.split(";")[0] ?? "" };
+  }
+
+  const callback = (form: URLSearchParams, cookie?: string) =>
+    appleCallback(new Request("http://localhost:3000/api/v1/auth/apple/callback", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) }, body: form.toString() }));
+
+  it("web callback: the start route binds the attempt; the callback verifies state, cookie and id_token nonce, sets cookies, and redirects into the app", async () => {
+    const { state, nonce, cookie } = await startWeb();
+    const token = await apple.sign({ sub: "web.sub.1", email: "web@example.com", nonce }, { audience: SERVICES_ID });
+    const response = await callback(new URLSearchParams({ id_token: token, state, user: JSON.stringify({ name: { firstName: "Sam", lastName: "Web" } }) }), cookie);
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost:3000/home");
-    expect(response.headers.getSetCookie().some((line) => line.startsWith("crew_access="))).toBe(true);
+    const set = response.headers.getSetCookie();
+    expect(set.some((line) => line.startsWith("crew_access="))).toBe(true);
+    expect(set.some((line) => line.startsWith("crew_apple_nonce=;") && line.includes("Max-Age=0"))).toBe(true); // single-use
     const user = await (await users()).findOne({ appleSub: "web.sub.1" });
     expect(user?.displayName).toBe("Sam Web");
+    expect(user?.timezone).toBe("Europe/Berlin");
+  });
+
+  it("web callback: a token minted for another nonce, a missing browser cookie, or an unsigned state all land on /login?apple=failed and sign nobody in", async () => {
+    const { state, nonce, cookie } = await startWeb();
+    const failed = "http://localhost:3000/login?apple=failed";
+    const otherNonce = await apple.sign({ sub: "web.sub.2", email: "w2@example.com", nonce: "someone-elses-attempt" }, { audience: SERVICES_ID });
+    expect((await callback(new URLSearchParams({ id_token: otherNonce, state }), cookie)).headers.get("location")).toBe(failed);
+    const right = await apple.sign({ sub: "web.sub.2", email: "w2@example.com", nonce }, { audience: SERVICES_ID });
+    expect((await callback(new URLSearchParams({ id_token: right, state }))).headers.get("location")).toBe(failed); // no cookie: another browser
+    expect((await callback(new URLSearchParams({ id_token: right, state: "tz=Europe/Berlin&eula=1&next=/home" }), cookie)).headers.get("location")).toBe(failed); // the old unsigned shape
+    expect(await (await users()).countDocuments({ appleSub: "web.sub.2" })).toBe(0);
   });
 });

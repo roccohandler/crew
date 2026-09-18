@@ -38,11 +38,14 @@ and `logEvent(...)`.
 | POST `auth/apple` | `appleSignInSchema` { identityToken, authorizationCode?, displayName?, timezone, eulaAccepted, birthYear? } | verify the Apple identity token (JWKS, aud = bundle/service id), find-or-create the User by `appleSub`, issue tokens | `invalidAppleToken` 401, `eulaRequired` 403 |
 | POST `auth/refresh` | `refreshSchema` { refreshToken } (iOS) or cookie (web) | rotate: new access + refresh, old refresh dead | `unauthorized` (expired/reused → family revoked) |
 | POST `auth/logout` | — (auth) | revoke the presented refresh token, clear cookies | — |
+| GET `auth/apple/start` | query { eula ∈ 0 \| 1, next (a path), tz?, by? } | **W5 (2026-09-17)** — the web Sign in with Apple flow starts here: mints a nonce, signs it with what the attempt carries into a short-lived `state` (HS256, `appleStateTtlMinutes`), sets the nonce as the `crew_apple_nonce` cookie (HttpOnly, SameSite=None, Secure — Apple answers with a cross-site form POST) and 303s the browser to Apple's authorize URL with `state` and `nonce` | — |
+| POST `auth/apple/callback` | Apple's form post { id_token, state, code, user? } | **W5** — accepts only the matching triple: a `state` this server signed and not expired, the browser's `crew_apple_nonce` cookie equal to the state's nonce, and an `id_token` whose `nonce` claim equals it; then find-or-create by `appleSub` (timezone, EULA answer and birth year from the state), set the auth cookies, clear the nonce cookie, 303 to the state's `next`. EVERY failure (unsigned or expired state, cookie missing or different, token for another nonce, Apple rejection, EULA gate, rate limit) 303s to `/login?apple=failed`, where the login form reads one line | — (redirects) |
 | POST `auth/reset` | `resetRequestSchema` { email } | create a single-use reset token (`passwordResetTokenExpiryMinutes` = 30), send the Resend email; ALWAYS 202 (no account enumeration) | `rateLimited` |
 | POST `auth/reset/confirm` | `resetConfirmSchema` { token, newPassword } | consume the token (once), set the hash, revoke every refresh token of the user | `resetTokenInvalid` 400 (unknown, used, or expired) |
 
 Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web the same values are set as
-`crew_access` / `crew_refresh` httpOnly, Secure, SameSite=Lax cookies and the body carries `{ user }`.
+`crew_access` / `crew_refresh` httpOnly, Secure, SameSite=Lax cookies and the body carries `{ user }`. **W5 (2026-09-17): `Secure`
+follows `COOKIE_SECURE` when set and DEFAULTS TO ON in production (`NODE_ENV=production`, which Vercel sets) — `lib/auth.ts cookieSecureFlag`.**
 
 ## Users — `users/me` (T010, T041)
 
@@ -58,7 +61,7 @@ Tokens: `{ user, accessToken, refreshToken, accessExpiresAt }` for iOS; on web t
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
 | POST `photos` | multipart `file` (image/jpeg, image/png, image/heic) + `purpose` ∈ {post, profile} | `sharp`: strip ALL metadata (EXIF/GPS), auto-orient, resize to ≤ 1600 px long edge, JPEG ≤ ~`imageUploadMaxKb`; store in Vercel Blob under an unguessable key; returns `{ photoKey }` | `validation` (type/size), `photoTooLarge` 413 |
-| GET `photos/[key]` | — (auth) | serves/redirects to the blob only if the caller may see it (own photo, or a crew-mate's post photo) — blob URLs are never public (8.7) | `notFound` |
+| GET `photos/[key]` | — (auth) | **W5 (2026-09-17): STREAMS the bytes** (`image/jpeg`, `cache-control: private`) from either storage only if the caller may see it (own photo, or a crew-mate's) — blobs are PRIVATE (`access: "private"`, read server-side with the store token) and no redirect to a blob URL ever leaves the route (8.7) | `unauthorized` 401 (no session), `forbidden` 403 (a signed-in stranger), `notFound` 404 (unknown key) |
 
 ## Plans — `plans` (T023)
 
@@ -123,7 +126,7 @@ A21.2 / W3 (owner-approved 2026-09-17): free-text chat is GONE. `POST crews/[id]
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| POST `reports` | `createReportSchema` { targetType ∈ post \| message \| crewName \| user, targetId, reason (≤ 500) } | store the Report and email the moderation inbox via Resend (this IS the manual queue, no AI scanning) | `validation`, `notFound` |
+| POST `reports` | `createReportSchema` { targetType ∈ post \| message \| crewName \| user, targetId, reason (≤ 500) } | store the Report (`status: open`) and email the moderation inbox via Resend (this IS the manual queue, no AI scanning); **W5 (2026-09-17): resolution is a human's act from the laptop — `cd web && node scripts/resolve-reports.ts --list` lists the open reports, `… <reportId> [<reportId> …]` sets `status: resolved` + `resolvedAt` (`lib/reports.ts`); no route ever resolves** | `validation`, `notFound` |
 | GET `blocks` | — | `{ blocked: [{ userId, displayName }] }` — the people the caller blocked, oldest first (Settings › Blocked people, A7) | — |
 | POST `blocks` | `blockSchema` { userId } | block; hides content both ways, no notification; idempotent | `validation` |
 | DELETE `blocks` | `blockSchema` { userId } | unblock (Settings › Blocked people › Unblock, A7) | `notFound` |

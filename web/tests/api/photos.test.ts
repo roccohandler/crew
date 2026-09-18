@@ -1,5 +1,6 @@
 // SPEC: T027 (Verify: posts suite incl. the EXIF fixture test) · 8.2 Posts: EXIF stripped (a GPS-tagged fixture asserts a
-// clean stored object) · 8.7 (blob URLs auth-checked) · 8.8 (image pipeline ≤ ~300 KB).
+// clean stored object) · 8.7 (blob URLs auth-checked) · 8.8 (image pipeline ≤ ~300 KB) · W5 (2026-09-17): the bytes STREAM behind
+// auth (no redirect), a crew-mate may read, a signed-in stranger gets 403, an unknown key 404.
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GET as readPhoto } from "@/app/api/v1/photos/[key]/route";
@@ -45,13 +46,20 @@ describe("photos", () => {
     expect(reply.bytes).toBeLessThanOrEqual(SpecConstants.imageUploadMaxKb * 1000);
     const served = await readPhoto(new Request(`http://localhost:3000/api/v1/photos/${reply.photoKey}`, { headers: { authorization: `Bearer ${me.accessToken}` } }), { params: Promise.resolve({ key: reply.photoKey }) });
     expect(served.status).toBe(200);
+    expect(served.headers.get("location")).toBeNull(); // W5: streamed, never a redirect to a blob URL
+    expect(served.headers.get("content-type")).toBe("image/jpeg");
+    expect(served.headers.get("cache-control")).toContain("private");
     const stored = Buffer.from(await served.arrayBuffer());
     const metadata = await sharp(stored).metadata();
     expect(metadata.exif).toBeUndefined();
     expect(metadata.width).toBe(SpecConstants.photoMaxEdgePx);
     const stranger = await createUser("stranger");
     const denied = await readPhoto(new Request(`http://localhost:3000/api/v1/photos/${reply.photoKey}`, { headers: { authorization: `Bearer ${stranger.accessToken}` } }), { params: Promise.resolve({ key: reply.photoKey }) });
-    expect(denied.status).toBe(404);
+    expect(denied.status).toBe(403); // W5: a stranger is refused, not told "not found"
+    const unknown = await readPhoto(new Request("http://localhost:3000/api/v1/photos/no-such-key", { headers: { authorization: `Bearer ${me.accessToken}` } }), { params: Promise.resolve({ key: "no-such-key" }) });
+    expect(unknown.status).toBe(404);
+    const anonymous = await readPhoto(new Request(`http://localhost:3000/api/v1/photos/${reply.photoKey}`), { params: Promise.resolve({ key: reply.photoKey }) });
+    expect(anonymous.status).toBe(401);
   });
 
   it("rejects a non-image and a missing purpose", async () => {

@@ -1,7 +1,7 @@
 // SPEC: docs/api.md photos — upload (strip + resize + store, returns photoKey) and the auth-checked read (own photo, or a
 // crew-mate's). Part IX: profile photos and post photos get the same treatment (E1). T027
 import { ObjectId } from "mongodb";
-import { apiError, notFound } from "@/lib/api-error";
+import { apiError, forbidden, notFound } from "@/lib/api-error";
 import { deleteStoredPhoto, newPhotoKey, processPhoto, storePhoto } from "@/lib/blob";
 import { crewMemberships, photos } from "@/lib/db";
 import type { PhotoDoc } from "@/lib/documents-auth";
@@ -23,7 +23,9 @@ export async function uploadPhoto(ownerId: ObjectId, file: File, purpose: "post"
   return doc;
 }
 
-// SPEC: 8.7 — the owner, or someone in the owner's crew (post photos are crew-only; profile photos are visible to crew-mates)
+// SPEC: 8.7 — the owner, or someone in the owner's crew (post photos are crew-only; profile photos are visible to crew-mates).
+// W5 (owner-approved 2026-09-17): a signed-in stranger is REFUSED with 403 — the key is 128 random bits, so naming it reveals
+// nothing worth hiding, and the refusal is the fact (docs/mvp-definition.md W5: "a cross-user 403 test"); an unknown key is 404.
 export async function readablePhoto(viewerId: ObjectId, photoKey: string): Promise<PhotoDoc> {
   const doc = await (await photos()).findOne({ photoKey });
   if (doc === null) throw notFound("Photo");
@@ -31,7 +33,7 @@ export async function readablePhoto(viewerId: ObjectId, photoKey: string): Promi
   const memberships = await crewMemberships();
   const mine = await memberships.findOne({ userId: viewerId });
   const theirs = mine === null ? null : await memberships.findOne({ userId: doc.ownerId, crewId: mine.crewId });
-  if (theirs === null) throw notFound("Photo");
+  if (theirs === null) throw forbidden("That photo isn't yours to see.");
   return doc;
 }
 

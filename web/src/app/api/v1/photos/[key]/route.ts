@@ -1,22 +1,21 @@
-// SPEC: docs/api.md GET photos/[key] — auth-checked read: own photo or a crew-mate's; blob storage redirects to the
-// unguessable URL, the local substitute streams the file (8.7) · T027
+// SPEC: docs/api.md GET photos/[key] — auth-checked read: own photo or a crew-mate's. W5 (owner-approved 2026-09-17): the bytes
+// are STREAMED from either storage behind the auth check; no redirect to a blob URL ever leaves this route (blobs are private,
+// lib/blob.ts). A stranger gets 403 (8.7); an unknown key 404. Never cached beyond the caller. T027
 import { ObjectId } from "mongodb";
 import { errorResponse } from "@/lib/api-error";
 import { requireUser } from "@/lib/auth";
-import { readLocalPhoto } from "@/lib/blob";
+import { readStoredPhoto } from "@/lib/blob";
 import { readablePhoto } from "@/lib/photos";
 
 type Context = { params: Promise<{ key: string }> };
-const FOUND = 302;
 
 export async function GET(req: Request, context: Context) {
   try {
     const userId = await requireUser(req);
     const { key } = await context.params;
     const photo = await readablePhoto(new ObjectId(userId), key);
-    if (photo.storage === "blob") return new Response(null, { status: FOUND, headers: { location: photo.url, "cache-control": "private, no-store" } });
-    const bytes = await readLocalPhoto(photo.url);
-    return new Response(new Uint8Array(bytes), { headers: { "content-type": "image/jpeg", "content-length": String(bytes.length), "cache-control": "private, max-age=0" } });
+    const stream = await readStoredPhoto(photo.storage, photo.url);
+    return new Response(stream, { headers: { "content-type": "image/jpeg", "content-length": String(photo.bytes), "cache-control": "private, max-age=0" } });
   } catch (error) {
     return errorResponse(error);
   }

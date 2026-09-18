@@ -1,14 +1,15 @@
 "use client";
 // SPEC: 1C (authenticate once per device) · E18 (standard resets) · 6.6 (verb-first CTAs). Web twin of ios LoginScreen.
+// W5 (2026-09-17): `appleFailed` (from /login?apple=failed) opens the form with the one Apple line the iOS screens already use.
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { isApiClientError, login, requestPasswordReset } from "@/lib/api-client";
 
-export function LoginForm({ appleHref }: { appleHref: string }) {
+export function LoginForm({ appleHref, appleFailed = false }: { appleHref: string; appleFailed?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(appleFailed ? "Apple couldn't sign you in. Try again, or use email below." : null);
   const [resetSent, setResetSent] = useState(false);
   const [busy, setBusy] = useState(false);
 

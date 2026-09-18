@@ -1,6 +1,7 @@
 // SPEC: T041 (Verify: account suite) · 8.2 Account: JSON export completeness; delete cascade — posts vanish from streams, blobs
 // deleted, 404s everywhere after · 8.2 Pause: create/end; overlap rejected; XP suppression server-enforced (V20) · E18 re-signup ·
 // A7: notification toggles round-trip (absent = all on, partial PATCH merges); a profile photo key must be the caller's own.
+// W5 (2026-09-17): the cascade crawl — a crew-mate's reaction on the user's post, the reports the user filed, the outbox rows — finds nothing left.
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { GET as stream } from "@/app/api/v1/crews/[id]/stream/route";
@@ -11,8 +12,9 @@ import { POST as createPost } from "@/app/api/v1/posts/route";
 import { GET as exportData } from "@/app/api/v1/users/me/export/route";
 import { DELETE as deleteMe, GET as getMe, PATCH as patchMe } from "@/app/api/v1/users/me/route";
 import { POST as register } from "@/app/api/v1/auth/register/route";
-import { closeDb, photos, posts, resetDbForTests, users } from "@/lib/db";
+import { closeDb, photos, posts, reactions, reports, resetDbForTests, users } from "@/lib/db";
 import { emailOutbox } from "@/lib/email";
+import { pushOutbox } from "@/lib/push";
 import { addDays, dayKeyFor } from "@/lib/engine/day-key";
 import { ObjectId } from "mongodb";
 import { createUser, type TestUser } from "./fixtures";
@@ -90,8 +92,18 @@ describe("users/me + export + delete cascade", () => {
     expect((await readJson<{ profilePhotoKey: string | null }>(await patchPhoto(null))).profilePhotoKey).toBeNull(); // null still clears
   });
 
-  it("deletes the account: posts vanish from the stream, photos go, everything 404s, the email goes out, re-signup is fresh", async () => {
+  it("deletes the account: posts vanish from the stream, photos go, everything 404s, the email goes out, re-signup is fresh — and the crawl finds no leftovers (W5)", async () => {
     await (await photos()).insertOne({ _id: new ObjectId(), photoKey: "owner-photo", ownerId: new ObjectId(me.id), purpose: "post", bytes: 1, width: 1, height: 1, storage: "local", url: "C:/nonexistent/owner-photo.jpg", createdAt: new Date() });
+    // W5 — the leftovers the audit named: a crew-mate's reaction on MY post, a report I filed, a report naming me, my outbox rows
+    const myPost = await (await posts()).findOne({ userId: new ObjectId(me.id) });
+    expect(myPost).not.toBeNull();
+    await (await reactions()).insertOne({ _id: new ObjectId(), targetType: "post", targetId: myPost!._id, userId: new ObjectId(mate.id), emoji: "🔥", dayKey: today(), createdAt: new Date() });
+    await (await reports()).insertMany([
+      { _id: new ObjectId(), targetType: "user", targetId: new ObjectId(mate.id), reporterId: new ObjectId(me.id), reason: "filed by me", status: "open", createdAt: new Date() },
+      { _id: new ObjectId(), targetType: "user", targetId: new ObjectId(me.id), reporterId: new ObjectId(mate.id), reason: "names me", status: "open", createdAt: new Date() },
+    ]);
+    await (await emailOutbox()).insertOne({ _id: new ObjectId(), to: me.email, subject: "old", text: "old", kind: "passwordReset", sentAt: new Date() });
+    await (await pushOutbox()).insertOne({ _id: new ObjectId(), userId: new ObjectId(me.id), token: "t", kind: "reminder", title: "old", body: "old", sentAt: new Date() });
     expect((await deleteMe(request("DELETE", "/users/me", { token: me.accessToken, body: { confirm: "delete" } }))).status).toBe(200);
     expect((await getMe(request("GET", "/users/me", { token: me.accessToken }))).status).toBe(404);
     expect(await (await posts()).countDocuments({ userId: new ObjectId(me.id) })).toBe(0);
@@ -100,6 +112,12 @@ describe("users/me + export + delete cascade", () => {
     const feed = await readJson<{ items: { userId: string }[] }>(await stream(request("GET", `/crews/${crewId}/stream`, { token: mate.accessToken }), params(crewId)));
     expect(feed.items.some((item) => item.userId === me.id)).toBe(false);
     expect((await (await emailOutbox()).findOne({ to: me.email, kind: "accountDeleted" }))).not.toBeNull();
+    // W5 — the crawl: nothing of theirs is left but the one "account deleted" email
+    expect(await (await reactions()).countDocuments({ targetId: myPost!._id })).toBe(0);
+    expect(await (await reactions()).countDocuments({ userId: new ObjectId(me.id) })).toBe(0);
+    expect(await (await reports()).countDocuments({ $or: [{ reporterId: new ObjectId(me.id) }, { targetId: new ObjectId(me.id) }] })).toBe(0);
+    expect(await (await pushOutbox()).countDocuments({ userId: new ObjectId(me.id) })).toBe(0);
+    expect(await (await emailOutbox()).countDocuments({ to: me.email })).toBe(1);
     const again = await register(request("POST", "/auth/register", { ip: "203.0.113.77", body: { email: me.email, password: "fresh start 123", displayName: "Owner Again", timezone: "UTC", eulaAccepted: true, birthYear: 1990 } }));
     expect(again.status).toBe(201);
     expect((await readJson<{ user: { id: string } }>(again)).user.id).not.toBe(me.id);

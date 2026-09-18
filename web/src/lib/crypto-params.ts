@@ -11,4 +11,6 @@ export const CryptoParams = {
   inviteTokenBytes: 12, // crew invite links — short enough for iMessage, unguessable
   photoKeyBytes: 16,
   jwtSecretMinBytes: 32,
+  appleNonceBytes: 16, // W5: the web Sign in with Apple nonce — in the authorize URL, in Apple's id_token, and in the browser's cookie
+  appleStateTtlMinutes: 10, // W5: how long a signed Apple `state` stays valid (one sign-in attempt, generously)
 } as const;

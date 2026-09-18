@@ -95,6 +95,7 @@ export interface ReportDoc {
   reason: string;
   status: "open" | "resolved";
   createdAt: Date;
+  resolvedAt?: Date; // W5: set by scripts/resolve-reports.ts (lib/reports.ts) — a human's act, never a route's
 }
 
 export interface BlockDoc {
