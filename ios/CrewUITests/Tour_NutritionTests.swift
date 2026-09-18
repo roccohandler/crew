@@ -57,8 +57,8 @@ final class Tour_NutritionTests: XCTestCase {
             if tourTap(tourButton(app, startingWith: "Chipotle"), timeout: 5) {
                 tourShot(app, "nutrition_chainitems_sheet", "tapped Chipotle")
             }
+            tourBack(app) // run 35347725730: the items list has no Cancel and the pull scrolled the list — back to the chains, whose Cancel closes the sheet
             tourDismissSheet(app, button: "Cancel")
-            tourDismissSheet(app) // the items list has no Cancel of its own: the pull brings the sheet down
         }
         if tourTap(app.buttons["Template"], timeout: 5) {
             tourShot(app, "nutrition_template_filled", "tapped the Template segment")
@@ -86,6 +86,7 @@ final class Tour_NutritionTests: XCTestCase {
         let member = try await tourFilledMember(seed)
         tourLaunch(app, as: member)
         tourWaitForHome(app)
+        tourScroll(app, until: tourButton(app, startingWith: "Log macros")) // under the fold while Home's first-visit whispers show
         guard tourTap(tourButton(app, startingWith: "Log macros"), timeout: 10) else { return }
         _ = app.buttons["Estimate my targets"].waitForExistence(timeout: 20)
         tourShot(app, "nutrition_today_firstrun", "tapped Log macros on an account with no targets yet")

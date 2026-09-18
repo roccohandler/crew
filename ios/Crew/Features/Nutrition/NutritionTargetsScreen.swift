@@ -18,12 +18,7 @@ struct NutritionTargetsScreen: View {
                 if model.hasTargets { GramFields(grams: $model.grams, limit: SpecConstants.macroTargetGramsMax, focus: $focused, prefix: "target"); Whisper(.whyProtein) } // A23
                 if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
                 if let saved = model.savedLine { Text(saved).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                if model.hasTargets {
-                    PrimaryButton(title: "Save targets") { focused = nil; model.save(manual: true) }
-                    SecondaryButton(title: "Recalculate from bodyweight") { focused = nil; model.save(manual: false) }
-                } else {
-                    PrimaryButton(title: "Estimate my targets") { focused = nil; model.save(manual: false) }
-                }
+                if model.hasTargets { SecondaryButton(title: "Recalculate from bodyweight") { focused = nil; model.save(manual: false) } }
                 if let source = model.sourceLine, let estimate = model.estimateLine {
                     Text("\(source) \(estimate)").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 }
@@ -33,6 +28,14 @@ struct NutritionTargetsScreen: View {
             .padding(EmberTokens.Spacing.space16)
         }
         .background(EmberColors.canvas.ignoresSafeArea())
+        // 6.3 · 6.7 (DESIGN.md 4.2) — the one primary is bottom-anchored; ui-reviewer failed it mid-screen (run 35347725730)
+        .crewBottomBar {
+            if model.hasTargets {
+                PrimaryButton(title: "Save targets") { focused = nil; model.save(manual: true) }
+            } else {
+                PrimaryButton(title: "Estimate my targets") { focused = nil; model.save(manual: false) }
+            }
+        }
         .navigationTitle("Nutrition targets")
         .navigationBarTitleDisplayMode(.inline)
         // A19.2 — a number pad carries no return key

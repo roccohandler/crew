@@ -28,6 +28,7 @@ final class Tour_SettingsTests: XCTestCase {
             tourBack(app)
         }
         tourScroll(app, until: tourButton(app, startingWith: "Maya Tour"), down: true) // back to the top, however long the list is
+        app.swipeDown() // run 35347725730: "hittable" was true with the row still half under the navigation bar, and the tap missed it
         if tourTap(tourButton(app, startingWith: "Maya Tour"), timeout: 5) {
             tourShot(app, "settings_profile_default", "tapped the profile row")
             if tourTap(app.buttons["Change photo"], timeout: 5) {

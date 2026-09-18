@@ -19,17 +19,20 @@ struct QuickAddScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 GramFields(grams: $grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: $focused, prefix: "quick")
                 if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
-                PrimaryButton(title: "Add") {
-                    focused = nil
-                    model.quickAdd(grams)
-                    onAdded()
-                }
-                .disabled(isEmpty)
-                .opacity(isEmpty ? EmberTokens.Opacity.disabled : 1)
             }
             .padding(EmberTokens.Spacing.space16)
         }
         .background(EmberColors.canvas.ignoresSafeArea())
+        // 6.3 · 6.7 (DESIGN.md 4.2) — the primary is bottom-anchored in the thumb zone; ui-reviewer failed it mid-screen (run 35347725730)
+        .crewBottomBar {
+            PrimaryButton(title: "Add") {
+                focused = nil
+                model.quickAdd(grams)
+                onAdded()
+            }
+            .disabled(isEmpty)
+            .opacity(isEmpty ? EmberTokens.Opacity.disabled : 1)
+        }
         .navigationTitle("Quick add")
         .navigationBarTitleDisplayMode(.inline)
         // A19.2 — a number pad carries no return key

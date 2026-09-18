@@ -18,11 +18,11 @@ struct MealFormSheet: View {
                     NutritionTextField(title: "Name", text: $draft.name, focus: $focused, key: "name")
                     GramFields(grams: $draft.grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: $focused, prefix: "meal")
                     if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
-                    PrimaryButton(title: "Save meal") { focused = nil; if model.save(draft) { onDone() } }
                 }
                 .padding(EmberTokens.Spacing.space24)
             }
             .background(EmberColors.canvas.ignoresSafeArea())
+            .crewBottomBar { PrimaryButton(title: "Save meal") { focused = nil; if model.save(draft) { onDone() } } } // 6.3 · 6.7: bottom-anchored
             .navigationTitle(draft.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
