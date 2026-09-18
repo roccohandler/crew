@@ -127,7 +127,8 @@ struct SeedClient {
         throw SeedError.unexpected("no workout post reached the stream")
     }
 
-    private func call(_ method: String, _ path: String, body: [String: Any]?, token: String?) async throws -> (Data, Int) {
+    // not private: TourSeed.swift (A24) is the same client in a second file — SeedClient alone would pass C9's line cap
+    func call(_ method: String, _ path: String, body: [String: Any]?, token: String?) async throws -> (Data, Int) {
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
         request.setValue("ios", forHTTPHeaderField: "X-Crew-Client")
