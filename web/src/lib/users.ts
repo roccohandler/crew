@@ -1,6 +1,7 @@
 // SPEC: Part IX User · E1 (name + one profile picture; initials until set) · E9 (EULA at signup, 13+) · E18 · A7 (notification
 // preferences, absent = all on; the profile photo must be the caller's own, purpose "profile").
 // Creation, the public shape, and the age/EULA gates — the same for email and Apple accounts.
+import { availability, type NutritionAvailability } from "@/lib/engine/nutrition-gate";
 import { ObjectId } from "mongodb";
 import { apiError } from "@/lib/api-error";
 import { gamificationStates, photos, users } from "@/lib/db";
@@ -22,6 +23,7 @@ export interface PublicUser {
   reminderTime: string | null;
   notificationPrefs: NotificationPrefs; // always present — defaults filled (A7)
   welcomeBackAckDay: string | null;
+  nutrition: NutritionAvailability; // A16.c · A22 G3: available · askBirthYear · absent — the birth year itself never leaves the server
   createdAt: string;
 }
 
@@ -55,6 +57,7 @@ export function publicUser(doc: UserDoc): PublicUser {
     reminderTime: doc.reminderTime,
     notificationPrefs: notificationPrefsOf(doc),
     welcomeBackAckDay: doc.welcomeBackAckDay ?? null,
+    nutrition: availability(doc.birthYear ?? null, new Date().getUTCFullYear()),
     createdAt: doc.createdAt.toISOString(),
   };
 }
@@ -81,6 +84,7 @@ interface NewUser {
   displayName: string;
   timezone: string;
   measurementSystem?: MeasurementSystem; // A9: the device's own setting, sent at signup; absent = the us default
+  birthYear?: number; // A16.c: stored for the 18+ nutrition gate (the 13+ floor already ran in requireSignupGates)
 }
 
 // SPEC: A9 — the device measurement system, named exactly as iOS 16+ reports it (Locale.MeasurementSystem)
@@ -111,6 +115,7 @@ export async function createUserWithState(input: NewUser, now: Date = new Date()
     eulaAcceptedAt: now,
     createdAt: now,
   };
+  if (input.birthYear !== undefined) doc.birthYear = input.birthYear;
   if (input.appleSub !== undefined) doc.appleSub = input.appleSub;
   if (input.passwordHash !== undefined) doc.passwordHash = input.passwordHash;
   await (await users()).insertOne(doc);

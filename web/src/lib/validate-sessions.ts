@@ -73,7 +73,7 @@ export const syncOpSchema = z.object({
   opId: z.string().min(1).max(SpecConstants.exerciseNameMaxChars),
   // A21.2 / W3: "sendMessage" stays ACCEPTED here so an older phone's queued chat op is rejected per op as `chatRetired` (sync-ops.ts), never as a batch validation error;
   // A22 (2026-09-18): "createPost" likewise — a queued meal or text post is refused per op as `postsRetired`
-  kind: z.enum(["createSession", "patchSession", "createPost", "deletePost", "sendMessage", "react", "unreact", "putPlan", "pause", "pushToken"]),
+  kind: z.enum(["createSession", "patchSession", "createPost", "deletePost", "sendMessage", "react", "unreact", "putPlan", "pause", "pushToken", "putNutritionTargets", "upsertSavedMeal", "deleteSavedMeal", "putDayTemplate", "createMealLog", "deleteMealLog"]), // the last six: nutrition addendum §2
   payload: z.record(z.string(), z.unknown()),
 });
 

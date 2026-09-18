@@ -108,6 +108,32 @@ A21.2 / W3 (owner-approved 2026-09-17): free-text chat is GONE. `POST crews/[id]
 | GET `crews/[id]/stream` | ?since= | the ONE unified stream: posts (shared — each `post` is the Post shape above, `summary` included, A5/A6) and system lines, time-merged (A21.2: never a chat row), `feedWindowDays` (7) window, join-forward for joiners, blocked users filtered both ways, own reactions marked; comeback banners per V39 | `notFound` |
 | PATCH `crews/[id]/mute` | `muteSchema` { muted: boolean } | per-crew mute (E2, S17) | `notFound` |
 
+## Nutrition — `nutrition/*` (W8; docs/nutrition-addendum.md, RATIFIED 2026-09-18)
+
+Every route is `requireUser` plus the 18+ gate (A16.c · A22 G3): under 18 the surface does not exist — `notFound`, like any unknown
+path, with no copy; an account with no birth year gets `birthYearRequired` (403) until PATCH `users/me` { birthYear } stores it, once
+(`birthYearSet` 409 after; the 13+ floor applies). `users/me` carries `nutrition`: available | askBirthYear | absent — the birth year
+itself never leaves the server. NO nutrition route recomputes gamification, awards anything or writes a post (Flow 4 clauses ③ ④).
+
+| Method + path | Schema | Does | Errors |
+|---|---|---|---|
+| GET `nutrition/targets` | — | `{ targets: null \| { bodyweight, unit, proteinG, carbsG, fatG, source: derived \| manual, estimate: { energyKcal, proteinG, carbsG, fatG, carbsOverageKcal }, updatedAt } }` — `estimate` is what the bodyweight derives today (the methodology screen and "Recalculate" read it) | `notFound`, `birthYearRequired` |
+| PUT `nutrition/targets` | `putTargetsSchema` { bodyweight (one decimal; 30–300 kg in either unit), unit: lb \| kg, proteinG?, carbsG?, fatG? (0–`macroTargetGramsMax`; all three or none) } | none → derive (addendum §3; this is also "Recalculate"); all three → `source: manual` | `validation` |
+| DELETE `nutrition/targets` | optional body `{ everything? }` | deletes the targets and the bodyweight with them (V64); `everything: true` is Settings' "Delete my nutrition data": saved meals, the template and every log too | — |
+| GET `nutrition/saved-meals` | — | `{ items: [SavedMeal] }`, oldest first — `{ id, clientId, name, proteinG, carbsG, fatG, source: { kind: manual } \| { kind: seed, chainId, itemId }, createdAt }` | — |
+| POST `nutrition/saved-meals` | `savedMealSchema` { clientId, name ≤ `savedMealNameMaxChars`, proteinG, carbsG, fatG (integers 0–`macroGramsMaxPerEntry` — nothing else is checked, clause ⑤), seed?: { chainId, itemId } } | create; idempotent on `clientId` (200 with the same meal); a seed item's grams are COPIED at save time | `validation` (unknown seed item), `savedMealsFull` |
+| PATCH `nutrition/saved-meals/[id]` (`id` = server id or clientId) | `patchSavedMealSchema` { name?, proteinG?, carbsG?, fatG? } (at least one) | edit | `notFound`, `validation` |
+| DELETE `nutrition/saved-meals/[id]` | — | soft-delete; its template slots go with it; logs keep their own copy | `notFound` |
+| GET `nutrition/template` | — | `{ slots: [{ savedMealId, label, meal: SavedMeal }] }` | — |
+| PUT `nutrition/template` | `putTemplateSchema` { slots: [{ savedMealId (server id or clientId), label? ≤ `dayTemplateSlotLabelMaxChars` }] (0–`dayTemplateMaxSlots`) } | replace the ordered list — a checklist, never a requirement | `notFound` (not your meal), `validation` |
+| GET `nutrition/logs` | ?dayKey= (required) | `{ items: [MealLog] }` — `{ id, clientId, dayKey, savedMealId, name, proteinG, carbsG, fatG, quickAdd, createdAt }` | `validation` |
+| POST `nutrition/logs` | `createLogSchema` { clientId, timezone, savedMealId?, name, proteinG, carbsG, fatG, quickAdd, createdAt? } | log; idempotent on `clientId` (V62); the day is the server's (E15); when `savedMealId` resolves, the saved meal's name and grams are COPIED | `validation`, `dayFull` |
+| DELETE `nutrition/logs/[id]` (`id` = server id or clientId) | — | soft-delete; nothing is recomputed — a log was never counted | `notFound` |
+
+Sync ops (5.6.3 map change): `putNutritionTargets` (PUT targets body) · `upsertSavedMeal` (POST body; a later op with the same clientId edits it) ·
+`deleteSavedMeal` { id } · `putDayTemplate` (PUT template body) · `createMealLog` (POST logs body; timezone defaults to the batch's) ·
+`deleteMealLog` { id }. A gated account's op is refused per op (`notFound` / `birthYearRequired`), never as a failed batch.
+
 ## Sync — `sync` (T023)
 
 | Method + path | Schema | Does | Errors |

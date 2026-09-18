@@ -5,6 +5,9 @@
 //   jsonBody    — ③ applies: "{" → 400 and {} → 400 in the standard error shape (false = no JSON body)
 //   validBody   — ④ applies when it carries clientId: the same body twice returns the same document id
 //   foreignPath — ① applies: a path to a resource owned by ANOTHER user, called as the test user → 403 or 404
+import { randomUUID } from "node:crypto";
+import { POST as createMealLogRoute } from "@/app/api/v1/nutrition/logs/route";
+import { POST as createSavedMealRoute } from "@/app/api/v1/nutrition/saved-meals/route";
 import { POST as createSessionRoute } from "@/app/api/v1/sessions/route";
 import type { TestUser } from "./fixtures";
 import { readJson, request } from "./http";
@@ -19,6 +22,18 @@ async function foreignSessionPath(_me: TestUser, other: TestUser): Promise<strin
 // A22 (2026-09-18): a post exists only through a completed session, so the foreign post is the other user's posted workout
 async function foreignPostPath(_me: TestUser, other: TestUser): Promise<string> {
   return `/posts/${(await postWorkout(other, { cardio: true, timezone: "UTC" })).postId}`;
+}
+
+// nutrition addendum §2 — another adult's saved meal and log: each must be a 404 for the test user (8.2 ①)
+const savedMealBody = () => ({ clientId: randomUUID(), name: "Chicken and rice", proteinG: 45, carbsG: 60, fatG: 12 });
+const mealLogBody = () => ({ clientId: randomUUID(), timezone: "UTC", name: "Quick add", proteinG: 30, carbsG: 0, fatG: 10, quickAdd: true });
+async function foreignSavedMealPath(_me: TestUser, other: TestUser): Promise<string> {
+  const reply = await readJson<{ meal: { id: string } }>(await createSavedMealRoute(request("POST", "/nutrition/saved-meals", { token: other.accessToken, body: savedMealBody() })));
+  return `/nutrition/saved-meals/${reply.meal.id}`;
+}
+async function foreignMealLogPath(_me: TestUser, other: TestUser): Promise<string> {
+  const reply = await readJson<{ log: { id: string } }>(await createMealLogRoute(request("POST", "/nutrition/logs", { token: other.accessToken, body: mealLogBody() })));
+  return `/nutrition/logs/${reply.log.id}`;
 }
 
 const foreignReactionPath = async (me: TestUser, other: TestUser) => `${await foreignPostPath(me, other)}/reactions`;
@@ -65,6 +80,19 @@ export const STANDING_REGISTRY: Record<string, StandingEntry> = {
   "posts/[id]:DELETE": { jsonBody: false, foreignPath: foreignPostPath },
   "posts/[id]/reactions:POST": { jsonBody: true, foreignPath: foreignReactionPath, validBody: () => ({ emoji: "🔥" }) },
   "posts/[id]/reactions:DELETE": { jsonBody: false, foreignPath: foreignReactionPath },
+  // nutrition addendum §2 — the fixture users are adults (birthYear at register), so every route is reachable; DELETE targets takes an optional body
+  "nutrition/targets:GET": { jsonBody: false },
+  "nutrition/targets:PUT": { jsonBody: true, validBody: () => ({ bodyweight: 176, unit: "lb" }) },
+  "nutrition/targets:DELETE": { jsonBody: false },
+  "nutrition/saved-meals:GET": { jsonBody: false },
+  "nutrition/saved-meals:POST": { jsonBody: true, validBody: savedMealBody, idField: "meal" },
+  "nutrition/saved-meals/[id]:PATCH": { jsonBody: true, foreignPath: foreignSavedMealPath, validBody: () => ({ name: "renamed" }) },
+  "nutrition/saved-meals/[id]:DELETE": { jsonBody: false, foreignPath: foreignSavedMealPath },
+  "nutrition/template:GET": { jsonBody: false },
+  "nutrition/template:PUT": { jsonBody: true, validBody: () => ({ slots: [] }) },
+  "nutrition/logs:GET": { jsonBody: false },
+  "nutrition/logs:POST": { jsonBody: true, validBody: mealLogBody, idField: "log" },
+  "nutrition/logs/[id]:DELETE": { jsonBody: false, foreignPath: foreignMealLogPath },
   "photos:POST": { jsonBody: false },
   "photos/[key]:GET": { jsonBody: false, foreignPath: async () => "/photos/no-such-key" },
   "crews:POST": { jsonBody: true },

@@ -1,7 +1,7 @@
 // SPEC: docs/api.md users/me — GET (user + gamification + pause + crew summary) · PATCH profile fields (A7: notification
 // preferences merged; a profile photo key must be the caller's own) · DELETE the cascade (E9) · T041
 import { ObjectId } from "mongodb";
-import { errorResponse, json, notFound } from "@/lib/api-error";
+import { apiError, errorResponse, json, notFound } from "@/lib/api-error";
 import { deleteAccount } from "@/lib/account-delete";
 import { clearedCookieHeaders, requireUser } from "@/lib/auth";
 import { crewMemberships, crews, users } from "@/lib/db";
@@ -10,7 +10,7 @@ import { logEvent } from "@/lib/events";
 import { storedState } from "@/lib/gamification-store";
 import { HttpStatus } from "@/lib/http-status";
 import { currentPause, pauseResponse } from "@/lib/pauses";
-import { findUserById, notificationPrefsOf, publicUser, requireOwnProfilePhoto } from "@/lib/users";
+import { findUserById, notificationPrefsOf, publicUser, requireOwnProfilePhoto, requireSignupGates } from "@/lib/users";
 import { deleteAccountSchema, updateMeSchema } from "@/lib/validate";
 
 export async function GET(req: Request) {
@@ -36,6 +36,11 @@ export async function PATCH(req: Request) {
     const current = await findUserById(userId);
     if (current === null) throw notFound("User");
     if (typeof body.profilePhotoKey === "string") await requireOwnProfilePhoto(current._id, body.profilePhotoKey);
+    // SPEC: A16.c · addendum §6 — a birth year is written ONCE (an account that has one never changes it), behind the same 13+ floor as signup
+    if (body.birthYear !== undefined) {
+      if (current.birthYear !== undefined) throw apiError("birthYearSet", "Your birth year is already saved.", HttpStatus.conflict);
+      requireSignupGates(true, body.birthYear);
+    }
     const changes: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) if (value !== undefined) changes[key] = value;
     if (body.notificationPrefs !== undefined) changes.notificationPrefs = { ...notificationPrefsOf(current), ...body.notificationPrefs };

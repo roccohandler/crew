@@ -1,7 +1,7 @@
 // SPEC: E9 (JSON data export in MVP) · 8.2 Account (export completeness) · docs/api.md users/me/export — everything the user
 // owns, assembled into one JSON document. The plan is exported in its A1 shape (a legacy document is normalised first). T041
 import type { ObjectId } from "mongodb";
-import { blocks, crewMemberships, gamificationStates, messages, pauses, posts, reactions, sessions, users } from "@/lib/db";
+import { blocks, crewMemberships, dayTemplates, gamificationStates, mealLogs, messages, nutritionTargets, pauses, posts, reactions, savedMeals, sessions, users } from "@/lib/db";
 import { findPlan } from "@/lib/plans";
 
 export async function exportEverything(userId: ObjectId, now: Date = new Date()) {
@@ -17,5 +17,7 @@ export async function exportEverything(userId: ObjectId, now: Date = new Date())
     (await pauses()).find({ userId }).toArray(),
     (await blocks()).find({ blockerId: userId }).toArray(),
   ]);
-  return { exportedAt: now.toISOString(), user, plan, sessions: ownSessions, posts: ownPosts, reactionsGiven: given, memberships, messages: ownMessages, gamification, pauses: ownPauses, blocks: ownBlocks };
+  // nutrition addendum §2: all four private collections ride the export (E9)
+  const nutrition = { targets: await (await nutritionTargets()).findOne({ userId }), savedMeals: await (await savedMeals()).find({ userId }).toArray(), template: await (await dayTemplates()).findOne({ userId }), logs: await (await mealLogs()).find({ userId }).sort({ createdAt: 1 }).toArray() };
+  return { exportedAt: now.toISOString(), nutrition, user, plan, sessions: ownSessions, posts: ownPosts, reactionsGiven: given, memberships, messages: ownMessages, gamification, pauses: ownPauses, blocks: ownBlocks };
 }

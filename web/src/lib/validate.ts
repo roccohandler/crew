@@ -67,6 +67,7 @@ export const updateMeSchema = z.object({
   profilePhotoKey: z.string().min(1).nullable().optional(), // verified against `photos` (own, purpose profile) by the route
   notificationPrefs: notificationPrefsSchema.partial().optional(),
   welcomeBackAckDay: dayKeySchema.optional(), // E4: set when the user answers the welcome-back screen
+  birthYear: birthYearSchema.optional(), // A16.c · addendum §6: asked once, when Nutrition is opened on an account without one — never changed after
 });
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 

@@ -6,7 +6,7 @@
 // deleted" email is written AFTER the sweep, so it is the one row that remains. T041
 import { ObjectId } from "mongodb";
 import { removeMember } from "@/lib/crews";
-import { blocks, crewMemberships, events, gamificationStates, messages, passwordResets, pauses, plans, posts, pushTokens, reactions, refreshTokens, reports, sessions, users } from "@/lib/db";
+import { blocks, crewMemberships, dayTemplates, events, gamificationStates, mealLogs, messages, nutritionTargets, passwordResets, pauses, plans, posts, pushTokens, reactions, refreshTokens, reports, savedMeals, sessions, users } from "@/lib/db";
 import { emailOutbox, sendAccountDeletedEmail } from "@/lib/email";
 import { notificationLog } from "@/lib/notification-facts";
 import { deletePhotosOf } from "@/lib/photos";
@@ -31,6 +31,10 @@ export async function deleteAccount(userId: ObjectId, now: Date = new Date()): P
     (await passwordResets()).deleteMany({ userId }),
     (await pushTokens()).deleteMany({ userId }),
     (await gamificationStates()).deleteMany({ userId }),
+    (await nutritionTargets()).deleteMany({ userId }), // addendum §2: the bodyweight goes with the targets
+    (await savedMeals()).deleteMany({ userId }),
+    (await dayTemplates()).deleteMany({ userId }),
+    (await mealLogs()).deleteMany({ userId }),
     (await notificationLog()).deleteMany({ userId }),
     (await emailOutbox()).deleteMany({ to: user.email }),
     (await pushOutbox()).deleteMany({ userId }),

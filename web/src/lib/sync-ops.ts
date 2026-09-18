@@ -9,6 +9,7 @@ import { ZodError } from "zod";
 import { apiError, isApiError } from "@/lib/api-error";
 import { pushTokens } from "@/lib/db";
 import { HttpStatus } from "@/lib/http-status";
+import { runNutritionOp } from "@/lib/nutrition-sync";
 import { createPause } from "@/lib/pauses";
 import { replacePlan } from "@/lib/plans";
 import { deletePostByClientId } from "@/lib/posts";
@@ -71,7 +72,7 @@ export async function replayOps(userId: ObjectId, input: SyncInput): Promise<Syn
   const results: SyncOpResult[] = [];
   for (const op of input.ops) {
     try {
-      const handled = (await runContentOp(userId, op, input.timezone)) || (await runSocialOp(userId, op, input.timezone));
+      const handled = (await runContentOp(userId, op, input.timezone)) || (await runSocialOp(userId, op, input.timezone)) || (await runNutritionOp(userId, op, input.timezone));
       if (!handled) throw Object.assign(new Error(`sync op kind ${op.kind} is not accepted yet`), { retryable: true });
       results.push({ opId: op.opId, ok: true });
     } catch (error) {

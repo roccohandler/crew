@@ -4,6 +4,7 @@
 import { MongoClient, type Db } from "mongodb";
 import type { PlanDoc, SessionDoc, UserDoc } from "@/lib/documents";
 import type { EventDoc, PasswordResetDoc, PhotoDoc, PushTokenDoc, RefreshTokenDoc } from "@/lib/documents-auth";
+import type { DayTemplateDoc, MealLogDoc, NutritionTargetsDoc, SavedMealDoc } from "@/lib/documents-nutrition";
 import type { BlockDoc, CrewDoc, CrewMembershipDoc, GamificationStateDoc, MessageDoc, PauseDoc, PostDoc, ReactionDoc, ReportDoc } from "@/lib/documents-social";
 
 let client: MongoClient | null = null;
@@ -51,6 +52,11 @@ export async function passwordResets() { return (await getDb()).collection<Passw
 export async function pushTokens() { return (await getDb()).collection<PushTokenDoc>("pushTokens"); }
 export async function events() { return (await getDb()).collection<EventDoc>("events"); }
 export async function photos() { return (await getDb()).collection<PhotoDoc>("photos"); }
+// nutrition addendum §2 — private collections: never joined into a stream, a pulse or a profile query (clause ④)
+export async function nutritionTargets() { return (await getDb()).collection<NutritionTargetsDoc>("nutritionTargets"); }
+export async function savedMeals() { return (await getDb()).collection<SavedMealDoc>("savedMeals"); }
+export async function dayTemplates() { return (await getDb()).collection<DayTemplateDoc>("dayTemplates"); }
+export async function mealLogs() { return (await getDb()).collection<MealLogDoc>("mealLogs"); }
 
 // SPEC: Part IX invariants — every UNIQUE in the model is a unique index here, nowhere else
 async function ensureIndexes(db: Db): Promise<void> {
@@ -81,6 +87,15 @@ async function ensureModelIndexes(db: Db): Promise<void> {
   await db.collection("pauses").createIndex({ userId: 1, endDay: -1 });
   await db.collection("reports").createIndex({ status: 1, createdAt: -1 });
   await db.collection("blocks").createIndex({ blockerId: 1, blockedId: 1 }, { unique: true });
+  await ensureNutritionIndexes(db);
+}
+
+// SPEC: nutrition addendum §2 — one targets document and one template per user; saved meals and logs idempotent on clientId
+async function ensureNutritionIndexes(db: Db): Promise<void> {
+  await db.collection("nutritionTargets").createIndex({ userId: 1 }, { unique: true });
+  await db.collection("savedMeals").createIndexes([{ key: { clientId: 1 }, unique: true }, { key: { userId: 1, createdAt: 1 } }]);
+  await db.collection("dayTemplates").createIndex({ userId: 1 }, { unique: true });
+  await db.collection("mealLogs").createIndexes([{ key: { clientId: 1 }, unique: true }, { key: { userId: 1, dayKey: 1 } }]);
 }
 
 async function ensureOperationalIndexes(db: Db): Promise<void> {

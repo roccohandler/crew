@@ -29,6 +29,7 @@ export interface UserDoc {
   reminderTime: string | null; // "HH:MM" local, chosen by the user (G12); null = no reminder
   notificationPrefs?: NotificationPrefs; // A7: absent = all true
   welcomeBackAckDay?: string | null; // E4: the day the user answered the welcome-back screen (absent = never)
+  birthYear?: number; // A16.c · addendum §6: stored since 2026-09-18 — the 18+ nutrition gate reads it; absent → asked once when Nutrition is opened
   eulaAcceptedAt: Date; // E9: EULA at signup
   createdAt: Date;
   deletedAt?: Date; // set during the cascade; the document is removed at the end

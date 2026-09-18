@@ -47,6 +47,7 @@ export async function signInOrCreateAppleUser(input: AppleSignInInput): Promise<
     displayName: input.displayName ?? fallbackDisplayName(email),
     timezone: input.timezone,
     measurementSystem: input.measurementSystem, // A9
+    birthYear: input.birthYear, // A16.c: optional with Apple — absent means Nutrition asks once, when it is opened
   });
   await logEvent(user._id.toHexString(), "account_created", { provider: "apple" });
   return { user, created: true };

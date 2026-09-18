@@ -1249,3 +1249,25 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   is split above and below it (web: `.stack--floating`; iOS: a second Spacer on `.rest`) — so no single gap outgrows the group it
   introduces, the log rows stay in the thumb half, and every other state keeps its bottom anchor. The layout test measures both a rest
   day and a training day on any weekday (`ensureTodayIsARestDay`). Why a reading: A22 did not speak about layout; A17.2's limit did.
+
+- **R-074 · 2026-09-18 · W8, the nutrition addendum — READINGS (each the smallest in-contract answer; overturnable by a registry line).**
+  (1) The ENERGY estimate rounds to `energyKcalRoundTo` (50 kcal): V58 requires 176 lb to derive the same lines as 80 kg, and only
+  a rounded energy does; an estimate also should not read as a measurement. (2) With the ratified maintenance factors the FAT FLOOR
+  never binds (20 % of 33 kcal/kg ÷ 9 = 0.73 g/kg > 0.5 g/kg at every bodyweight), so V59 asserts the guard at both bodyweight
+  bounds instead of a binding case that cannot exist. (3) BOUNDS the addendum leaves unnamed are named constants and nothing more:
+  bodyweight 30–300 kg, 0–500 g per entry, 0–1000 g per target, 100 saved meals, a 20-character slot label, 50 logs a day — typo and
+  abuse bounds, never a judgement of a food (clause ⑤ is untouched). (4) Today's CALORIE line is the three macros in Atwater
+  kilocalories on both sides, so it always agrees with the grams the user set; the kg × 33 estimate lives on the methodology screen
+  and in `estimate`. (5) V63's mechanism is `gameEvents(logs)` — the one place a macro entry could become a game event, empty by
+  construction; the vector checker refuses any other count. (6) V64's mechanism is `bodyweightOf(targets)`: the bodyweight is read
+  out of the targets document and exists nowhere else. (7) `savedMeals` gains a unique `clientId` (the sessions precedent), so the
+  phone's `upsertSavedMeal` is idempotent. (8) Settings' "Delete my nutrition data" is `DELETE nutrition/targets { everything: true }`
+  rather than a seventh route, and is network-only on the phone (no op kind — the endPause precedent). (9) The GATE: under 18 every
+  route is a 404 (the surface does not exist, so nothing names it); a missing birth year is `birthYearRequired` and is stored ONCE
+  through PATCH users/me behind the 13+ floor; `users/me.nutrition` exposes the availability and never the year. (10) The FAST-FOOD
+  SEED ships six of the ~ten proposed chains — Chick-fil-A, Chipotle, Panera Bread, Starbucks, Subway, Wendy's — each read on
+  2026-09-18 from the chain's own publication (Starbucks and Wendy's by rendering their own product pages, which carry the numbers
+  only after JavaScript runs). Four are HELD, with their reasons and any verified rows in docs/fast-food-seed-sources.md: McDonald's
+  (its site refused every non-browser client, and reading it meant presenting a script as a browser — held for the owner's word),
+  Burger King (the only readable official document is dated November 2022), Five Guys (publishes per component only, and its patty
+  row does not reconcile with its own calories), Taco Bell (publishes through a third-party host only). `fastFoodChainCount` says 6.
