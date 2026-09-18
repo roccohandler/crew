@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; earlier: TestFlight repaired at build 145, W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-18 (A23 EDUCATION LAYER DRAFTED — docs only, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -659,6 +659,18 @@ Identifiers & Profiles → Certificates, revoke every "Apple Development" certif
 is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
 commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
 before it is touched.
+## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
+
+- The ruling arrived while W3b was being read (no W3b source had been touched) and it carries an explicit stop, so the "continue
+  all remaining work" instruction is paused here. Docs only: `docs/education-copy-draft.md` (the whisper contract with the proposed
+  server-side `whispersSeen` seen-state, the eleven whispers with lines · triggers · screens · gates, the merge decision — the reveal's
+  1C swap whisper is kept, so the nine non-nutrition whispers are eight new plus it —, the "How Crew works" page S19 with the note
+  from Max as a draft, seven sections in the owner's order with Schoenfeld 2016 and Morton 2018 linked, the whispers verbatim, the
+  A16.a line, and the copy checks incl. the under-18 handling); Appendix A A23 (OWNER-DIRECTED, PENDING RATIFICATION of the copy doc,
+  naming what it touches: 1C → a whisper system, S17 gains the row, S19 is new on both platforms, 5.6.2 / Part IX / api.md proposals);
+  `docs/mvp-definition.md` W6 gains the page + nine whispers as a second session, W8 the two nutrition whispers + the shake line.
+- NEXT (owner): ratify the copy document line by line (rewrite the note from Max); rule on A22's G1–G4; Build B. NEXT (builder, on the
+  owner's word): W3b (the removal), then the A23 whispers and page, W7's builder half, W9's technical items, W8 as far as honest data allows.
 ## 2026-09-18 05:48Z — BUILD 150 (016721f) UPLOADED AND CI-GREEN: the one to smoke-test
 
 - **CI run 35311124097 green on every job** for 016721f (light always via the Info.plist key + "launch: real UI first" + the C9 trim +
