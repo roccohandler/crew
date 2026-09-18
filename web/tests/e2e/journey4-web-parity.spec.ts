@@ -28,7 +28,7 @@ test("plan build then a full workout log on web, keyboard-first", async ({ page 
   await expect(page.getByRole("button", { name: "Quick complete" })).toHaveCount(0);
   await page.goto("/plan");
   await expect(page.getByRole("heading", { name: "Your week" })).toBeVisible();
-  await expect(page.getByText(/^Monday · /)).toBeVisible(); // seven rows, Monday first — the day's word depends on the weekday the run lands on
+  await expect(page.getByText(/^Monday( · .*)?$/)).toBeVisible(); // seven rows, Monday first — the day's word depends on the weekday the run lands on; an open past Monday is the day alone (W6)
   await expectNoHorizontalScroll(page);
   // A4: today's Push day is done (✓) and still a link into its editor; the rotation has moved on to Pull for the next planned day
   await page.getByRole("link", { name: /Push day/ }).first().click();

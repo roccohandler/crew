@@ -1,11 +1,13 @@
 // SPEC: S15 Progress on web — layer 3 only for weight-logged exercises; heat-map day-tap opens that day's workout + plates;
 // meals/week; empty states invite. 6.7: Progress may widen to ~960 px. A1: planned = trainingWeekdays. A2: cardio and
-// mobility minutes are facts, never targets. A6: ring captions and the day card read as words, never raw ISO. T040 (web half)
+// mobility minutes are facts, never targets. A6: ring captions and the day card read as words, never raw ISO. A19.4 / W6 (2026-09-17):
+// the Charts | Journal segment sits at the top (ProgressSegments); the empty state's CTA goes to today (Home), not the composer. T040 (web half)
 import { ObjectId } from "mongodb";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/EmptyState";
 import { HeatMap } from "@/components/HeatMap";
+import { ProgressSegments } from "@/components/ProgressSegments";
 import { WeeklyRing } from "@/components/WeeklyRing";
 import { postLine, summaryFromSession } from "@/app/(app)/journal/rows";
 import { posts, sessions } from "@/lib/db";
@@ -41,13 +43,20 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
   const plan = await findPlan(userId);
   const facts = await progressFacts(userId, session.user.timezone, plan?.trainingWeekdays ?? []);
   const { day } = await searchParams;
-  if (facts.totals.posts === 0) return <EmptyState title="Your first post starts the story" line="Every workout and every plate lands here." ctaTitle="Post something" href="/post" />;
+  if (facts.totals.posts === 0) {
+    return (
+      <div className="stack app-column--progress">
+        <ProgressSegments active="charts" />
+        <EmptyState title="Your first post starts the story" line="Every workout and every plate lands here." ctaTitle="Go to today" href="/home" />
+      </div>
+    );
+  }
   const thisWeek = weekKeyFor(facts.todayKey);
   const latest = facts.weeks[facts.weeks.length - 1];
   return (
     <div className="stack app-column--progress">
       <h1>Progress</h1>
-      <Link className="button button--text" href="/journal">Journal — every post, forever</Link>
+      <ProgressSegments active="charts" />
       <section className="stack stack--tight"><h2>Did I show up?</h2><HeatMap days={facts.days} selected={day ?? null} todayKey={facts.todayKey} /></section>
       {day ? <DayDetail userId={userId} dayKey={day} todayKey={facts.todayKey} timeZone={session.user.timezone} distanceUnit={session.user.distanceUnit} /> : null}
       <div className="row row--wrap" aria-label="Weekly rings">{facts.weeks.map((week) => <div key={week.weekKey} className="stack center" style={{ gap: 0 }}><WeeklyRing done={week.done} planned={week.planned} /><span className="whisper">{weekHeader(week.weekKey, thisWeek)}</span></div>)}</div>

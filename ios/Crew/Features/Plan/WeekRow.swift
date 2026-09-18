@@ -1,5 +1,6 @@
 // SPEC: A4 (owner-directed 2026-09-08) · A1 · S14 — one row of the week map: `Mon · Push day` / `5 exercises + mobility`
-// with a chevron; done days `Mon · ✓ Push day`; open past days `Mon · —` in secondary ink, no word (A8: never a verdict);
+// with a chevron; done days `Mon · ✓ Push day`; open past days just `Mon` in secondary ink — no word, no dash (A8: never a
+// verdict; W6, the owner's walkthrough 2026-09-17: the bare em dash read as a glitch on the phone, and VoiceOver spoke "dash");
 // rest days `Tue · Rest`. The whole row is the one tap target (≥ dayToggleMinPt tall, 6.3); the map holds zero controls.
 // WeekMapRow.make is the plain function PlanModel and OnboardingModel build their rows with, so the screens hold zero
 // logic (5.6.6). Ink on bone only, never orange. WRITTEN — UNVERIFIED (needs Mac).
@@ -23,7 +24,7 @@ struct WeekMapRow: Equatable, Identifiable {
         let size = workout.map { NextUp.sizeLine(exerciseCount: $0.exercises.filter { $0.type == "strength" }.count, hasCardio: $0.exercises.contains { $0.type == "cardio" }) }
         switch day.state {
         case .rest: return WeekMapRow(weekday: day.weekday, title: "\(dayName) · Rest", detail: nil, kind: nil, quiet: true)
-        case .open: return WeekMapRow(weekday: day.weekday, title: "\(dayName) · —", detail: nil, kind: nil, quiet: true)
+        case .open: return WeekMapRow(weekday: day.weekday, title: dayName, detail: nil, kind: nil, quiet: true) // W6: the day alone, quiet
         case .done: return WeekMapRow(weekday: day.weekday, title: "\(dayName) · ✓ \(name)", detail: size, kind: day.kind, quiet: false)
         case .planned: return WeekMapRow(weekday: day.weekday, title: "\(dayName) · \(name)", detail: size, kind: day.kind, quiet: false)
         }

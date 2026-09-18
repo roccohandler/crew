@@ -27,7 +27,7 @@ struct OnboardingFlow: View {
                     case .days: DaysQuestionScreen(model: model) { path.append(.experience) }
                     case .experience: ExperienceQuestionScreen(model: model) { path.append(.reveal) }
                     case .reveal: GeneratedPlanScreen(model: model) { afterReveal() }
-                    case .save: SaveAuthScreen(model: model)
+                    case .save: SaveAuthScreen(model: model) { path.append(.login) } // W6: "Log in instead", email prefilled
                     case .login: LoginScreen(model: model)
                     case .hero: EmptyView()
                     }

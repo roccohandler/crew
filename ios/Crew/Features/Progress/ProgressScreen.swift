@@ -1,7 +1,10 @@
 // SPEC: S15 Progress — LAYER 1 did I show up (heat map → day detail with workout + plates; rings history; streaks; totals;
 // meals/week) · LAYER 2 how much work (sets/week, Push/Pull/Legs balance, cardio and mobility minutes — A2) · LAYER 3 am I
-// stronger (only where weights were logged) · empty (new user) invites and its CTA posts. A6: week captions and the day card
-// read the DayLabel twin. 6.1: a Store error is the failed state with Try again. WRITTEN — UNVERIFIED (needs Mac). T040
+// stronger (only where weights were logged) · empty (new user) invites. A6: week captions and the day card read the DayLabel twin.
+// 6.1: a Store error is the failed state with Try again. A19.4 (owner-ruled; built in W6, 2026-09-17): a two-way SEGMENT at the top
+// — Charts | Journal — so both halves of Flow 9 are one tap from the tab and neither hides in chrome (the toolbar "Journal" button is
+// gone). W6, the owner's walkthrough: the empty state's CTA goes to TODAY (Home, where the first workout starts) instead of opening
+// the meal composer. WRITTEN — UNVERIFIED (needs Mac). T040
 
 import SwiftUI
 
@@ -13,31 +16,49 @@ enum ProgressLoadState: Equatable {
     case offline
 }
 
+enum ProgressSegment: Hashable {
+    case charts, journal
+}
+
 struct ProgressScreen: View {
+    var onGoHome: () -> Void = {}
     @State private var model = ProgressModel()
     @State private var loadState: ProgressLoadState = .loading
     @State private var selected: DayDetail?
-    @State private var showsJournal = false
-    @State private var posting = false
+    @State private var segment: ProgressSegment = .charts
     private var units: String { AuthStore.shared.weightUnit } // A9
     private var userId: String { AuthStore.shared.currentUser?.id ?? "local" }
 
     var body: some View {
         NavigationStack {
-            Group {
-                switch loadState {
-                case .loading: ListSkeleton()
-                case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout and every plate lands here.", ctaTitle: "Post something") { posting = true }
-                case .failed(let line): ErrorState(line: line) { load() }
-                case .ready, .offline: content
+            VStack(spacing: 0) {
+                // SPEC: A19.4 — the segment is the screen's first row; the five-tab bar is unchanged
+                Picker("Progress view", selection: $segment) {
+                    Text("Charts").tag(ProgressSegment.charts)
+                    Text("Journal").tag(ProgressSegment.journal)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, EmberTokens.Spacing.space16)
+                .padding(.top, EmberTokens.Spacing.space8)
+                Group {
+                    switch segment {
+                    case .charts: charts
+                    case .journal: journal
+                    }
                 }
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Progress")
-            .toolbar { ToolbarItem(placement: .primaryAction) { Button("Journal") { showsJournal = true } } }
-            .navigationDestination(isPresented: $showsJournal) { journal }
-            .sheet(isPresented: $posting) { NutritionPostScreen { posting = false; load() } }
             .task { load() }
+        }
+    }
+
+    @ViewBuilder private var charts: some View {
+        switch loadState {
+        case .loading: ListSkeleton()
+        case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout and every plate lands here.", ctaTitle: "Go to today", action: onGoHome) // W6: the CTA is the day, not a composer
+        case .failed(let line): ErrorState(line: line) { load() }
+        case .ready, .offline: content
         }
     }
 
@@ -48,7 +69,7 @@ struct ProgressScreen: View {
             try? Store.shared.save()
             try? SyncQueue.shared.enqueue(.deletePost, payload: ["clientId": post.clientId])
             load()
-        }, onPosted: { load() })
+        }, onGoHome: onGoHome)
     }
 
     private var content: some View {

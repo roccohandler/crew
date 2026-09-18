@@ -1,7 +1,8 @@
 // SPEC: S16 History/Journal — every post forever; editing a past session never alters XP (copy says so); deleted posts absent,
 // logs present. E3 (delete yours anytime; captions editable, photos not). A6 (owner-directed 2026-09-08): grouped by day with
-// readable labels, one summary line per post, an empty state whose CTA posts, a Sending ↻ chip while undelivered.
-// WRITTEN — UNVERIFIED (needs Mac). T040
+// readable labels, one summary line per post, a Sending ↻ chip while undelivered. A19.4 / W6 (2026-09-17): the journal is the
+// second SEGMENT of Progress, not a pushed screen — no title of its own; its empty state's CTA goes to today (Home), where the
+// first workout starts. WRITTEN — UNVERIFIED (needs Mac). T040
 
 import SwiftUI
 
@@ -16,8 +17,7 @@ struct JournalScreen: View {
     let trainingWeekdays: [Int]
     let distanceUnit: String // A9: journal lines carry distances, never weights
     let onDelete: (LocalPost) -> Void
-    let onPosted: () -> Void
-    @State private var posting = false
+    let onGoHome: () -> Void // W6: the empty state's one CTA
     private let todayKey = DayKey.dayKey(for: Date(), tz: .current)
 
     // SPEC: A6 — sections per dayKey (the 3 AM day, E8), newest day first; rows inside a day in the order they happened
@@ -34,15 +34,13 @@ struct JournalScreen: View {
     var body: some View {
         Group {
             if posts.isEmpty {
-                // SPEC: A6 · 6.1 Empty — an invitation with exactly one CTA, and the CTA posts
-                EmptyState(title: "Your first post lands here.", line: "Workouts and meals stack up day by day.", ctaTitle: "Post something") { posting = true }
+                // SPEC: A6 · 6.1 Empty — an invitation with exactly one CTA; W6: the CTA is today (Home), where a first workout starts
+                EmptyState(title: "Your first post lands here.", line: "Workouts and meals stack up day by day.", ctaTitle: "Go to today", action: onGoHome)
             } else {
                 list
             }
         }
         .background(EmberColors.canvas.ignoresSafeArea())
-        .navigationTitle("Journal")
-        .sheet(isPresented: $posting) { NutritionPostScreen { posting = false; onPosted() } }
     }
 
     private var list: some View {

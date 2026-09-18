@@ -36,6 +36,7 @@ final class OnboardingModel {
     var inviteCode = ""            // A21.3: what the person pasted — the bare code or the whole link (InviteCode.token reads it)
     var inviteError: String?       // S13: dead code · full crew · not a code — one line, always a way forward
     var isLookingUpInvite = false
+    var prefilledEmail = ""        // W6: "Log in instead" on the save screen carries the typed email into the login screen
 
     let mode: OnboardingMode
     var rebuildSaved = false

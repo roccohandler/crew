@@ -1,6 +1,7 @@
 "use client";
 // SPEC: S05 "Save your plan" — the Sign in with Apple button primary (black), email beneath with autocomplete so the password
 // manager fills it; validation on field-exit, one inline line; E9 (terms line + birth year). Web twin of ios SaveAuthScreen.
+import Link from "next/link";
 import { useState } from "react";
 import { isApiClientError, register } from "@/lib/api-client";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -86,6 +87,8 @@ export function SaveForm({ appleHref, onSaved }: { appleHref: string; onSaved: (
       <p className="whisper">By saving you agree to the terms. Crew is for people {SpecConstants.minimumAgeYears} and up.</p>
       {serverError ? <p className="danger" role="alert">{serverError}</p> : null}
       <button type="submit" className="button button--primary" disabled={saving}>{saving ? "Saving…" : "Save your plan"}</button>
+      {/* W6 — the person who already has an account: one tap, and the typed email travels into the login form (prefill) */}
+      <Link className="button button--text" href={fields.email.length > 0 ? `/login?email=${encodeURIComponent(fields.email)}` : "/login"}>Log in instead</Link>
     </form>
     <AppleStartForm appleHref={appleHref} />
     </>

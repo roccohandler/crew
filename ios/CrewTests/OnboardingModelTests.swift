@@ -61,13 +61,13 @@ final class OnboardingModelTests: XCTestCase {
         XCTAssertEqual(model.weekRows.map(\.weekday), Array(1...TimeUnits.daysPerWeek))
         for row in model.weekRows where row.weekday != 6 { XCTAssertTrue(row.title.hasSuffix(" · Rest"), row.title) }
         let saturday = model.weekRows[5]
-        XCTAssertTrue(saturday.title.hasPrefix("Sat · "), saturday.title)
+        XCTAssertTrue(saturday.title.hasPrefix("Sat"), saturday.title)
         if let kind = saturday.kind {
             XCTAssertEqual(kind, "push") // a fresh cycle starts at its first workout
             XCTAssertEqual(saturday.title, "Sat · Push day")
             XCTAssertEqual(saturday.detail, "\(SpecConstants.someExperienceExerciseCount) exercises + mobility")
         } else {
-            XCTAssertEqual(saturday.title, "Sat · —") // already past this week: open, no word
+            XCTAssertEqual(saturday.title, "Sat") // already past this week: open — the day alone, no word, no dash (W6)
         }
     }
 

@@ -30,8 +30,11 @@ targets:
       properties:
         CFBundleDisplayName: Crew
         CFBundleName: Crew
-        CFBundleShortVersionString: "0.1.0"
-        CFBundleVersion: "1"
+        # W6 (2026-09-17): the two version keys READ the build settings below instead of repeating them, so the About row shows the
+        # same build number TestFlight does (testflight.yml overrides CURRENT_PROJECT_VERSION with the commit count; a literal "1"
+        # here showed "0.1.0 (1)" on build 126 — the owner's "version-number reconciliation")
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true

@@ -20,7 +20,7 @@ function projectionLine(day: DayProjection, draft: PlanDraft): string {
   const name = WEEKDAY_NAMES[day.weekday - 1] ?? "";
   if (day.state === "rest") return `${name} · Rest`;
   const workout = draft.workouts.find((candidate) => candidate.kind === day.kind);
-  return workout === undefined ? `${name} · —` : `${name} · ${workout.name}`;
+  return workout === undefined ? name : `${name} · ${workout.name}`; // W6: an open day is the day alone — no word, no dash (twin of WeekRow.swift)
 }
 
 function WorkoutCard({ workout, onTap }: { workout: PlanDraftWorkout; onTap: (exerciseId: string) => void }) {

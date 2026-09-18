@@ -55,7 +55,7 @@ struct MainTabs: View {
             HomeScreen().tabItem { Label("Home", systemImage: "house") }.tag(MainTab.home)
             PlanScreen().tabItem { Label("Plan", systemImage: "calendar") }.tag(MainTab.plan)
             CrewScreen().tabItem { Label("Crew", systemImage: "person.2") }.tag(MainTab.crew)
-            ProgressScreen().tabItem { Label("Progress", systemImage: "chart.bar") }.tag(MainTab.progress)
+            ProgressScreen(onGoHome: { selection = .home }).tabItem { Label("Progress", systemImage: "chart.bar") }.tag(MainTab.progress) // W6: the empty state's CTA is today
             SettingsScreen().tabItem { Label("Settings", systemImage: "gearshape") }.tag(MainTab.settings)
         }
         .tint(EmberColors.inkText) // Part III law ① — chrome is monochrome forever

@@ -1,7 +1,9 @@
 // SPEC: S09 Session — one-tap set logging at pre-fill; ghost row after every set; warm-ups excluded from x/y; mobility holds
 // countdown + auto-check; survives kill (every tap saves); Complete always visible; skips gray; out-of-order works; VoiceOver-
 // complete; screen stays awake (Flow 3). 6.7: Complete visible without scrolling on the SE at XXL. A2 (owner-directed
-// 2026-09-08): a cardio block renders a CardioRow (minutes + optional distance, Done). WRITTEN — UNVERIFIED. T025
+// 2026-09-08): a cardio block renders a CardioRow (minutes + optional distance, Done). A21.11 (owner-approved 2026-09-17; W6):
+// the TAB BAR IS HIDDEN during a session, and every non-active exercise is ONE COMPACT ROW — Flow 3's ▷ rows made literal:
+// name, its count, Open (or Unskip); the full card belongs to the active exercise alone. WRITTEN — UNVERIFIED. T025
 
 import SwiftUI
 
@@ -65,6 +67,7 @@ struct SessionScreen: View {
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle(model.session.workoutName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar) // A21.11: a session owns the screen; the tabs return with Complete or Discard
         // SPEC: A19.5 / R5 · 6.3 — the destructive action, as far from the primary as the screen allows. Still two
         // steps (the dialog below asks), still reachable in one tap, and no longer the thing directly under Complete.
         .toolbar {
@@ -91,8 +94,38 @@ struct SessionScreen: View {
         }
     }
 
+    // SPEC: A21.11 — the active exercise gets the card; every other one is a compact row
     @ViewBuilder
     private func exerciseCard(_ exercise: LocalSessionExercise, isFocused: Bool) -> some View {
+        if isFocused && !exercise.skipped { activeCard(exercise) } else { compactRow(exercise) }
+    }
+
+    // SPEC: A21.11 · Flow 3 ("▷ Incline Press · 3 × 10") — one row: the name, done/total work sets, and the one control it needs.
+    // 6.3: the row is ≥ 44 pt and the control is its own 44 pt target; a skipped exercise keeps its way back (Unskip).
+    private func compactRow(_ exercise: LocalSessionExercise) -> some View {
+        let sets = model.sets(of: exercise).filter { !$0.isWarmup }
+        let done = sets.filter(\.done).count
+        return HStack(spacing: EmberTokens.Spacing.space12) {
+            Text("▷ \(exercise.name)\(exercise.skipped ? " · skipped" : "")")
+                .font(.subheadline.weight(exercise.skipped ? .regular : .semibold))
+                .foregroundStyle(exercise.skipped ? EmberColors.secondaryText : EmberColors.inkText)
+                .lineLimit(1)
+            Spacer(minLength: EmberTokens.Spacing.space8)
+            if !exercise.skipped { Text("\(done)/\(sets.count)").font(.caption.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) }
+            if exercise.skipped {
+                TextActionButton(title: "Unskip", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: "Unskip \(exercise.name)") { model.skip(exercise) }
+            } else {
+                TextActionButton(title: "Open", font: .caption, horizontalPadding: 0, accessibilityLabel: "Open \(exercise.name)") { model.jumpTo(exercise) }
+            }
+        }
+        .padding(.horizontal, EmberTokens.Spacing.space12)
+        .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+        .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder
+    private func activeCard(_ exercise: LocalSessionExercise) -> some View {
         Card {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
                 HStack {
@@ -115,13 +148,8 @@ struct SessionScreen: View {
                     TextActionButton(title: exercise.skipped ? "Unskip" : "Skip", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: exercise.skipped ? "Unskip \(exercise.name)" : "Skip \(exercise.name)") { model.skip(exercise) }
                 }
                 if let last = model.lastTimeLine(for: exercise) { Text(last).font(.caption).foregroundStyle(EmberColors.secondaryText) }
-                if isFocused && !exercise.skipped {
-                    rows(exercise)
-                    RestTimerView(timer: model.restTimer) // Flow 3: the countdown lives with the exercise that started it
-                }
-                // 6.3 — "Open" is how an out-of-order lifter reaches a later exercise (S09 "out-of-order works"), so it is a
-                // core-loop control and was the smallest target on the screen
-                else if !exercise.skipped { TextActionButton(title: "Open", horizontalPadding: 0, accessibilityLabel: "Open \(exercise.name)") { model.jumpTo(exercise) } }
+                rows(exercise)
+                RestTimerView(timer: model.restTimer) // Flow 3: the countdown lives with the exercise that started it
             }
         }
         .accessibilityElement(children: .contain)

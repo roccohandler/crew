@@ -26,7 +26,7 @@ test("fresh visitor builds a week, saves it, and lights the first flame with a m
   const me = (await (await page.request.get("/api/v1/users/me")).json()) as { user: { timezone: string } };
   const today = isoWeekday(dayKeyFor(new Date(), me.user.timezone));
   if (today <= 5) await expect(page.getByRole("link", { name: /· Push day/ })).toBeVisible(); // the first planned day from today gets Push
-  else await expect(page.getByText("Monday · —")).toBeVisible(); // a weekend run: every training day is behind us, no word, no red
+  else await expect(page.locator("li.card.muted", { hasText: /^Monday$/ })).toBeVisible(); // a weekend run: every training day is behind us — the day alone, no word, no dash, no red (W6)
   await expect(page.getByRole("button", { name: "Change days" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Rebuild my week" })).toBeVisible();
   await expectNoHorizontalScroll(page);

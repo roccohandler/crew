@@ -41,8 +41,8 @@ function PlanSection({ user, zones, onChanged }: { user: PublicUser; zones: stri
   const change = async (body: { weightUnit?: PublicUser["weightUnit"]; distanceUnit?: PublicUser["distanceUnit"]; timezone?: string }) => { await updateMe(body).catch(() => undefined); onChanged(); };
   return (
     <>
-      <label className="field"><span>Weight</span><select value={user.weightUnit} onChange={(event) => void change({ weightUnit: event.target.value as PublicUser["weightUnit"] })}><option value="lb">lb</option><option value="kg">kg</option></select></label>
-      <label className="field"><span>Distance</span><select value={user.distanceUnit} onChange={(event) => void change({ distanceUnit: event.target.value as PublicUser["distanceUnit"] })}><option value="mi">mi</option><option value="km">km</option></select></label>
+      <label className="field"><span>Weight unit</span><select value={user.weightUnit} onChange={(event) => void change({ weightUnit: event.target.value as PublicUser["weightUnit"] })}><option value="lb">lb</option><option value="kg">kg</option></select></label>
+      <label className="field"><span>Distance unit</span><select value={user.distanceUnit} onChange={(event) => void change({ distanceUnit: event.target.value as PublicUser["distanceUnit"] })}><option value="mi">mi</option><option value="km">km</option></select></label>
       <label className="field"><span>Timezone</span><select value={user.timezone} onChange={(event) => void change({ timezone: event.target.value })}>{zones.map((zone) => <option key={zone} value={zone}>{zone}</option>)}</select></label>
     </>
   );

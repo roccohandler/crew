@@ -64,6 +64,32 @@ a {
   flex-direction: column;
 }
 
+/* SPEC: A19.4 · W6 (2026-09-17) — the Progress segment, Charts | Journal: two equal cells inside ONE control boundary (A18.11:
+   controlOutline, never the hairline family), each a full touch target (6.3), the current cell filled ink (law ①: ink acts) and
+   named by aria-current, so the state is never colour alone. Twin of the iOS segmented Picker at the top of ProgressScreen. */
+.segments {
+  display: flex;
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
+  border-radius: var(--ember-size-corner-radius);
+  overflow: hidden;
+}
+
+.segments__item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--crew-min-touch-target);
+  padding: var(--ember-space-8) var(--ember-space-12);
+  color: var(--ember-ink-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.segments__item[aria-current="page"] {
+  background: var(--ember-primary-button-fill);
+  color: var(--ember-primary-button-label);
+}
 .app-column--progress {
   max-width: var(--crew-progress-max-width);
 }

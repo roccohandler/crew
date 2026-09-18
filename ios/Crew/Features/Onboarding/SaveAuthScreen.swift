@@ -1,6 +1,9 @@
 // SPEC: S05 "Save your plan" — the native Sign in with Apple button (black — it IS the ink system) sits primary; email path
 // beneath with .textContentType so Keychain autofills; validation fires on field-exit, never per keystroke; errors are one
 // inline line; the plan survives auth failure/abandon (DraftStore). E9: EULA at signup, age floor 13+ (birth year).
+// W6 (owner's walkthrough, 2026-09-17): KEYBOARD-AWARE — the return key walks Name → Email → Password → Birth year (then Done),
+// and the field that takes focus is scrolled into view above the keyboard, so no field is ever typed into blind; and a tappable
+// "Log in instead" for the person who already has an account, carrying the email they typed into the login screen (prefill).
 // WRITTEN — UNVERIFIED (needs Mac). T022
 
 import AuthenticationServices
@@ -8,6 +11,7 @@ import SwiftUI
 
 struct SaveAuthScreen: View {
     @Bindable var model: OnboardingModel
+    var onLogIn: () -> Void = {}
     @State private var displayName = ""
     @State private var email = ""
     @State private var password = ""
@@ -16,44 +20,56 @@ struct SaveAuthScreen: View {
     @FocusState private var focused: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                Text("Save your plan").font(.title.weight(.bold)).foregroundStyle(EmberColors.inkText)
-                Text("The plan is yours. An account is how you keep it.").font(.body).foregroundStyle(EmberColors.secondaryText)
-                // SPEC: S05 · 6.1 — `.signUp` because this screen CREATES the account ("Sign up with Apple"); `.signIn` stays
-                // on LoginScreen, which recovers one. Every branch of the result is handled: with only `case .success` a
-                // cancel, a device carrying no Apple credential and a network failure were one indistinguishable silence, on
-                // the screen the whole funnel converges on.
-                SignInWithAppleButton(.signUp) { request in
-                    request.requestedScopes = [.fullName, .email]
-                } onCompletion: { result in
-                    switch result {
-                    case .success(let authorization):
-                        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-                            model.appleAuthReturnedNoCredential(); return
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+                    Text("Save your plan").font(.title.weight(.bold)).foregroundStyle(EmberColors.inkText)
+                    Text("The plan is yours. An account is how you keep it.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                    // SPEC: S05 · 6.1 — `.signUp` because this screen CREATES the account ("Sign up with Apple"); `.signIn` stays
+                    // on LoginScreen, which recovers one. Every branch of the result is handled: with only `case .success` a
+                    // cancel, a device carrying no Apple credential and a network failure were one indistinguishable silence, on
+                    // the screen the whole funnel converges on.
+                    SignInWithAppleButton(.signUp) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        switch result {
+                        case .success(let authorization):
+                            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                                model.appleAuthReturnedNoCredential(); return
+                            }
+                            Task { await model.saveWithApple(credential: credential, birthYear: Int(birthYear)) }
+                        case .failure(let error):
+                            model.appleAuthFailed(error)
                         }
-                        Task { await model.saveWithApple(credential: credential, birthYear: Int(birthYear)) }
-                    case .failure(let error):
-                        model.appleAuthFailed(error)
                     }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
+                    Text("or with email").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                    AuthField(title: "Name", text: $displayName, error: fieldErrors["name"], contentType: .name, focus: $focused, key: "name", onSubmit: { focused = "email" }) { validateName() }
+                    AuthField(title: "Email", text: $email, error: fieldErrors["email"], contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress, onSubmit: { focused = "password" }) { validateEmail() }
+                    // .password, not .newPassword: on a signed build iOS answers a .newPassword field with its Automatic Strong Password —
+                    // the generated text replaces what is typed, and the first signed CI build (run 34373681818) saved one character
+                    // of the password on every journey. The Keychain still offers to save the pair at signup and autofills it at
+                    // login (S05); the strong-password suggestion is deferred (docs/debt.md, 2026-09-09).
+                    AuthField(title: "Password", text: $password, error: fieldErrors["password"], contentType: .password, focus: $focused, key: "password", secure: true, onSubmit: { focused = "birthYear" }) { validatePassword() }
+                    AuthField(title: "Birth year", text: $birthYear, error: fieldErrors["birthYear"], contentType: .birthdateYear, focus: $focused, key: "birthYear", keyboard: .numberPad) { validateBirthYear() }
+                    Text("By saving you agree to the terms. Crew is for people \(SpecConstants.minimumAgeYears) and up.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                    if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }
+                    // W6 — the person who already has an account: one tap, and what they typed as the email travels with them (1C: the
+                    // login screen is a failure state, so it is reached from here, not hunted for on the hero)
+                    Button("Log in instead") { model.prefilledEmail = email; onLogIn() }
+                        .font(.body)
+                        .foregroundStyle(EmberColors.inkText)
+                        .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                        .accessibilityHint("Opens the login screen with your email filled in")
                 }
-                .signInWithAppleButtonStyle(.black)
-                .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
-                Text("or with email").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                AuthField(title: "Name", text: $displayName, error: fieldErrors["name"], contentType: .name, focus: $focused, key: "name") { validateName() }
-                AuthField(title: "Email", text: $email, error: fieldErrors["email"], contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress) { validateEmail() }
-                // .password, not .newPassword: on a signed build iOS answers a .newPassword field with its Automatic Strong Password —
-                // the generated text replaces what is typed, and the first signed CI build (run 34373681818) saved one character
-                // of the password on every journey. The Keychain still offers to save the pair at signup and autofills it at
-                // login (S05); the strong-password suggestion is deferred (docs/debt.md, 2026-09-09).
-                AuthField(title: "Password", text: $password, error: fieldErrors["password"], contentType: .password, focus: $focused, key: "password", secure: true) { validatePassword() }
-                AuthField(title: "Birth year", text: $birthYear, error: fieldErrors["birthYear"], contentType: .birthdateYear, focus: $focused, key: "birthYear", keyboard: .numberPad) { validateBirthYear() }
-                Text("By saving you agree to the terms. Crew is for people \(SpecConstants.minimumAgeYears) and up.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }
+                .padding(EmberTokens.Spacing.space24)
             }
-            .padding(EmberTokens.Spacing.space24)
+            .scrollDismissesKeyboard(.interactively)
+            // W6 keyboard-aware: the field that takes focus is brought above the keyboard (SwiftUI does this for the first tap, not
+            // reliably for a return-key hop on a short phone), animated with the keyboard
+            .onChange(of: focused) { _, key in if let key { withAnimation(.crewSpring) { proxy.scrollTo(key, anchor: .center) } } }
         }
-        .scrollDismissesKeyboard(.interactively)
         // SPEC: A19.1 — the signup screen's primary, out of the scroll. Five fields plus a legal line at
         // accessibility-XXL put "Save your plan" below the fold on an SE, on the one screen where losing the user
         // costs the account.
@@ -114,6 +130,7 @@ struct AuthField: View {
     let key: String
     var keyboard: UIKeyboardType = .default
     var secure = false
+    var onSubmit: () -> Void = {} // W6: the return key's hop to the next field (the last field keeps the platform's default)
     let onExit: () -> Void
 
     var body: some View {
@@ -125,6 +142,8 @@ struct AuthField: View {
             .keyboardType(keyboard)
             .textInputAutocapitalization(key == "name" ? .words : .never)
             .autocorrectionDisabled()
+            .submitLabel(.next)
+            .onSubmit(onSubmit)
             .focused(focus, equals: key)
             .padding(EmberTokens.Spacing.space12)
             .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
@@ -133,5 +152,6 @@ struct AuthField: View {
             .onChange(of: focus.wrappedValue) { _, now in if now != key { onExit() } } // validation on field-exit, never per keystroke
             if let error { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
         }
+        .id(key) // W6: the ScrollViewReader's anchor for "scroll the focused field into view"
     }
 }

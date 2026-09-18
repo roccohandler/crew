@@ -1,5 +1,7 @@
 // SPEC: S02 tertiary CTA "Log in" — the login screen is a failure state, not a feature (1C): one screen, email + password,
-// a forgot-password line (E18 standard resets), Sign in with Apple for returning Apple users. WRITTEN — UNVERIFIED. T022
+// a forgot-password line (E18 standard resets), Sign in with Apple for returning Apple users. W6 (owner's walkthrough,
+// 2026-09-17): reached from the save screen's "Log in instead" with the email PREFILLED (OnboardingModel.prefilledEmail), and the
+// return key hops Email → Password → Log in. WRITTEN — UNVERIFIED. T022
 
 import AuthenticationServices
 import SwiftUI
@@ -33,8 +35,8 @@ struct LoginScreen: View {
                 }
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
-                AuthField(title: "Email", text: $email, error: nil, contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress) {}
-                AuthField(title: "Password", text: $password, error: nil, contentType: .password, focus: $focused, key: "password", secure: true) {}
+                AuthField(title: "Email", text: $email, error: nil, contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress, onSubmit: { focused = "password" }) {}
+                AuthField(title: "Password", text: $password, error: nil, contentType: .password, focus: $focused, key: "password", secure: true, onSubmit: { logIn() }) {}
                 if let authError = model.authError { Text(authError).font(.footnote).foregroundStyle(EmberColors.danger) }
                 Button(resetSent ? "Check your email for the reset link" : "Forgot your password?") {
                     Task { _ = try? await Api.shared.requestPasswordReset(email: email); resetSent = true }
@@ -45,11 +47,17 @@ struct LoginScreen: View {
             }
             .padding(EmberTokens.Spacing.space24)
         }
+        .scrollDismissesKeyboard(.interactively)
         // SPEC: A19.1 — "Log in" out of the scroll and above the keyboard. It sat under the password field, so on a
         // phone with the keyboard up the field and the button it enables were never on screen together.
         .crewBottomBar {
-            PrimaryButton(title: "Log in", isLoading: model.isSaving) { Task { await model.logIn(email: email, password: password) } }
+            PrimaryButton(title: "Log in", isLoading: model.isSaving) { logIn() }
         }
         .background(EmberColors.canvas.ignoresSafeArea())
+        .onAppear { if email.isEmpty { email = model.prefilledEmail } } // W6: what the save screen already knew
+    }
+
+    private func logIn() {
+        Task { await model.logIn(email: email, password: password) }
     }
 }

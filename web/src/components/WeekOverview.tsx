@@ -17,7 +17,7 @@ const dayName = (day: DayProjection): string => WEEKDAY_NAMES[day.weekday - 1] ?
 function WeekRow({ day, workouts }: { day: DayProjection; workouts: DraftWorkout[] }) {
   const workout = workouts.find((candidate) => candidate.kind === day.kind);
   if (day.state === "rest") return <li className="card muted">{dayName(day)} · Rest</li>;
-  if (day.state === "open" || workout === undefined) return <li className="card muted">{dayName(day)} · —</li>;
+  if (day.state === "open" || workout === undefined) return <li className="card muted">{dayName(day)}</li>; // W6: the day alone, quiet — no word, no dash
   return (
     <li>
       <Link href={`/plan/${workout.kind}`} className="button button--secondary row row--between">

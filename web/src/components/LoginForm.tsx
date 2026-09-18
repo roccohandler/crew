@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { isApiClientError, login, requestPasswordReset } from "@/lib/api-client";
 
-export function LoginForm({ appleHref, appleFailed = false }: { appleHref: string; appleFailed?: boolean }) {
+export function LoginForm({ appleHref, appleFailed = false, initialEmail = "" }: { appleHref: string; appleFailed?: boolean; initialEmail?: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail); // W6: prefilled by the save form's "Log in instead"
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(appleFailed ? "Apple couldn't sign you in. Try again, or use email below." : null);
   const [resetSent, setResetSent] = useState(false);

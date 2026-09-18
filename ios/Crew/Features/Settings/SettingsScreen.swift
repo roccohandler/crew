@@ -25,6 +25,10 @@ struct SettingsScreen: View {
                 }
                 Section("Plan") {
                     NavigationLink { PauseScreen(model: model) } label: { LabeledContent("Pause my plan", value: model.pauseDetail) }
+                }
+                // W6 (owner's walkthrough, 2026-09-17): the two unit pickers sat under "Plan" with the bare labels "Weight" and
+                // "Distance", which read as stats; their own section names what they are
+                Section("Units") {
                     // SPEC: A9 — weight and distance are chosen separately: a UK lifter loads kilos and runs in miles,
                     // which the single field this replaces could never express
                     Picker("Weight", selection: $weightUnit) { Text("lb").tag("lb"); Text("kg").tag("kg") }
