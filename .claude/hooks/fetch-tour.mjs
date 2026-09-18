@@ -3,8 +3,11 @@
 // replaces design/tour/latest/ with it. It then tells the session what it is looking at: run date, commit, the CHANGES.md summary.
 // It must NEVER block or fail a session: offline, no runs, gh missing, a slow network — each one exits 0 with a one-line note, and
 // the whole script gives up at 55 s (the hook's own timeout is 60).
+// A slow line is the common failure (measured 2026-09-18: the 12 MB artifact took 90 s here): the download gets 40 s in the
+// foreground, and when that is not enough the SAME script is started detached (`--background`) to finish it after the session has
+// begun — the note says so, and design/tour/latest/ fills in a minute or two.
 // /ui-check reuses it with `--run <id>`: that run exactly, green or red, with plain-text output instead of the hook's JSON.
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,6 +17,7 @@ const latestDir = join(root, "design", "tour", "latest");
 const incomingDir = join(root, "design", "tour", ".incoming");
 const runIdFile = join(latestDir, ".run-id");
 const forcedRun = process.argv.includes("--run") ? process.argv[process.argv.indexOf("--run") + 1] : null;
+const background = process.argv.includes("--background"); // the detached second attempt: no deadline, no output
 const instruction = "Screenshots are in design/tour/latest/. View changed screens before any UI work.";
 
 function finish(text) {
@@ -21,7 +25,7 @@ function finish(text) {
   else console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: text } }));
   process.exit(0);
 }
-setTimeout(() => finish("ui-tour: gave up after 55 s — design/tour/latest/ was left as it was."), 55_000).unref();
+if (!forcedRun && !background) setTimeout(() => finish("ui-tour: gave up after 55 s — design/tour/latest/ was left as it was."), 55_000).unref();
 process.on("uncaughtException", (error) => finish(`ui-tour: not fetched (${String(error.message ?? error).split("\n")[0]}).`));
 
 function run(command, args, timeoutMs) {
@@ -64,7 +68,13 @@ let fetched = "already in design/tour/latest/";
 if (have !== runId) {
   rmSync(incomingDir, { recursive: true, force: true });
   mkdirSync(incomingDir, { recursive: true });
-  run("gh", ["run", "download", runId, "--name", "ui-tour", "--dir", incomingDir], 45_000);
+  try {
+    run("gh", ["run", "download", runId, "--name", "ui-tour", "--dir", incomingDir], forcedRun || background ? 600_000 : 40_000);
+  } catch (error) {
+    if (forcedRun || background) throw error;
+    spawn(process.execPath, [fileURLToPath(import.meta.url), "--background"], { cwd: root, detached: true, stdio: "ignore", windowsHide: true }).unref();
+    finish(`UI tour — ci run ${runId} · ${found.createdAt} · commit ${String(found.headSha).slice(0, 7)} · branch ${branch}: the download did not finish in 40 s and is continuing in the background; design/tour/latest/ updates in a minute or two. Read design/tour/latest/CHANGES.md then. ${instruction}`);
+  }
   writeFileSync(join(incomingDir, ".run-id"), `${runId}\n`);
   rmSync(latestDir, { recursive: true, force: true }); // the old tour goes only once the new one is whole
   renameSync(incomingDir, latestDir);
