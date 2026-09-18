@@ -31,7 +31,7 @@ final class Journey3_InviteCodeTests: XCTestCase {
         app.buttons["Find my crew"].tap()
         // S13: the public preview names the crew and its count
         let preview = app.staticTexts["invitePreview"]
-        XCTAssertTrue(preview.waitForExistence(timeout: 15), "no crew preview for the pasted code — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+        XCTAssertTrue(preview.waitForExistence(timeout: 15), "no crew preview for the pasted code — the field holds \"\(field.value as? String ?? "?")\", the seed's token is \"\(token)\"; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
         XCTAssertTrue(preview.label.hasPrefix("Night Shift 🌙 · 1 of "), preview.label)
         shoot(app, "S13 invite code — the preview")
         app.buttons["Continue"].tap()

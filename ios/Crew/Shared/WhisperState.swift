@@ -83,6 +83,16 @@ final class WhisperState {
         visible = []
     }
 
+    // The tap's own half (AnyTapWatcher): WHAT leaves is decided at the tap, the leaving happens one main-queue turn later — so the
+    // row never changes a List inside the touch that is selecting another row, and a whisper on the screen that same tap OPENS is not
+    // taken with it (CI run 35345590260: the tap on the Settings tab cleared Settings' pause whisper before anyone had seen it).
+    func clearVisibleAfterThisTap() {
+        guard !visible.isEmpty else { return }
+        let leaving = visible
+        visible = []
+        DispatchQueue.main.async { self.markSeen(leaving) }
+    }
+
     func markSeen(_ ids: Set<String>) {
         seen.formUnion(ids)
         defaults.set(Array(seen).sorted(), forKey: WhisperState.key(userId))

@@ -5,10 +5,10 @@
 // without a whisper showing. The root gesture recognised the tap and the List's own row selection was cancelled.
 // So the listener is a PASSIVE UIKit recogniser on the window instead: it cancels no touch, delays no touch and recognises alongside
 // every other recogniser — the recipe every SwiftUI app uses to dismiss a keyboard on any tap. It sees sheets too (they share the
-// window), which is harmless: a whisper never renders in a sheet (rule 3). A tap that lands on a UIKit control (a tab-bar button, a
-// switch) is the control's alone by UIKit's own rule, so it does not clear a whisper; the next tap on anything else does.
-// The callback runs one main-queue turn AFTER the tap, so the row that leaves the screen never changes a List in the middle of the
-// touch that is selecting another row. No view of its own: the carrier view takes no touches and draws nothing.
+// window), which is harmless: a whisper never renders in a sheet (rule 3). A tap on the tab bar is heard too (run 35345590260), which is why
+// WhisperState decides what leaves AT the tap: the screen that tap opens keeps its whisper.
+// The callback runs AT the tap; WhisperState snapshots what is showing then and removes it one main-queue turn later, so the row that
+// leaves never changes a List in the middle of the touch that is selecting another row. No view of its own: the carrier view takes no touches and draws nothing.
 // WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
@@ -56,7 +56,7 @@ struct AnyTapWatcher: UIViewRepresentable {
         }
 
         @objc private func tapped() {
-            DispatchQueue.main.async { self.onTap() }
+            onTap() // synchronous: the listener decides at the tap what leaves, and defers the leaving itself (WhisperState)
         }
 
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
