@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -596,6 +596,38 @@ Three owner-directed deliverables, all documents plus one local script; no app c
   its GitHub variables; no AASA served (404); `applinks:crew.example` still in project.yml.
 - This push touches docs/ only, so ci.yml skips it (paths-ignore) and no TestFlight build follows — expected.
 - NEXT: nothing is built until the owner says go; on go, W2 (gym-only, docs/GYM_ASSUMPTION_MAP.md) is the next session.
+## 2026-09-17 (night) — W2 GYM-ONLY DONE (A21.1; the owner's GO of 2026-09-17; contract: the W2 row of docs/mvp-definition.md; work order: docs/GYM_ASSUMPTION_MAP.md)
+
+Every row of the map applied on both engines and both clients in ONE code commit (`feat(gym): A21.1 …`), preceded by the registry
+commit that closes the three A21 GAP readings (owner-confirmed as written) and adds W4's "Copy code" button on the web landing page:
+
+- shared: `enums.equipmentAccess` deleted (its absence asserted); `plan-templates.json` nests kind → experience — the 30 home-tier lists
+  are gone, the 15 gym lists stay; `onboardingQuestionCount` 3→2, `decisionsBeforeHomeOrganic` 5→4 (invited stays 5, owner-confirmed);
+  `render-seed` / `check-seeds` rewritten; Generated/ regenerated (drift clean). Gym-only catalog: couch-stretch → "Wall Hip Flexor
+  Stretch", doorway-pec-stretch → "Rack Pec Stretch", doorframe-row → "Suspension Trainer Row", five cues lose their home objects; ids
+  unchanged so saved plans and sessions keep resolving; check-seeds asserts no home OBJECT in a name or cue (the rowing cue's "on the way
+  home" stays — its first version flagged it, and "home" left the word list).
+- engines: `generatePlan(days, experience, seed)` and `swapCandidates(incumbent, experience, …)` on both twins; the swap pool is every
+  exercise of the same type.
+- iOS: `EquipmentQuestionScreen` deleted; `OnboardingQuestion` has two cases; `OnboardingModel` / `Flow` / `Draft` lose the equipment
+  answer (an old on-disk draft still decodes — unknown keys are ignored); `WorkoutDraft.access` and `SessionSwap.access(for:)` deleted.
+- web: `OnboardingFlow` (experience is the last question and builds the plan; `QUESTION.experience = onboardingQuestionCount`, so the
+  whisper reads "2 of 2"), `plan-draft.accessFor` deleted, `SessionSwap` / `SessionLogger` / `ExerciseSheet` without the access prop;
+  the "with your gear" copy is gone.
+- tests: the property tests run over days × experience (127 × 3 = 381 plans) on both engines; `OnboardingModelTests` asserts the
+  experience answer lands on the reveal and that the last question's number equals `onboardingQuestionCount`; the three XCUITest
+  journeys lose the "Full gym" tap and journey ① asserts "2 of 2"; e2e helpers assert "1 of 2" and "2 of 2"; journey ③'s "Dumbbells" tap is gone.
+
+| Gate (run here, 2026-09-17 night) | Result |
+|---|---|
+| `check-drift` · `check-vectors` · `check-seeds` | match · **56** vectors / 9 files · 110 exercises, **15 lists**, gym-only |
+| `doctrine-lint` · `swift-xref` | clean — 194 Swift files · 194 files, 378 types |
+| web `typecheck` · `lint` · `build` | exit 0 · exit 0 (one 41-line function caught by max-lines-per-function and trimmed) · green |
+| web `npm test` · `vectors` · `e2e` | **43 files, 445 tests** (453 → 445: the equipment axis leaves the two property suites) · 56 · **32 passed, 1 skipped** |
+| native `swift test` (engine package) | **76 tests, 0 failures** |
+
+NO VECTOR CHANGED (56 stay 56). WRITTEN-UNVERIFIED on a device: the two-question onboarding and the swap sheets on iOS — the macOS CI
+job compiles them and runs the three rewritten journeys; its verdict and the TestFlight build number are recorded below once read.
 ## Ledger
 
 Phase 0 — contracts
@@ -687,7 +719,7 @@ Phases 6–7 — beta & release
 
 ## Notes for next session
 
-- 2026-09-17 (evening): A21 is in Appendix A and the MVP definition exists (docs/mvp-definition.md, worklist W1–W9). NOTHING IS BUILT until the owner says go; on go the next session is W2 (gym-only — docs/GYM_ASSUMPTION_MAP.md is the work order), then W3 (crew surface), W4 (invite code + push + two-button share). Build B stays on `archive/a20-build-b` until the W6 walkthrough decides rebuild-or-drop (A21.12). The nutrition addendum draft awaits ratification (W8).
+- 2026-09-17 (night): W2 gym-only is DONE and pushed (the CI verdict and the TestFlight build number are in the W2 section). NEXT: W3 (crew surface — A21.2, blocked members out of the pulse, Captain rename) ON THE OWNER'S GO; nothing else is built before that. Build B stays on `archive/a20-build-b` until the W6 walkthrough decides rebuild-or-drop (A21.12). The nutrition addendum draft awaits ratification (W8).
 - CI run 34351357853 (push 5374a2f, 2026-09-09 12:30Z): contracts ✓ · web ✓ · ios engine ✓ · ios ✗ with ONE diagnostic across the ~95 rewritten Swift files — `ShellStatesTests.swift:11: type 'PlanLoadState' has no member 'offline'` (the editor rewrite dropped the case); F23 restores it. The unit + UI test outcome is unknown until the next run. The web e2e job also failed on ONE check: the phone-375 a11y sweep measured 11 px of sideways scroll on a signed-in page under the Linux runner's fallback fonts (green here on Windows fonts). Reproduced locally by forcing a wide font: the Settings profile `<input type=file>` and the session exercise header (name · chip · Swap · Skip) overflowed; F23 makes the file input span the column and lets that header wrap, and the assertion now names the page.
 - CI run 34354352786 (push 178c1b4 = F23, 2026-09-09 13:00Z): contracts ✓ · web ✓ · web e2e ✓ (the wide-font overflow fix held on the runner) · ios engine ✓ · ios ✗ — the whole app compiled, 89 unit tests ran, 3 assertions failed in TWO tests of `SyncDeliveryTests`, both test bugs: they enqueued at `Date()` (2026) and stepped the queue at `Date(timeIntervalSince1970: 1_000_000)` (1970), so the op was `.waiting`, never `.sent`; and `attachPhotoKey` re-serialised the payload with JSONSerialization, which escapes `/` as `/`, so `contains("blob/abc")` was false. F24: the tests share one clock; the re-serialisation (SyncDelivery, PostPayloadPhotoStripper) uses `.withoutEscapingSlashes`. The journeys did not run (the unit step failed first) — Q09 is still unread.
 - The owner's ask after that run — "how can this be checked locally before it fails on GitHub?" — answered in F24 (docs/testing-without-a-mac.md Stage 0/1): (1) `node shared/scripts/swift-xref.mjs` — a compiler-free cross-reference check that reproduces every compile error the macOS job has ever reported (removed enum case, renamed parameter, removed struct field, shadowed SwiftUI type; a scratch copy with all four re-introduced reports all four; the real tree is clean) — first step of the `contracts` CI job and the command to run before every queue-and-push; (2) `expectNoHorizontalScroll` measures a second time under a wide fallback font (Verdana here, DejaVu Sans on the runner), so the e2e sweep on this machine sees what the runner sees — and names the overflowing element; its first full run caught a REAL one the runner would have found next: the crew header's name + pulse row pushed the pulse 9 px past a 375 edge in journeys ② and ③ (`CrewHeader.tsx` now wraps that row; journeys ② ③ 6/6 green on all viewports after the fix); (3) the `ios` job runs unit AND journeys even when unit fails and a `verdict` step writes both logs' error lines and suite totals to the run summary — one run, every failure. What no local check can do: run SwiftData/SwiftUI code — test logic against Foundation behaviour still meets the macOS job first.

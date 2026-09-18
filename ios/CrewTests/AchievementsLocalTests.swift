@@ -11,7 +11,7 @@ final class AchievementsLocalTests: XCTestCase {
     func testFirstCompletionUnlocksFirstFlameAndShowedUpLocally() throws {
         let store = Store(inMemory: true)
         let userId = "achiever"
-        let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", access: "fullGym", seed: .shared)
+        let draft = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", seed: .shared)
         try PlanLocal.replace(draft, userId: userId, updatedAt: Date(), store: store)
         // A1 — pinned by kind: a SwiftData to-many has no order (NextUpLine.swift:75), and `again` below must
         // quick-complete the SAME workout for the "first-flame fires once" assertion to mean anything.

@@ -139,14 +139,14 @@
     "usualPostTimeSampleSize": { "value": 14, "spec": "GAP (agent, 2026-09-04): the user's usual post time = the median of the last N post times" }
   },
   "onboarding": {
-    "onboardingQuestionCount": { "value": 3, "spec": "Flow 1; 1B — three questions, the '1 of 3' whisper" },
+    "onboardingQuestionCount": { "value": 2, "spec": "Flow 1; 1B; A21.1 (owner-approved 2026-09-17) — two questions (days, experience), the '1 of 2' whisper; was 3 until the equipment question was removed" },
     "autoAdvanceDelayMs": { "value": 250, "spec": "1B — selection haptic → 250 ms beat → next screen" },
     "dayToggleMinPt": { "value": 56, "spec": "1B; S03 — seven circular toggles ≥ 56 pt" },
     "planRevealStaggerMs": { "value": 500, "spec": "1C — day cards stagger in over ~0.5 s (instant under Reduce Motion)" },
     "organicHeroToHomeMedianSeconds": { "value": 90, "spec": "1A; 1C — organic hero→Home median ≤ 90 s" },
     "invitedHeroToHomeMedianSeconds": { "value": 60, "spec": "1A; 1C — invited ≤ 60 s" },
-    "decisionsBeforeHomeOrganic": { "value": 5, "spec": "1C — hero, days-confirm, experience, equipment, auth" },
-    "decisionsBeforeHomeInvited": { "value": 5, "spec": "1C — invited 5" }
+    "decisionsBeforeHomeOrganic": { "value": 4, "spec": "1C; A21.1 (owner-approved 2026-09-17) — hero, days-confirm, experience, auth; was 5 with the equipment question" },
+    "decisionsBeforeHomeInvited": { "value": 5, "spec": "1C; A21.1 GAP confirmed by the owner 2026-09-17 — hero, paste the code, days-confirm, experience, auth under the A21.3 code path (4 once universal links carry the token, W7)" }
   },
   "interactionBudgets": {
     "swapMaxTaps": { "value": 2, "spec": "Flow 1 step 4; S04 — Swap in 2 taps" },

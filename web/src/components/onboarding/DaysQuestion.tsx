@@ -1,6 +1,7 @@
 "use client";
 // SPEC: S03 / 1B — seven circular toggles ≥ 56 pt, Mon/Wed/Fri pre-selected, the encouragement line reads live, Continue ≥ 1 day,
-// "1 of 3" whisper (never a progress bar) · A1 (PPL rotates at every frequency; the neutral whisper "Most people start at 3 days").
+// the "1 of N" whisper from onboardingQuestionCount, never a progress bar (A21.1: two questions) · A1 (PPL rotates at every
+// frequency; the neutral whisper "Most people start at 3 days").
 // Web twin of ios DaysQuestionScreen. The toggles are also the plan screen's "Change days" (A4).
 import { SpecConstants } from "@/generated/spec-constants";
 

@@ -1,15 +1,16 @@
-// SPEC: 5.6.2 OnboardingModel — state: step, selectedDays, experience?, equipment?, draft, weekRows, authError?; actions:
-// toggleDay · choose(experience) auto-advance · choose(equipment) · regenerate · swap (by workout kind, A1) · saveWithApple ·
-// saveWithEmail (OnboardingModelAuth.swift); the draft persists locally pre-auth (S05: the plan survives auth failure/
-// abandon). 1A invite-aware fast path (the crew token rides through onboarding; after auth the user lands INSIDE the
-// crew). A1 (owner-directed 2026-09-08): the reveal shows THIS week's rotation projection — Push · Pull · Legs at every
-// day count. C14 (@Observable, plain vars). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
+// SPEC: 5.6.2 OnboardingModel — state: step, selectedDays, experience?, draft, weekRows, authError?; actions: toggleDay ·
+// choose(experience) auto-advance (A21.1, owner-approved 2026-09-17: the experience answer is the LAST question and builds
+// the plan — the equipment question and choose(equipment) are gone because every user has full commercial gym access) ·
+// regenerate · swap (by workout kind, A1) · saveWithApple · saveWithEmail (OnboardingModelAuth.swift); the draft persists
+// locally pre-auth (S05: the plan survives auth failure/abandon). 1A invite-aware fast path (the crew token rides through
+// onboarding; after auth the user lands INSIDE the crew). A1 (owner-directed 2026-09-08): the reveal shows THIS week's
+// rotation projection — Push · Pull · Legs at every day count. C14 (@Observable, plain vars). WRITTEN — UNVERIFIED. T021 + T022
 
 import Foundation
 import Observation
 
 enum OnboardingStep: Equatable {
-    case hero, days, experience, equipment, reveal, save, login
+    case hero, days, experience, reveal, save, login
 }
 
 // signup = Flow 1 (hero → questions → reveal → save); rebuild = Flow 8 / E4 for a signed-in user (questions → reveal → saved)
@@ -23,7 +24,6 @@ final class OnboardingModel {
     var step: OnboardingStep = .hero
     var selectedDays: Set<Int> = Set(SpecConstants.defaultTrainingWeekdays)   // 1B: Mon/Wed/Fri pre-selected
     var experience: String?
-    var equipment: String?
     var draft: PlanDraft?
     var weekRows: [WeekMapRow] = []   // A1: this week's projection of the draft (`Mon · Push day` …)
     var authError: String?
@@ -49,7 +49,6 @@ final class OnboardingModel {
         if mode == .signup, let saved = draftStore.load() {
             selectedDays = saved.selectedDays
             experience = saved.experience
-            equipment = saved.equipment
             draft = saved.draft
             inviteToken = saved.inviteToken
             step = .save   // S05: resumes here next launch
@@ -77,21 +76,17 @@ final class OnboardingModel {
         step = .experience
     }
 
-    // 1B: single-select answers auto-advance: selection haptic → 250 ms beat → next screen (the screen schedules the beat)
+    // 1B: single-select answers auto-advance: selection haptic → 250 ms beat → next screen (the screen schedules the beat).
+    // SPEC: A21.1 — experience is the last question, so the answer builds the plan and the next screen is the reveal
     func choose(experience value: String) {
         experience = value
-        step = .equipment
-    }
-
-    func choose(equipment value: String) {
-        equipment = value
         regenerate()
         step = .reveal
     }
 
     func regenerate() {
-        guard let experience, let equipment else { return }
-        draft = PlanGenerator.generatePlan(days: selectedDays, experience: experience, access: equipment, seed: seed)
+        guard let experience else { return }
+        draft = PlanGenerator.generatePlan(days: selectedDays, experience: experience, seed: seed)
         refreshWeekRows()
     }
 
@@ -111,8 +106,8 @@ final class OnboardingModel {
     }
 
     func swapCandidates(for exerciseId: String) -> [SeedExercise] {
-        guard let incumbent = seed.exercise(exerciseId), let equipment else { return [] }
-        return SwapFinder.swapCandidates(for: incumbent, access: equipment, experience: experience ?? "brandNew", seed: seed)
+        guard let incumbent = seed.exercise(exerciseId) else { return [] }
+        return SwapFinder.swapCandidates(for: incumbent, experience: experience ?? "brandNew", seed: seed)
     }
 
     // Flow 1 step 4 — two taps, no questions asked, ever; the row keeps its order (A1: workouts are keyed by kind)
@@ -136,6 +131,6 @@ final class OnboardingModel {
     }
 
     func persistDraft() {
-        draftStore.save(OnboardingDraft(selectedDays: selectedDays, experience: experience, equipment: equipment, draft: draft, inviteToken: inviteToken))
+        draftStore.save(OnboardingDraft(selectedDays: selectedDays, experience: experience, draft: draft, inviteToken: inviteToken))
     }
 }

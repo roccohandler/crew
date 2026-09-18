@@ -21,7 +21,7 @@ final class SessionModelTests: XCTestCase {
 
     private func sessionInStore(withCardio: Bool = false) throws -> (Store, LocalSession) {
         let store = Store(inMemory: true)
-        let plan = PlanGenerator.generatePlan(days: [5], experience: "brandNew", access: "fullGym", seed: .shared)
+        let plan = PlanGenerator.generatePlan(days: [5], experience: "brandNew", seed: .shared)
         let draft = plan.workouts[0]
         var extra: [PlanDraftExercise] = []
         if withCardio { extra.append(try XCTUnwrap(PlanGenerator.cardioRow("walk", order: draft.exercises.count, seed: .shared))) }

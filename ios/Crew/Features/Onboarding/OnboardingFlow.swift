@@ -1,6 +1,6 @@
-// SPEC: Flow 1 — hero → three questions → reveal → save; every arrival type has its path on screen one (1A); back-swipe
-// preserves every answer (1B: NavigationStack keeps the model). Screens branch only on view state (5.6.6).
-// WRITTEN — UNVERIFIED (needs Mac). T021 + T022
+// SPEC: Flow 1 — hero → two questions → reveal → save (A21.1, owner-approved 2026-09-17: the equipment question is gone);
+// every arrival type has its path on screen one (1A); back-swipe preserves every answer (1B: NavigationStack keeps the
+// model). Screens branch only on view state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
 
 import SwiftUI
 
@@ -23,8 +23,7 @@ struct OnboardingFlow: View {
                 .navigationDestination(for: OnboardingStep.self) { step in
                     switch step {
                     case .days: DaysQuestionScreen(model: model) { path.append(.experience) }
-                    case .experience: ExperienceQuestionScreen(model: model) { path.append(.equipment) }
-                    case .equipment: EquipmentQuestionScreen(model: model) { path.append(.reveal) }
+                    case .experience: ExperienceQuestionScreen(model: model) { path.append(.reveal) }
                     case .reveal: GeneratedPlanScreen(model: model) { afterReveal() }
                     case .save: SaveAuthScreen(model: model)
                     case .login: LoginScreen(model: model)
@@ -33,7 +32,7 @@ struct OnboardingFlow: View {
                 }
         }
         .tint(EmberColors.inkText)
-        .onAppear { if model.step == .save { path = [.days, .experience, .equipment, .reveal, .save] } } // S05 resume
+        .onAppear { if model.step == .save { path = [.days, .experience, .reveal, .save] } } // S05 resume
     }
 
     @ViewBuilder private var root: some View {

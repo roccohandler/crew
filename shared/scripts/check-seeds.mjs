@@ -1,8 +1,10 @@
 // Validates shared/seed/exercises.json + plan-templates.json (+ achievements.json when present) against
 // Part IX seed shape, Flow 1 step 3 counts, the mobility block budget, E20 name limits and the swap promise
 // (Flow 1 step 4: 3–5 alternatives that do the same job) and the A2 cardio rows (owner-directed 2026-09-08: duration-based
-// like mobility, pattern cardio; templates stay strength-only). Exits 1 on any problem.
-// Run: node shared/scripts/check-seeds.mjs   SPEC: Part XI T004–T006 · Appendix B · 8.3 (plan generator property)
+// like mobility, pattern cardio; templates stay strength-only). A21.1 (owner-approved 2026-09-17): every user has full
+// commercial gym access — the templates nest kind → experience (no equipment tier), the swap pool is the whole catalog of
+// the same type, and no exercise name or cue may lean on a home object. Exits 1 on any problem.
+// Run: node shared/scripts/check-seeds.mjs   SPEC: Part XI T004–T006 · Appendix B · 8.3 (plan generator property) · A21.1
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -21,6 +23,12 @@ const LEVEL_RANK = { brandNew: 0, some: 1, experienced: 2 };
 const COUNT_FOR = { brandNew: K("planGeneration", "beginnerExerciseCount"), some: K("planGeneration", "someExperienceExerciseCount"), experienced: K("planGeneration", "experiencedExerciseCount") };
 const byId = new Map();
 
+// SPEC: A21.1 (owner-approved 2026-09-17) — the catalog is gym-only. A rule with no mechanism drifts, so the home OBJECTS a
+// name or cue must never lean on are checked here rather than remembered (objects only: the rowing cue's "on the way home" is
+// rowing, not a living room). Ids are exempt: they are stable contracts that saved plans and sessions resolve by
+// (couch-stretch, doorway-pec-stretch, doorframe-row keep their ids under gym names).
+const HOME_WORDS = /\b(couch|sofa|doorframe|doorway|door|table|counter|towel|chair|bed)\b/i;
+
 for (const exercise of seed.exercises) {
   if (byId.has(exercise.id)) fail(`exercises: duplicate id ${exercise.id}`);
   byId.set(exercise.id, exercise);
@@ -32,13 +40,18 @@ for (const exercise of seed.exercises) {
   // SPEC: A2 — a cardio activity is duration-based (holdSeconds = its default seconds) and carries the cardio pattern
   if (exercise.type === "cardio" && (!Number.isInteger(exercise.holdSeconds) || exercise.holdSeconds <= 0 || exercise.pattern !== "cardio")) fail(`exercises: cardio ${exercise.id} needs holdSeconds > 0 and pattern cardio`);
   if (exercise.type === "strength" && (exercise.holdSeconds !== undefined || exercise.pattern === "mobility" || exercise.pattern === "cardio")) fail(`exercises: strength ${exercise.id} must not carry holdSeconds, the mobility pattern or the cardio pattern`);
+  for (const field of ["name", "cueLine"]) {
+    const hit = typeof exercise[field] === "string" ? exercise[field].match(HOME_WORDS) : null;
+    if (hit) fail(`exercises: ${exercise.id}.${field} leans on a home object ("${hit[0]}") — the catalog is gym-only (A21.1)`);
+  }
 }
+if (seed.enums.equipmentAccess !== undefined) fail("exercises.enums.equipmentAccess must not exist — the equipment tiers are gone (A21.1)");
 
-const allowed = seed.enums.equipmentAccess;
 const region = seed.enums.region;
-// SPEC: exercises.json swapRule — tiers widen only while fewer than swapCandidatesMin are found
-function alternativesFor(exercise, access) {
-  const usable = (candidate) => candidate.id !== exercise.id && candidate.type === exercise.type && allowed[access].includes(candidate.equipment);
+// SPEC: exercises.json swapRule — tiers widen only while fewer than swapCandidatesMin are found; the pool is every exercise of
+// the same type (A21.1: no equipment tier)
+function alternativesFor(exercise) {
+  const usable = (candidate) => candidate.id !== exercise.id && candidate.type === exercise.type;
   const tiers = [
     (candidate) => candidate.swapGroup === exercise.swapGroup,
     (candidate) => candidate.pattern === exercise.pattern,
@@ -54,21 +67,19 @@ function alternativesFor(exercise, access) {
 for (const pattern of seed.enums.pattern) if (!region[pattern]) fail(`enums.region: no region for pattern ${pattern}`);
 
 for (const [kind, byLevel] of Object.entries(templates.templates)) {
-  for (const [level, byAccess] of Object.entries(byLevel)) {
-    for (const [access, ids] of Object.entries(byAccess)) {
-      const where = `templates.${kind}.${level}.${access}`;
-      if (ids.length !== COUNT_FOR[level]) fail(`${where}: ${ids.length} exercises, Flow 1 / G7 require ${COUNT_FOR[level]}`);
-      if (ids.length > K("limits", "planMaxExercisesPerDay")) fail(`${where}: over planMaxExercisesPerDay`);
-      if (new Set(ids).size !== ids.length) fail(`${where}: repeated exercise`);
-      for (const id of ids) {
-        const exercise = byId.get(id);
-        if (!exercise) { fail(`${where}: unknown exercise ${id}`); continue; }
-        if (exercise.type !== "strength") fail(`${where}: ${id} is not a strength exercise`);
-        if (!allowed[access].includes(exercise.equipment)) fail(`${where}: ${id} needs ${exercise.equipment}, not available with ${access}`);
-        if (LEVEL_RANK[exercise.level] > LEVEL_RANK[level]) fail(`${where}: ${id} is level ${exercise.level}, too advanced for ${level}`);
-        const alternatives = alternativesFor(exercise, access);
-        if (alternatives.length < K("planGeneration", "swapCandidatesMin")) fail(`${where}: ${id} has only ${alternatives.length} swap alternatives with ${access} (Flow 1 step 4 promises ${K("planGeneration", "swapCandidatesMin")}–${K("planGeneration", "swapCandidatesMax")})`);
-      }
+  for (const [level, ids] of Object.entries(byLevel)) {
+    const where = `templates.${kind}.${level}`;
+    if (!Array.isArray(ids)) { fail(`${where}: must be a flat list of exercise ids — templates nest kind → experience (A21.1)`); continue; }
+    if (ids.length !== COUNT_FOR[level]) fail(`${where}: ${ids.length} exercises, Flow 1 / G7 require ${COUNT_FOR[level]}`);
+    if (ids.length > K("limits", "planMaxExercisesPerDay")) fail(`${where}: over planMaxExercisesPerDay`);
+    if (new Set(ids).size !== ids.length) fail(`${where}: repeated exercise`);
+    for (const id of ids) {
+      const exercise = byId.get(id);
+      if (!exercise) { fail(`${where}: unknown exercise ${id}`); continue; }
+      if (exercise.type !== "strength") fail(`${where}: ${id} is not a strength exercise`);
+      if (LEVEL_RANK[exercise.level] > LEVEL_RANK[level]) fail(`${where}: ${id} is level ${exercise.level}, too advanced for ${level}`);
+      const alternatives = alternativesFor(exercise);
+      if (alternatives.length < K("planGeneration", "swapCandidatesMin")) fail(`${where}: ${id} has only ${alternatives.length} swap alternatives (Flow 1 step 4 promises ${K("planGeneration", "swapCandidatesMin")}–${K("planGeneration", "swapCandidatesMax")})`);
     }
   }
 }
@@ -108,8 +119,10 @@ if (existsSync(join(repoRoot, "shared/seed/achievements.json"))) {
 }
 
 const countByType = seed.enums.type.map((type) => `${seed.exercises.filter((exercise) => exercise.type === type).length} ${type}`);
-console.log(`exercises.json: ${seed.exercises.length} exercises (${countByType.join(", ")})`);
-console.log(`plan-templates.json: ${Object.keys(templates.templates).length} workout kinds × 3 levels × 3 equipment access = ${Object.keys(templates.templates).length * 9} lists`);
+console.log(`exercises.json: ${seed.exercises.length} exercises (${countByType.join(", ")}) — gym-only, no home cues`);
+const kinds = Object.keys(templates.templates).length;
+const levels = seed.enums.level.length;
+console.log(`plan-templates.json: ${kinds} workout kinds × ${levels} levels = ${kinds * levels} lists (A21.1: no equipment tiers)`);
 for (const problem of problems) console.log(`PROBLEM  ${problem}`);
 if (problems.length > 0) { console.log(`check-seeds: ${problems.length} problem(s)`); process.exit(1); }
 console.log("check-seeds: seeds are complete and consistent");

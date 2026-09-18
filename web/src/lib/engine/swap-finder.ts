@@ -1,9 +1,10 @@
 // SPEC: Flow 1 step 4 (Tap → Swap → 3–5 alternatives that do the same job; no questions asked) · 5.6.1 swapCandidates
-// (same pattern, ≤5, never incumbent) · 8.3 (candidates share pattern + equipment) · exercises.json swapRule (tiers
-// swapGroup → pattern → region, widening only while fewer than swapCandidatesMin exist; same-or-lower level ranked first).
+// (same pattern, ≤5, never incumbent) · 8.3 (candidates share the job) · exercises.json swapRule (tiers swapGroup → pattern →
+// region, widening only while fewer than swapCandidatesMin exist; same-or-lower level ranked first) · A21.1 (owner-approved
+// 2026-09-17): every user has full commercial gym access, so the pool is every exercise of the same type — no equipment tier.
 // Twin: ios/Crew/Engine/SwapFinder.swift. Pure.
-import type { EquipmentAccess, Experience, SeedExercise } from "@/generated/seed";
-import { equipmentAccess, regionOfPattern } from "@/generated/seed";
+import type { Experience, SeedExercise } from "@/generated/seed";
+import { regionOfPattern } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
 
 const LEVEL_RANK: Record<Experience, number> = { brandNew: 0, some: 1, experienced: 2 };
@@ -17,9 +18,8 @@ function rankForUser(experience: Experience) {
   };
 }
 
-export function swapCandidates(incumbent: SeedExercise, access: EquipmentAccess, experience: Experience, exercises: SeedExercise[]): SeedExercise[] {
-  const available = new Set(equipmentAccess[access]);
-  const usable = exercises.filter((candidate) => candidate.id !== incumbent.id && candidate.type === incumbent.type && available.has(candidate.equipment));
+export function swapCandidates(incumbent: SeedExercise, experience: Experience, exercises: SeedExercise[]): SeedExercise[] {
+  const usable = exercises.filter((candidate) => candidate.id !== incumbent.id && candidate.type === incumbent.type);
   const tiers = [
     (candidate: SeedExercise) => candidate.swapGroup === incumbent.swapGroup,
     (candidate: SeedExercise) => candidate.pattern === incumbent.pattern,

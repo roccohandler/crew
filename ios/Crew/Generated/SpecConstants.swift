@@ -250,8 +250,8 @@ enum SpecConstants {
     static let usualPostTimeSampleSize: Int = 14
 
     // MARK: onboarding
-    /// SPEC: Flow 1; 1B — three questions, the '1 of 3' whisper
-    static let onboardingQuestionCount: Int = 3
+    /// SPEC: Flow 1; 1B; A21.1 (owner-approved 2026-09-17) — two questions (days, experience), the '1 of 2' whisper; was 3 until the equipment question was removed
+    static let onboardingQuestionCount: Int = 2
     /// SPEC: 1B — selection haptic → 250 ms beat → next screen
     static let autoAdvanceDelayMs: Int = 250
     /// SPEC: 1B; S03 — seven circular toggles ≥ 56 pt
@@ -262,9 +262,9 @@ enum SpecConstants {
     static let organicHeroToHomeMedianSeconds: Int = 90
     /// SPEC: 1A; 1C — invited ≤ 60 s
     static let invitedHeroToHomeMedianSeconds: Int = 60
-    /// SPEC: 1C — hero, days-confirm, experience, equipment, auth
-    static let decisionsBeforeHomeOrganic: Int = 5
-    /// SPEC: 1C — invited 5
+    /// SPEC: 1C; A21.1 (owner-approved 2026-09-17) — hero, days-confirm, experience, auth; was 5 with the equipment question
+    static let decisionsBeforeHomeOrganic: Int = 4
+    /// SPEC: 1C; A21.1 GAP confirmed by the owner 2026-09-17 — hero, paste the code, days-confirm, experience, auth under the A21.3 code path (4 once universal links carry the token, W7)
     static let decisionsBeforeHomeInvited: Int = 5
 
     // MARK: interactionBudgets

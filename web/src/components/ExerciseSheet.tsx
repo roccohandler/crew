@@ -2,10 +2,11 @@
 // SPEC: A4 — the exercise sheet: every gesture has a button. Sets / Reps (or Minutes for a cardio block, A2) on 44 px
 // steppers bounded by the Generated constants, Swap exercise (3–5 candidates that do the same job, Flow 1 step 4), Move up /
 // Move down, Remove from {workout} (no "Are you sure?" — the editor offers Undo). The picker is shared by swap, add exercise
-// and add cardio. Web twin of ios ExerciseSheet + SwapSheet, as a <dialog>.
+// and add cardio. A21.1 (owner-approved 2026-09-17): the swap pool is the whole gym catalog — no equipment tier. Web twin of
+// ios ExerciseSheet + SwapSheet, as a <dialog>.
 import { useState } from "react";
 import { swapCandidates } from "@/lib/engine/swap-finder";
-import { accessFor, type DraftRow } from "@/lib/plan-draft";
+import type { DraftRow } from "@/lib/plan-draft";
 import { TimeUnits } from "@/lib/time-units";
 import { exercises as seedExercises, type SeedExercise } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -20,7 +21,7 @@ export function ExercisePicker({ title, candidates, onPick, onClose }: { title: 
           <span className="muted">{candidate.cueLine}</span>
         </button>
       ))}
-      {candidates.length === 0 ? <p className="muted">Nothing else does this job with your gear.</p> : null}
+      {candidates.length === 0 ? <p className="muted">Nothing else does this job.</p> : null}
       <button type="button" className="button button--text" onClick={onClose}>Keep it</button>
     </dialog>
   );
@@ -45,7 +46,7 @@ export const cardioMinutes = (row: DraftRow): number => Math.round((row.holdSeco
 interface SheetProps {
   row: DraftRow;
   workoutName: string;
-  rows: DraftRow[]; // the editable list, for the access tier and the move bounds
+  rows: DraftRow[]; // the editable list, for the move bounds
   onSets: (direction: number) => void;
   onReps: (direction: number) => void;
   onMinutes: (direction: number) => void;
@@ -75,7 +76,7 @@ export function ExerciseSheet({ row, workoutName, rows, onSets, onReps, onMinute
   const incumbent = seedExercises.find((candidate) => candidate.id === row.exerciseId);
   const index = rows.findIndex((candidate) => candidate.order === row.order);
   if (swapping) {
-    const candidates = incumbent === undefined ? [] : swapCandidates(incumbent, accessFor(rows), "experienced", seedExercises);
+    const candidates = incumbent === undefined ? [] : swapCandidates(incumbent, "experienced", seedExercises);
     return <ExercisePicker title={`Swap ${row.name}`} candidates={candidates} onPick={(replacement) => { onSwap(replacement); setSwapping(false); }} onClose={() => setSwapping(false)} />;
   }
   return (

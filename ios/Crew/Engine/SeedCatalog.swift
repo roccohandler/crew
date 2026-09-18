@@ -1,5 +1,7 @@
 // SPEC: Part IX seed data · 5.2 Generated/SeedData.swift (bundles the three seed JSONs) — decoded once here into the
-// plain values the engines take as a parameter (5.6.1 seed: SeedCatalog). WRITTEN — UNVERIFIED (needs Mac).
+// plain values the engines take as a parameter (5.6.1 seed: SeedCatalog). A21.1 (owner-approved 2026-09-17): every user
+// has full commercial gym access, so there is no equipment-access map — templates nest kind → experience and the
+// per-exercise equipment TAG is the only equipment fact. WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
@@ -32,7 +34,7 @@ struct SeedPlanTemplates: Codable, Equatable {
     let targets: [String: SeedTargets]
     let split: SeedSplit
     let workoutNames: [String: String]
-    let templates: [String: [String: [String: [String]]]]   // kind → experience → access → exercise ids
+    let templates: [String: [String: [String]]]   // kind → experience → exercise ids (A21.1: no equipment tier)
     let mobilityBlocks: [String: [String]]
 }
 
@@ -49,12 +51,10 @@ struct SeedCatalog {
     let exercises: [SeedExercise]
     let planTemplates: SeedPlanTemplates
     let achievements: [SeedAchievement]
-    let equipmentAccess: [String: [String]]
     let regionOfPattern: [String: String]
 
     private struct ExercisesFile: Codable {
         struct Enums: Codable {
-            let equipmentAccess: [String: [String]]
             let region: [String: String]
         }
         let enums: Enums
@@ -74,7 +74,7 @@ struct SeedCatalog {
         let exercisesFile = try decoder.decode(ExercisesFile.self, from: Data(SeedData.exercisesJSON.utf8))
         let templates = try decoder.decode(SeedPlanTemplates.self, from: Data(SeedData.planTemplatesJSON.utf8))
         let achievementsFile = try decoder.decode(AchievementsFile.self, from: Data(SeedData.achievementsJSON.utf8))
-        return SeedCatalog(exercises: exercisesFile.exercises, planTemplates: templates, achievements: achievementsFile.achievements, equipmentAccess: exercisesFile.enums.equipmentAccess, regionOfPattern: exercisesFile.enums.region)
+        return SeedCatalog(exercises: exercisesFile.exercises, planTemplates: templates, achievements: achievementsFile.achievements, regionOfPattern: exercisesFile.enums.region)
     }
 
     func exercise(_ id: String) -> SeedExercise? {

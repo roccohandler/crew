@@ -1,5 +1,6 @@
 // Renders the three seed JSONs as SeedData.swift (raw JSON bundled for Codable decoding) and seed.ts
-// (typed constants). SPEC: Part V 5.2 (SeedData.swift bundles the three seed JSONs · seed.ts) · Part IX seed data
+// (typed constants). SPEC: Part V 5.2 (SeedData.swift bundles the three seed JSONs · seed.ts) · Part IX seed data ·
+// A21.1 (owner-approved 2026-09-17: no equipment tiers — templates nest kind → experience; the equipment TAG stays)
 
 const swiftHeader = `// GENERATED FILE — DO NOT EDIT. Source: shared/seed/*.json · Generator: shared/scripts/generate.mjs
 // Re-run \`node shared/scripts/generate.mjs\`; \`node shared/scripts/check-drift.mjs\` fails CI when this file drifts.
@@ -30,7 +31,6 @@ export function renderSeedDataSwift(seeds) {
 
 const seedTypes = `export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility" | "cardio";
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
-export type EquipmentAccess = "fullGym" | "dumbbells" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
 export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
@@ -44,7 +44,7 @@ export interface SeedPlanTemplates {
   targets: Record<Experience, SeedTargets>;
   split: { fullBodyMaxTrainingDays: number; pplCycle: WorkoutKind[]; fullBodyCycle: WorkoutKind[] };
   workoutNames: Record<WorkoutKind, string>;
-  templates: Record<WorkoutKind, Record<Experience, Record<EquipmentAccess, string[]>>>;
+  templates: Record<WorkoutKind, Record<Experience, string[]>>; // A21.1: kind → experience → exercise ids (no equipment tier)
   mobilityBlocks: Record<WorkoutKind, string[]>;
 }
 export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }`;
@@ -53,7 +53,6 @@ export function renderSeedTs(seeds) {
   const { exercises, planTemplates, achievements } = seeds;
   return [
     tsHeader, "", seedTypes, "",
-    `export const equipmentAccess: Record<EquipmentAccess, Equipment[]> = ${JSON.stringify(exercises.enums.equipmentAccess, null, 2)};`,
     `export const regionOfPattern: Record<Pattern, Region> = ${JSON.stringify(exercises.enums.region, null, 2)};`,
     `export const exercises: SeedExercise[] = ${JSON.stringify(exercises.exercises, null, 2)};`,
     `export const planTemplates: SeedPlanTemplates = ${JSON.stringify({ targets: planTemplates.targets, split: planTemplates.split, workoutNames: planTemplates.workoutNames, templates: planTemplates.templates, mobilityBlocks: planTemplates.mobilityBlocks }, null, 2)};`,

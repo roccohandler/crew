@@ -2,6 +2,7 @@
 // that keeps invalid states unreachable (1…planMaxSetsPerExercise sets, 1…planTargetRepsMax reps, cardioMinutesMin…Max
 // minutes, ≤ planMaxExercisesPerDay rows, mobility always closes the workout), dirty until saved, one-step undo after a
 // remove. Rows are addressed by `order` (unique inside a workout), never by exercise id. Plain struct (C14).
+// A21.1 (owner-approved 2026-09-17): no equipment tier is inferred from the gear any more — the whole gym catalog is the pool.
 // WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
@@ -34,13 +35,6 @@ struct WorkoutDraft: Equatable {
     var isFull: Bool { exercises.count >= SpecConstants.planMaxExercisesPerDay }
 
     func row(order: Int) -> PlanDraftExercise? { exercises.first { $0.order == order } }
-
-    // The access tier a workout was built for is read off its gear — the plan stores no answers (Part IX Plan)
-    var access: String {
-        let gear = Set(exercises.map(\.equipment))
-        if !gear.isDisjoint(with: ["barbell", "machine", "cable"]) { return "fullGym" }
-        return gear.contains("dumbbell") ? "dumbbells" : "bodyweight"
-    }
 
     // SPEC: A4 — header `{n} exercises + mobility · ~{minutes} min`; ~ = strength sets × restTimerDefaultSeconds + hold
     // seconds (per-side holds run twice) + cardio seconds, rounded to the app's minute step
@@ -147,13 +141,13 @@ struct WorkoutDraft: Equatable {
         guard let row = row(order: order), let incumbent = seed.exercise(row.exerciseId) else { return [] }
         let present = Set(exercises.map(\.exerciseId))
         if row.type == "cardio" { return seed.exercises.filter { $0.type == "cardio" && $0.id != row.exerciseId } }
-        return SwapFinder.swapCandidates(for: incumbent, access: access, experience: "experienced", seed: seed).filter { !present.contains($0.id) }
+        return SwapFinder.swapCandidates(for: incumbent, experience: "experienced", seed: seed).filter { !present.contains($0.id) }
     }
 
+    // SPEC: A21.1 — every strength exercise in the gym catalog that is not already in the workout
     func addCandidates(seed: SeedCatalog) -> [SeedExercise] {
         let present = Set(exercises.map(\.exerciseId))
-        let allowed = Set(seed.equipmentAccess[access] ?? [])
-        return seed.exercises.filter { $0.type == "strength" && allowed.contains($0.equipment) && !present.contains($0.id) }
+        return seed.exercises.filter { $0.type == "strength" && !present.contains($0.id) }
     }
 
     func cardioCandidates(seed: SeedCatalog) -> [SeedExercise] {

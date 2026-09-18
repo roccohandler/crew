@@ -22,9 +22,8 @@ final class OfflineSessionTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 15))
         for unselected in [1, 3, 5, 6] { app.dayToggle(unselected).tap() } // Mon/Wed/Fri are pre-selected; now all seven
         app.buttons["Continue"].tap()
-        app.buttons["Brand new"].tap()
-        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 15))
-        app.buttons["Full gym"].tap()
+        XCTAssertTrue(app.staticTexts["How experienced are you?"].waitForExistence(timeout: 15))
+        app.buttons["Brand new"].tap() // A21.1: the last question — this answer builds the plan
         XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 15))
         app.buttons["Looks good"].tap()
 

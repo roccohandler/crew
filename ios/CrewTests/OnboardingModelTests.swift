@@ -1,7 +1,7 @@
 // SPEC: T021 + T022 (Verify: ios tests) · S03 (Mon/Wed/Fri pre-selected; Continue needs ≥1 day; auto-advance; the neutral
-// whisper) · S04 (Swap in two taps, keyed by workout kind — A1) · A1 (the reveal is this week's projection: seven rows,
-// rest days named, every planned day carries a workout of the cycle) · S05 (the draft survives abandon and resumes at the
-// save screen). WRITTEN — UNVERIFIED (needs Mac).
+// whisper; A21.1: two questions — the experience answer builds the plan and lands on the reveal) · S04 (Swap in two taps,
+// keyed by workout kind — A1) · A1 (the reveal is this week's projection: seven rows, rest days named, every planned day
+// carries a workout of the cycle) · S05 (the draft survives abandon and resumes at the save screen). WRITTEN — UNVERIFIED.
 
 import AuthenticationServices
 import XCTest
@@ -27,12 +27,13 @@ final class OnboardingModelTests: XCTestCase {
         XCTAssertEqual(model.encouragementLine, "2 days a week — solid.") // A1: no full-body line at two days
     }
 
+    // SPEC: A21.1 — two questions: days, then experience; the experience answer builds the plan and the step is the reveal
     func testAnswersBuildAPlanAndSwapReplacesOneExercise() {
         let model = OnboardingModel(draftStore: temporaryStore())
         model.continueFromDays()
+        XCTAssertEqual(model.step, .experience)
+        XCTAssertEqual(OnboardingQuestion.experience.rawValue, SpecConstants.onboardingQuestionCount) // the last question's whisper reads "2 of 2"
         model.choose(experience: "brandNew")
-        XCTAssertEqual(model.step, .equipment)
-        model.choose(equipment: "fullGym")
         XCTAssertEqual(model.step, .reveal)
         let draft = try! XCTUnwrap(model.draft)
         XCTAssertEqual(draft.trainingWeekdays, SpecConstants.defaultTrainingWeekdays)
@@ -56,7 +57,6 @@ final class OnboardingModelTests: XCTestCase {
         for day in Array(model.selectedDays) { model.toggleDay(day) }
         model.toggleDay(6)
         model.choose(experience: "some")
-        model.choose(equipment: "bodyweight")
         XCTAssertEqual(model.draft?.workouts.map(\.kind), ["push", "pull", "legs"])
         XCTAssertEqual(model.weekRows.map(\.weekday), Array(1...TimeUnits.daysPerWeek))
         for row in model.weekRows where row.weekday != 6 { XCTAssertTrue(row.title.hasSuffix(" · Rest"), row.title) }
@@ -102,7 +102,6 @@ final class OnboardingModelTests: XCTestCase {
         let store = temporaryStore()
         let model = OnboardingModel(draftStore: store)
         model.choose(experience: "some")
-        model.choose(equipment: "dumbbells")
         model.acceptPlan()
         let resumed = OnboardingModel(draftStore: store)
         XCTAssertEqual(resumed.step, .save)

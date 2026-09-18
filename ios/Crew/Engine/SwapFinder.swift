@@ -1,6 +1,8 @@
 // SPEC: Flow 1 step 4 (3–5 alternatives that do the same job) · 5.6.1 swapCandidates (same pattern, ≤5, never incumbent)
 // · 8.3 · exercises.json swapRule (tiers swapGroup → pattern → region, widening only while fewer than swapCandidatesMin
-// exist; same-or-lower level first). Twin of swap-finder.ts. WRITTEN — UNVERIFIED (needs Mac).
+// exist; same-or-lower level first) · A21.1 (owner-approved 2026-09-17): every user has full commercial gym access, so the
+// pool is every exercise of the same type — there is no equipment tier to filter by. Twin of swap-finder.ts.
+// WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
@@ -8,9 +10,8 @@ enum SwapFinder {
     private static let levels = ["brandNew", "some", "experienced"]
     private static var levelRank: [String: Int] { Dictionary(uniqueKeysWithValues: levels.enumerated().map { ($1, $0) }) }
 
-    static func swapCandidates(for incumbent: SeedExercise, access: String, experience: String, seed: SeedCatalog) -> [SeedExercise] {
-        let available = Set(seed.equipmentAccess[access] ?? [])
-        let usable = seed.exercises.filter { $0.id != incumbent.id && $0.type == incumbent.type && available.contains($0.equipment) }
+    static func swapCandidates(for incumbent: SeedExercise, experience: String, seed: SeedCatalog) -> [SeedExercise] {
+        let usable = seed.exercises.filter { $0.id != incumbent.id && $0.type == incumbent.type }
         let tiers: [(SeedExercise) -> Bool] = [
             { $0.swapGroup == incumbent.swapGroup },
             { $0.pattern == incumbent.pattern },

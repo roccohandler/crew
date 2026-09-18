@@ -4,7 +4,6 @@
 
 export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "shoulderIsolation" | "triceps" | "horizontalPull" | "verticalPull" | "rearDelt" | "biceps" | "squat" | "hinge" | "lunge" | "calf" | "core" | "mobility" | "cardio";
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
-export type EquipmentAccess = "fullGym" | "dumbbells" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
 export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
@@ -18,27 +17,11 @@ export interface SeedPlanTemplates {
   targets: Record<Experience, SeedTargets>;
   split: { fullBodyMaxTrainingDays: number; pplCycle: WorkoutKind[]; fullBodyCycle: WorkoutKind[] };
   workoutNames: Record<WorkoutKind, string>;
-  templates: Record<WorkoutKind, Record<Experience, Record<EquipmentAccess, string[]>>>;
+  templates: Record<WorkoutKind, Record<Experience, string[]>>; // A21.1: kind → experience → exercise ids (no equipment tier)
   mobilityBlocks: Record<WorkoutKind, string[]>;
 }
 export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }
 
-export const equipmentAccess: Record<EquipmentAccess, Equipment[]> = {
-  "fullGym": [
-    "barbell",
-    "dumbbell",
-    "machine",
-    "cable",
-    "bodyweight"
-  ],
-  "dumbbells": [
-    "dumbbell",
-    "bodyweight"
-  ],
-  "bodyweight": [
-    "bodyweight"
-  ]
-};
 export const regionOfPattern: Record<Pattern, Region> = {
   "horizontalPush": "push",
   "verticalPush": "push",
@@ -116,7 +99,7 @@ export const exercises: SeedExercise[] = [
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
-    "cueLine": "Hands on a bench or counter — the higher the surface, the easier the push."
+    "cueLine": "Hands on a bench — the higher the bench, the easier the push."
   },
   {
     "id": "decline-push-up",
@@ -396,7 +379,7 @@ export const exercises: SeedExercise[] = [
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
-    "cueLine": "Hang under a bar or sturdy table, body straight, pull your chest to the edge."
+    "cueLine": "Hang under a bar racked at hip height, body straight, pull your chest to the bar."
   },
   {
     "id": "bent-over-dumbbell-row",
@@ -410,13 +393,13 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "doorframe-row",
-    "name": "Doorframe Row",
+    "name": "Suspension Trainer Row",
     "pattern": "horizontalPull",
     "swapGroup": "row",
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
-    "cueLine": "Hold both sides of a doorframe, lean back with straight arms, pull your chest to the frame."
+    "cueLine": "Handles at chest height, lean back with straight arms, pull your chest to your hands."
   },
   {
     "id": "pull-up",
@@ -596,7 +579,7 @@ export const exercises: SeedExercise[] = [
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
-    "cueLine": "Underhand grip on a bar or table edge, pull your chest up, squeeze the biceps."
+    "cueLine": "Underhand grip on a bar racked at hip height, pull your chest up, squeeze the biceps."
   },
   {
     "id": "barbell-back-squat",
@@ -920,7 +903,7 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "couch-stretch",
-    "name": "Couch Stretch",
+    "name": "Wall Hip Flexor Stretch",
     "pattern": "mobility",
     "swapGroup": "hipFlexorStretch",
     "equipment": "bodyweight",
@@ -928,7 +911,7 @@ export const exercises: SeedExercise[] = [
     "type": "mobility",
     "holdSeconds": 90,
     "perSide": true,
-    "cueLine": "Back knee against a wall or couch, front foot forward, squeeze the glute and stay tall."
+    "cueLine": "Kneel with the back shin up the wall, front foot forward, squeeze the glute and stay tall."
   },
   {
     "id": "thoracic-opener",
@@ -940,11 +923,11 @@ export const exercises: SeedExercise[] = [
     "type": "mobility",
     "holdSeconds": 90,
     "perSide": false,
-    "cueLine": "Lie with a foam roller or rolled towel across the upper back, arms overhead, breathe into it."
+    "cueLine": "Lie with a foam roller across the upper back, arms overhead, breathe into it."
   },
   {
     "id": "doorway-pec-stretch",
-    "name": "Doorway Pec Stretch",
+    "name": "Rack Pec Stretch",
     "pattern": "mobility",
     "swapGroup": "chestOpener",
     "equipment": "bodyweight",
@@ -952,7 +935,7 @@ export const exercises: SeedExercise[] = [
     "type": "mobility",
     "holdSeconds": 60,
     "perSide": true,
-    "cueLine": "Forearm on the doorframe at shoulder height, step through until the chest opens."
+    "cueLine": "Forearm on a rack upright at shoulder height, step through until the chest opens."
   },
   {
     "id": "childs-pose",
@@ -988,7 +971,7 @@ export const exercises: SeedExercise[] = [
     "type": "mobility",
     "holdSeconds": 45,
     "perSide": true,
-    "cueLine": "On your back, one leg up with a strap or towel, keep the knee mostly straight."
+    "cueLine": "On your back, one leg up with a band or strap, keep the knee mostly straight."
   },
   {
     "id": "kneeling-hip-flexor-stretch",
@@ -1235,359 +1218,119 @@ export const planTemplates: SeedPlanTemplates = {
   },
   "templates": {
     "push": {
-      "brandNew": {
-        "fullGym": [
-          "machine-chest-press",
-          "machine-shoulder-press",
-          "dumbbell-lateral-raise",
-          "cable-triceps-pushdown"
-        ],
-        "dumbbells": [
-          "dumbbell-floor-press",
-          "dumbbell-shoulder-press",
-          "dumbbell-lateral-raise",
-          "bench-dip"
-        ],
-        "bodyweight": [
-          "incline-push-up",
-          "push-up",
-          "close-grip-push-up",
-          "bench-dip"
-        ]
-      },
-      "some": {
-        "fullGym": [
-          "dumbbell-bench-press",
-          "dumbbell-shoulder-press",
-          "cable-chest-fly",
-          "cable-lateral-raise",
-          "cable-triceps-pushdown"
-        ],
-        "dumbbells": [
-          "dumbbell-bench-press",
-          "dumbbell-shoulder-press",
-          "dumbbell-chest-fly",
-          "dumbbell-lateral-raise",
-          "overhead-dumbbell-triceps-extension"
-        ],
-        "bodyweight": [
-          "push-up",
-          "pike-push-up",
-          "decline-push-up",
-          "close-grip-push-up",
-          "bench-dip"
-        ]
-      },
-      "experienced": {
-        "fullGym": [
-          "barbell-bench-press",
-          "barbell-overhead-press",
-          "incline-dumbbell-press",
-          "cable-chest-fly",
-          "dumbbell-lateral-raise",
-          "skull-crusher"
-        ],
-        "dumbbells": [
-          "dumbbell-bench-press",
-          "dumbbell-shoulder-press",
-          "incline-dumbbell-press",
-          "dumbbell-chest-fly",
-          "dumbbell-lateral-raise",
-          "overhead-dumbbell-triceps-extension"
-        ],
-        "bodyweight": [
-          "dip",
-          "push-up",
-          "pike-push-up",
-          "decline-push-up",
-          "close-grip-push-up",
-          "bench-dip"
-        ]
-      }
+      "brandNew": [
+        "machine-chest-press",
+        "machine-shoulder-press",
+        "dumbbell-lateral-raise",
+        "cable-triceps-pushdown"
+      ],
+      "some": [
+        "dumbbell-bench-press",
+        "dumbbell-shoulder-press",
+        "cable-chest-fly",
+        "cable-lateral-raise",
+        "cable-triceps-pushdown"
+      ],
+      "experienced": [
+        "barbell-bench-press",
+        "barbell-overhead-press",
+        "incline-dumbbell-press",
+        "cable-chest-fly",
+        "dumbbell-lateral-raise",
+        "skull-crusher"
+      ]
     },
     "pull": {
-      "brandNew": {
-        "fullGym": [
-          "lat-pulldown",
-          "seated-cable-row",
-          "cable-face-pull",
-          "dumbbell-curl"
-        ],
-        "dumbbells": [
-          "one-arm-dumbbell-row",
-          "dumbbell-rear-delt-fly",
-          "dumbbell-curl",
-          "hammer-curl"
-        ],
-        "bodyweight": [
-          "inverted-row",
-          "doorframe-row",
-          "prone-y-raise",
-          "underhand-inverted-row"
-        ]
-      },
-      "some": {
-        "fullGym": [
-          "lat-pulldown",
-          "seated-cable-row",
-          "chest-supported-dumbbell-row",
-          "cable-face-pull",
-          "barbell-curl"
-        ],
-        "dumbbells": [
-          "one-arm-dumbbell-row",
-          "chest-supported-dumbbell-row",
-          "dumbbell-rear-delt-fly",
-          "dumbbell-curl",
-          "hammer-curl"
-        ],
-        "bodyweight": [
-          "inverted-row",
-          "negative-pull-up",
-          "doorframe-row",
-          "prone-y-raise",
-          "underhand-inverted-row"
-        ]
-      },
-      "experienced": {
-        "fullGym": [
-          "pull-up",
-          "barbell-row",
-          "seated-cable-row",
-          "lat-pulldown",
-          "cable-face-pull",
-          "barbell-curl"
-        ],
-        "dumbbells": [
-          "one-arm-dumbbell-row",
-          "chest-supported-dumbbell-row",
-          "dumbbell-pullover",
-          "dumbbell-rear-delt-fly",
-          "dumbbell-curl",
-          "hammer-curl"
-        ],
-        "bodyweight": [
-          "pull-up",
-          "chin-up",
-          "inverted-row",
-          "doorframe-row",
-          "prone-y-raise",
-          "underhand-inverted-row"
-        ]
-      }
+      "brandNew": [
+        "lat-pulldown",
+        "seated-cable-row",
+        "cable-face-pull",
+        "dumbbell-curl"
+      ],
+      "some": [
+        "lat-pulldown",
+        "seated-cable-row",
+        "chest-supported-dumbbell-row",
+        "cable-face-pull",
+        "barbell-curl"
+      ],
+      "experienced": [
+        "pull-up",
+        "barbell-row",
+        "seated-cable-row",
+        "lat-pulldown",
+        "cable-face-pull",
+        "barbell-curl"
+      ]
     },
     "legs": {
-      "brandNew": {
-        "fullGym": [
-          "leg-press",
-          "lying-leg-curl",
-          "leg-extension",
-          "machine-standing-calf-raise"
-        ],
-        "dumbbells": [
-          "goblet-squat",
-          "dumbbell-romanian-deadlift",
-          "reverse-lunge",
-          "dumbbell-calf-raise"
-        ],
-        "bodyweight": [
-          "bodyweight-squat",
-          "glute-bridge",
-          "reverse-lunge",
-          "single-leg-calf-raise"
-        ]
-      },
-      "some": {
-        "fullGym": [
-          "leg-press",
-          "dumbbell-romanian-deadlift",
-          "dumbbell-walking-lunge",
-          "lying-leg-curl",
-          "machine-standing-calf-raise"
-        ],
-        "dumbbells": [
-          "goblet-squat",
-          "dumbbell-romanian-deadlift",
-          "bulgarian-split-squat",
-          "single-leg-glute-bridge",
-          "dumbbell-calf-raise"
-        ],
-        "bodyweight": [
-          "bodyweight-squat",
-          "single-leg-glute-bridge",
-          "reverse-lunge",
-          "step-up",
-          "single-leg-calf-raise"
-        ]
-      },
-      "experienced": {
-        "fullGym": [
-          "barbell-back-squat",
-          "barbell-romanian-deadlift",
-          "leg-press",
-          "dumbbell-walking-lunge",
-          "lying-leg-curl",
-          "machine-standing-calf-raise"
-        ],
-        "dumbbells": [
-          "dumbbell-squat",
-          "dumbbell-romanian-deadlift",
-          "bulgarian-split-squat",
-          "dumbbell-walking-lunge",
-          "single-leg-glute-bridge",
-          "dumbbell-calf-raise"
-        ],
-        "bodyweight": [
-          "jump-squat",
-          "nordic-curl",
-          "step-up",
-          "single-leg-glute-bridge",
-          "reverse-lunge",
-          "single-leg-calf-raise"
-        ]
-      }
+      "brandNew": [
+        "leg-press",
+        "lying-leg-curl",
+        "leg-extension",
+        "machine-standing-calf-raise"
+      ],
+      "some": [
+        "leg-press",
+        "dumbbell-romanian-deadlift",
+        "dumbbell-walking-lunge",
+        "lying-leg-curl",
+        "machine-standing-calf-raise"
+      ],
+      "experienced": [
+        "barbell-back-squat",
+        "barbell-romanian-deadlift",
+        "leg-press",
+        "dumbbell-walking-lunge",
+        "lying-leg-curl",
+        "machine-standing-calf-raise"
+      ]
     },
     "fullBodyA": {
-      "brandNew": {
-        "fullGym": [
-          "leg-press",
-          "machine-chest-press",
-          "seated-cable-row",
-          "lying-leg-curl"
-        ],
-        "dumbbells": [
-          "goblet-squat",
-          "dumbbell-floor-press",
-          "one-arm-dumbbell-row",
-          "dumbbell-romanian-deadlift"
-        ],
-        "bodyweight": [
-          "bodyweight-squat",
-          "incline-push-up",
-          "doorframe-row",
-          "glute-bridge"
-        ]
-      },
-      "some": {
-        "fullGym": [
-          "leg-press",
-          "dumbbell-bench-press",
-          "seated-cable-row",
-          "dumbbell-romanian-deadlift",
-          "cable-face-pull"
-        ],
-        "dumbbells": [
-          "goblet-squat",
-          "dumbbell-bench-press",
-          "one-arm-dumbbell-row",
-          "dumbbell-romanian-deadlift",
-          "dumbbell-lateral-raise"
-        ],
-        "bodyweight": [
-          "bodyweight-squat",
-          "push-up",
-          "inverted-row",
-          "single-leg-glute-bridge",
-          "prone-y-raise"
-        ]
-      },
-      "experienced": {
-        "fullGym": [
-          "barbell-back-squat",
-          "barbell-bench-press",
-          "barbell-row",
-          "barbell-romanian-deadlift",
-          "cable-face-pull",
-          "cable-triceps-pushdown"
-        ],
-        "dumbbells": [
-          "dumbbell-squat",
-          "dumbbell-bench-press",
-          "chest-supported-dumbbell-row",
-          "dumbbell-romanian-deadlift",
-          "dumbbell-lateral-raise",
-          "dumbbell-curl"
-        ],
-        "bodyweight": [
-          "jump-squat",
-          "dip",
-          "pull-up",
-          "nordic-curl",
-          "prone-y-raise",
-          "close-grip-push-up"
-        ]
-      }
+      "brandNew": [
+        "leg-press",
+        "machine-chest-press",
+        "seated-cable-row",
+        "lying-leg-curl"
+      ],
+      "some": [
+        "leg-press",
+        "dumbbell-bench-press",
+        "seated-cable-row",
+        "dumbbell-romanian-deadlift",
+        "cable-face-pull"
+      ],
+      "experienced": [
+        "barbell-back-squat",
+        "barbell-bench-press",
+        "barbell-row",
+        "barbell-romanian-deadlift",
+        "cable-face-pull",
+        "cable-triceps-pushdown"
+      ]
     },
     "fullBodyB": {
-      "brandNew": {
-        "fullGym": [
-          "reverse-lunge",
-          "machine-shoulder-press",
-          "lat-pulldown",
-          "machine-standing-calf-raise"
-        ],
-        "dumbbells": [
-          "reverse-lunge",
-          "dumbbell-shoulder-press",
-          "dumbbell-rear-delt-fly",
-          "dumbbell-curl"
-        ],
-        "bodyweight": [
-          "reverse-lunge",
-          "bench-dip",
-          "inverted-row",
-          "dead-bug"
-        ]
-      },
-      "some": {
-        "fullGym": [
-          "dumbbell-walking-lunge",
-          "dumbbell-shoulder-press",
-          "lat-pulldown",
-          "lying-leg-curl",
-          "cable-crunch"
-        ],
-        "dumbbells": [
-          "bulgarian-split-squat",
-          "dumbbell-shoulder-press",
-          "chest-supported-dumbbell-row",
-          "dumbbell-chest-fly",
-          "dead-bug"
-        ],
-        "bodyweight": [
-          "step-up",
-          "pike-push-up",
-          "underhand-inverted-row",
-          "single-leg-calf-raise",
-          "dead-bug"
-        ]
-      },
-      "experienced": {
-        "fullGym": [
-          "barbell-deadlift",
-          "barbell-overhead-press",
-          "pull-up",
-          "dumbbell-walking-lunge",
-          "lying-leg-curl",
-          "hanging-knee-raise"
-        ],
-        "dumbbells": [
-          "bulgarian-split-squat",
-          "dumbbell-shoulder-press",
-          "dumbbell-pullover",
-          "one-arm-dumbbell-row",
-          "dumbbell-calf-raise",
-          "dumbbell-russian-twist"
-        ],
-        "bodyweight": [
-          "step-up",
-          "pike-push-up",
-          "chin-up",
-          "single-leg-glute-bridge",
-          "single-leg-calf-raise",
-          "hanging-knee-raise"
-        ]
-      }
+      "brandNew": [
+        "reverse-lunge",
+        "machine-shoulder-press",
+        "lat-pulldown",
+        "machine-standing-calf-raise"
+      ],
+      "some": [
+        "dumbbell-walking-lunge",
+        "dumbbell-shoulder-press",
+        "lat-pulldown",
+        "lying-leg-curl",
+        "cable-crunch"
+      ],
+      "experienced": [
+        "barbell-deadlift",
+        "barbell-overhead-press",
+        "pull-up",
+        "dumbbell-walking-lunge",
+        "lying-leg-curl",
+        "hanging-knee-raise"
+      ]
     }
   },
   "mobilityBlocks": {

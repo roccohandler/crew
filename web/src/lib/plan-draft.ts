@@ -2,11 +2,12 @@
 // screens (web twin of ios PlanModel's draft edits): swap keeps targets; sets/reps bounded by the Generated constants (G3, the
 // reps ceiling); reorder, remove + one-step restore within the exercise list; add strength (targets copied from the workout's
 // own rows) and add cardio (A2: one block, after the strength rows); the mobility block always closes the workout. Nothing here
-// touches the saved plan — Save does, forward-only.
+// touches the saved plan — Save does, forward-only. A21.1 (owner-approved 2026-09-17): no equipment tier is read off the gear —
+// the whole gym catalog is the pool for add and swap.
 import type { ExerciseTemplateDoc, WorkoutTemplateDoc } from "@/lib/documents";
 import { cardioRow } from "@/lib/engine/plan-generator";
 import { TimeUnits } from "@/lib/time-units";
-import { equipmentAccess, exercises as seedExercises, planTemplates, type EquipmentAccess, type SeedExercise } from "@/generated/seed";
+import { exercises as seedExercises, planTemplates, type SeedExercise } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
 
 export type DraftRow = ExerciseTemplateDoc;
@@ -32,13 +33,6 @@ function rebuilt(workout: DraftWorkout, editable: DraftRow[]): DraftWorkout {
 
 function patchRow(workout: DraftWorkout, order: number, patch: (row: DraftRow) => DraftRow): DraftWorkout {
   return { ...workout, exercises: workout.exercises.map((row) => (row.order === order ? patch(row) : row)) };
-}
-
-// The access tier is read off the gear in the workout (the plan carries no answers), like the session swap does
-export function accessFor(rows: { equipment: string }[]): EquipmentAccess {
-  const gear = new Set(rows.map((row) => row.equipment));
-  if (gear.has("barbell") || gear.has("machine") || gear.has("cable")) return "fullGym";
-  return gear.has("dumbbell") ? "dumbbells" : "bodyweight";
 }
 
 // SPEC: Flow 1 step 4 — a swap keeps the targets (sets × reps, hold seconds); only the exercise identity changes
@@ -107,11 +101,10 @@ export function addCardio(workout: DraftWorkout, exercise: SeedExercise): DraftW
   return rebuilt(workout, [...rows, cardioRow(seed, exercise.id, rows.length)]);
 }
 
-// Every strength exercise the workout's gear tier allows, not already in the workout, by name
+// SPEC: A21.1 — every strength exercise in the gym catalog not already in the workout, by name
 export function addCandidates(workout: DraftWorkout): SeedExercise[] {
-  const allowed = new Set<string>(equipmentAccess[accessFor(workout.exercises)]);
   const present = new Set(workout.exercises.map((row) => row.exerciseId));
-  return seedExercises.filter((exercise) => exercise.type === "strength" && allowed.has(exercise.equipment) && !present.has(exercise.id)).sort((left, right) => left.name.localeCompare(right.name));
+  return seedExercises.filter((exercise) => exercise.type === "strength" && !present.has(exercise.id)).sort((left, right) => left.name.localeCompare(right.name));
 }
 
 // SPEC: A2 — the nine seeded activities

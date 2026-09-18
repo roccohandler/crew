@@ -14,7 +14,8 @@ export async function fromFreshIp(page: Page): Promise<string> {
   return address; // API calls made outside the page (page.request) pass it as a header themselves
 }
 
-// Hero → three questions → reveal → email save → Home (Flow 1; ≤ 5 decisions before Home)
+// Hero → two questions → reveal → email save → Home (Flow 1; A21.1: 4 decisions before Home — hero, days-confirm, experience,
+// auth; the equipment question is gone because every user has full commercial gym access)
 export async function buildWeekAndSave(page: Page, options: { invite?: string; label?: string } = {}): Promise<string> {
   const email = `${unique(options.label ?? "journey")}@example.com`;
   await fromFreshIp(page);
@@ -22,10 +23,11 @@ export async function buildWeekAndSave(page: Page, options: { invite?: string; l
   await expect(page.getByRole("heading", { name: "One plan. Every week. Your crew sees you show up." })).toBeVisible();
   await page.getByRole("link", { name: "Build my week" }).click();
   await expect(page.getByText("3 days a week — solid.")).toBeVisible();
+  await expect(page.getByText("1 of 2")).toBeVisible(); // A21.1: the whisper counts two questions
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Brand new" }).click();
-  await expect(page.getByRole("heading", { name: "What do you have access to?" })).toBeVisible();
-  await page.getByRole("button", { name: "Full gym" }).click();
+  await expect(page.getByRole("heading", { name: "How experienced are you?" })).toBeVisible();
+  await expect(page.getByText("2 of 2")).toBeVisible();
+  await page.getByRole("button", { name: "Brand new" }).click(); // the last question: this answer builds the plan
   await expect(page.getByRole("heading", { name: "Your week, built." })).toBeVisible();
   await expect(page.getByText("Tap any exercise to swap it.")).toBeVisible();
   await page.getByRole("button", { name: "Looks good" }).click();

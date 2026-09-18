@@ -2,7 +2,8 @@
 // the same job). "Just today" rewrites this session's snapshot only (running sessions are snapshots); "Update my plan" also
 // replaces the exercise in the plan's workout of the same KIND (A1: workouts rotate, a weekday names nothing), forward-only
 // (Flow 8), through PlanLocal + a putPlan op. Plain helpers of the Session feature (5.6.6; the SessionModel map names no swap —
-// E7 does). Twin of web SessionSwap.tsx. WRITTEN — UNVERIFIED (needs Mac).
+// E7 does). A21.1 (owner-approved 2026-09-17): no equipment tier is read off the session's gear — the whole gym catalog is the
+// pool. Twin of web SessionSwap.tsx. WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
@@ -12,16 +13,9 @@ enum SwapScope {
 
 @MainActor
 enum SessionSwap {
-    // The access tier is read off the gear in the session (the snapshot carries no answers), like the plan editor does
-    static func access(for exercises: [LocalSessionExercise]) -> String {
-        let gear = Set(exercises.map(\.equipment))
-        if !gear.isDisjoint(with: ["barbell", "machine", "cable"]) { return "fullGym" }
-        return gear.contains("dumbbell") ? "dumbbells" : "bodyweight"
-    }
-
     static func candidates(for exercise: LocalSessionExercise, in session: LocalSession, seed: SeedCatalog = .shared) -> [SeedExercise] {
         guard let incumbent = seed.exercise(exercise.exerciseId) else { return [] }
-        return SwapFinder.swapCandidates(for: incumbent, access: access(for: session.exercises), experience: "experienced", seed: seed)
+        return SwapFinder.swapCandidates(for: incumbent, experience: "experienced", seed: seed)
     }
 
     static func swap(_ exercise: LocalSessionExercise, in session: LocalSession, with replacement: SeedExercise, scope: SwapScope, store: Store, now: Date = Date()) throws {

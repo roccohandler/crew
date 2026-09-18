@@ -2,9 +2,10 @@
 // BLOCK closing each workout) · A1 (owner-directed 2026-09-08: a plan is trainingWeekdays plus an ORDERED list of
 // workouts — Push day · Pull day · Leg day at every frequency 1–7; Full-Body A/B is no longer generated, the seed keeps
 // its templates for legacy plans) · A2 (cardio is a third row type, duration-based like a hold) · 5.6.1
-// generatePlan(days, exp, equip, seed) → PlanDraft · shared/seed/plan-templates.json (targets, split, templates,
-// mobility blocks). Twin: ios/Crew/Engine/PlanGenerator.swift. Pure; the seed is a parameter.
-import type { EquipmentAccess, Experience, SeedExercise, SeedPlanTemplates, WorkoutKind } from "@/generated/seed";
+// generatePlan(days, exp, seed) → PlanDraft — A21.1 (owner-approved 2026-09-17) dropped the equip parameter: every user
+// trains in a full gym, so the templates nest kind → experience · shared/seed/plan-templates.json (targets, split,
+// templates, mobility blocks). Twin: ios/Crew/Engine/PlanGenerator.swift. Pure; the seed is a parameter.
+import type { Experience, SeedExercise, SeedPlanTemplates, WorkoutKind } from "@/generated/seed";
 
 export interface SeedCatalog {
   exercises: SeedExercise[];
@@ -63,9 +64,10 @@ export function cardioRow(seed: SeedCatalog, id: string, order: number): PlanDra
   return { exerciseId: exercise.id, name: exercise.name, pattern: exercise.pattern, equipment: exercise.equipment, type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: exercise.holdSeconds ?? 0, order };
 }
 
-export function workoutFor(kind: WorkoutKind, experience: Experience, access: EquipmentAccess, seed: SeedCatalog): PlanDraftWorkout {
+// SPEC: A21.1 — one list per kind × experience; the whole gym is available, so nothing filters by equipment
+export function workoutFor(kind: WorkoutKind, experience: Experience, seed: SeedCatalog): PlanDraftWorkout {
   const templates = seed.planTemplates;
-  const ids = templates.templates[kind][experience][access];
+  const ids = templates.templates[kind][experience];
   const exercises = ids.map((id, index) => strengthRow(seed, id, experience, index));
   const holds = templates.mobilityBlocks[kind].map((id, index) => mobilityRow(seed, id, exercises.length + index));
   return { name: templates.workoutNames[kind], kind, exercises: [...exercises, ...holds] };
@@ -73,8 +75,8 @@ export function workoutFor(kind: WorkoutKind, experience: Experience, access: Eq
 
 // SPEC: A1 — every generated plan is the pplCycle in stored order (three workouts, at every day count); the days are
 // kept sorted and unique. Which workout lands on which day is the rotation's job (plan-rotation.ts), never the plan's.
-export function generatePlan(days: number[], experience: Experience, access: EquipmentAccess, seed: SeedCatalog): PlanDraft {
+export function generatePlan(days: number[], experience: Experience, seed: SeedCatalog): PlanDraft {
   const trainingWeekdays = [...new Set(days)].sort((left, right) => left - right);
-  const workouts = seed.planTemplates.split.pplCycle.map((kind) => workoutFor(kind, experience, access, seed));
+  const workouts = seed.planTemplates.split.pplCycle.map((kind) => workoutFor(kind, experience, seed));
   return { trainingWeekdays, workouts };
 }

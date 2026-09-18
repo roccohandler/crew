@@ -30,10 +30,10 @@ final class Journey1_NewUserTests: XCTestCase {
         for unselected in [1, 3, 5, 6] { app.dayToggle(unselected).tap() }
         app.buttons["Continue"].tap()
 
-        // single-selects auto-advance
+        // single-selects auto-advance; A21.1: two questions — the experience answer is the last one and builds the plan
+        XCTAssertTrue(app.staticTexts["How experienced are you?"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["2 of 2"].exists, "the whisper counts two questions (A21.1)")
         app.buttons["Brand new"].tap()
-        XCTAssertTrue(app.staticTexts["What do you have access to?"].waitForExistence(timeout: 15))
-        app.buttons["Full gym"].tap()
 
         // S04 reveal
         XCTAssertTrue(app.staticTexts["Your week, built."].waitForExistence(timeout: 15))

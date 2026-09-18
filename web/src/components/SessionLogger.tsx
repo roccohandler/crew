@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import { CardioRow } from "@/components/CardioRow";
 import { HoldRow } from "@/components/HoldRow";
 import { RestTimer } from "@/components/RestTimer";
-import { accessFor, SessionSwap, swappedExercise, updatePlanWithSwap, type SwapScope } from "@/components/SessionSwap";
+import { SessionSwap, swappedExercise, updatePlanWithSwap, type SwapScope } from "@/components/SessionSwap";
 import { SetRow } from "@/components/SetRow";
 import { exercises as seedExercises, type SeedExercise } from "@/generated/seed";
 import { earnedQuery, patchSession, type SessionExerciseView, type SessionSummary } from "@/lib/api-client";
@@ -97,7 +97,7 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
       <p className="muted">{facts.setsDone}/{facts.setsPlanned} sets</p>
       <RestTimer startToken={restToken} />
       {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} distanceUnit={distanceUnit} lastTime={lastTime[exercise.exerciseId]} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
-      {swapping !== null && exercises[swapping] ? <SessionSwap exercise={exercises[swapping]} access={accessFor(exercises)} onPick={swap} onClose={() => setSwapping(null)} /> : null}
+      {swapping !== null && exercises[swapping] ? <SessionSwap exercise={exercises[swapping]} onPick={swap} onClose={() => setSwapping(null)} /> : null}
       {inCrew ? <label className="row"><input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} /> Share to crew</label> : null}
       {error ? <p className="danger" role="alert">{error}</p> : null}
       <button type="button" className="button button--primary" onClick={complete}>Complete workout</button>

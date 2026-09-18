@@ -1,5 +1,9 @@
 # Gym-assumption map
 
+STATUS: EXECUTED in W2 (2026-09-17, commit `feat(gym): A21.1 …`) — every row below was applied on both engines and both clients; the
+file stays as the record of what changed and why. Three ids kept their old objects only in the id (couch-stretch, doorway-pec-stretch,
+doorframe-row) so saved plans and sessions keep resolving; check-seeds now asserts the gym-only catalog.
+
 Owner decision (2026-09-17): every user has full commercial gym access; home and dumbbell-only training are no longer
 supported. This map lists every place the code, seeds, tests or spec assume the old three-tier model
 (`fullGym` / `dumbbells` / `bodyweight` "equipment access"), with the change each place needs. Read-only audit at

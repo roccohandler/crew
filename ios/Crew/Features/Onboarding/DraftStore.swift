@@ -4,10 +4,11 @@
 
 import Foundation
 
+// A21.1 (owner-approved 2026-09-17): no equipment answer any more. A draft written before A21.1 carries an `equipment` key;
+// JSONDecoder ignores unknown keys, so it still resumes at the save screen (S05).
 struct OnboardingDraft: Codable {
     let selectedDays: Set<Int>
     let experience: String?
-    let equipment: String?
     let draft: PlanDraft?
     let inviteToken: String?
 }

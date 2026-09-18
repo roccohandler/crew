@@ -1,13 +1,15 @@
-// SPEC: S03 — 3 questions, all tappable, no keyboard; day toggles ≥ 56 pt with Mon/Wed/Fri pre-selected and a live
+// SPEC: S03 — the plan questions, all tappable, no keyboard; day toggles ≥ 56 pt with Mon/Wed/Fri pre-selected and a live
 // encouragement line plus the neutral whisper (A1, owner-directed 2026-09-08: PPL rotates at every day count, so the
 // picker steers nobody — "Most people start at 3 days."); single-selects auto-advance with a selection haptic after a
-// 250 ms beat (1B); "1 of 3" whisper; SF Symbols at consistent weight; copy survives Dynamic Type XXL. Pure ink-on-bone
-// (Part III onboarding rule). WRITTEN — UNVERIFIED (needs Mac). T021
+// 250 ms beat (1B); the "1 of N" whisper reads from onboardingQuestionCount; SF Symbols at consistent weight; copy survives
+// Dynamic Type XXL. A21.1 (owner-approved 2026-09-17): TWO questions — days and experience; the equipment question and
+// its house symbol are gone because every user has full commercial gym access. Pure ink-on-bone (Part III onboarding rule).
+// WRITTEN — UNVERIFIED (needs Mac). T021
 
 import SwiftUI
 
 enum OnboardingQuestion: Int {
-    case days = 1, experience, equipment
+    case days = 1, experience
 }
 
 struct DaysQuestionScreen: View {
@@ -76,6 +78,7 @@ struct DayToggle: View {
     }
 }
 
+// SPEC: A21.1 — the last question: the answer builds the plan and advances to the reveal
 struct ExperienceQuestionScreen: View {
     @Bindable var model: OnboardingModel
     let onAdvance: () -> Void
@@ -87,22 +90,6 @@ struct ExperienceQuestionScreen: View {
             ("experienced", "Experienced", "dumbbell"),
         ], selected: model.experience) { value in
             model.choose(experience: value)
-            onAdvance()
-        }
-    }
-}
-
-struct EquipmentQuestionScreen: View {
-    @Bindable var model: OnboardingModel
-    let onAdvance: () -> Void
-
-    var body: some View {
-        SingleSelectQuestion(number: OnboardingQuestion.equipment.rawValue, title: "What do you have access to?", options: [
-            ("fullGym", "Full gym", "building.2"),
-            ("dumbbells", "Dumbbells", "dumbbell"),
-            ("bodyweight", "Bodyweight", "house"),
-        ], selected: model.equipment) { value in
-            model.choose(equipment: value)
             onAdvance()
         }
     }

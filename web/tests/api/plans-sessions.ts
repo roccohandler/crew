@@ -5,7 +5,7 @@ import { generatePlan } from "@/lib/engine/plan-generator";
 import { exercises, planTemplates } from "@/generated/seed";
 
 export function samplePlanBody(days: number[] = [1, 3, 5]) {
-  return generatePlan(days, "brandNew", "fullGym", { exercises, planTemplates });
+  return generatePlan(days, "brandNew", { exercises, planTemplates }); // A21.1: no equipment argument
 }
 
 export function sampleSessionBody(overrides: Partial<{ clientId: string; startedAt: string; isPlannedDay: boolean; timezone: string }> = {}) {

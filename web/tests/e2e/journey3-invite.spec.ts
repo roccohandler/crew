@@ -23,8 +23,7 @@ test("an invite link lands, joins on web, and a reaction shows in the stream", a
   await joiner.getByRole("link", { name: "Continue on web" }).click();
   await expect(joiner).toHaveURL(/\/onboarding\?invite=/);
   await joiner.getByRole("button", { name: "Continue" }).click();
-  await joiner.getByRole("button", { name: "Some" }).click();
-  await joiner.getByRole("button", { name: "Dumbbells" }).click();
+  await joiner.getByRole("button", { name: "Some" }).click(); // A21.1: two questions — the experience answer builds the plan
   await joiner.getByRole("button", { name: "Looks good" }).click();
   await joiner.getByLabel("Name").fill("Jordan");
   await joiner.getByLabel("Email").fill(`${unique("jordan")}@example.com`);

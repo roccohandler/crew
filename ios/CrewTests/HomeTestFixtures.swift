@@ -19,7 +19,7 @@ enum HomeTestFixtures {
     @MainActor
     static func storeWithPlan(userId: String, days: Set<Int> = [1, 3, 5], now: Date = friday) throws -> Store {
         let store = Store(inMemory: true)
-        let draft = PlanGenerator.generatePlan(days: days, experience: "brandNew", access: "fullGym", seed: .shared)
+        let draft = PlanGenerator.generatePlan(days: days, experience: "brandNew", seed: .shared)
         try PlanLocal.replace(draft, userId: userId, updatedAt: now, store: store)
         return store
     }
