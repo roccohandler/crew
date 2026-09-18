@@ -1,7 +1,9 @@
-// SPEC: nutrition addendum §4 (Today) · §6 (the 18+ gate) · Q3 (the Home row "Log macros" is the way in) — three states of one
-// screen: an account with no birth year is asked for it ONCE, here (never at launch); with no targets yet it is the first-run state
-// (one number → the estimate); otherwise Today — the four lines, "Your template", "Quick add", today's log, and a text link to Saved
-// meals & template. Today carries NO ink-filled primary of its own. An error is said in INK: the semantic red does not exist on a
+// SPEC: nutrition addendum §4 (Today) · §6 (the 18+ gate) · Q3 (the Home row "Log macros" is the way in) · 6.9 Screen Density (A25 —
+// pass/fail) — three states of one screen: an account with no birth year is asked for it ONCE, here (never at launch); with no targets
+// yet it is the first-run state (one number → the estimate); otherwise Today, which has ONE job — the four lines and "Your template",
+// where one tap logs a slot. Quick add and today's log are each ONE TAP AWAY behind a labelled outline button, on their own screens
+// (all of it on one screen ran past two scroll-lengths; 6.9 makes that a destination — R-077), and the text link leads to Saved meals
+// & template. Today carries NO ink-filled primary of its own. An error is said in INK: the semantic red does not exist on a
 // nutrition surface, and neither does ember (law ⑥'s exception). Screens hold ZERO logic (5.6.6): NutritionTodayModel decides.
 // Twin of web nutrition/page.tsx + NutritionToday.tsx + BirthYearAsk.tsx. WRITTEN — UNVERIFIED (needs Mac).
 
@@ -11,6 +13,8 @@ struct NutritionTodayScreen: View {
     @State private var model = NutritionTodayModel()
     @State private var bodyweightText = ""
     @State private var birthYearText = ""
+    @State private var showsQuickAdd = false
+    @State private var showsLog = false
     @FocusState private var focused: String?
 
     var body: some View {
@@ -35,6 +39,8 @@ struct NutritionTodayScreen: View {
                 Button("Done") { focused = nil }
             }
         }
+        .navigationDestination(isPresented: $showsQuickAdd) { QuickAddScreen(model: model) { showsQuickAdd = false } } // 6.9: one job, one tap away
+        .navigationDestination(isPresented: $showsLog) { NutritionLogScreen(model: model) }
         .task { await model.open() }
         .onAppear { model.refresh() } // back from Saved meals & template: the template may have changed
     }
@@ -46,11 +52,14 @@ struct NutritionTodayScreen: View {
             Haptics.selection()
             model.tapSlot(slot)
         }
-        QuickAddBlock(focus: $focused) { grams in model.quickAdd(grams) }
-        LogList(logs: model.logs) { log in model.deleteLog(log.id) }
-        NavigationLink { SavedMealsScreen() } label: {
-            Text("Saved meals & template").font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        VStack(spacing: EmberTokens.Spacing.rowGap) {
+            SecondaryButton(title: "Quick add") { showsQuickAdd = true }
+            // A8 — an empty day reports nothing: the button exists once there is something behind it
+            if !model.logs.isEmpty { SecondaryButton(title: "Logged today · \(model.logs.count)") { showsLog = true } }
+            NavigationLink { SavedMealsScreen() } label: {
+                Text("Saved meals & template").font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+                    .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+            }
         }
     }
 

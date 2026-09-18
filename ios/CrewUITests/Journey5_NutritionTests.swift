@@ -78,14 +78,25 @@ final class Journey5_NutritionTests: XCTestCase {
         expectLine("Protein: 30 / 145 g, 115 to go", "one tap on the slot did not log the meal")
         shoot(app, "N1 Today — a slot logged")
 
-        // Quick add: two steps of protein, then Add (an outline button — Today has no ink primary of its own)
+        // 6.9 (A25) — Today keeps ONE job. Quick add is a destination one tap away: two steps of protein, then Add — that screen's one
+        // filled primary — and the phone is back on Today, where the lines have moved
+        XCTAssertFalse(labelled("Increase Protein").exists, "6.9: the quick-add steppers are still stacked on Today")
+        app.buttons["Quick add"].tap()
         let more = labelled("Increase Protein")
-        XCTAssertTrue(more.waitForExistence(timeout: 15))
+        XCTAssertTrue(more.waitForExistence(timeout: 15), "Quick add never opened")
+        shoot(app, "N3 Quick add")
         more.tap()
         more.tap()
         app.buttons["Add"].tap()
         expectLine("Protein: 40 / 145 g, 105 to go", "the quick add did not count")
-        labelled("Delete Quick add").tap() // 6.3: the visible button, never a swipe alone
+        // …and the day's log is the other destination, each entry with its visible Delete (6.3: never a swipe alone)
+        let logged = app.buttons["Logged today · 2"]
+        XCTAssertTrue(logged.waitForExistence(timeout: 15), "Today never offered the day's log")
+        logged.tap()
+        XCTAssertTrue(labelled("Delete Quick add").waitForExistence(timeout: 15), "the day's log never opened")
+        shoot(app, "N4 Logged today")
+        labelled("Delete Quick add").tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap() // back to Today
         expectLine("Protein: 30 / 145 g, 115 to go", "deleting the quick add did not take it off the day")
 
         // The queue: the server holds exactly the slot's log — createMealLog ×2 and deleteMealLog ×1 were delivered, in order

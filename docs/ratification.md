@@ -1320,3 +1320,15 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   sentence and its source, and the three nutrition whispers leave the list — the page reads `user.nutrition === available` and says
   nothing about the omission. (9) The whisper ids are GENERATED (`WhisperId` on both platforms), so a call site naming an id the copy
   file does not hold cannot compile.
+
+- **R-077 · 2026-09-18 · 6.9 SCREEN DENSITY (A25) MEETS THE NUTRITION ADDENDUM'S TODAY — a GAP reading, the most conservative one that
+  keeps both.** The addendum (§4, ratified the same day, earlier) stacks four lines, "Your template", "Quick add" with three steppers,
+  the day's log and a link on ONE screen; built that way it measured more than two scroll-lengths at 375 pt. 6.9 is pass/fail and part
+  of every NEW screen's definition of done: "when a screen needs a second scroll-length of content to do its job, the content is split
+  into a destination screen, never compressed to fit". So Today keeps its ONE job — the lines and one-tap template logging (with its
+  undo) — and carries two labelled outline buttons: "Quick add" (its own screen, whose one filled primary is Add, returning to Today)
+  and "Logged today · N" (its own screen, every entry with its visible Delete; the button is absent with nothing logged, A8), plus the
+  addendum's text link to Saved meals & template. Nothing the addendum gives Today is lost, and every piece is one tap away behind a
+  clear, well-sized control, which is 6.9's own sentence. S19 "How Crew works" is NOT split: A23's draft defines it as "one scrolling
+  page" of prose reached from Settings → About — it is itself the destination, and it holds no controls but source links. Both are the
+  owner's to overturn; docs/OWNER-REVIEW.md lists them.

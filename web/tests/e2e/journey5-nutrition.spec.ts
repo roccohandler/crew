@@ -1,6 +1,7 @@
 // SPEC: 8.4 journey ⑤ (W065) · nutrition addendum §4, §6 (RATIFIED 2026-09-18) — macro logging end to end on web: Home's "Log
 // macros" row → the first-run bodyweight → the estimate → a saved meal by hand → one from a chain → the template → ONE tap logs,
-// the same tap undoes → quick add → delete → targets by hand + Recalculate → the methodology page and its links → Settings'
+// the same tap undoes → Quick add and Logged today, each ONE TAP AWAY on its own screen (6.9, A25) → targets by hand + Recalculate →
+// the methodology page and its links → Settings'
 // two-step delete. It pins the clauses a screen could break: ② state is ink words on their own line, never a colour; ③ a log
 // moves no XP; ④ a log is no post. And A16.c: a 15-year-old has no row, no page and no Settings rows — with no copy.
 import { expect, test, type Page } from "@playwright/test";
@@ -73,17 +74,30 @@ test("journey ⑤: targets, saved meals, the template, one-tap logging, quick ad
   await expect(slot).toHaveAttribute("aria-pressed", "false");
   await expect(line(page, "Protein")).toHaveAccessibleName("Protein: 0 / 145 g, 145 to go");
   await slot.click();
+  // 6.9 — Today keeps ONE job; quick add is a destination one tap away, with the one filled primary on its own screen
+  await expect(page.getByRole("spinbutton")).toHaveCount(0);
+  await page.getByRole("link", { name: "Quick add" }).click();
+  await expect(page.getByRole("heading", { name: "Quick add" })).toBeVisible({ timeout: 15_000 });
+  await waitForHydration(page, "input.gramfield__input");
   await grams(page, "Protein").fill("120");
+  await expectNoHorizontalScroll(page, "quick add");
   await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible({ timeout: 15_000 }); // …and back where the lines have moved
   await expect(line(page, "Protein")).toHaveAccessibleName("Protein: 150 / 145 g, 5 over"); // clause ②: a fact in ink words, no colour
   await expect(page.getByText("Tomorrow starts from your full targets.")).toBeVisible(); // …naming tomorrow in the same breath
   await expect(page.locator(".macro__rest").first()).toHaveCSS("color", await page.locator("h1").evaluate((heading) => getComputedStyle(heading).color));
+  await page.getByRole("link", { name: "Logged today · 2" }).click(); // the day's log is the other destination
+  await expect(page.getByRole("heading", { name: "Logged today" })).toBeVisible({ timeout: 15_000 });
+  await waitForHydration(page, "li.mealrow button");
+  await expectNoHorizontalScroll(page, "logged today");
   // the screen is optimistic; the reload below must read what the SERVER holds, so the delete's own reply is awaited first
   await Promise.all([
     page.waitForResponse((reply) => reply.url().includes("/api/v1/nutrition/logs/") && reply.request().method() === "DELETE" && reply.ok()),
     page.getByRole("button", { name: /^Delete Quick add/ }).click(),
   ]);
-  await expect(line(page, "Protein")).toHaveAccessibleName("Protein: 30 / 145 g, 115 to go");
+  await expect(page.getByRole("button", { name: /^Delete / })).toHaveCount(1);
+  await page.getByRole("link", { name: "Back to Today" }).click();
+  await expect(line(page, "Protein")).toHaveAccessibleName("Protein: 30 / 145 g, 115 to go", { timeout: 15_000 });
   await expectNoHorizontalScroll(page, "today, logged");
   await page.reload();
   await expect(line(page, "Protein")).toHaveAccessibleName("Protein: 30 / 145 g, 115 to go"); // the server kept exactly one log

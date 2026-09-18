@@ -48,7 +48,7 @@ test("public pages: landmarks, names, labels, no sideways scroll", async ({ page
 test("signed-in pages: landmarks, names, labels, no sideways scroll", async ({ page }) => {
   await buildWeekAndSave(page, { label: "a11y" });
   await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
-  for (const path of ["/home", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio", "/nutrition", "/nutrition/meals", "/nutrition/template", "/nutrition/targets", "/nutrition/method", "/how-crew-works"]) await expectAccessible(page, path); // A22: /post is gone · W8: the nutrition pages (first-run state)
+  for (const path of ["/home", "/plan", "/crew", "/progress", "/journal", "/settings", "/session/new", "/plan/push", "/log-cardio", "/nutrition", "/nutrition/meals", "/nutrition/template", "/nutrition/targets", "/nutrition/method", "/nutrition/quick-add", "/nutrition/log", "/how-crew-works"]) await expectAccessible(page, path); // A22: /post is gone · W8: the nutrition pages (first-run state)
 });
 
 // J033 (A18) — THE AUDIT ABOVE HAS ONLY EVER SEEN THE BRIDGE. `buildWeekAndSave` leaves a brand-new account with no

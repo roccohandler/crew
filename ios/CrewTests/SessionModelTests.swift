@@ -21,7 +21,10 @@ final class SessionModelTests: XCTestCase {
 
     private func sessionInStore(withCardio: Bool = false) throws -> (Store, LocalSession) {
         let store = Store(inMemory: true)
-        let plan = PlanGenerator.generatePlan(days: [5], experience: "brandNew", seed: .shared)
+        // Mon · Wed · Fri, never a ONE-day plan: complete() stamps the REAL today, and under A22 G1 (a) a one-day plan whose one workout is
+        // done IS a perfect week (+150 and a shield) — so with `days: [5]` these tests read 275 instead of 125 on every Friday after 3 AM
+        // Pacific and passed on the other six days (master run 35336154762, Friday 2026-09-18; the CelebrationPostTests lesson, a34e4a1)
+        let plan = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", seed: .shared)
         let draft = plan.workouts[0]
         var extra: [PlanDraftExercise] = []
         if withCardio { extra.append(try XCTUnwrap(PlanGenerator.cardioRow("walk", order: draft.exercises.count, seed: .shared))) }

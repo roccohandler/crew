@@ -1,8 +1,8 @@
-// SPEC: nutrition addendum §4 (Today) — the three blocks under the macro lines. "Your template": one row per slot, ONE tap logs it
-// (✓), the same tap undoes it in place, and a skipped slot is simply unlogged — a checklist, never a requirement. "Quick add": three
-// gram steppers and Add (an OUTLINE button: Today carries no ink-filled primary of its own, Q3). Then today's log, every row with
-// its visible Delete (6.3: a swipe is never the only way). The empty state is the template INVITATION. Ink only: no macro fill, no
-// ember, no semantic colour (law ⑥'s exception). Every string comes from the MacroDay twin.
+// SPEC: nutrition addendum §4 (Today) · 6.9 Screen Density (A25) — "Your template" IS Today's job: one row per slot, ONE tap logs it
+// (✓), the same tap undoes it in place, and a skipped slot is simply unlogged — a checklist, never a requirement. The empty state is
+// the template INVITATION. Quick add and today's log are destinations of their own (QuickAddScreen.swift; R-077). Below: the one row
+// every nutrition list shares — a meal, a slot or a log with its own VISIBLE actions (6.3: a swipe is never the only way). Ink only:
+// no macro fill, no ember, no semantic colour (law ⑥'s exception). Every string comes from the MacroDay twin.
 // Twin of web components/nutrition/TodayParts.tsx. WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
@@ -54,42 +54,6 @@ struct TemplateSlotRow: View {
         .buttonStyle(.plain)
         .accessibilityLabel("\(slot.title), \(MacroDay.gramsSpoken(slot.meal.grams)), \(slot.tickedLogId == nil ? "not logged" : "logged, tap to undo")")
         .accessibilityAddTraits(slot.tickedLogId == nil ? [] : .isSelected)
-    }
-}
-
-struct QuickAddBlock: View {
-    var focus: FocusState<String?>.Binding
-    let onAdd: (MacroGrams) -> Void
-    @State private var grams = MacroGrams(proteinG: 0, carbsG: 0, fatG: 0)
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-            Text("Quick add").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.isHeader)
-            GramFields(grams: $grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: focus, prefix: "quick")
-            SecondaryButton(title: "Add") {
-                focus.wrappedValue = nil
-                onAdd(grams)
-                grams = MacroGrams(proteinG: 0, carbsG: 0, fatG: 0)
-            }
-            .disabled(isEmpty)
-            .opacity(isEmpty ? EmberTokens.Opacity.disabled : 1)
-        }
-    }
-
-    private var isEmpty: Bool { grams.proteinG + grams.carbsG + grams.fatG == 0 }
-}
-
-struct LogList: View {
-    let logs: [MealLine]
-    let onDelete: (MealLine) -> Void
-
-    var body: some View {
-        if !logs.isEmpty {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                Text("Logged today").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.isHeader)
-                ForEach(logs) { log in MealLineRow(line: log, actions: [MealLineAction(title: "Delete", spoken: "Delete \(log.name)") { onDelete(log) }]) }
-            }
-        }
     }
 }
 

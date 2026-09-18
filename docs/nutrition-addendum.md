@@ -53,6 +53,10 @@ line — every source linkable.
 
 ## 4. The two screens (both platforms; ink acts, macro colours are identity only, state is never colour)
 
+Amended in LAYOUT by 6.9 Screen Density (A25, owner-ratified 2026-09-18): Today keeps one job — the four lines and "Your template";
+"Quick add" and today's log list are destination screens one tap from Today behind labelled buttons (ratification.md R-077). Nothing
+below is removed; the text stands as the record of what Today gives.
+
 **Today.** Nav title "Today". Four lines — P / C / F and, fourth, Calories (Q2: `logged / target kcal` and `N to go`, ink, the §3 energy estimate as the target) — each macro row: the letter in ink, `logged / target g`, `N to go` — or `N over` in ordinary
 ink on its own line (clause ②) — and a bar in the macro token with the target marker as an ink hairline. Then "Your template": one row
 per slot, one tap logs it (✓, undo in place, a skipped slot is simply unlogged). Then "Quick add": three gram steppers (P, C, F) and
