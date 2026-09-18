@@ -34,11 +34,13 @@ extension XCTestCase {
     }
 
     // First tour run (35324724476): on iOS 26 a confirmationDialog is a POPOVER with no Cancel row, so "tap Cancel" left it up and
-    // it swallowed every later tap in the flow. A tap on the status bar is outside any popover and lands on nothing.
+    // it swallowed every later tap in the flow. Second run (35327451545): a tap on the status bar does not reach the popover's
+    // dismiss region either. A tap in the lower-middle of the window does — a popover eats the first outside tap, so nothing under it fires.
     func tourDismissDialog(_ app: XCUIApplication) {
         let cancel = app.buttons["Cancel"]
         if cancel.waitForExistence(timeout: 2), cancel.isHittable { cancel.tap(); return }
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.02)).tap()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62)).tap()
+        Thread.sleep(forTimeInterval: 0.6)
     }
 
     // A pushed screen goes back by the navigation bar's first button; a sheet has none and takes the pull
