@@ -30,7 +30,7 @@ final class Tour_SettingsTests: XCTestCase {
             tourShot(app, "settings_profile_default", "tapped the profile row")
             if tourTap(app.buttons["Change photo"], timeout: 5) {
                 tourShot(app, "settings_photo_dialog", "tapped the avatar")
-                tourTap(app.buttons["Cancel"], timeout: 3)
+                tourDismissDialog(app)
             }
             tourBack(app)
         }

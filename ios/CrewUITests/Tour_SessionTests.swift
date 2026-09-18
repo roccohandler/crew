@@ -27,13 +27,13 @@ final class Tour_SessionTests: XCTestCase {
         if tourTap(firstSet, timeout: 5) {
             tourShot(app, "session_logger_midset", "checked set 1 — the rest timer is running")
         }
-        if tourTap(app.buttons["Swap"].firstMatch, timeout: 5) {
+        if tourTap(tourButton(app, startingWith: "Swap"), timeout: 5) {
             tourShot(app, "session_swap_sheet", "tapped Swap")
             tourDismissSheet(app, button: "Cancel")
         }
         if tourTap(app.buttons["Discard"].firstMatch, timeout: 5) {
             tourShot(app, "session_discard_dialog", "tapped Discard")
-            tourTap(app.buttons["Cancel"], timeout: 3)
+            tourDismissDialog(app)
         }
         guard tourTap(app.buttons["Complete workout"], timeout: 5) else { return }
         _ = app.buttons["Share to crew"].waitForExistence(timeout: 15)

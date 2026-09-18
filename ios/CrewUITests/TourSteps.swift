@@ -25,10 +25,20 @@ extension XCTestCase {
         return true
     }
 
-    // Sheets come down by their own button when they have one, by the pull otherwise
+    // Sheets come down by their own button when they have one, by the pull otherwise. The pull starts just below the middle of the
+    // screen — on a half-height sheet that is its header, on a full one its content at rest, and both drag the sheet away.
     func tourDismissSheet(_ app: XCUIApplication, button: String? = nil) {
         if let button, tourTap(app.buttons[button], timeout: 3) { return }
-        app.swipeDown(velocity: .fast)
+        let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+        from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.99)))
+    }
+
+    // First tour run (35324724476): on iOS 26 a confirmationDialog is a POPOVER with no Cancel row, so "tap Cancel" left it up and
+    // it swallowed every later tap in the flow. A tap on the status bar is outside any popover and lands on nothing.
+    func tourDismissDialog(_ app: XCUIApplication) {
+        let cancel = app.buttons["Cancel"]
+        if cancel.waitForExistence(timeout: 2), cancel.isHittable { cancel.tap(); return }
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.02)).tap()
     }
 
     // A pushed screen goes back by the navigation bar's first button; a sheet has none and takes the pull
@@ -58,6 +68,10 @@ extension XCTestCase {
     // Home has landed once the Log workout row is up (every non-bridge state carries it, A18.5)
     func tourWaitForHome(_ app: XCUIApplication) {
         _ = tourButton(app, startingWith: "Log workout").waitForExistence(timeout: 25)
+    }
+
+    func tourButton(_ app: XCUIApplication, containing text: String) -> XCUIElement {
+        app.buttons.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
     func tourButton(_ app: XCUIApplication, startingWith prefix: String) -> XCUIElement {

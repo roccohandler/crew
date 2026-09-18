@@ -16,11 +16,11 @@ final class Tour_CrewTests: XCTestCase {
         tourLaunch(app, as: try await tourFilledMember(seed))
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Crew"])
-        _ = app.buttons["React"].firstMatch.waitForExistence(timeout: 20)
+        _ = tourButton(app, startingWith: "React").waitForExistence(timeout: 20)
         tourShot(app, "crew_stream_filled", "tapped the Crew tab — two crew-mates trained today")
-        if tourTap(app.buttons["React"].firstMatch, timeout: 5) {
+        if tourTap(tourButton(app, startingWith: "React"), timeout: 5) {
             tourShot(app, "crew_react_dialog", "tapped React on the first post")
-            tourTap(app.buttons["Cancel"], timeout: 3)
+            tourDismissDialog(app)
         }
         if tourTap(app.buttons["Invite"], timeout: 5) {
             _ = app.buttons["Copy code"].waitForExistence(timeout: 10)

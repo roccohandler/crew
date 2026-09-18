@@ -179,6 +179,16 @@ jobs:
       # Keychain write fail with errSecMissingEntitlement (-34018): the session lived in memory only, so a kill-and-relaunch
       # woke on the hero and the offline journey could never pass (run 34367618719, Q09). Raw xcodebuild output into a log —
       # `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
+      # A24 (3): a TOUR-ONLY run — a dispatch, or a push to a branch that is not master/main — runs the seven tour classes and nothing
+      # else: same single xcodebuild, same build, minus the unit suite and the journeys (≈ 5½ min of the first tour run, 35324724476).
+      # master, main and pull requests run everything, as before. -only-testing takes no wildcard, so the classes are named.
+      - name: tour-only run? (dispatch or a non-master branch push)
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main')
+        shell: bash
+        run: |
+          ONLY=""
+          for flow in Onboarding Home Plan Crew Progress Settings Session; do ONLY="$ONLY -only-testing:CrewUITests/Tour_${flow}Tests"; done
+          echo "CREW_ONLY_TESTING=$ONLY" >> "$GITHUB_ENV"
       - id: test
         name: build · unit + vectors · journeys ①② (xcodebuild test · scheme CrewAll)
         continue-on-error: true
@@ -186,7 +196,7 @@ jobs:
         run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewAll
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
-          -resultBundlePath TestResults.xcresult
+          -resultBundlePath TestResults.xcresult $CREW_ONLY_TESTING
           CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
           OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee test.log
       # The verdict: the ONE step that passes or fails this job, and the first thing to read when it is red. It prints the

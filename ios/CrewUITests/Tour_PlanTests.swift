@@ -22,7 +22,7 @@ final class Tour_PlanTests: XCTestCase {
             tourShot(app, "plan_days_sheet", "tapped Change days")
             tourDismissSheet(app)
         }
-        guard tourTap(tourButton(app, startingWith: "Push day")) else { return }
+        guard tourTap(tourButton(app, containing: "Push day")) else { return }
         _ = app.buttons["Add exercise"].waitForExistence(timeout: 10)
         tourShot(app, "plan_editor_filled", "tapped Push day")
         if tourTap(tourButton(app, startingWith: "Barbell Bench Press")) {
