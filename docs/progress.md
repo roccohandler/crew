@@ -659,6 +659,16 @@ Identifiers & Profiles → Certificates, revoke every "Apple Development" certif
 is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
 commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
 before it is touched.
+## 2026-09-18 — OWNER RULING: LIGHT ALWAYS (amends A21.10) — SHIPPED
+
+- Build 145 on the owner's phone rendered dark because the phone is set to dark and the app followed it (UIUserInterfaceStyle
+  Automatic). The owner said three times it should not be dark → recorded in Appendix A as "LIGHT ALWAYS", amending A21.10.
+- iOS: `INFOPLIST_KEY_UIUserInterfaceStyle: Light` (project.yml). Web: `render-ember.mjs` emits `color-scheme: light` and no
+  `prefers-color-scheme: dark` block; `app.css` says `color-scheme: light`; Generated regenerated. Dark hex values stay in
+  `shared/design-tokens.json`, unused (law ⑤ untouched). `Journey4_ScreensTests` keeps the light walk (launched with the phone
+  claiming dark, to prove Crew stays light) and drops the dark test. mvp-definition's A21.10 row and the debt entry updated.
+- NEXT: the build after this commit (CI → automatic TestFlight, or a dispatch) is the one to smoke-test; still owed by the owner:
+  the launch-wait fix approval, Build B, A22's G1–G4.
 ## 2026-09-18 04:02Z — TESTFLIGHT REPAIRED: BUILD 145 UPLOADED (W2 → W6 reach the phone at last)
 
 - The owner's dispatch (run 35304691405, build 143) died on the same certificate line, so the workflow-side repair was built

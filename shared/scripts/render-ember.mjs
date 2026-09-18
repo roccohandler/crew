@@ -53,7 +53,9 @@ export function renderEmberTokensSwift(tokens) {
 }
 
 export function renderEmberCss(tokens, sections) {
-  const lines = [cssHeader, "/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. */", "", ":root {", "  color-scheme: light dark;"];
+  // A21.10 as amended 2026-09-18 (owner): Crew is LIGHT ALWAYS — the browser is told `light`, and the dark values below sit under a
+  // selector nothing ever sets, so they stay defined (token parity) and unreachable; bringing dark back is this line and the one at the block.
+  const lines = [cssHeader, "/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. A21.10 (amended 2026-09-18): light always. */", "", ":root {", "  color-scheme: light;"];
   for (const [name, color] of Object.entries(tokens.colors)) lines.push(`  /* ${color.role} */`, `  ${cssName(name)}: ${color.light};`);
   lines.push(`  /* ${tokens.spacing.spec} */`);
   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`  ${cssName(name)}: ${value}px;`);
@@ -69,8 +71,8 @@ export function renderEmberCss(tokens, sections) {
   lines.push(`  --crew-progress-max-width: ${sections.touchAndLayout.webProgressMaxWidthPx.value}px;`);
   lines.push(`  --crew-min-touch-target: ${sections.touchAndLayout.webMinTouchTargetPx.value}px;`);
   lines.push(`  --crew-touch-target-breakpoint: ${sections.touchAndLayout.webTouchTargetBreakpointPx.value}px;`);
-  lines.push("}", "", "@media (prefers-color-scheme: dark) {", "  :root {");
+  lines.push("}", "", "/* The dark values, kept for parity and for a future ruling; no element carries data-theme=\"dark\" (A21.10 amended 2026-09-18) */", ':root[data-theme="dark"] {');
   for (const [name, color] of Object.entries(tokens.colors)) lines.push(`    ${cssName(name)}: ${color.dark};`);
-  lines.push("  }", "}", "");
+  lines.push("}", "");
   return lines.join("\n");
 }

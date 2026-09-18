@@ -9,7 +9,7 @@
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: light; /* A21.10 as amended 2026-09-18 (owner): Crew is light ALWAYS — the browser is told so, and no dark block exists (render-ember.mjs) */
   -webkit-text-size-adjust: 100%;
 }
 

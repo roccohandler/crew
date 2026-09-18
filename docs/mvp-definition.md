@@ -34,7 +34,7 @@ feed, no scores — and it works just as well with zero friends.
 | A21.7 | Firebase Auth rejected; custom auth is the standing decision | Appendix B ⏳ (closed) | — |
 | A21.8 | Google Sign-In deferred to v1.1; if built: ASWebAuthenticationSession + server-side token verification, no SDK | — | v1.1 |
 | A21.9 | A19.3 stands: two celebration buttons; no post exists until one is tapped | — (fixes the inert toggle) | W4 |
-| A21.10 | Light mode is the primary; dark must render correctly on every screen | — | W6 |
+| A21.10 | Light mode is the primary; **amended 2026-09-18: Crew is light ALWAYS, on iOS and web, regardless of the device setting** (dark tokens kept, unreachable) | A21.10's dark half | W6 (+ 2026-09-18) |
 | A21.11 | Session screen: tab bar hidden; non-active exercises as compact rows | S09 (amended) | W6 |
 | A21.12 | A20 Build B preserved on `archive/a20-build-b`; rebuild-or-drop after the owner's device walkthrough | — | W6 |
 | A21.13 | The Not Building list below | — | — |

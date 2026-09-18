@@ -1,9 +1,9 @@
 /* GENERATED FILE — DO NOT EDIT. Source: shared/design-tokens.json · Generator: shared/scripts/generate.mjs */
 /* Re-run `node shared/scripts/generate.mjs`; `node shared/scripts/check-drift.mjs` fails CI when this file drifts. */
-/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. */
+/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. A21.10 (amended 2026-09-18): light always. */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   /* 70% Canvas — every page background (Bone) */
   --ember-canvas: #FAF8F5;
   /* 70% Canvas — cards */
@@ -66,8 +66,8 @@
   --crew-touch-target-breakpoint: 768px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* The dark values, kept for parity and for a future ruling; no element carries data-theme="dark" (A21.10 amended 2026-09-18) */
+:root[data-theme="dark"] {
     --ember-canvas: #171412;
     --ember-card: #211D19;
     --ember-hairline: #2E2822;
@@ -84,5 +84,4 @@
     --ember-ember-tint: #33241A;
     --ember-success: #3E8E5A;
     --ember-danger: #D64550;
-  }
 }

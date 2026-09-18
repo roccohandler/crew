@@ -60,7 +60,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourteam.crew
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
-        INFOPLIST_KEY_UIUserInterfaceStyle: Automatic
+        INFOPLIST_KEY_UIUserInterfaceStyle: Light   # A21.10 as amended 2026-09-18 (owner): Crew is LIGHT ALWAYS, whatever the phone is set to
         # Crew/Assets.xcassets/AppIcon.appiconset holds the single 1024 px icon (Xcode derives every size and writes
         # CFBundleIconName); App Store Connect refuses an upload without it (ITMS 90022/90713, first TestFlight run).
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
