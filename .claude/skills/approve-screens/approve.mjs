@@ -9,7 +9,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const latestDir = join(root, "design", "tour", "latest");
+// The same rule as .claude/hooks/fetch-tour.mjs: design/tour/latest/ by default; <CREW_TOUR_DIR>/<branch>/ when the machine sets it
+const tourRoot = (process.env.CREW_TOUR_DIR ?? "").trim();
+const branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+const latestDir = tourRoot ? join(tourRoot, branch.replace(/[^\w.-]+/g, "_")) : join(root, "design", "tour", "latest");
 const baselinesDir = join(root, "design", "baselines");
 const names = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const commit = !process.argv.includes("--no-commit");
@@ -23,7 +26,7 @@ function shotsIn(dir) {
 const bare = (shot) => shot.split("/")[1].replace(/\.png$/i, "").replace(/^\d{2}_/, "");
 const available = shotsIn(latestDir);
 if (names.length === 0) { console.error("approve-screens: name the screens to approve, or say all."); process.exit(2); }
-if (available.length === 0) { console.error("approve-screens: design/tour/latest/ holds no tour — run /ui-check (or start a session so the fetch hook runs) first."); process.exit(1); }
+if (available.length === 0) { console.error(`approve-screens: ${latestDir} holds no tour — run /ui-check (or start a session so the fetch hook runs) first.`); process.exit(1); }
 
 const everything = names.length === 1 && names[0].toLowerCase() === "all";
 const chosen = [];
@@ -33,7 +36,7 @@ for (const name of everything ? [] : names) {
   const hits = available.filter((shot) => shot.replace(/\.png$/i, "") === wanted || shot.split("/")[1].replace(/\.png$/i, "") === wanted || bare(shot) === wanted.replace(/^\d{2}_/, ""));
   if (hits.length === 0) unknown.push(name); else chosen.push(...hits);
 }
-if (unknown.length > 0) { console.error(`approve-screens: not in design/tour/latest/: ${unknown.join(", ")}\nAvailable: ${available.map(bare).join(", ")}`); process.exit(1); }
+if (unknown.length > 0) { console.error(`approve-screens: not in the tour folder: ${unknown.join(", ")}\nAvailable: ${available.map(bare).join(", ")}`); process.exit(1); }
 
 const approved = everything ? available : [...new Set(chosen)];
 const paths = [];

@@ -9,7 +9,8 @@ that could, and you never suggest code.
 
 ## Input
 
-A list of screenshot paths, normally under `design/tour/latest/<tour class>/NN_<tab>_<screen>_<state>.png`. The caller may add
+A list of screenshot paths: `<tour folder>/<tour class>/NN_<tab>_<screen>_<state>.png`. The tour folder is `design/tour/latest/` or,
+on a machine that sets CREW_TOUR_DIR, a folder outside the repo — use the paths exactly as given. The caller may add
 what changed in the code; treat that as context, not as evidence — the pixels are the evidence.
 
 ## Before judging
@@ -17,7 +18,7 @@ what changed in the code; treat that as context, not as evidence — the pixels 
 1. Read `design/DESIGN.md` in full. It is the rulebook. If it does not exist, stop and reply exactly: `BLOCKED: design/DESIGN.md
    does not exist yet — nothing to judge against.` Sections that are empty headings ("Direction", "Component kit", "Banned
    patterns", "Screen jobs") carry no rules yet; do not invent any for them.
-2. Read `design/tour/latest/TOUR.md` if it exists, to learn what action produced each screenshot.
+2. Read `TOUR.md` in the tour folder (two levels up from a screenshot) if it exists, to learn what action produced each screenshot.
 3. For each screenshot, strip the `NN_` step prefix and look for `design/targets/<tab>_<screen>_<state>.*` (Glob). If a target
    exists, read it too.
 

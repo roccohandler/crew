@@ -1,6 +1,6 @@
 ---
 name: approve-screens
-description: Owner-only. Copy the screenshots the owner names (or "all") from design/tour/latest/ into design/baselines/ and commit them as "Approve baselines: <list>".
+description: Owner-only. Copy the screenshots the owner names (or "all") from the tour folder into design/baselines/ and commit them as "Approve baselines: <list>".
 disable-model-invocation: true
 argument-hint: all | <screen> [<screen> …]
 ---
@@ -17,7 +17,7 @@ Arguments: `$ARGUMENTS`
    - a name matches with or without its `NN_` step prefix and `.png`: `plan_editor_filled`, `03_plan_editor_filled.png`, or
      `tour_plantests/03_plan_editor_filled.png`;
    - `all` copies every tour shot and deletes baselines the latest tour no longer produces.
-   The script copies from `design/tour/latest/`, stages only those files, and commits `Approve baselines: <list>`.
+   The script copies from the tour folder (`design/tour/latest/`, or `<CREW_TOUR_DIR>/<current branch>/` when that is set), stages only those files, and commits `Approve baselines: <list>`.
 3. If it reports unknown names, show the owner the available names it printed and stop — do not guess.
-4. Report the commit (`git log -1 --oneline`) and which run the screenshots came from (`design/tour/latest/.run-id`). Pushing is
+4. Report the commit (`git log -1 --oneline`) and which run the screenshots came from (`.run-id` in the tour folder). Pushing is
    a separate step: push only if the owner asked for it in the same message.

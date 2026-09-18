@@ -55,3 +55,9 @@
     is done only when its Verify command has been RUN and its output shown.
 
     Too big for one session? Split it in progress.md first, then start.
+
+13. After any change to UI code, run /ui-check before reporting the task done.
+
+    A screen is not done until ui-reviewer passes it. The design rules live in
+
+    @design/DESIGN.md (a cited digest of this spec — the spec wins any conflict).
