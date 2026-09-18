@@ -39,8 +39,9 @@ extension WorkoutDraft {
         row.type == "cardio" ? "\(row.name) · \(minutes(of: row)) min" : row.name
     }
 
+    // A26: the targets alone — the row draws the equipment tag after them, symbol against its word (ExerciseListRow)
     static func detail(of row: PlanDraftExercise) -> String? {
-        row.type == "cardio" ? nil : "\(row.targetSets) × \(repsText(row)) · \(row.equipment.capitalized)"
+        row.type == "cardio" ? nil : "\(row.targetSets) × \(repsText(row))"
     }
 
     // Flow 3: a hold is duration only — never sets, reps or weight

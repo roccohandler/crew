@@ -55,9 +55,14 @@ final class Journey4_ScreensTests: XCTestCase {
         // A23 · S19 — the page behind the whispers, a row above Version; the note from Max says it is still the draft
         let howItWorks = app.buttons["How Crew works"]
         // About is the LAST section of a list that is three pages long since W8 (run 35340692297: one swipe stopped at Account), and a
-        // List builds its rows lazily — so scroll until the row exists, a page at a time
-        for _ in 0..<4 where !howItWorks.waitForExistence(timeout: 2) { app.swipeUp() }
+        // List builds its rows lazily — so scroll until the row exists, a page at a time. EXISTING is not enough (run 35400020876): a
+        // List also builds rows just past the screen's edge, so after one swipe the row "existed" UNDER the tab bar, the tap landed on
+        // the Settings tab instead (the dump shows the list scrolled back to its top — the tab's scroll-to-top) and S19 never opened.
+        // So scroll until the whole row sits above the tab bar.
+        let tabBarTop = app.tabBars.firstMatch.frame.minY
+        for _ in 0..<6 where !(howItWorks.waitForExistence(timeout: 2) && howItWorks.frame.maxY <= tabBarTop) { app.swipeUp() }
         XCTAssertTrue(howItWorks.waitForExistence(timeout: 15), "A23: Settings → About has no How Crew works row — the screen says: \(screenSays())")
+        XCTAssertLessThanOrEqual(howItWorks.frame.maxY, tabBarTop, "the How Crew works row never cleared the tab bar — the screen says: \(screenSays())")
         howItWorks.tap()
         XCTAssertTrue(app.navigationBars["How Crew works"].waitForExistence(timeout: 15), "S19 did not open")
         XCTAssertTrue(app.staticTexts["Draft"].exists, "the note from Max is marked Draft until the owner rewrites it")

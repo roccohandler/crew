@@ -62,7 +62,7 @@ struct WorkoutEditorScreen: View {
             Section {
                 ForEach(draft.rows, id: \.order) { row in
                     Button { editing = row.order } label: {
-                        ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), symbol: row.type == "cardio" ? nil : EquipmentLabel.symbol(for: row.equipment), chevron: !editMode.isEditing)
+                        ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), equipment: row.type == "cardio" ? nil : row.equipment, chevron: !editMode.isEditing)
                     }
                     .buttonStyle(.plain)
                     .disabled(editMode.isEditing)
@@ -119,7 +119,7 @@ struct WorkoutEditorScreen: View {
 struct ExerciseListRow: View {
     let title: String
     let detail: String?
-    var symbol: String? = nil // A26: the equipment tag's SF Symbol, leading the detail line that already names the tag
+    var equipment: String? = nil // A26: the tag follows the targets — "3 × 8 · [symbol] Barbell" — the symbol against its own word
     let chevron: Bool
 
     var body: some View {
@@ -128,8 +128,11 @@ struct ExerciseListRow: View {
                 Text(title).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
                 if let detail {
                     HStack(spacing: EmberTokens.Spacing.space4) {
-                        if let symbol { Image(systemName: symbol).accessibilityHidden(true) }
-                        Text(detail).monospacedDigit()
+                        Text(equipment == nil ? detail : "\(detail) ·").monospacedDigit()
+                        if let equipment {
+                            if let symbol = EquipmentLabel.symbol(for: equipment) { Image(systemName: symbol).accessibilityHidden(true) }
+                            Text(equipment.capitalized)
+                        }
                     }
                     .font(.subheadline).foregroundStyle(EmberColors.secondaryText)
                 }

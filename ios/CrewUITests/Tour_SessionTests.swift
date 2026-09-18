@@ -31,6 +31,11 @@ final class Tour_SessionTests: XCTestCase {
             tourShot(app, "session_swap_sheet", "tapped Swap")
             tourDismissSheet(app, button: "Cancel")
         }
+        // ui-reviewer, run 35400020876: the active card was only ever shot with the plan's SHORTEST name — the header row (name · tag ·
+        // Swap · Skip) has to be seen with the longest one too (A26: "Cable Rope Triceps Extension", the second row of Push)
+        if tourTap(app.buttons["Open Cable Rope Triceps Extension"], timeout: 5) {
+            tourShot(app, "session_logger_longname", "opened the second exercise — the longest name in the template")
+        }
         if tourTap(app.buttons["Discard"].firstMatch, timeout: 5) {
             tourShot(app, "session_discard_dialog", "tapped Discard")
             tourDismissDialog(app)
