@@ -47,11 +47,38 @@ struct SeedAchievement: Codable, Equatable, Identifiable {
     let threshold: Int
 }
 
+// SPEC: nutrition addendum §5 — the curated fast-food seed: a chain's NAME and a neutral glyph (never a logo, never a food photo),
+// an item's name, serving label and three gram amounts as the chain itself published them. No rating, no rank: the order is the
+// file's alphabetical sort. Twin of SeedFastFoodChain / SeedFastFoodItem in web/src/generated/seed.ts.
+struct SeedFastFoodChain: Codable, Equatable, Identifiable {
+    let id: String
+    let name: String
+    let icon: String           // an SF Symbol from the fixed neutral set (check-seeds)
+    let sourceUrl: String
+    let retrievedOn: String
+}
+
+struct SeedFastFoodItem: Codable, Equatable, Identifiable {
+    let id: String
+    let chainId: String
+    let name: String
+    let servingLabel: String
+    let proteinG: Int
+    let carbsG: Int
+    let fatG: Int
+}
+
+struct SeedFastFood: Codable, Equatable {
+    let chains: [SeedFastFoodChain]
+    let items: [SeedFastFoodItem]
+}
+
 struct SeedCatalog {
     let exercises: [SeedExercise]
     let planTemplates: SeedPlanTemplates
     let achievements: [SeedAchievement]
     let regionOfPattern: [String: String]
+    let fastFood: SeedFastFood
 
     private struct ExercisesFile: Codable {
         struct Enums: Codable {
@@ -74,7 +101,8 @@ struct SeedCatalog {
         let exercisesFile = try decoder.decode(ExercisesFile.self, from: Data(SeedData.exercisesJSON.utf8))
         let templates = try decoder.decode(SeedPlanTemplates.self, from: Data(SeedData.planTemplatesJSON.utf8))
         let achievementsFile = try decoder.decode(AchievementsFile.self, from: Data(SeedData.achievementsJSON.utf8))
-        return SeedCatalog(exercises: exercisesFile.exercises, planTemplates: templates, achievements: achievementsFile.achievements, regionOfPattern: exercisesFile.enums.region)
+        let fastFood = try decoder.decode(SeedFastFood.self, from: Data(SeedData.fastFoodJSON.utf8))
+        return SeedCatalog(exercises: exercisesFile.exercises, planTemplates: templates, achievements: achievementsFile.achievements, regionOfPattern: exercisesFile.enums.region, fastFood: fastFood)
     }
 
     func exercise(_ id: String) -> SeedExercise? {

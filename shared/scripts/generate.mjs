@@ -6,6 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderEmberColorsSwift, renderEmberCss, renderEmberTokensSwift } from "./render-ember.mjs";
+import { copyValues, renderCopySwift, renderCopyTs, resolveCopy } from "./render-copy.mjs";
 import { renderSeedDataSwift, renderSeedTs } from "./render-seed.mjs";
 import { renderSpecConstantsSwift, renderSpecConstantsTs } from "./render-spec-constants.mjs";
 
@@ -13,6 +14,7 @@ export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "
 const specConstantsPath = join(repoRoot, "shared", "spec-constants.json");
 const designTokensPath = join(repoRoot, "shared", "design-tokens.json");
 const seedDir = join(repoRoot, "shared", "seed");
+const copyDir = join(repoRoot, "shared", "copy");
 
 function readSeeds() {
   const seeds = {
@@ -59,18 +61,29 @@ function readDesignTokens() {
   return tokens;
 }
 
+// SPEC: A16.a · C7 — copy is shared words; its numbers are {placeholders} resolved from the constants above
+export function readCopy(sections) {
+  const values = copyValues(sections);
+  const copy = { nutritionMethod: resolveCopy(JSON.parse(readFileSync(join(copyDir, "nutrition-method.json"), "utf8")), values, "nutrition-method.json") };
+  for (const [name, doc] of Object.entries(copy)) if (JSON.stringify(doc).includes('"#')) throw new Error(`copy ${name}: the sequence "# would break the Swift raw string`);
+  return copy;
+}
+
 export function renderAll() {
   const sections = readSpecConstants();
   const tokens = readDesignTokens();
   const seeds = readSeeds();
+  const copy = readCopy(sections);
   return [
     { path: "ios/Crew/Generated/SpecConstants.swift", content: renderSpecConstantsSwift(sections) },
     { path: "ios/Crew/Generated/EmberColors.swift", content: renderEmberColorsSwift(tokens) },
     { path: "ios/Crew/Generated/EmberTokens.swift", content: renderEmberTokensSwift(tokens) },
     { path: "ios/Crew/Generated/SeedData.swift", content: renderSeedDataSwift(seeds) },
+    { path: "ios/Crew/Generated/CopyData.swift", content: renderCopySwift(copy) },
     { path: "web/src/generated/spec-constants.ts", content: renderSpecConstantsTs(sections) },
     { path: "web/src/generated/ember.css", content: renderEmberCss(tokens, sections) },
     { path: "web/src/generated/seed.ts", content: renderSeedTs(seeds) },
+    { path: "web/src/generated/copy.ts", content: renderCopyTs(copy) },
   ];
 }
 

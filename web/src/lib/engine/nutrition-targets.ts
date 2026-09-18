@@ -39,6 +39,22 @@ export function kilogramHundredths(bodyweightTenths: number, unit: WeightUnit): 
   return roundToStep(hundredths * SpecConstants.kilogramsPerPoundScaled, SpecConstants.weightConversionScale, 1);
 }
 
+// SPEC: R-074 (3) — a typo bound, never a judgement: bodyweightMinKg…bodyweightMaxKg, in kilograms whichever unit was typed.
+// The form checks it before sending and the validator checks it again, with the same arithmetic.
+export function bodyweightInBounds(bodyweightTenths: number, unit: WeightUnit): boolean {
+  const kg = kilogramHundredths(bodyweightTenths, unit);
+  return kg >= SpecConstants.bodyweightMinKg * SpecConstants.bodyweightKilogramScale && kg <= SpecConstants.bodyweightMaxKg * SpecConstants.bodyweightKilogramScale;
+}
+
+// SPEC: §3 · A9 — what the user typed ("176", "80.5", "80,5") → tenths of the unit, rounded half-up; null when it is not a number or
+// not a bodyweight (the typo bound above). The one parser both forms use, so the phone and the web accept exactly the same text.
+export function bodyweightTenthsFrom(text: string, unit: WeightUnit): number | null {
+  const value = Number(text.trim().replace(",", "."));
+  if (text.trim() === "" || !Number.isFinite(value) || value <= 0) return null;
+  const tenths = Math.round(value * SpecConstants.bodyweightEntryScale);
+  return bodyweightInBounds(tenths, unit) ? tenths : null;
+}
+
 // SPEC: §3 carbs — what the energy leaves after protein and fat, floored at 0; a floor hit is a measurement on its own line (V60)
 export function carbs(energyKcal: number, proteinG: number, fatG: number): { carbsG: number; carbsOverageKcal: number } {
   const left = energyKcal - proteinG * SpecConstants.kcalPerGramProtein - fatG * SpecConstants.kcalPerGramFat;

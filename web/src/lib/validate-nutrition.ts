@@ -2,7 +2,7 @@
 // bounds and NOTHING else is checked (clause ⑤: no food is judged); a bodyweight is a number to one decimal in lb or kg, bounded in
 // kilograms (R-074). Mirrors ApiNutrition.swift.
 import { z } from "zod";
-import { kilogramHundredths } from "@/lib/engine/nutrition-targets";
+import { bodyweightInBounds } from "@/lib/engine/nutrition-targets";
 import { clientIdSchema, dayKeySchema, timezoneSchema } from "@/lib/validate";
 import { SpecConstants } from "@/generated/spec-constants";
 
@@ -12,10 +12,7 @@ const mealName = z.string().trim().min(1).max(SpecConstants.savedMealNameMaxChar
 
 // SPEC: §3 — tenths of the unit; the bounds are kilograms whichever unit was typed
 export const bodyweightTenthsOf = (bodyweight: number): number => Math.round(bodyweight * SpecConstants.bodyweightEntryScale);
-function withinBounds(input: { bodyweight: number; unit: "lb" | "kg" }): boolean {
-  const kg = kilogramHundredths(bodyweightTenthsOf(input.bodyweight), input.unit);
-  return kg >= SpecConstants.bodyweightMinKg * SpecConstants.bodyweightKilogramScale && kg <= SpecConstants.bodyweightMaxKg * SpecConstants.bodyweightKilogramScale;
-}
+const withinBounds = (input: { bodyweight: number; unit: "lb" | "kg" }): boolean => bodyweightInBounds(bodyweightTenthsOf(input.bodyweight), input.unit);
 
 // All three grams (the user overwrote them → manual) or none (derive from the bodyweight → derived; this is also "Recalculate")
 export const putTargetsSchema = z

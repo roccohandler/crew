@@ -51,6 +51,22 @@ enum NutritionTargets {
         return roundToStep(hundredths * SpecConstants.kilogramsPerPoundScaled, SpecConstants.weightConversionScale, 1)
     }
 
+    // SPEC: R-074 (3) — a typo bound, never a judgement: bodyweightMinKg…bodyweightMaxKg, in kilograms whichever unit was typed.
+    // The form checks it before sending and the server checks it again, with the same arithmetic.
+    static func bodyweightInBounds(_ bodyweightTenths: Int, _ unit: String) -> Bool {
+        let kg = kilogramHundredths(bodyweightTenths, unit)
+        return kg >= SpecConstants.bodyweightMinKg * SpecConstants.bodyweightKilogramScale && kg <= SpecConstants.bodyweightMaxKg * SpecConstants.bodyweightKilogramScale
+    }
+
+    // SPEC: §3 · A9 — what the user typed ("176", "80.5", "80,5") → tenths of the unit, rounded half-up; nil when it is not a number or
+    // not a bodyweight (the typo bound above). The one parser both forms use, so the phone and the web accept exactly the same text.
+    static func bodyweightTenthsFrom(_ text: String, _ unit: String) -> Int? {
+        let cleaned = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(cleaned), value.isFinite, value > 0 else { return nil }
+        let tenths = Int((value * Double(SpecConstants.bodyweightEntryScale)).rounded())
+        return bodyweightInBounds(tenths, unit) ? tenths : nil
+    }
+
     // SPEC: §3 carbs — what the energy leaves after protein and fat, floored at 0; a floor hit is a measurement on its own line (V60)
     static func carbs(_ energyKcal: Int, _ proteinG: Int, _ fatG: Int) -> CarbsResult {
         let left = energyKcal - proteinG * SpecConstants.kcalPerGramProtein - fatG * SpecConstants.kcalPerGramFat

@@ -138,6 +138,7 @@
     "macroFactorScale": { "value": 10, "spec": "nutrition addendum §3 — the divisor of the two per-kilogram factors" },
     "fatFloorPercentOfEnergy": { "value": 20, "spec": "nutrition addendum §3; A16 — fat is at least 20 % of the energy estimate" },
     "macroPercentScale": { "value": 100, "spec": "nutrition addendum §3 — the divisor of fatFloorPercentOfEnergy" },
+    "macroBarTargetPercent": { "value": 80, "spec": "nutrition addendum §4 — the target marker (ink hairline) sits at 80 % of a macro bar's track, so an overage has room to show as LENGTH and never as colour (clause ②; R-075)" },
     "kcalPerGramProtein": { "value": 4, "spec": "nutrition addendum §3 — Atwater" },
     "kcalPerGramCarbs": { "value": 4, "spec": "nutrition addendum §3 — Atwater" },
     "kcalPerGramFat": { "value": 9, "spec": "nutrition addendum §3 — Atwater" },

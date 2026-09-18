@@ -48,6 +48,64 @@ export function remaining(targets: { proteinG: number; carbsG: number; fatG: num
   };
 }
 
+// SPEC: §4 — the words on a line, identical on both platforms: "95 / 145 g" and then "50 to go" or "10 over" — two facts in ordinary
+// ink (clause ②). Exactly on target prints no second fact: the amounts already say it, and a zero is never a verdict (A8; R-075).
+export function amountText(line: MacroLine, unit: "g" | "kcal"): string {
+  return `${line.logged} / ${line.target} ${unit}`;
+}
+
+export function restText(line: MacroLine): string | null {
+  if (line.over > 0) return `${line.over} over`;
+  return line.toGo > 0 ? `${line.toGo} to go` : null;
+}
+
+// SPEC: clause ② ("an overage is a measurement stated in ordinary ink on its own line, NAMING TOMORROW IN THE SAME BREATH") — one
+// sentence under the four lines whenever any of them is over: the next horizon, as a fact. Never a colour, never an alert, never a
+// verb aimed at the user (no coaching copy, A21.5); null while nothing is over, so a day on or under target says nothing (R-075).
+export function horizonText(day: MacroRemaining): string | null {
+  const anyOver = [day.protein, day.carbs, day.fat, day.calories].some((line) => line.over > 0);
+  return anyOver ? "Tomorrow starts from your full targets." : null;
+}
+
+// SPEC: 6.5 · E20 — the ONE sentence a screen reader hears for a line, the same on both platforms: "Protein: 95 / 145 g, 50 to go"
+export function spokenLine(name: string, line: MacroLine, unit: "g" | "kcal"): string {
+  const rest = restText(line);
+  return rest === null ? `${name}: ${amountText(line, unit)}` : `${name}: ${amountText(line, unit)}, ${rest}`;
+}
+
+// SPEC: §4 · §7.4 encoder ⑤ — the bar's fill as a whole percent of its track. The target marker sits at macroBarTargetPercent, so
+// a fill past the hairline IS the overage, shown as length; the colour never changes. No target → an empty track, or a full one.
+export function barPercent(line: MacroLine): number {
+  if (line.target === 0) return line.logged > 0 ? SpecConstants.macroPercentScale : 0;
+  return Math.min(SpecConstants.macroPercentScale, Math.floor((line.logged * SpecConstants.macroBarTargetPercent) / line.target));
+}
+
+// SPEC: §4 · §7.4 encoders ① ② — a meal's three numbers in the fixed order, each with its letter; and the sentence VoiceOver reads
+export function gramsText(grams: { proteinG: number; carbsG: number; fatG: number }): string {
+  return `P ${grams.proteinG} · C ${grams.carbsG} · F ${grams.fatG}`;
+}
+
+export function gramsSpoken(grams: { proteinG: number; carbsG: number; fatG: number }): string {
+  return `${grams.proteinG} grams protein, ${grams.carbsG} grams carbs, ${grams.fatG} grams fat`;
+}
+
+export interface SlotLog {
+  clientId: string;
+  savedMealId: string | null;
+}
+
+// SPEC: §4 "Your template" — one tap logs a slot (✓), undo in place. Which of today's logs ticks which slot: a meal's logs fill that
+// meal's slots in order, so the same meal in two slots ticks one at a time; a quick add, or a log whose meal is gone, ticks none.
+export function slotTicks(slotMealIds: string[], logs: SlotLog[]): (string | null)[] {
+  const used = new Set<string>();
+  return slotMealIds.map((mealId) => {
+    const match = logs.find((log) => log.savedMealId === mealId && !used.has(log.clientId));
+    if (match === undefined) return null;
+    used.add(match.clientId);
+    return match.clientId;
+  });
+}
+
 // SPEC: V62 · 8.2 ④ — a log is idempotent on its clientId: a template slot tapped twice (or replayed by the queue) logs once
 export function logging(entry: MealLogFacts, logs: MealLogFacts[]): MealLogFacts[] {
   return logs.some((log) => log.clientId === entry.clientId) ? logs : [...logs, entry];

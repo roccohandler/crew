@@ -24,6 +24,10 @@ jobs:
       # The Swift cross-reference check (removed enum cases, renamed parameters, a shadowed SwiftUI type) fails here in a
       # minute instead of on the macOS job ten minutes later — and it is the same command the Windows build machine runs.
       - run: node shared/scripts/swift-xref.mjs
+      # The shared copy (shared/copy/*.json): every source a link, every placeholder a constant, the 6.6 word rules (A16.a)
+      - run: node shared/scripts/check-copy.mjs
+      # T047 / W067: the seven no-grade clauses + A21.13 Not Building, as a scan of shipped source — nothing rejected exists or is prepared for
+      - run: node shared/scripts/launch-audit.mjs
 
   web:
     name: web (lint · typecheck · test · vectors)

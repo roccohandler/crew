@@ -1,0 +1,20 @@
+{
+  "spec": "A16.a (methodology screen — REQUIRED: names the calculation, its sources, the estimate-and-clinician line; every source linkable) · nutrition addendum §3 (RATIFIED 2026-09-18). Numbers are {placeholders} resolved from shared/spec-constants.json by the generator, never typed here. Copy rules 6.6: sentence case, contractions, no exclamation mark, no coaching.",
+  "title": "How targets are estimated",
+  "lead": "Your targets start from one number, your bodyweight. Everything here is an estimate, and you can overwrite any of it in Nutrition targets.",
+  "steps": [
+    { "heading": "Energy", "body": "Bodyweight in kilograms × {kcalPerKgMaintenance} kcal, rounded to the nearest {energyKcalRoundTo}. It's a maintenance estimate for someone who trains a few days a week. It's never a deficit and never a surplus.", "sourceIds": ["kerksick2018"] },
+    { "heading": "Protein", "body": "Bodyweight in kilograms × {proteinGramsPerKg} g. Protein is set first, and the other two fit around it.", "sourceIds": ["jager2017"] },
+    { "heading": "Fat", "body": "{fatFloorPercentOfEnergy}% of the energy estimate, and never less than {fatFloorGramsPerKg} g per kilogram of bodyweight.", "sourceIds": ["iom2005"] },
+    { "heading": "Carbs", "body": "The energy left after protein and fat, never below zero.", "sourceIds": [] },
+    { "heading": "Calories", "body": "Counted from grams: {kcalPerGramProtein} kcal per gram of protein, {kcalPerGramCarbs} per gram of carbs, {kcalPerGramFat} per gram of fat. Today's calorie line adds up your three gram targets this way, so it can sit a little off the energy estimate.", "sourceIds": ["fao2003"] },
+    { "heading": "Rounding", "body": "Grams round to the nearest {macroGramsRoundTo}, so an estimate never reads like a measurement.", "sourceIds": [] }
+  ],
+  "clinician": "These are estimates and rules of thumb, not medical advice. Talk to a clinician before acting on them. Every source above is a link.",
+  "sources": [
+    { "id": "kerksick2018", "label": "Kerksick et al., ISSN exercise & sports nutrition review update: research & recommendations. Journal of the International Society of Sports Nutrition, 2018.", "url": "https://doi.org/10.1186/s12970-018-0242-y" },
+    { "id": "jager2017", "label": "Jäger et al., International Society of Sports Nutrition Position Stand: protein and exercise. Journal of the International Society of Sports Nutrition, 2017.", "url": "https://doi.org/10.1186/s12970-017-0177-8" },
+    { "id": "iom2005", "label": "Institute of Medicine, Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. National Academies Press, 2005.", "url": "https://www.nationalacademies.org/publications/10490" },
+    { "id": "fao2003", "label": "FAO, Food energy — methods of analysis and conversion factors (Food and Nutrition Paper 77), chapter 3. 2003.", "url": "https://www.fao.org/4/y5022e/y5022e04.htm" }
+  ]
+}

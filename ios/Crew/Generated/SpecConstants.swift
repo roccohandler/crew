@@ -252,6 +252,8 @@ enum SpecConstants {
     static let fatFloorPercentOfEnergy: Int = 20
     /// SPEC: nutrition addendum §3 — the divisor of fatFloorPercentOfEnergy
     static let macroPercentScale: Int = 100
+    /// SPEC: nutrition addendum §4 — the target marker (ink hairline) sits at 80 % of a macro bar's track, so an overage has room to show as LENGTH and never as colour (clause ②; R-075)
+    static let macroBarTargetPercent: Int = 80
     /// SPEC: nutrition addendum §3 — Atwater
     static let kcalPerGramProtein: Int = 4
     /// SPEC: nutrition addendum §3 — Atwater
