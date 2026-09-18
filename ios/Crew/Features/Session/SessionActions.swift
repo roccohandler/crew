@@ -1,17 +1,18 @@
 // SPEC: Flow 3 (the base loop; quick complete; crash-proof — every tap saves) · S10 (numbers match the engine exactly;
-// the workout is now a POST) · E7 (two-a-days: first counts, extras bonus) · 5.3 optimistic write · A1 (the snapshot names
-// its plan kind — the rotation pointer reads it back) · A2 (a standalone cardio log is a session of kind "cardio", created and
-// completed in one call) · A3 (isPlannedDay is the caller's judgment: a bonus workout is unplanned, +25) · A6 (the post's one
-// summary line, with the server's rounding so the hydrated line matches). Plain functions shared by HomeModel.quickComplete,
-// SessionModel.complete and CardioLogModel.submit (C1). WRITTEN — UNVERIFIED (needs Mac). T024–T026
+// the workout becomes a POST when a celebration button is tapped) · E7 (two-a-days: first counts, extras bonus) · 5.3 optimistic
+// write · A1 (the snapshot names its plan kind — the rotation pointer reads it back) · A2 (a standalone cardio log is a session of
+// kind "cardio", created and completed in one call) · A3 (isPlannedDay is the caller's judgment: a bonus workout is unplanned, +25) ·
+// A6 (the post's one summary line, with the server's rounding so the hydrated line matches). A21.9 / W4 (owner-approved 2026-09-17,
+// A19.3 stands): complete() records the workout and creates NO post — the celebration shows a PREVIEW of what the tap will count;
+// post(_:shareToCrew:) creates the post with the visibility the tapped button names, runs the engine for real and sends the post;
+// a celebration the app died under is answered PRIVATELY at the next cold start (postUnanswered). Plain functions shared by
+// HomeModel.quickComplete, SessionModel.complete and CardioLogModel.submit (C1). WRITTEN — UNVERIFIED (needs Mac). T024–T026
 
 import Foundation
 
-struct PostDraft: Equatable {
+struct PostDraft: Equatable, Codable {
     var clientId: String
     var sessionClientId: String
-    var caption = ""
-    var shareToCrew: Bool
 }
 
 struct CelebrationOutcome: Equatable {
@@ -24,6 +25,10 @@ struct CelebrationOutcome: Equatable {
 
 @MainActor
 enum SessionActions {
+    // SPEC: A21.9 — the one celebration whose button has not been tapped yet, remembered outside the Store (no schema change):
+    // written by complete(), cleared by post(), read at the next cold start by postUnanswered()
+    static let unansweredKey = "celebrationUnanswered"
+
     // SPEC: A1 · A3 — a LocalSession from the plan's template: the SNAPSHOT that later plan edits never touch; rows pre-filled
     // from targets; `kind` is the plan kind it runs, `isPlannedDay` whether today is an undone training day (else +25, V30/V31)
     static func startSession(from workout: LocalWorkoutTemplate, kind: String, isPlannedDay: Bool, userId: String, timeZone: TimeZone = .current, now: Date = Date(), store: Store) throws -> LocalSession {
@@ -45,8 +50,9 @@ enum SessionActions {
 
     // SPEC: A2 — a standalone cardio log from Home: a session of kind "cardio", unplanned (+25 per V30/V31; it sustains the
     // streak like any post; A1: it never advances the rotation), one cardio exercise with one done set — holdSeconds are the
-    // logged minutes in seconds, distanceMeters optional — completed through the same path as any workout (post, engine, queue)
-    static func logCardio(activity: SeedExercise, minutes: Int, distanceMeters: Int?, shareToCrew: Bool = true, userId: String, timeZone: TimeZone = .current, now: Date = Date(), store: Store) throws -> CelebrationOutcome {
+    // logged minutes in seconds, distanceMeters optional — completed through the same path as any workout (engine, queue; A21.9:
+    // the post follows the celebration's tap)
+    static func logCardio(activity: SeedExercise, minutes: Int, distanceMeters: Int?, userId: String, timeZone: TimeZone = .current, now: Date = Date(), store: Store) throws -> CelebrationOutcome {
         let seconds = minutes * TimeUnits.secondsPerMinute
         let set = LocalSetLog(order: 0, targetReps: 0, actualReps: 0, weight: nil, holdSeconds: seconds, isWarmup: false)
         set.distanceMeters = distanceMeters
@@ -55,7 +61,7 @@ enum SessionActions {
         let exercise = LocalSessionExercise(exerciseId: activity.id, name: activity.name, equipment: activity.equipment, type: "cardio", targetSets: 1, targetReps: 0, holdSeconds: seconds, order: 0, sets: [set])
         let session = LocalSession(clientId: UUID().uuidString.lowercased(), userId: userId, dayKey: DayKey.dayKey(for: now, tz: timeZone), status: "inProgress", workoutName: activity.name, workoutKind: "cardio", isPlannedDay: false, startedAt: now, timezone: timeZone.identifier, exercises: [exercise])
         _ = try insertAndQueue(session, now: now, store: store)
-        guard let outcome = try complete(session, shareToCrew: shareToCrew, now: now, store: store) else { throw AppError.storage("cardio") } // one done work set: always complete (V51)
+        guard let outcome = try complete(session, now: now, store: store) else { throw AppError.storage("cardio") } // one done work set: always complete (V51)
         return outcome
     }
 
@@ -81,36 +87,71 @@ enum SessionActions {
         }
     }
 
-    // SPEC: V32 — ≥1 work set done completes; then the post (with its A6 line), the engine, the queue
-    static func complete(_ session: LocalSession, shareToCrew: Bool, now: Date = Date(), store: Store) throws -> CelebrationOutcome? {
+    // SPEC: V32 — ≥1 work set done completes. A21.9: the completion is RECORDED (the row, the patchSession op with no post) and
+    // nothing is counted yet — the awards returned are a preview of what the tap will count (GamificationLocal.preview: the same
+    // computation as apply, with the one post the tap inserts, nothing persisted). The celebration is remembered as unanswered.
+    static func complete(_ session: LocalSession, now: Date = Date(), store: Store) throws -> CelebrationOutcome? {
         let facts = Completion.completionFacts(setFacts(session))
         guard facts.complete else { return nil }
         session.status = "completed"
         session.completedAt = now
         session.dayKey = DayKey.dayKey(for: now, tz: TimeZone(identifier: session.timezone) ?? .current)
         session.updatedAt = now
-        let postClientId = UUID().uuidString.lowercased()
-        // A14: a standalone cardio log is its own post type — the server writes the same value from the session kind
-        // (sessions.ts). The ENGINE call below still passes .workout: to XP and the streak a walk is a workout (V30/V31).
-        let post = LocalPost(clientId: postClientId, userId: session.userId, type: session.workoutKind == "cardio" ? "cardio" : "workout", sessionClientId: session.clientId, caption: "", mealTag: nil, shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, earlierToday: false, createdAt: now)
+        try store.save()
+        try SyncQueue.shared.enqueue(.patchSession, payload: PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: exerciseDTOs(session), status: "completed", completedAt: now, post: nil), now: now)
+        // A14: a standalone cardio log is its own post type — the server writes the same value from the session kind (sessions.ts).
+        // The ENGINE event is .workout: to XP and the streak a walk is a workout (V30/V31).
+        var awards = try GamificationLocal.preview(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true), for: session.userId, store: store)
+        awards.append(contentsOf: try AchievementFacts.newRecords(in: session, store: store).map { Award.prBadge(exercise: $0) }) // Flow 3 PR celebration, last in the canonical order
+        let draft = PostDraft(clientId: UUID().uuidString.lowercased(), sessionClientId: session.clientId)
+        rememberUnanswered(draft)
+        let duration = Int(now.timeIntervalSince(session.startedAt))
+        return CelebrationOutcome(setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, durationSeconds: duration, awards: awards, postDraft: draft)
+    }
+
+    // SPEC: A21.9 · S10 · A6 — the tapped button creates the post with the visibility it names: the row (with its A6 line), the
+    // engine for real, the queue (a second patchSession carrying `post`; the server creates the post once — sessions.ts
+    // postLateIfMissing). The choice is made once: a session that already has its post is left alone.
+    @discardableResult
+    static func post(_ outcome: CelebrationOutcome, shareToCrew: Bool, now: Date = Date(), store: Store) throws -> [Award] {
+        guard let session = try store.session(clientId: outcome.postDraft.sessionClientId) else { throw AppError.storage("session") }
+        return try post(session, clientId: outcome.postDraft.clientId, shareToCrew: shareToCrew, now: now, store: store)
+    }
+
+    static func post(_ session: LocalSession, clientId: String, shareToCrew: Bool, now: Date, store: Store) throws -> [Award] {
+        forgetUnanswered()
+        guard try store.post(forSessionClientId: session.clientId) == nil else { return [] }
+        let post = LocalPost(clientId: clientId, userId: session.userId, type: session.workoutKind == "cardio" ? "cardio" : "workout", sessionClientId: session.clientId, caption: "", mealTag: nil, shareToCrew: shareToCrew, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, earlierToday: false, createdAt: now)
         post.summary = JournalFacts.summaryLine(session, distanceUnit: AuthStore.shared.distanceUnit) // A6: the one line the celebration, the journal and the day card read — server rounding (JournalFacts)
         store.context.insert(post)
         try store.save()
-        var awards = try GamificationLocal.apply(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true), for: session.userId, store: store)
-        awards.append(contentsOf: try AchievementFacts.newRecords(in: session, store: store).map { Award.prBadge(exercise: $0) }) // Flow 3 PR celebration, last in the canonical order
-        let payload = PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: exerciseDTOs(session), status: "completed", completedAt: now, post: CompletionPostDTO(clientId: postClientId, shareToCrew: shareToCrew, caption: nil, photoKey: nil))
+        let awards = try GamificationLocal.apply(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true), for: session.userId, store: store)
+        let payload = PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: nil, status: "completed", completedAt: session.completedAt, post: CompletionPostDTO(clientId: clientId, shareToCrew: shareToCrew, caption: nil, photoKey: nil))
         try SyncQueue.shared.enqueue(.patchSession, payload: payload, now: now)
-        let duration = Int(now.timeIntervalSince(session.startedAt))
-        return CelebrationOutcome(setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, durationSeconds: duration, awards: awards, postDraft: PostDraft(clientId: postClientId, sessionClientId: session.clientId, shareToCrew: shareToCrew))
+        return awards
     }
 
+    // SPEC: A21.9 — a celebration the app died under (no button tapped) posts PRIVATELY at the next cold start, so the day still
+    // counts and the phone and the server agree; a private post is the quiet default (S10). Nothing remembered → nothing happens.
+    static func postUnanswered(userId: String, now: Date = Date(), store: Store) throws {
+        guard let data = UserDefaults.standard.data(forKey: unansweredKey), let draft = try? JSONDecoder.crew.decode(PostDraft.self, from: data) else { return }
+        guard let session = try store.session(clientId: draft.sessionClientId), session.userId == userId, session.status == "completed" else { forgetUnanswered(); return }
+        _ = try post(session, clientId: draft.clientId, shareToCrew: false, now: now, store: store)
+    }
+
+    static func rememberUnanswered(_ draft: PostDraft) {
+        if let data = try? JSONEncoder.crew.encode(draft) { UserDefaults.standard.set(data, forKey: unansweredKey) }
+    }
+
+    static func forgetUnanswered() { UserDefaults.standard.removeObject(forKey: unansweredKey) }
+
     // SPEC: Flow 3 quick complete — trained phone-free? One tap logs the planned workout at its targets (Home offers it only on
-    // an undone training day, so the session is planned)
-    static func quickComplete(from workout: LocalWorkoutTemplate, userId: String, shareToCrew: Bool, now: Date = Date(), store: Store) throws -> CelebrationOutcome? {
+    // an undone training day, so the session is planned); the celebration's button then posts it (A21.9)
+    static func quickComplete(from workout: LocalWorkoutTemplate, userId: String, now: Date = Date(), store: Store) throws -> CelebrationOutcome? {
         let session = try startSession(from: workout, kind: workout.kind, isPlannedDay: true, userId: userId, now: now, store: store)
         for exercise in session.exercises { for set in exercise.sets { set.done = true; set.asPlanned = true } }
         try store.save()
-        return try complete(session, shareToCrew: shareToCrew, now: now, store: store)
+        return try complete(session, now: now, store: store)
     }
 
     static func exerciseDTOs(_ session: LocalSession) -> [SessionExerciseDTO] {

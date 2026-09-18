@@ -77,10 +77,16 @@ final class Journey1_NewUserTests: XCTestCase {
             firstSet.tap()
             shoot(app, "S09 session")
             app.buttons["Complete workout"].tap()
-            // S10 celebration: XP counts in, then Done
+            // S10 celebration: XP counts in, then Done (A21.9: a solo user's one button — the post follows the tap)
             XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '+'")).firstMatch.waitForExistence(timeout: 5))
             shoot(app, "S10 celebration")
             app.buttons["Done"].tap()
+            // A21.4 / W4 — after the FIRST completed workout, once: the reminder opt-in (7:30 pre-filled, G12); Not now is remembered (E5)
+            let notNow = app.buttons["Not now"]
+            XCTAssertTrue(notNow.waitForExistence(timeout: 10), "the reminder opt-in never followed the first celebration (A21.4) — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+            XCTAssertTrue(app.staticTexts["Get a nudge on workout days?"].exists)
+            shoot(app, "1D reminder opt-in")
+            notNow.tap()
         } else {
             postMeal.tap()
             let caption = app.textFields["Say something (or don't)"]

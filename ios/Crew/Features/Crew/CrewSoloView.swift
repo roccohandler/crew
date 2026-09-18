@@ -1,11 +1,13 @@
 // SPEC: A5 (owner-directed 2026-09-08) — the solo tab explains the loop in three lines then one CTA · Flow 10 (solo is a full
 // experience; the Crew tab is one warm invitation) · 6.1 Empty (an invitation, never an apology) · A8 (sentence case, verb-first
-// CTA, no orange: nothing here is a reward). Screens hold ZERO logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac).
+// CTA, no orange: nothing here is a reward) · A21.3 / W4 (owner-approved 2026-09-17): the SAME entry as the hero — "I have an
+// invite" — for a signed-in user with a code in hand (JoinByCodeSheet). Screens hold ZERO logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
 
 struct CrewSoloView: View {
     let onStart: () -> Void
+    var onHaveInvite: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
@@ -16,6 +18,7 @@ struct CrewSoloView: View {
             LoopLine(symbol: "flame", text: "They react 🔥💪👏😂❤️.") // A21.2: no chat
             Text("Two to ten friends. A link, a name, an emoji.").font(.body).foregroundStyle(EmberColors.secondaryText)
             PrimaryButton(title: "Start a crew", action: onStart)
+            SecondaryButton(title: "I have an invite", action: onHaveInvite) // A21.3: paste the code a friend sent
             Spacer()
         }
         .padding(EmberTokens.Spacing.space24)

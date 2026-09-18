@@ -1,6 +1,7 @@
 // SPEC: Flow 6 — [Start a Crew] → name + emoji → invite link → straight into iMessage; Captain tools (rename / change the emoji
 // — E2, PATCH crews/[id], W3 under A21.2 2026-09-17 —, remove, regenerate link) visible only to the Captain (S13); "crew full"
-// and revoked-link states explicit. WRITTEN — UNVERIFIED. T031
+// and revoked-link states explicit. A21.3 / W4 (owner-approved 2026-09-17): the Invite screen SHOWS THE CODE beside the link —
+// the same inviteToken — with Copy code, for a friend who will paste it into the app. WRITTEN — UNVERIFIED. T031
 
 import SwiftUI
 
@@ -25,6 +26,11 @@ struct InviteScreen: View {
                                     .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt))
                                     .foregroundStyle(EmberColors.primaryButtonLabel)
                                     .background(EmberColors.primaryButtonFill, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                            }
+                            if let code = model.inviteCodeText {
+                                Text("Or share the code").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                                Text(code).font(.body.monospaced()).foregroundStyle(EmberColors.inkText).textSelection(.enabled).accessibilityIdentifier("inviteCode")
+                                SecondaryButton(title: "Copy code") { model.copyInviteCode() }
                             }
                         } else if !model.isCaptain {
                             Text("Ask your Captain for the link.").font(.body).foregroundStyle(EmberColors.inkText) // the link is the Captain's (S13)

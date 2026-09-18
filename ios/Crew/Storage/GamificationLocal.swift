@@ -62,6 +62,17 @@ enum GamificationLocal {
         return awards
     }
 
+    // SPEC: A21.9 / W4 — what the celebration's tap WILL award: the same computation as apply, counting the one post the tap
+    // inserts, and NOTHING persisted. The celebration shows this before the choice; post() runs apply() for real on the tap.
+    static func preview(_ event: GameEvent, for userId: String, store: Store) throws -> [Award] {
+        var (next, awards) = GamificationEngine.apply(event, to: try engineState(for: userId, store: store), pauses: try pauses(for: userId, store: store))
+        var counters = try AchievementFacts.soloCounters(for: userId, state: next, store: store)
+        counters.postsTotal += 1
+        let unlocked = Achievements.achievementsEarned(counters, alreadyEarned: next.earnedAchievementIds)
+        for award in unlocked { if case .achievement(let id) = award { next.earnedAchievementIds.append(id) } }
+        awards.append(contentsOf: unlocked)
+        return awards
+    }
     // SPEC: E8 / V04 — every day since the last judged one (up to yesterday) is rolled over on foreground
     static func judgeElapsedDays(for userId: String, store: Store, now: Date = Date(), timeZone: TimeZone = .current) throws -> [Award] {
         var state = try engineState(for: userId, store: store)

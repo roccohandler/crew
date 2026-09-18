@@ -129,6 +129,13 @@ final class Store {
         return try context.fetch(descriptor).first
     }
 
+    // SPEC: A21.9 — the one post a session may carry: nil until a celebration button is tapped (posts hydrated from the server
+    // carry no sessionClientId, so this reads only what THIS phone posted)
+    func post(forSessionClientId sessionClientId: String) throws -> LocalPost? {
+        var descriptor = FetchDescriptor<LocalPost>(predicate: #Predicate { $0.sessionClientId == sessionClientId })
+        descriptor.fetchLimit = 1
+        return try context.fetch(descriptor).first
+    }
     func session(clientId: String) throws -> LocalSession? {
         var descriptor = FetchDescriptor<LocalSession>(predicate: #Predicate { $0.clientId == clientId })
         descriptor.fetchLimit = 1

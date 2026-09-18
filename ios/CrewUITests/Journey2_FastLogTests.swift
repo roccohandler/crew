@@ -44,12 +44,16 @@ final class Journey2_FastLogTests: XCTestCase {
         let quick = app.buttons["Quick complete"]
         XCTAssertTrue(quick.waitForExistence(timeout: 5))
         quick.tap()
-        // Tap 2: the celebration's single CTA (share default remembered; a solo member would see Done)
+        // Tap 2: the celebration's TWO buttons (A19.3 / A21.9) — this member has a crew, so "Share to crew" and "Keep it private";
+        // no post exists before one is tapped
         let share = app.buttons["Share to crew"]
-        let done = app.buttons["Done"]
-        XCTAssertTrue(share.waitForExistence(timeout: 5) || done.waitForExistence(timeout: 1))
+        XCTAssertTrue(share.waitForExistence(timeout: 5), "the celebration never showed its share button — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+        XCTAssertTrue(app.buttons["Keep it private"].exists, "A21.9: the second button")
         shoot(app, "S10 celebration — quick complete")
-        (share.exists ? share : done).tap()
+        share.tap()
+        // A21.4 — the seed posted a meal, so this is the member's FIRST completed workout and the reminder opt-in follows, once
+        let notNow = app.buttons["Not now"]
+        if notNow.waitForExistence(timeout: 5) { notNow.tap() }
         // Quick Complete is hidden once today counts
         XCTAssertFalse(app.buttons["Quick complete"].waitForExistence(timeout: 2))
         // The crew-mate sees the workout drop into the stream (the phone's queue sent it) and reacts

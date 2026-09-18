@@ -20,6 +20,10 @@ final class CrewModel {
     var lastSyncedAt: Date?
     var isLoaded = false
     var noticeLine: String?            // one-line confirmations: reported · blocked · link copied · renamed
+    var inviteCode = ""                // A21.3: the pasted code or link on the empty Crew tab (JoinByCodeSheet)
+    var invitePreview: CrewPreviewDTO?
+    var inviteCodeError: String?
+    var isLookingUpInvite = false
     private var invitePromptPending = false
 
     private let store: Store
@@ -149,13 +153,16 @@ final class CrewModel {
         do {
             crew = try await Api.shared.createCrew(name: name, emoji: emoji).crew
             invitePromptPending = true
+            PhotoPromptFlag.markPending() // 1C: the photo prompt at the first crew (after the invite sheet)
             await refresh()
         } catch let error as AppError { loadError = error.userLine } catch { loadError = AppError.invalidResponse.userLine }
     }
 
     func join(token: String) async {
-        do { _ = try await Api.shared.joinCrew(token: token); await refresh() } catch let error as AppError { loadError = error.userLine } catch { loadError = AppError.invalidResponse.userLine }
+        do { _ = try await Api.shared.joinCrew(token: token); PhotoPromptFlag.markPending(); await refresh() } catch let error as AppError { loadError = error.userLine } catch { loadError = AppError.invalidResponse.userLine }
     }
+
+    // A21.3 / W4: lookUpInvite · joinByCode · consumePhotoPrompt · inviteCodeText · copyInviteCode live in CrewModel+Invite.swift (C9)
 
     func leave() async {
         guard let crew else { return }

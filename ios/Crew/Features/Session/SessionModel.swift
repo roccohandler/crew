@@ -146,10 +146,11 @@ final class SessionModel {
         focusIndex = exercises.firstIndex { $0.order == exercise.order } ?? focusIndex
     }
 
-    // SPEC: S10 — numbers match the engine exactly; partial always counts (Flow 3)
-    func complete(shareToCrew: Bool) {
+    // SPEC: S10 — numbers match the engine exactly; partial always counts (Flow 3). A21.9: no post yet — the celebration's tapped
+    // button names the visibility (HomeModel.answerCelebration)
+    func complete() {
         do {
-            guard let outcome = try SessionActions.complete(session, shareToCrew: shareToCrew, store: store) else {
+            guard let outcome = try SessionActions.complete(session, store: store) else {
                 completeError = "Check off at least one set and this counts."
                 return
             }

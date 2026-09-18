@@ -1,4 +1,5 @@
 // SPEC: Flow 1 — hero → two questions → reveal → save (A21.1, owner-approved 2026-09-17: the equipment question is gone);
+// A21.3 / W4: "I have an invite" → the invite-code screen first, then the same two questions (the token rides along, 1A);
 // every arrival type has its path on screen one (1A); back-swipe preserves every answer (1B: NavigationStack keeps the
 // model). Screens branch only on view state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
 
@@ -22,6 +23,7 @@ struct OnboardingFlow: View {
             root
                 .navigationDestination(for: OnboardingStep.self) { step in
                     switch step {
+                    case .inviteCode: InviteCodeScreen(model: model) { path.append(.days) }
                     case .days: DaysQuestionScreen(model: model) { path.append(.experience) }
                     case .experience: ExperienceQuestionScreen(model: model) { path.append(.reveal) }
                     case .reveal: GeneratedPlanScreen(model: model) { afterReveal() }
@@ -42,7 +44,7 @@ struct OnboardingFlow: View {
             IntroScreen(
                 invitedCrewLine: model.invitedCrew.map { "\($0.name) \($0.emoji) is waiting for you" },
                 onBuildMyWeek: { path = [.days] },
-                onHaveInvite: { path = [.days] },
+                onHaveInvite: { path = [.inviteCode] }, // A21.3: paste the code first
                 onLogIn: { path = [.login] }
             )
         }

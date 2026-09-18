@@ -51,18 +51,19 @@ final class SessionModelTests: XCTestCase {
         model.checkSet(firstWork, in: first)
         XCTAssertFalse(firstWork.asPlanned) // V33: done, below target
         XCTAssertTrue(model.canComplete)
-        model.complete(shareToCrew: false)
+        model.complete()
         let outcome = try XCTUnwrap(model.celebration)
         XCTAssertEqual(outcome.setsDone, 1)
         XCTAssertTrue(outcome.awards.contains(.xp(SpecConstants.xpPlannedWorkout, reason: .plannedWorkout)))
         XCTAssertTrue(outcome.awards.contains(.streakTo(1)))
+        try SessionActions.post(outcome, shareToCrew: false, store: store) // A21.9: the tap posts and counts the day
         XCTAssertEqual(try store.gamificationState(for: userId).totalXP, SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout)
     }
 
     func testCompletionNeedsAtLeastOneWorkSetAndSkipsAreNeutral() throws {
         let (store, session) = try sessionInStore()
         let model = SessionModel(session: session, store: store, units: "kg")
-        model.complete(shareToCrew: false)
+        model.complete()
         XCTAssertNil(model.celebration)
         XCTAssertNotNil(model.completeError)
         model.skip(model.exercises[0])
@@ -90,9 +91,10 @@ final class SessionModelTests: XCTestCase {
         XCTAssertEqual(JournalFacts.cardioMinutes(session), 25)
         XCTAssertEqual(JournalFacts.cardioSuffix(session), " + Walk 25 min") // S10: appended to "x/y sets · n min"
         XCTAssertTrue(model.canComplete) // V51: a done cardio set is a work set
-        model.complete(shareToCrew: false)
+        model.complete()
         let outcome = try XCTUnwrap(model.celebration)
         XCTAssertEqual(outcome.setsDone, 1)
+        try SessionActions.post(outcome, shareToCrew: false, store: store) // A21.9: the tap posts and counts the day
         XCTAssertEqual(try store.gamificationState(for: userId).totalXP, SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout) // never extra XP for cardio
         let planned = SpecConstants.beginnerExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax + 1
         XCTAssertEqual(JournalFacts.summaryLine(session, distanceUnit: "km"), "\(session.workoutName) · 1/\(planned) sets · \(JournalFacts.wallClockMinutes(session)) min") // A6

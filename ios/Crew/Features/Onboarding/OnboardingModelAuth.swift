@@ -82,6 +82,9 @@ extension OnboardingModel {
         authError = nil
         defer { isSaving = false }
         do {
+            // A21.3: an invited signup lands INSIDE the crew — the flags are set before the session exists, because RootView builds
+            // the tab bar the moment it does (a join that then fails clears the landing flag; the photo prompt waits for a crew)
+            if inviteToken != nil { LandingFlags.markCrewTab(); PhotoPromptFlag.markPending() }
             try await authenticate()
             let userId = AuthStore.shared.currentUser?.id ?? "local"
             if let draft {
@@ -90,7 +93,7 @@ extension OnboardingModel {
             } else {
                 await ServerHydrate.pullIfEmpty(userId: userId, store: .shared) // a login on a fresh phone: plan, journal, sessions, gamification, crew
             }
-            if let inviteToken { _ = try? await Api.shared.joinCrew(token: inviteToken) }
+            if let inviteToken, (try? await Api.shared.joinCrew(token: inviteToken)) == nil { _ = LandingFlags.consumeCrewTab() } // the code died in between: Home, not an empty Crew tab
             draftStore.clear()
         } catch let error as AppError {
             authError = error.userLine

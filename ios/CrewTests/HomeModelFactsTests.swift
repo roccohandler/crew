@@ -61,7 +61,8 @@ final class HomeModelFactsTests: XCTestCase {
         // arbitrary workout and the day name below is whatever that happened to be. Run 35069768536 drew Leg day and
         // this line asserted Push. Pinned by kind, the way every production reader does it (HomeModel.swift:71).
         let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
-        _ = try SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: false, now: friday, store: store)
+        let outcome = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, now: friday, store: store))
+        try SessionActions.post(outcome, shareToCrew: false, now: friday, store: store) // A21.9: the tap posts and counts the day
         model.refresh(now: friday)
         XCTAssertEqual(model.today, .allDone)
         XCTAssertEqual(model.todaySummaryLines.count, 1)

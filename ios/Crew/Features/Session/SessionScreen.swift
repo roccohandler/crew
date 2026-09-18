@@ -59,7 +59,7 @@ struct SessionScreen: View {
             VStack(spacing: EmberTokens.Spacing.space8) {
                 Text(model.liveSummaryLine).font(.footnote.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) // S09 · A2: the live count, cardio appended
                 if let error = model.completeError { Text(error).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                PrimaryButton(title: "Complete workout") { model.complete(shareToCrew: true) }
+                PrimaryButton(title: "Complete workout") { model.complete() } // A21.9: the celebration's buttons decide the visibility
             }
         }
         .background(EmberColors.canvas.ignoresSafeArea())

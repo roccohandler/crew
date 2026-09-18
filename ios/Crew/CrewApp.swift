@@ -7,6 +7,7 @@ import SwiftUI
 @main
 struct CrewApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @UIApplicationDelegateAdaptor(PushRegistrar.self) private var pushRegistrar // A21.4: the APNs device token arrives here
 
     init() {
         Signposts.beginLaunch() // 8.8: the launch → Home interval starts here

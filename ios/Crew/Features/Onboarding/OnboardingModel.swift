@@ -3,14 +3,16 @@
 // the plan — the equipment question and choose(equipment) are gone because every user has full commercial gym access) ·
 // regenerate · swap (by workout kind, A1) · saveWithApple · saveWithEmail (OnboardingModelAuth.swift); the draft persists
 // locally pre-auth (S05: the plan survives auth failure/abandon). 1A invite-aware fast path (the crew token rides through
-// onboarding; after auth the user lands INSIDE the crew). A1 (owner-directed 2026-09-08): the reveal shows THIS week's
+// onboarding; after auth the user lands INSIDE the crew). A21.3 / W4 (owner-approved 2026-09-17): the token arrives as a PASTED
+// CODE — hero "I have an invite" → InviteCodeScreen → lookUpInvite (GET crews/join, public) → the preview line → the two
+// questions; a dead code and a full crew are explicit states (S13). A1 (owner-directed 2026-09-08): the reveal shows THIS week's
 // rotation projection — Push · Pull · Legs at every day count. C14 (@Observable, plain vars). WRITTEN — UNVERIFIED. T021 + T022
 
 import Foundation
 import Observation
 
 enum OnboardingStep: Equatable {
-    case hero, days, experience, reveal, save, login
+    case hero, inviteCode, days, experience, reveal, save, login
 }
 
 // signup = Flow 1 (hero → questions → reveal → save); rebuild = Flow 8 / E4 for a signed-in user (questions → reveal → saved)
@@ -31,6 +33,9 @@ final class OnboardingModel {
     var invitedCrew: CrewPreviewDTO?
     var inviteToken: String?
     var swapWhisperShown = false   // 1C: the "Tap any exercise to swap it." whisper appears once, then never again
+    var inviteCode = ""            // A21.3: what the person pasted — the bare code or the whole link (InviteCode.token reads it)
+    var inviteError: String?       // S13: dead code · full crew · not a code — one line, always a way forward
+    var isLookingUpInvite = false
 
     let mode: OnboardingMode
     var rebuildSaved = false
@@ -76,6 +81,25 @@ final class OnboardingModel {
         step = .experience
     }
 
+    // SPEC: A21.3 · S13 — the pasted code is the crew's inviteToken; the public preview names the crew ("Dawn Patrol 🌅 · 3 of 10
+    // in the crew"); a dead code reads the server's line, a full crew its own; the token rides through onboarding only once it is live
+    func lookUpInvite() async {
+        inviteError = nil
+        invitedCrew = nil
+        inviteToken = nil
+        guard let token = InviteCode.token(from: inviteCode) else { inviteError = "That doesn't look like an invite code. Paste the code or the whole link."; return }
+        isLookingUpInvite = true
+        defer { isLookingUpInvite = false }
+        do {
+            let preview = try await Api.shared.crewPreview(token: token)
+            invitedCrew = preview
+            if preview.full { inviteError = "Crew full — \(SpecConstants.crewMaxMembers) is the max. Ask about a second crew." } else { inviteToken = token }
+        } catch let error as AppError {
+            inviteError = error.userLine
+        } catch {
+            inviteError = AppError.invalidResponse.userLine
+        }
+    }
     // 1B: single-select answers auto-advance: selection haptic → 250 ms beat → next screen (the screen schedules the beat).
     // SPEC: A21.1 — experience is the last question, so the answer builds the plan and the next screen is the reveal
     func choose(experience value: String) {

@@ -56,7 +56,8 @@ final class HomeModelTests: XCTestCase {
         let model = HomeModel(store: store, userId: userId, timeZone: tz)
         try post(store, id: "p0", dayKey: "2026-09-03")
         model.refresh(now: friday)
-        let outcome = try XCTUnwrap(model.quickComplete(shareToCrew: false, now: friday))
+        let outcome = try XCTUnwrap(model.quickComplete(now: friday))
+        model.answerCelebration(outcome, shareToCrew: false, now: friday) // A21.9: the tap posts and counts the day
         XCTAssertEqual(outcome.setsDone, outcome.setsPlanned)
         XCTAssertTrue(outcome.awards.contains(.xp(SpecConstants.xpPlannedWorkout, reason: .plannedWorkout)))
         XCTAssertEqual(model.today, .allDone)

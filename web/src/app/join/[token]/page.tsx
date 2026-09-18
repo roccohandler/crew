@@ -1,6 +1,8 @@
 // SPEC: W1 web invite landing (web-only) — renders crew name/emoji without auth; App Store + Continue-on-web; the growth loop's
-// front door. Dead or full links are explicit states (S13). A signed-in visitor joins in one interaction.
+// front door. Dead or full links are explicit states (S13). A signed-in visitor joins in one interaction. A21.3 / W4 + the owner's
+// 2026-09-17 addition: the page shows the CODE and a "Copy code" button, for a friend who will paste it into the iPhone app.
 import Link from "next/link";
+import { CopyCodeButton } from "@/components/CopyCodeButton";
 import { JoinButton } from "@/components/JoinButton";
 import { crewMemberships, crews } from "@/lib/db";
 import { readSession } from "@/lib/session";
@@ -33,6 +35,8 @@ export default async function JoinPage({ params }: { params: Promise<{ token: st
         <>
           <a className="button button--primary" href={appStore}>Get the iPhone app</a>
           <Link className="button button--secondary" href={`/onboarding?invite=${encodeURIComponent(token)}`}>Continue on web</Link>
+          <p className="muted">Already have the app? Your invite code: <code>{token}</code></p>
+          <CopyCodeButton token={token} />
         </>
       ) : null}
     </main>

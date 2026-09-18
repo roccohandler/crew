@@ -97,6 +97,8 @@ final class HomeStatesTests: XCTestCase {
         let share = app.buttons["Share to crew"]
         XCTAssertTrue(share.waitForExistence(timeout: 10) || done.waitForExistence(timeout: 2))
         (share.exists ? share : done).tap()
+        let notNow = app.buttons["Not now"] // A21.4: the first completed workout's reminder opt-in follows the celebration, once
+        if notNow.waitForExistence(timeout: 5) { notNow.tap() }
 
         expectTitle("Done for today")
         // A18.9 — the day, reported in the journal's own sentence, and no control: the day is closed

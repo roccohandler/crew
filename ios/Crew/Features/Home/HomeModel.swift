@@ -1,6 +1,7 @@
 // SPEC: 5.6.2 HomeModel — state: today: TodayState (TodayState.swift), streak, shields, weeklyRing: [DayRingState],
 // crewStrip: [MemberDot]?; actions: refresh() (Store-only, < 500 ms) · startWorkout ·
-// quickComplete · startBonus. S07: bridge until the first post (1D); Quick Complete hidden once today counts; Resume banner;
+// quickComplete · startBonus · answerCelebration / postUnanswered / shouldOfferReminder (A21.9 · A21.4, HomeModel+Celebration.swift).
+// S07: bridge until the first post (1D); Quick Complete hidden once today counts; Resume banner;
 // crew strip ABSENT (nil) for solo (Flow 10). A1: today's workout comes from the rotation projection (the training-day check
 // plus nextWorkoutKind), never from a weekday slot. A3: the what's-next line and the bonus list (next up first). C14.
 // WRITTEN — UNVERIFIED (needs Mac). T024
@@ -110,8 +111,8 @@ final class HomeModel {
         }
     }
 
-    private var isPaused: Bool { if case .paused = today { return true } else { return false } }
 
+    private var isPaused: Bool { if case .paused = today { return true } else { return false } }
     // SPEC: A1 — done = a completed ROTATION workout today (projectWeek); a standalone cardio log (A2) leaves the day planned
     private func todayState(restDay: Bool, postedToday: Bool, hasEverPosted: Bool, pause: LocalPause?, todayKey: String) -> TodayState {
         if let pause { return .paused(until: DayLabel.dayLabel(pause.endDay, todayKey: todayKey)) }
@@ -189,9 +190,9 @@ final class HomeModel {
         }
     }
 
-    func quickComplete(shareToCrew: Bool, now: Date = Date()) -> CelebrationOutcome? {
+    func quickComplete(now: Date = Date()) -> CelebrationOutcome? {
         guard quickCompleteAvailable, let workout = todayWorkout else { return nil }
-        let outcome = try? SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: shareToCrew, now: now, store: store)
+        let outcome = try? SessionActions.quickComplete(from: workout, userId: userId, now: now, store: store)
         refresh(now: now)
         return outcome
     }

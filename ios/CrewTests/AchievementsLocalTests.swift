@@ -16,10 +16,11 @@ final class AchievementsLocalTests: XCTestCase {
         // A1 — pinned by kind: a SwiftData to-many has no order (NextUpLine.swift:75), and `again` below must
         // quick-complete the SAME workout for the "first-flame fires once" assertion to mean anything.
         let workout = try XCTUnwrap(store.plan(for: userId)?.workouts.first { $0.kind == "push" })
-        let outcome = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: false, store: store))
-        XCTAssertEqual(Array(outcome.awards.suffix(2)), [.achievement(id: "first-flame"), .achievement(id: "showed-up")])
+        let outcome = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, store: store))
+        XCTAssertEqual(Array(outcome.awards.suffix(2)), [.achievement(id: "first-flame"), .achievement(id: "showed-up")]) // A21.9: the preview names them
+        try SessionActions.post(outcome, shareToCrew: false, store: store) // A21.9: the tap earns them
         XCTAssertEqual(try store.gamificationState(for: userId).earnedAchievementIds, ["first-flame", "showed-up"])
-        let again = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, shareToCrew: false, store: store))
+        let again = try XCTUnwrap(SessionActions.quickComplete(from: workout, userId: userId, store: store))
         XCTAssertFalse(again.awards.contains(.achievement(id: "first-flame")))
     }
 }

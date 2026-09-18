@@ -1,0 +1,49 @@
+// SPEC: A21.3 / W4 (owner-approved 2026-09-17) — ONE entry surface for a pasted invite code, used by the hero's "I have an invite"
+// (InviteCodeScreen, pre-auth) and by the empty Crew tab (JoinByCodeSheet, signed in). States explicit (S13): looking up · a live
+// crew ("Dawn Patrol 🌅 · 3 of 10 in the crew") · dead code · crew full. Screens hold ZERO logic (5.6.6): the models look the code
+// up (GET crews/join?token=, public). A18.11: the field is a control, so its boundary is controlOutline. Ink acts (Part III law ①).
+// WRITTEN — UNVERIFIED (needs Mac).
+
+import SwiftUI
+
+struct InviteCodeEntry: View {
+    @Binding var code: String
+    let preview: CrewPreviewDTO?
+    let errorLine: String?
+    let isLookingUp: Bool
+    let continueTitle: String
+    let onLookUp: () -> Void
+    let onContinue: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+            Text("Paste the code or the whole link your friend sent.").font(.body).foregroundStyle(EmberColors.secondaryText)
+            HStack(spacing: EmberTokens.Spacing.space8) {
+                TextField("Invite code", text: $code)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.asciiCapable)
+                    .submitLabel(.search)
+                    .onSubmit(onLookUp)
+                    .padding(EmberTokens.Spacing.space12)
+                    .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                    .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
+                    .accessibilityLabel("Invite code")
+                TextActionButton(title: "Paste", accessibilityLabel: "Paste the invite code") { if let pasted = UIPasteboard.general.string { code = pasted } }
+            }
+            if let preview {
+                Text("\(preview.name) \(preview.emoji) · \(preview.memberCount) of \(SpecConstants.crewMaxMembers) in the crew")
+                    .font(.headline).foregroundStyle(EmberColors.inkText)
+                    .accessibilityIdentifier("invitePreview")
+            }
+            if let errorLine { Text(errorLine).font(.footnote).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.updatesFrequently) }
+            if let preview, !preview.full {
+                PrimaryButton(title: continueTitle, action: onContinue)
+            } else {
+                SecondaryButton(title: isLookingUp ? "Looking…" : "Find my crew", action: onLookUp)
+                    .disabled(isLookingUp || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+    }
+}

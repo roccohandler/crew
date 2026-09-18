@@ -1,10 +1,13 @@
 // SPEC: docs/api.md sessions — create with the workout snapshot (immune to later plan edits; idempotent on clientId), patch
 // set logs (warm-ups excluded from x/y, holds by seconds, done/asPlanned per V33), completion per V32 creates the workout
 // Post (post ≠ log, E3) and recomputes. Part IX Session/SessionExercise/SetLog. A1: the snapshot's kind is stored (the
-// rotation pointer reads it). A2: cardio rows carry distanceMeters. A6: the post gets its summary line here. Mirrors ApiSessions.swift.
+// rotation pointer reads it). A2: cardio rows carry distanceMeters. A6: the post gets its summary line here. A21.9 / W4
+// (owner-approved 2026-09-17): the post exists only when the client SENDS `post` — a completion without one records the
+// workout and creates nothing; the celebration's tapped button then sends `post` on the already-completed session and the
+// post is created once (idempotent on its clientId). Mirrors ApiSessions.swift.
 import { ObjectId } from "mongodb";
 import { notFound } from "@/lib/api-error";
-import { sessions, users } from "@/lib/db";
+import { posts, sessions, users } from "@/lib/db";
 import type { SessionDoc, SessionExerciseDoc, SetLogDoc } from "@/lib/documents";
 import { asPlanned, completionFacts } from "@/lib/engine/completion";
 import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
@@ -77,23 +80,40 @@ async function summaryFor(userId: ObjectId, doc: SessionDoc, completedAt: Date):
   return sessionSummaryLine(doc.workoutName, doc.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, cardioMinutes, distance, user === null || user === undefined ? "mi" : distanceUnitOf(user));
 }
 
-// SPEC: V32 — ≥1 work set done = complete (a done cardio set is a work set, V51); completion keys the day (V07) and creates the workout post
+// SPEC: S10 · A21.9 — the workout post, from the completed session's own facts (A14: a standalone cardio log is its own type);
+// idempotent on the client's post id, so the celebration's tap and any replay of it create it once
+async function createSessionPost(userId: ObjectId, doc: SessionDoc, post: NonNullable<PatchSessionInput["post"]>, timezone: string, now: Date): Promise<void> {
+  const completedAt = doc.completedAt ?? now;
+  await createPost(userId, {
+    clientId: post.clientId, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, caption: post.caption, photoKey: post.photoKey,
+    shareToCrew: post.shareToCrew, timezone, isPlannedDay: doc.isPlannedDay, workoutCompleted: true, createdAt: completedAt, dayKey: doc.dayKey,
+    summary: await summaryFor(userId, doc, completedAt),
+  }, now);
+}
+
+// SPEC: V32 — ≥1 work set done = complete (a done cardio set is a work set, V51); completion keys the day (V07). A21.9: the workout
+// post is created here only when the client sent one — with no `post`, the workout is recorded and NO post exists yet
 async function completeSession(userId: ObjectId, doc: SessionDoc, input: PatchSessionInput, now: Date): Promise<void> {
   if (!factsOf(doc).complete) return;
   doc.status = "completed";
   doc.completedAt = input.completedAt ? new Date(input.completedAt) : now;
   doc.dayKey = serverDayKey(doc.completedAt, input.timezone, now);
-  await createPost(userId, {
-    clientId: input.post?.clientId ?? `${doc.clientId}-post`, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, // A14: a standalone cardio log is not a workout caption: input.post?.caption, photoKey: input.post?.photoKey,
-    shareToCrew: input.post?.shareToCrew ?? false, timezone: input.timezone, isPlannedDay: doc.isPlannedDay, workoutCompleted: true, createdAt: doc.completedAt, dayKey: doc.dayKey,
-    summary: await summaryFor(userId, doc, doc.completedAt),
-  }, now);
+  if (input.post) await createSessionPost(userId, doc, input.post, input.timezone, now);
+}
+
+// SPEC: A21.9 — the late post: the celebration's tapped button names the visibility AFTER the completion was recorded; the
+// first `post` on a completed session that has none creates it, a second one changes nothing (the choice is made once)
+async function postLateIfMissing(userId: ObjectId, doc: SessionDoc, input: PatchSessionInput, now: Date): Promise<void> {
+  if (!input.post) return;
+  const existing = await (await posts()).findOne({ userId, sessionId: doc._id });
+  if (existing !== null) return;
+  await createSessionPost(userId, doc, input.post, input.timezone, now);
 }
 
 // SPEC: V32 — a completion with zero work sets stays in progress (nothing counted)
 export async function patchSession(userId: ObjectId, id: string, input: PatchSessionInput, now: Date = new Date()): Promise<SessionDoc> {
   const doc = await findOwnSession(userId, id);
-  if (doc.status === "completed") return doc; // completion is final: later edits change stats via PATCH sets only (V36)
+  if (doc.status === "completed") { await postLateIfMissing(userId, doc, input, now); return doc; } // completion is final: later edits change stats via PATCH sets only (V36); only the A21.9 post may arrive late
   if (input.exercises !== undefined) doc.exercises = input.exercises.map(toExercise);
   if (input.status === "discarded") doc.status = "discarded";
   if (input.status === "completed") await completeSession(userId, doc, input, now);

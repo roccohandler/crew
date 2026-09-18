@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CrewHeader } from "@/components/CrewHeader";
 import { CrewInvitePanel } from "@/components/CrewInvitePanel";
 import { EmptyState, ErrorState } from "@/components/EmptyState";
+import { PhotoPrompt } from "@/components/PhotoPrompt";
 import { StreamList, type Moderation } from "@/components/StreamList";
 import { isApiClientError } from "@/lib/api-client";
 import { block, createCrew, myCrew, react, report, stream, unreact, type CrewSummary, type StreamReply } from "@/lib/api-client-crew";
@@ -78,6 +79,7 @@ export function CrewView({ myUserId }: { myUserId: string }) {
     <div className="stack">
       <CrewHeader crew={state.crew} feed={state.feed} />
       <CrewInvitePanel crew={state.crew} members={members} onCreate={async () => undefined} onChanged={load} />
+      <PhotoPrompt myUserId={myUserId} members={members} />
       {notice ? <p className="muted" role="status">{notice}</p> : null}
       {hasCrewmates && state.feed && state.feed.items.length === 0 ? <p className="muted">Quiet in here. Post a workout or a plate and it lands right here.</p> : null}
       {state.feed ? <StreamList items={state.feed.items} members={members} myUserId={myUserId} onReact={toggleReaction} moderation={moderationFor(load, setNotice)} /> : null}

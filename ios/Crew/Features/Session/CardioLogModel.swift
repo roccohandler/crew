@@ -83,15 +83,13 @@ final class CardioLogModel {
 
     var canSubmit: Bool { activity != nil && minutes >= SpecConstants.cardioMinutesMin }
 
-    // The same remembered answer PostModel and CelebrationScreen read ("shareToCrewDefault"); the celebration can still flip it
-    var shareToCrew: Bool { UserDefaults.standard.object(forKey: "shareToCrewDefault") as? Bool ?? true }
 
     // SPEC: A2 · 5.3 optimistic write — the log is a completed session the moment it is saved; the queue follows; the
     // celebration is the normal one (+25 or +25 with the streak tick)
     func submit(now: Date = Date()) {
         guard let activity, canSubmit else { return }
         do {
-            outcome = try SessionActions.logCardio(activity: activity, minutes: minutes, distanceMeters: distanceMeters, shareToCrew: shareToCrew, userId: userId, timeZone: timeZone, now: now, store: store)
+            outcome = try SessionActions.logCardio(activity: activity, minutes: minutes, distanceMeters: distanceMeters, userId: userId, timeZone: timeZone, now: now, store: store) // A21.9: the celebration's button decides the visibility
             Haptics.play(.thump)
         } catch {
             submitError = AppError.storage("cardio").userLine

@@ -2,7 +2,8 @@
 // Quick Complete hidden once today counts; Resume banner when a session is open; crew strip absent for solo. A3 (owner-directed
 // 2026-09-08): a camera toolbar button ("Post a meal") on every non-bridge state, Log cardio under the workout card, the Bonus
 // workout sheet, the what's-next line. Part III law ④: the flame is the first ember the user sees. Screens hold ZERO logic
-// (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T024
+// (5.6.6). A21.9 (owner-approved 2026-09-17): the celebration's two buttons are the only way out and the post follows the tap;
+// A21.4: the reminder opt-in follows the FIRST completed workout's celebration, once. WRITTEN — UNVERIFIED (needs Mac). T024
 
 import SwiftUI
 
@@ -15,6 +16,8 @@ struct HomeScreen: View {
     @State private var rebuilding = false
     @State private var choosingBonus = false
     @State private var loggingCardio = false
+    @State private var offerReminder = false // A21.4: decided when a celebration is answered, presented once the sheet is down
+    @State private var showsReminder = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -36,11 +39,17 @@ struct HomeScreen: View {
             .toolbar { if showsCameraButton { ToolbarItem(placement: .primaryAction) { postButton } } }
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
-            .sheet(item: $celebration) { outcome in CelebrationScreen(outcome: outcome) { celebration = nil; model.refresh() } }
+            // SPEC: A21.9 — no swipe-to-dismiss: a celebration is answered by one of its two buttons or not at all; the tapped
+            // button posts (answerCelebration), then the sheet comes down, then — after the first workout — the reminder opt-in (A21.4)
+            .sheet(item: $celebration, onDismiss: { if offerReminder { offerReminder = false; showsReminder = true } }) { outcome in
+                CelebrationScreen(outcome: outcome) { share in model.answerCelebration(outcome, shareToCrew: share); offerReminder = model.shouldOfferReminder(); celebration = nil }
+                    .interactiveDismissDisabled()
+            }
+            .sheet(isPresented: $showsReminder) { ReminderOptInSheet(userId: model.userId, storedReminderTime: AuthStore.shared.currentUser?.reminderTime) { showsReminder = false } }
             .sheet(isPresented: $posting) { NutritionPostScreen { posting = false; model.refresh() } }
             .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() } }
             .sheet(isPresented: $choosingBonus) { BonusWorkoutSheet(workouts: model.bonusWorkouts) { workout in choosingBonus = false; activeSession = model.startBonus(workout) } }
-            .task { load() }
+            .task { model.postUnanswered(); load() } // A21.9: a celebration the app died under posts privately first
             .onChange(of: scenePhase) { _, phase in if phase == .active, loaded { load() } } // E8/V04: elapsed days are judged on every foreground
             .modifier(EdgePrompts(model: model, onKeepGoing: { activeSession = model.keepGoingWithStaleSession() }, onRebuild: { rebuilding = true }))
         }
@@ -81,7 +90,7 @@ struct HomeScreen: View {
                               onStart: { activeSession = model.startWorkout() },
                               onPost: { posting = true },
                               onEndPause: { Task { await model.endPause() } })
-                    if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete(shareToCrew: true) } }
+                    if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete() } }
                     if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
                         // A17.1 / H034 — sectionGap, not rowGap. These were bound at 8 pt, the gap design-tokens.json
                         // documents as "within one group", while every real boundary on this screen is 24 — so the
