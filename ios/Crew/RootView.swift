@@ -20,9 +20,10 @@ struct RootView: View {
             }
         }
         .onOpenURL { InviteInbox.shared.receive($0) } // 1A · W7: https://<host>/join/<token> — the token takes the A21.3 code path
-        // A23 · §A rule 4 — the ONE gesture behind every whisper: the first tap anywhere on a screen clears the whispers showing on it.
-        // Simultaneous, so it never takes a tap from the control under it; a sheet is its own presentation and carries no whisper (rule 3).
-        .simultaneousGesture(TapGesture().onEnded { WhisperState.shared.clearVisible() })
+        // A23 · §A rule 4 — the ONE listener behind every whisper: the first tap anywhere on a screen clears the whispers showing on it.
+        // A passive window recogniser (AnyTapWatcher), NOT a SwiftUI gesture: the root `.simultaneousGesture` this replaces stopped every
+        // List row under it from opening (CI run 35340692297). A whisper never renders in a sheet (rule 3).
+        .background(AnyTapWatcher { WhisperState.shared.clearVisible() })
         // The account's list joins the phone's on every signed-in frame and whenever the server's copy grows (seen on the web)
         .task(id: auth.currentUser?.whispersSeen) { await WhisperState.shared.load(userId: auth.currentUser?.id, serverSeen: auth.currentUser?.whispersSeen ?? []) }
     }

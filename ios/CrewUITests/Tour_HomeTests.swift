@@ -16,6 +16,7 @@ final class Tour_HomeTests: XCTestCase {
         tourLaunch(app, as: try await tourFilledMember(seed))
         tourWaitForHome(app)
         tourShot(app, "home_home_filled", "launched as a member with a six-day streak, a crew and today's workout open")
+        tourScroll(app, until: tourButton(app, startingWith: "Log cardio")) // A23: two first-visit whispers push the log rows under the tab bar
         if tourTap(tourButton(app, startingWith: "Log cardio")) {
             tourShot(app, "home_cardiolog_empty", "tapped Log cardio")
             tourBack(app)

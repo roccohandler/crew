@@ -130,7 +130,7 @@ struct SetRow: View {
     }
 }
 
-// A stepper with ± buttons ≥ 44 pt; long-press repeats (Flow 3 fast-scroll). `noun` names what the buttons change to
+// A stepper with ± buttons ≥ 44 pt (Shared/StepButton.swift); a hold repeats (Flow 3 fast-scroll). `noun` names what the buttons change to
 // VoiceOver ("Decrease reps", "Increase weight") — a row holds two steppers, so a bare "Decrease" says nothing (E20)
 struct Stepper: View {
     let label: String
@@ -153,45 +153,5 @@ struct Stepper: View {
                 .accessibilityHidden(true) // the value is spoken by the row's check button (E20)
             StepButton(symbol: "plus", noun: noun) { onStep(1) }
         }
-    }
-}
-
-// SPEC: 6.3 (≥ 44 pt) · Flow 3 (long-press fast-scroll). Two defects fixed 2026-09-09, both found by the A9/A10 review:
-// ① the 44 pt circle was DRAWN but not hittable — an Image's hit rect is the glyph (~16 pt) plus the 1 pt stroke, so
-//    `.contentShape` is what makes the frame the target;
-// ② the repeat loop double-fired and never stopped — `pressing(true)` fired `action()` at touch-down while
-//    `.onTapGesture` fired it again on lift, and each press started a NEW recursive chain with no cancellation token,
-//    so two quick presses left two chains ticking at once. Now one generation counter owns the loop: a press starts a
-//    generation, release invalidates it, and the tap is the only single-step path.
-struct StepButton: View {
-    let symbol: String
-    let noun: String
-    let action: () -> Void
-    @State private var generation = 0
-    @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt) // 6.5: grows with Dynamic Type
-
-    var body: some View {
-        Image(systemName: symbol)
-            .font(.body.weight(.semibold))
-            .foregroundStyle(EmberColors.inkText)
-            .frame(width: minTarget, height: minTarget)
-            // A18.11 — StepButton — the plus/minus on every set: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
-            // the 1.26:1 hairline family, which is for the seam between two surfaces.
-            .overlay(Circle().stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
-            .contentShape(Circle()) // the whole 44 pt circle is the target, not the glyph inside it
-            .onTapGesture(perform: action)
-            .onLongPressGesture(minimumDuration: Double(SpecConstants.autoAdvanceDelayMs) / Double(TimeUnits.msPerSecond), pressing: { pressing in
-                generation += 1 // every press and every release invalidates whatever chain was running
-                if pressing { repeatWhilePressed(generation) }
-            }, perform: {})
-            .accessibilityLabel(symbol == "plus" ? "Increase \(noun)" : "Decrease \(noun)")
-    }
-
-    // The first step of a hold comes from this loop; the tap gesture handles the single-step case, so a hold never
-    // double-counts its own first step
-    private func repeatWhilePressed(_ mine: Int) {
-        guard generation == mine else { return }
-        action()
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(SpecConstants.longPressStepIntervalMs)) { repeatWhilePressed(mine) }
     }
 }

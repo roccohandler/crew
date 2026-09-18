@@ -34,8 +34,13 @@ extension SeedClient {
     }
 
     // One completed, posted workout `daysAgo` days back; the load climbs a little each day so the chart has a slope
+    // The instant carries MILLISECONDS. ISO8601DateFormatter's default drops them, and a whole-second instant taken in the same second
+    // as the crew's creation sorts BEFORE it — crew-stream.ts is join-forward, so the viewer never sees that post. It cost the tour a
+    // crew-mate's card in the approved baseline (Sam's was never there) and both cards in run 35340692297 — and with them the React step.
     func logTourWorkout(daysAgo: Int, as session: SeedSession) async throws {
-        let instant = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-TimeInterval(daysAgo) * Self.secondsPerDay))
+        let stamp = ISO8601DateFormatter()
+        stamp.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let instant = stamp.string(from: Date().addingTimeInterval(-TimeInterval(daysAgo) * Self.secondsPerDay))
         let workout = tourWorkouts()[(Self.seededDays - daysAgo) % 3]
         let load = Double(135 + (Self.seededDays - daysAgo) * 5)
         let rows = (workout["exercises"] as? [[String: Any]] ?? []).map { row -> [String: Any] in

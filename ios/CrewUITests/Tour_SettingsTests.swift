@@ -19,13 +19,15 @@ final class Tour_SettingsTests: XCTestCase {
         tourTap(app.tabBars.buttons["Settings"])
         _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
         tourShot(app, "settings_settings_top", "tapped the Settings tab")
-        app.swipeUp()
+        tourScroll(app, until: app.staticTexts["Version"]) // three pages since W8: one swipe stops at Account
         tourShot(app, "settings_settings_bottom", "scrolled to the account rows")
+        tourScroll(app, until: app.buttons["Blocked people"], down: true) // a no-op while the row is still on screen
         if tourTap(app.buttons["Blocked people"], timeout: 5) {
+            _ = app.staticTexts["No one blocked."].waitForExistence(timeout: 10) // the baseline was a blank page: shot before the list had loaded
             tourShot(app, "settings_blocked_empty", "tapped Blocked people")
             tourBack(app)
         }
-        app.swipeDown()
+        tourScroll(app, until: tourButton(app, startingWith: "Maya Tour"), down: true) // back to the top, however long the list is
         if tourTap(tourButton(app, startingWith: "Maya Tour"), timeout: 5) {
             tourShot(app, "settings_profile_default", "tapped the profile row")
             if tourTap(app.buttons["Change photo"], timeout: 5) {

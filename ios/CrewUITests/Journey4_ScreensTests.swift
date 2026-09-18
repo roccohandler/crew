@@ -54,8 +54,10 @@ final class Journey4_ScreensTests: XCTestCase {
         shoot(app, "S17 Settings")
         // A23 · S19 — the page behind the whispers, a row above Version; the note from Max says it is still the draft
         let howItWorks = app.buttons["How Crew works"]
-        if !howItWorks.waitForExistence(timeout: 2) { app.swipeUp() } // About is the last section: a List builds its rows lazily
-        XCTAssertTrue(howItWorks.waitForExistence(timeout: 15), "A23: Settings → About has no How Crew works row")
+        // About is the LAST section of a list that is three pages long since W8 (run 35340692297: one swipe stopped at Account), and a
+        // List builds its rows lazily — so scroll until the row exists, a page at a time
+        for _ in 0..<4 where !howItWorks.waitForExistence(timeout: 2) { app.swipeUp() }
+        XCTAssertTrue(howItWorks.waitForExistence(timeout: 15), "A23: Settings → About has no How Crew works row — the screen says: \(screenSays())")
         howItWorks.tap()
         XCTAssertTrue(app.navigationBars["How Crew works"].waitForExistence(timeout: 15), "S19 did not open")
         XCTAssertTrue(app.staticTexts["Draft"].exists, "the note from Max is marked Draft until the owner rewrites it")

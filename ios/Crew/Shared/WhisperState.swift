@@ -4,7 +4,7 @@
 // the local set at once and PATCHes the WHOLE set when it can (idempotent — there is no sync op for it), and every signed-in launch and
 // foreground re-sends whatever the server has not acknowledged. Before an account exists (the plan reveal) the set is the phone's own
 // ("anon") and joins the account at the first signed-in load. `visible` is what is on screen now: the first tap anywhere clears it
-// (RootView's one gesture — rule 4; whispers never render in a sheet, rule 3). One @Observable holder (5.6.2), plain functions, and the
+// (RootView's one listener, AnyTapWatcher — rule 4; whispers never render in a sheet, rule 3). One @Observable holder (5.6.2), plain functions, and the
 // sender is a plain function passed at init so tests run without a network (C3, C4). Twin of web components/Whisper.tsx.
 // WRITTEN — UNVERIFIED (needs Mac).
 

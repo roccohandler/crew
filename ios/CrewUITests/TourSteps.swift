@@ -36,11 +36,21 @@ extension XCTestCase {
     // First tour run (35324724476): on iOS 26 a confirmationDialog is a POPOVER with no Cancel row, so "tap Cancel" left it up and
     // it swallowed every later tap in the flow. Second run (35327451545): a tap on the status bar does not reach the popover's
     // dismiss region either. A tap in the lower-middle of the window does — a popover eats the first outside tap, so nothing under it fires.
+    // Run 35340692297: the lower-MIDDLE of the session logger is the weight tape, and the flow lost "Complete workout" right after
+    // this tap — so the tap now lands in the canvas GUTTER at the left edge (every screen keeps 16 pt there, and a popover keeps its
+    // own margin from the edge): outside the popover, and on nothing if it is ever delivered to the screen underneath.
     func tourDismissDialog(_ app: XCUIApplication) {
         let cancel = app.buttons["Cancel"]
         if cancel.waitForExistence(timeout: 2), cancel.isHittable { cancel.tap(); return }
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62)).tap()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.62)).tap()
         Thread.sleep(forTimeInterval: 0.6)
+    }
+
+    // A long list is scrolled a page at a time until the element exists (a List builds its rows lazily); never an assertion
+    func tourScroll(_ app: XCUIApplication, until element: XCUIElement, down: Bool = false, pages: Int = 4) {
+        for _ in 0..<pages where !(element.waitForExistence(timeout: 1) && element.isHittable) {
+            if down { app.swipeDown() } else { app.swipeUp() }
+        }
     }
 
     // A pushed screen goes back by the navigation bar's first button; a sheet has none and takes the pull

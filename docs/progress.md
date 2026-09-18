@@ -678,6 +678,27 @@ are never waited on. Rulings recorded first (item 0, this commit). The builder's
 Standing rules for every batch: the local gate set green before a push (drift · vectors · seeds · doctrine · xref · web typecheck/lint/test/
 vectors/build · e2e when web changed · native swift test); `// SPEC:` on every rule; every number from spec-constants via Generated;
 debt.md in the same commit as a compromise; GAP readings tagged `// GAP:` and logged in ratification.md; plan-templates.json untouched.
+
+### CI run 35340692297 (da29d17, items 3–5 + the merge) — THE FIRST COMPILE OF W7 / W8 / A23 ON THE PHONE: it compiled; three UI tests red, two of them real bugs
+
+Read 2026-09-18 12:03Z. contracts ✓ · web ✓ · web e2e ✓ · ios engine ✓ · ios ✗. Every new Swift file compiled first time (44 added since a34e4a1, the A24 tour's among them); **180 unit tests, 0
+failures** (CelebrationPostTests, SyncQueueTests and SessionModelTests included — the owner's three named failures were fixture defects
+repaired in a34e4a1 and da29d17); 23 of 26 UI tests green, `HomeStatesTests.testRestDayAsksNothing` among them. The three red ones:
+
+| Test | What it said | Cause | Fix (this push) |
+|---|---|---|---|
+| `ProfilePhotoDeniedTests` | "the Profile screen did not open" | **A real bug, mine (A23).** `RootView`'s `.simultaneousGesture(TapGesture())` — the whisper listener — stopped EVERY NavigationLink row of a List from opening: the Settings tour shows "Blocked people", the profile row and "Pause my plan" all staying shut. The debt entry had named it the first suspect | `Shared/AnyTapWatcher.swift`: a passive UIKit tap recogniser on the window (cancels nothing, delays nothing, simultaneous with everything); the whisper leaves one main-queue turn after the tap |
+| `Journey5_NutritionTests` | two taps on "Increase Protein" → 50 g, expected 40 | **A real bug, since 2026-09-09.** `StepButton` stepped TWICE per tap (touch-down and lift) — review finding F07, marked fixed by W019 and never fixed; journey ⑤ is the first test to tap a ± and read the number. Reps, weight, the rest timer and grams were all affected | `Shared/StepButton.swift`: the tap is the only single step; a hold starts after `autoAdvanceDelayMs` and repeats until the lift |
+| `Journey4_ScreensTests` | "Settings → About has no How Crew works row" | A test defect: Settings is three pages long since W8 and the test swiped once | scroll until the row exists |
+
+The tour (which never fails a run) had lost eleven baselines in the same run, and each loss is now explained and repaired: the Settings
+steps by the List bug above; "Log cardio" because Home's two first-visit whispers push the log rows under the tab bar (the tour now
+scrolls to the row); the Crew react step because **the tour seed sent whole-second instants** — a post stamped in the same second as the
+crew's creation sorts before it and the join-forward stream drops it (reproduced on the local harness: both crew-mates' posts missing;
+with milliseconds both arrive; Sam's card was already missing from the approved baseline); and the session tour's ending MOST LIKELY because its
+dialog-dismiss tap lands on the weight tape (unproven — the tour keeps no shot of a step it lost); the tap now lands in the canvas gutter,
+where a tap that passes through touches nothing. The blank "Blocked people" baseline was a shot taken
+before the list had loaded; the tour now waits for "No one blocked.".
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 
 - The ruling arrived while W3b was being read (no W3b source had been touched) and it carries an explicit stop, so the "continue

@@ -1,7 +1,7 @@
 // SPEC: A23 (Appendix A 2026-09-18, the education layer) · docs/education-copy-draft.md §A — a WHISPER: one line that explains why
 // the app works the way it does or how to use it, shown ONCE, the first time its moment arrives. secondaryText ink directly under the
 // element it explains — no border, no card, no icon, never orange (law ③); never in a modal or a sheet, never on the bridge (the
-// caller's gate). It leaves on the first tap anywhere on the screen (RootView's one gesture → WhisperState.clearVisible); two on one
+// caller's gate). It leaves on the first tap anywhere on the screen (RootView's one listener, AnyTapWatcher → WhisperState.clearVisible); two on one
 // screen leave together. VoiceOver hears it once, on appearance (rule 6). Every line lives in ONE file, shared/copy/education.json
 // (Generated/CopyData.swift), and an id that does not exist cannot compile (WhisperId). 1A stands: teach by doing, not touring.
 // Twin of web components/Whisper.tsx. WRITTEN — UNVERIFIED (needs Mac).
