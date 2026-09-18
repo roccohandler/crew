@@ -1,6 +1,6 @@
 ---
 name: ui-check
-description: Push the current branch, run the iOS UI tour for it in GitHub CI, download the screenshots into design/tour/latest/, send only the changed screens to the ui-reviewer subagent, and report PASS/FAIL per screen. Run after any change to iOS UI code, before reporting the task done.
+description: Push the current branch, run the iOS UI tour for it in GitHub CI, download the screenshots into the tour folder, send only the changed screens to the ui-reviewer subagent, and report PASS/FAIL per screen. Run after any change to iOS UI code, before reporting the task done.
 ---
 
 # /ui-check — see the real iOS UI, then have it reviewed
@@ -25,12 +25,14 @@ Do the steps in order. Every command below is a plain `git` / `gh` / `node` call
    compile errors and failing tests. Report the cause (file:line and message). Still do step 7: the artifact is uploaded even on
    a red run, and the screenshots usually show what went wrong. If the `ios` job was skipped, say so: the push had no UI path
    and nothing was dispatched.
-7. **Download:** `node .claude/hooks/fetch-tour.mjs --run RUN_ID` — replaces `design/tour/latest/` and prints the CHANGES.md summary.
-8. **Pick the screens to review** from `design/tour/latest/CHANGES.md`: everything under **Changed** and **New**. Screens under
+7. **Download:** `node .claude/hooks/fetch-tour.mjs --run RUN_ID` — replaces the tour folder and prints the CHANGES.md summary and
+   the folder's path ("Screenshots are in …"). That folder is TOUR_DIR below: `design/tour/latest/` by default, or
+   `<CREW_TOUR_DIR>/<branch>/` on a machine that sets CREW_TOUR_DIR (the owner's is a OneDrive folder).
+8. **Pick the screens to review** from `TOUR_DIR/CHANGES.md`: everything under **Changed** and **New**. Screens under
    "expected drift" are reviewed only if the code change touched that screen. **Removed** screens are not reviewable — report
    them: a tour step lost its element, which usually means a label changed; fix the step in `ios/CrewUITests/Tour_*Tests.swift`.
    If nothing is Changed or New, say "no visual changes" and stop — do not review unchanged screens.
-9. **Review:** launch the `ui-reviewer` subagent once with the full list of paths (`design/tour/latest/<class>/<file>.png`) and
+9. **Review:** launch the `ui-reviewer` subagent once with the full list of paths (absolute: `TOUR_DIR/<class>/<file>.png`) and
    one line on what the code change was meant to do. Do not judge the screens yourself in its place.
 10. **Report** to the user: run id and duration · CI result (and cause if red) · the CHANGES.md summary line · ui-reviewer's
     verdict per screen with its issues verbatim · removed screens. A screen is done only when ui-reviewer passes it; on FAIL,
