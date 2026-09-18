@@ -17,7 +17,7 @@ struct SwapSheet: View {
                         HStack {
                             Text(candidate.name).font(.headline).foregroundStyle(EmberColors.inkText)
                             Spacer()
-                            Text(candidate.equipment.capitalized).font(.caption).foregroundStyle(EmberColors.secondaryText)
+                            EquipmentLabel(equipment: candidate.equipment) // A26
                         }
                         Text(candidate.cueLine).font(.subheadline).foregroundStyle(EmberColors.secondaryText)
                     }

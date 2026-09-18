@@ -25,6 +25,17 @@ final class AchievementsTests: XCTestCase {
         XCTAssertEqual(PersonalRecords.newRecords(later.exercises, earlier: [earlier]), ["row"])
     }
 
+    // A26: the owner's Pull repeats the rope curl — three rows, ONE exercise, so one record at most and one count
+    func testTheRowsOfARepeatedExerciseAreOneRecordCandidate() {
+        func rows(_ weights: [Double]) -> [RecordExercise] { weights.map { RecordExercise(exerciseId: "curl", name: "curl", sets: [RecordSet(done: true, isWarmup: false, weight: $0)]) } }
+        let earlier = RecordSession(completedAt: ISO8601DateFormatter().date(from: "2026-09-02T10:00:00Z")!, exercises: rows([40, 35, 30]))
+        let later = RecordSession(completedAt: ISO8601DateFormatter().date(from: "2026-09-09T10:00:00Z")!, exercises: rows([45, 42, 41]))
+        XCTAssertEqual(PersonalRecords.newRecords(later.exercises, earlier: [earlier]), ["curl"])
+        XCTAssertEqual(PersonalRecords.prCount([earlier, later]), 1)
+        XCTAssertEqual(PersonalRecords.newRecords(rows([30, 45, 30]), earlier: [earlier]), ["curl"]) // the best row need not be the first
+        XCTAssertEqual(PersonalRecords.newRecords(rows([38, 39, 40]), earlier: [earlier]), []) // matching the old best is not a record
+    }
+
     private func everyDay(_ userId: String, from: String, count: Int) -> [MemberPostFacts] {
         (0..<count).map { MemberPostFacts(userId: userId, dayKey: DayKey.addDays(from, $0)) }
     }

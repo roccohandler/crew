@@ -1,7 +1,8 @@
 // SPEC: T020 · 8.3 plan generator property test: every days × experience combo yields a valid plan (limits respected,
 // mobility block present) · A21.1 (owner-approved 2026-09-17): the equipment axis is gone — every user trains in a full gym,
 // so a row's equipment is any of the five tags · A1 (owner-directed 2026-09-08): every combination yields exactly the
-// pplCycle's kinds once, in order, at every day count — Full-Body A/B is never generated.
+// pplCycle's kinds once, in order, at every day count — Full-Body A/B is never generated · A26 (owner-approved 2026-09-18,
+// canonical templates): the rows are the owner's own Push, Pull and Legs at EVERY experience; experience changes the sets only.
 // Twin of web/tests/engine/plan-generator.test.ts. Runs on the open-source toolchain (ios/Package.swift) and under Xcode.
 
 import XCTest
@@ -11,7 +12,8 @@ final class PlanGeneratorTests: XCTestCase {
     private let seed = SeedCatalog.shared
     private let experiences = ["brandNew", "some", "experienced"]
     private let equipmentTags: Set<String> = ["barbell", "dumbbell", "machine", "cable", "bodyweight"]
-    private var countFor: [String: Int] { ["brandNew": SpecConstants.beginnerExerciseCount, "some": SpecConstants.someExperienceExerciseCount, "experienced": SpecConstants.experiencedExerciseCount] }
+    private var countFor: [String: Int] { ["push": SpecConstants.templatePushExerciseCount, "pull": SpecConstants.templatePullExerciseCount, "legs": SpecConstants.templateLegsExerciseCount] }
+    private var setsFor: [String: Int] { ["brandNew": SpecConstants.beginnerTargetSets, "some": SpecConstants.someExperienceTargetSets, "experienced": SpecConstants.experiencedTargetSets] }
 
     private func daySubsets() -> [Set<Int>] {
         (1..<(1 << 7)).map { mask in Set((1...7).filter { mask & (1 << ($0 - 1)) != 0 }) }
@@ -30,7 +32,12 @@ final class PlanGeneratorTests: XCTestCase {
                 for workout in plan.workouts {
                     let strength = workout.exercises.filter { $0.type == "strength" }
                     let holds = workout.exercises.filter { $0.type == "mobility" }
-                    XCTAssertEqual(strength.count, countFor[experience], "\(experience) \(days)")
+                    XCTAssertEqual(strength.count, countFor[workout.kind], "\(experience) \(days)")
+                    for row in strength { // A26: sets by experience × 8, no range
+                        XCTAssertEqual(row.targetSets, setsFor[experience])
+                        XCTAssertEqual(row.targetReps, SpecConstants.templateTargetReps)
+                        XCTAssertNil(row.targetRepsMax)
+                    }
                     XCTAssertLessThanOrEqual(workout.exercises.count, SpecConstants.planMaxExercisesPerDay)
                     XCTAssertTrue((SpecConstants.mobilityHoldsMin...SpecConstants.mobilityHoldsMax).contains(holds.count))
                     let seconds = holds.reduce(0) { $0 + ($1.holdSeconds ?? 0) * (($1.perSide ?? false) ? 2 : 1) }
@@ -56,13 +63,29 @@ final class PlanGeneratorTests: XCTestCase {
         }
     }
 
-    func testTargetsFollowFlowOneAndG7() {
-        let brandNew = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", seed: seed).workouts[0]
-        XCTAssertTrue(brandNew.exercises.filter { $0.type == "strength" }.allSatisfy { $0.targetSets == 3 && $0.targetReps == 10 })
-        let some = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "some", seed: seed).workouts[0]
-        XCTAssertTrue(some.exercises.filter { $0.type == "strength" }.allSatisfy { $0.targetReps == 8 && $0.targetRepsMax == 10 })
-        let experienced = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "experienced", seed: seed)
-        XCTAssertTrue(experienced.workouts.contains { $0.exercises.contains { $0.equipment == "barbell" } })
+    func testTheRowsAreTheOwnersCanonicalTemplatesAtEveryExperience() {
+        let canonical = [
+            ["barbell-bench-press", "cable-rope-triceps-extension", "machine-incline-press", "cable-triceps-pushdown", "machine-decline-press"],
+            ["lat-pulldown", "cable-rope-curl", "machine-row", "cable-rope-curl", "cable-face-pull", "cable-rope-curl"],
+            ["machine-standing-calf-raise", "leg-press", "leg-extension", "seated-leg-curl", "dumbbell-walking-lunge"],
+        ]
+        var firstRows: [String] = []
+        for experience in experiences {
+            let plan = PlanGenerator.generatePlan(days: [1, 3, 5], experience: experience, seed: seed)
+            let strengthIds = plan.workouts.map { workout in workout.exercises.filter { $0.type == "strength" }.map(\.exerciseId) }
+            XCTAssertEqual(strengthIds, canonical, experience)
+            let first = plan.workouts[0].exercises[0]
+            XCTAssertEqual(first.name, "Barbell Bench Press")
+            firstRows.append("\(first.targetSets)×\(first.targetReps)")
+        }
+        XCTAssertEqual(firstRows, ["3×8", "4×8", "5×8"])
+    }
+
+    // A26: Pull carries the rope curl three times — one row per slot, each with its own order; no row opens on a barbell
+    func testARepeatedExerciseKeepsOneRowPerSlot() {
+        let pull = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "some", seed: seed).workouts[1]
+        XCTAssertEqual(pull.exercises.filter { $0.exerciseId == "cable-rope-curl" }.map(\.order), [1, 3, 5])
+        XCTAssertFalse(pull.exercises.contains { $0.equipment == "barbell" })
     }
 
     func testACardioRowIsDurationBased() {

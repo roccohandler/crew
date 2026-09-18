@@ -1,15 +1,17 @@
 {
-  "spec": "Appendix B (PPL variants × experience; A21.1, owner-approved 2026-09-17: every user has full commercial gym access, so the dumbbells and bodyweight tiers are deleted and templates nest kind → experience) · Flow 1 step 3 (Brand new = 4 at 3×10 · Experienced = 6 incl. barbell lifts · mobility block 2–3 holds ~5–10 min) · Decision Registry G7 (Some = 5 at 3×8–10) · T005",
+  "spec": "Appendix A A26 (owner-approved 2026-09-18, CANONICAL TEMPLATES: every plan is the owner's own Push, Pull and Legs — one list per kind, the same rows at every experience; experience changes SETS only, brand-new 3×8 · some 4×8 · experienced 5×8; no optional rows; the mobility closing block stays) · Flow 1 step 3 (Push · Pull · Legs; mobility block 2–3 holds ~5–10 min) · A1 (PPL at every frequency) · A21.1 (full gym for everyone; the equipment TAG stays) · T005",
   "gapNotes": [
-    "GAP: experienced sets×reps are not stated in the spec; the conservative choice continues the stated progression (10 → 8–10 → 8): 3×8.",
-    "GAP: a rep range (Some = 8–10) is stored as targetReps = 8 (the pre-filled floor; asPlanned = actualReps ≥ 8) plus targetRepsMax = 10 for display — a one-field extension of ExerciseTemplate.",
-    "A1 (owner-directed 2026-09-08): every generated plan is Push day · Pull day · Leg day at every frequency 1–7 — workouts rotate, the next one is the one after the last completed rotation workout, so balance is automatic over any 3k completed workouts; Full-Body A/B is no longer generated (the templates stay for legacy plans and split.fullBodyMaxTrainingDays stays validated, unused by generation).",
-    "A21.1 (owner-approved 2026-09-17): the 30 home-tier lists (dumbbells, bodyweight) are deleted and the 15 gym lists are the only lists — kind → experience → exercise ids; the per-exercise equipment tag stays. Exercise ids are stable across the gym-name pass (couch-stretch, doorway-pec-stretch and doorframe-row keep their ids under gym names), so every saved plan and session keeps resolving its rows."
+    "A26 (owner-approved 2026-09-18) REPLACES every earlier list: the 15 kind × experience lists of A21.1 (and with them Flow 1 step 3's 4 at 3×10 · 6 incl. barbell lifts, and G7's 5 at 3×8–10) are gone; templates nest kind → exercise ids and nothing else. A row may REPEAT an exercise (Pull carries the cable rope curl three times, between the pulls, as the owner trains it) — rows are addressed by `order`, never by exercise id.",
+    "A26: `namedSwaps` records the swaps the owner named for a row, keyed by the row's exercise id. SwapFinder is unchanged (tiers swapGroup → pattern → region): a row with a named swap keeps between swapCandidatesMin and swapCandidatesMax OTHER members in its swap group, so the finder stops at the group tier and offers every one of them — the named swaps included — at every experience and under any name order. check-seeds asserts it.",
+    "A26: Full-Body A/B has not been generated since A1; its six lists and its two closing blocks went with the rest. workoutNames and split keep the two kinds because a legacy plan may still carry them; split.fullBodyMaxTrainingDays stays validated, unused by generation.",
+    "A26 — PARKED OWNER IDEA, NOT BUILT: a dynamic warm-up block opening each workout. Nothing here prepares for it (Appendix C).",
+    "A1 (owner-directed 2026-09-08): every generated plan is Push day · Pull day · Leg day at every frequency 1–7 — workouts rotate, the next one is the one after the last completed rotation workout, so balance is automatic over any 3k completed workouts.",
+    "A21.1 (owner-approved 2026-09-17): no equipment tiers; the per-exercise equipment tag stays. Exercise ids are stable across every rename (A26 renamed six rows to the owner's words; couch-stretch, doorway-pec-stretch and doorframe-row kept their ids under gym names), so every saved plan and session keeps resolving its rows."
   ],
   "targets": {
-    "brandNew": { "sets": 3, "reps": 10 },
-    "some": { "sets": 3, "reps": 8, "repsMax": 10 },
-    "experienced": { "sets": 3, "reps": 8 }
+    "brandNew": { "sets": 3, "reps": 8 },
+    "some": { "sets": 4, "reps": 8 },
+    "experienced": { "sets": 5, "reps": 8 }
   },
   "split": {
     "fullBodyMaxTrainingDays": 2,
@@ -18,37 +20,23 @@
   },
   "workoutNames": { "push": "Push day", "pull": "Pull day", "legs": "Leg day", "fullBodyA": "Full body A", "fullBodyB": "Full body B" },
   "templates": {
-    "push": {
-      "brandNew": ["machine-chest-press", "machine-shoulder-press", "dumbbell-lateral-raise", "cable-triceps-pushdown"],
-      "some": ["dumbbell-bench-press", "dumbbell-shoulder-press", "cable-chest-fly", "cable-lateral-raise", "cable-triceps-pushdown"],
-      "experienced": ["barbell-bench-press", "barbell-overhead-press", "incline-dumbbell-press", "cable-chest-fly", "dumbbell-lateral-raise", "skull-crusher"]
-    },
-    "pull": {
-      "brandNew": ["lat-pulldown", "seated-cable-row", "cable-face-pull", "dumbbell-curl"],
-      "some": ["lat-pulldown", "seated-cable-row", "chest-supported-dumbbell-row", "cable-face-pull", "barbell-curl"],
-      "experienced": ["pull-up", "barbell-row", "seated-cable-row", "lat-pulldown", "cable-face-pull", "barbell-curl"]
-    },
-    "legs": {
-      "brandNew": ["leg-press", "lying-leg-curl", "leg-extension", "machine-standing-calf-raise"],
-      "some": ["leg-press", "dumbbell-romanian-deadlift", "dumbbell-walking-lunge", "lying-leg-curl", "machine-standing-calf-raise"],
-      "experienced": ["barbell-back-squat", "barbell-romanian-deadlift", "leg-press", "dumbbell-walking-lunge", "lying-leg-curl", "machine-standing-calf-raise"]
-    },
-    "fullBodyA": {
-      "brandNew": ["leg-press", "machine-chest-press", "seated-cable-row", "lying-leg-curl"],
-      "some": ["leg-press", "dumbbell-bench-press", "seated-cable-row", "dumbbell-romanian-deadlift", "cable-face-pull"],
-      "experienced": ["barbell-back-squat", "barbell-bench-press", "barbell-row", "barbell-romanian-deadlift", "cable-face-pull", "cable-triceps-pushdown"]
-    },
-    "fullBodyB": {
-      "brandNew": ["reverse-lunge", "machine-shoulder-press", "lat-pulldown", "machine-standing-calf-raise"],
-      "some": ["dumbbell-walking-lunge", "dumbbell-shoulder-press", "lat-pulldown", "lying-leg-curl", "cable-crunch"],
-      "experienced": ["barbell-deadlift", "barbell-overhead-press", "pull-up", "dumbbell-walking-lunge", "lying-leg-curl", "hanging-knee-raise"]
-    }
+    "push": ["barbell-bench-press", "cable-rope-triceps-extension", "machine-incline-press", "cable-triceps-pushdown", "machine-decline-press"],
+    "pull": ["lat-pulldown", "cable-rope-curl", "machine-row", "cable-rope-curl", "cable-face-pull", "cable-rope-curl"],
+    "legs": ["machine-standing-calf-raise", "leg-press", "leg-extension", "seated-leg-curl", "dumbbell-walking-lunge"]
+  },
+  "namedSwaps": {
+    "barbell-bench-press": ["dumbbell-bench-press"],
+    "machine-incline-press": ["incline-dumbbell-press"],
+    "machine-decline-press": ["pec-deck", "cable-chest-fly"],
+    "cable-rope-curl": ["dumbbell-curl"],
+    "machine-row": ["one-arm-dumbbell-row", "barbell-row"],
+    "cable-face-pull": ["dumbbell-rear-delt-fly"],
+    "seated-leg-curl": ["lying-leg-curl"],
+    "dumbbell-walking-lunge": ["bodyweight-lunge"]
   },
   "mobilityBlocks": {
     "push": ["doorway-pec-stretch", "thoracic-opener", "childs-pose"],
     "pull": ["wall-lat-stretch", "cross-body-shoulder-stretch", "cat-cow"],
-    "legs": ["couch-stretch", "pigeon-stretch", "wall-calf-stretch"],
-    "fullBodyA": ["couch-stretch", "thoracic-opener", "lying-hamstring-stretch"],
-    "fullBodyB": ["kneeling-hip-flexor-stretch", "doorway-pec-stretch", "deep-squat-hold"]
+    "legs": ["couch-stretch", "pigeon-stretch", "wall-calf-stretch"]
   }
 }

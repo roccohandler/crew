@@ -5,7 +5,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createSession, earnedQuery, getPlan, patchSession, type PlanReply } from "@/lib/api-client";
-import { SpecConstants } from "@/generated/spec-constants";
 
 // SPEC: A1 — the snapshot names its plan kind; every set is pre-filled at the target (a cardio block at its planned seconds, A2)
 export function sessionBodyFrom(workout: PlanReply["workouts"][number], timezone: string, allDone: boolean) {
@@ -42,4 +41,3 @@ export function QuickCompleteButton({ kind }: { kind: string }) {
   return <button type="button" className="button button--secondary" onClick={run} disabled={busy}>{busy ? "Logging…" : "Quick complete"}</button>;
 }
 
-export const quickCompleteHint = `Logs every set at ${SpecConstants.beginnerTargetReps}×target`; // used by tests to assert the constant flows through

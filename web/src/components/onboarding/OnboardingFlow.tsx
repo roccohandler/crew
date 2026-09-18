@@ -13,7 +13,7 @@ import { putPlan } from "@/lib/api-client";
 import { joinCrew } from "@/lib/api-client-crew";
 import { flushFunnel, markFunnelStep } from "@/lib/funnel";
 import { dayKeyFor } from "@/lib/engine/day-key";
-import { generatePlan, workoutFor, type PlanDraft, type PlanDraftWorkout, type SeedCatalog } from "@/lib/engine/plan-generator";
+import { generatePlan, type PlanDraft, type PlanDraftWorkout, type SeedCatalog } from "@/lib/engine/plan-generator";
 import { swapCandidates } from "@/lib/engine/swap-finder";
 import { exercises, planTemplates, type Experience, type SeedExercise } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -58,12 +58,13 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     setStep("reveal");
   };
 
-  const swap = (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => {
+  // SPEC: A26 — the tapped ROW is swapped, addressed by its order: a template may repeat an exercise (Pull's three rope curls),
+  // so an exercise id names more than one row. The row keeps its own sets × reps.
+  const swap = (kind: PlanDraftWorkout["kind"], order: number, replacement: SeedExercise) => {
     if (!draft.plan) return;
     const workouts = draft.plan.workouts.map((workout) => {
       if (workout.kind !== kind) return workout;
-      const fresh = workoutFor(workout.kind, draft.experience ?? "brandNew", seed);
-      const exercises = workout.exercises.map((row) => (row.exerciseId === exerciseId ? { ...(fresh.exercises.find((candidate) => candidate.type === "strength") ?? row), exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment, order: row.order } : row));
+      const exercises = workout.exercises.map((row) => (row.order === order ? { ...row, exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment } : row));
       return { ...workout, exercises };
     });
     persist({ ...draft, plan: { trainingWeekdays: draft.plan.trainingWeekdays, workouts } });
@@ -81,7 +82,7 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
   return <StepView step={step} draft={draft} appleHref={appleHref} signedIn={signedIn} persist={persist} setStep={setStep} chooseExperience={chooseExperience} swap={swap} finish={finish} />;
 }
 
-interface StepViewProps { step: Step; draft: Draft; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseExperience: (value: string) => void; swap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
+interface StepViewProps { step: Step; draft: Draft; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseExperience: (value: string) => void; swap: (kind: PlanDraftWorkout["kind"], order: number, replacement: SeedExercise) => void; finish: () => Promise<void> }
 
 function StepView({ step, draft, appleHref, signedIn, persist, setStep, chooseExperience, swap, finish }: StepViewProps) {
   if (step === "days") return <DaysQuestion days={draft.days} onToggle={(weekday) => persist({ ...draft, days: draft.days.includes(weekday) ? draft.days.filter((day) => day !== weekday) : [...draft.days, weekday] })} onContinue={() => { if (!signedIn) markFunnelStep("onboarding_days"); setStep("experience"); }} />;

@@ -1353,3 +1353,41 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   reads the name, so production cannot behave differently because of it; the variable list itself is the owner's to open (debt).
   (6) THE LISTING COPY promises nothing on A21.13's Not Building list and states no health outcome; the age-rating answers are left
   to the owner (A16.b), with the facts that bear on them stated once.
+
+- **R-079 · 2026-09-18 · A26, the canonical templates — READINGS (each the smallest in-ruling answer; overturnable by a registry line).**
+  (1) A ROW MAY REPEAT AN EXERCISE. The owner's Pull writes the cable rope curl at rows 2, 4 and 6, so the template carries it three
+  times and nothing pretends they are three exercises. Every place that named a row by its exercise id was wrong the moment that
+  became possible, and each now names it by `order`: the reveal's swap (iOS `OnboardingModel.swap(order:in:with:)`, the ForEach keyed
+  by order; web `GeneratedPlan` / `OnboardingFlow`), "Update my plan" from a mid-workout swap (ONE plan row changes — the one at the
+  session row's order when it still holds that exercise, else the first that does: `SessionSwap.planRowToSwap` ⇄ `planRowToSwap`), the
+  web editor's move (the sheet follows the row one slot, not the first row sharing its id). The phone editor's swap stops hiding a
+  candidate "already in this workout" — the owner names the dumbbell curl as the swap for EACH curl row, and the web editor never hid
+  one. Left as they are, and recorded in debt: prefill and "last time" read the FIRST row of that exercise in the last session, and
+  Progress's strength trend takes a point per row.
+  (2) NAMED SWAPS ARE GUARANTEED BY DATA. The ruling says "ensure each template row and each named swap exists with the right pattern,
+  equipment tag, swap group and cue line", so the mechanism is the swap group, not a new finder rule: `namedSwaps` in
+  plan-templates.json records the owner's pairs, and a row that has one keeps 3–5 OTHER members in its group — the finder stops at the
+  group tier and returns the group whole, whatever the experience and however the two engines sort names (TS `localeCompare`, Swift
+  `<`). Four groups were cut for it: `inclinePress` (machine incline · incline dumbbell · Smith incline · low-to-high cable fly ·
+  decline push-up), `lowerChest` (machine decline · machine chest fly · cable fly · high-to-low cable fly · dip), `bodyweightRow`
+  (inverted row · suspension trainer row, out of `row` so the seated row's five are the five offered) and `curlVariation`
+  (concentration curl · underhand inverted row, out of `curl` for the same reason). check-seeds fails a group that drifts outside 3–5.
+  (3) THE OWNER'S WORDS BECOME THE NAMES. "Triceps extension — cable bar" IS the seeded pushdown (its cue already said "push the bar
+  down"), so that id takes the name "Cable Bar Triceps Extension" and the rope gets a new id; "machine chest fly" is the pec deck;
+  "dumbbell reverse fly" the rear delt fly; "lunges — dumbbell" the walking lunge, whose cue now allows alternating in place. The
+  seeded "Cable Curl" is a BAR curl (its cue says so), so the rope curl is a new id and the bar curl stays in the catalog. Ids never
+  move; a saved plan or session stores its own names, so history reads as it did.
+  (4) "LAT PULLDOWN — MACHINE": the tag moves cable → machine on the one seeded pulldown. "CALF RAISE — MACHINE" is the seeded standing
+  machine raise, unrenamed.
+  (5) THE WEB CHIP STAYS WORDS. The ruling lists "web twins" among the places that gain an SF Symbol. An SF Symbol is drawn by Apple's
+  platforms from the system font; no browser has one, Apple's licence keeps them to software on Apple's platforms, and the same ruling
+  says "no assets and no dependency" — so the only way to put a picture on the web chip is to draw five new icons, which is a design
+  act nobody ruled (and the owner's design session is about to set a direction). R-075 took the same reading for the fast-food chain
+  icons. The mapping IS generated into `seed.ts` (`equipmentSymbol`) so the one source stays one; no web component reads it. A "yes,
+  draw them" is a small change: five inline SVG paths beside the five names.
+  (6) THE SYMBOLS: barbell `figure.strengthtraining.traditional` · dumbbell `dumbbell` (already drawn by the app on two screens) ·
+  machine `gearshape.2` · cable `cable.connector` · bodyweight `figure.stand` — all in SF Symbols ≤ 4, so iOS 17 has every one;
+  `EquipmentSymbolTests` asks the system for each, because a wrong name draws nothing and fails no build. There is no barbell, machine
+  or cable-stack glyph in SF Symbols; these are the nearest honest ones and any of the five is a one-word change in exercises.json.
+  (7) NO SCHEMA, ROUTE OR VECTOR MOVED. A plan stores its rows, so an existing account keeps its plan until Rebuild my plan; the
+  server accepts the new rows as it accepted the old (ids are free strings ≤ 60). The tour member now trains the canonical templates.

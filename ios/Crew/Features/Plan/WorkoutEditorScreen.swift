@@ -62,7 +62,7 @@ struct WorkoutEditorScreen: View {
             Section {
                 ForEach(draft.rows, id: \.order) { row in
                     Button { editing = row.order } label: {
-                        ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), chevron: !editMode.isEditing)
+                        ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), symbol: row.type == "cardio" ? nil : EquipmentLabel.symbol(for: row.equipment), chevron: !editMode.isEditing)
                     }
                     .buttonStyle(.plain)
                     .disabled(editMode.isEditing)
@@ -119,13 +119,20 @@ struct WorkoutEditorScreen: View {
 struct ExerciseListRow: View {
     let title: String
     let detail: String?
+    var symbol: String? = nil // A26: the equipment tag's SF Symbol, leading the detail line that already names the tag
     let chevron: Bool
 
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space12) {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
                 Text(title).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                if let detail { Text(detail).font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) }
+                if let detail {
+                    HStack(spacing: EmberTokens.Spacing.space4) {
+                        if let symbol { Image(systemName: symbol).accessibilityHidden(true) }
+                        Text(detail).monospacedDigit()
+                    }
+                    .font(.subheadline).foregroundStyle(EmberColors.secondaryText)
+                }
             }
             Spacer()
             if chevron { Image(systemName: "chevron.right").font(.subheadline.weight(.semibold)).foregroundStyle(EmberColors.secondaryText) }

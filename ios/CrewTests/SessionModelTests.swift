@@ -40,16 +40,16 @@ final class SessionModelTests: XCTestCase {
         let model = SessionModel(session: session, store: store, units: "lb")
         let first = model.exercises[0]
         XCTAssertEqual(session.workoutKind, "push") // A1: the snapshot remembers its rotation kind
-        XCTAssertEqual(model.facts.setsPlanned, SpecConstants.beginnerExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax)
+        XCTAssertEqual(model.facts.setsPlanned, SpecConstants.templatePushExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax)
         model.addWarmup(to: first)
-        XCTAssertEqual(model.facts.setsPlanned, SpecConstants.beginnerExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax) // warm-ups never count
+        XCTAssertEqual(model.facts.setsPlanned, SpecConstants.templatePushExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax) // warm-ups never count
         let firstWork = model.sets(of: first).first { !$0.isWarmup }!
         model.checkSet(firstWork, in: first)
         XCTAssertTrue(firstWork.done)
         XCTAssertTrue(firstWork.asPlanned)
         XCTAssertTrue(model.restTimer.isRunning)
         model.adjustReps(firstWork, by: -3)
-        XCTAssertEqual(firstWork.actualReps, SpecConstants.beginnerTargetReps - 3)
+        XCTAssertEqual(firstWork.actualReps, SpecConstants.templateTargetReps - 3)
         model.checkSet(firstWork, in: first)
         model.checkSet(firstWork, in: first)
         XCTAssertFalse(firstWork.asPlanned) // V33: done, below target
@@ -99,7 +99,7 @@ final class SessionModelTests: XCTestCase {
         XCTAssertEqual(outcome.setsDone, 1)
         try SessionActions.post(outcome, shareToCrew: false, store: store) // A21.9: the tap posts and counts the day
         XCTAssertEqual(try store.gamificationState(for: userId).totalXP, SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout) // never extra XP for cardio
-        let planned = SpecConstants.beginnerExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax + 1
+        let planned = SpecConstants.templatePushExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax + 1
         XCTAssertEqual(JournalFacts.summaryLine(session, distanceUnit: "km"), "\(session.workoutName) · 1/\(planned) sets · \(JournalFacts.wallClockMinutes(session)) min") // A6
     }
 
@@ -122,6 +122,15 @@ final class SessionModelTests: XCTestCase {
         XCTAssertEqual(JournalFacts.minutes(ofSeconds: 44 * TimeUnits.secondsPerMinute + 29), 44)
         XCTAssertEqual(JournalFacts.minutes(ofSeconds: 44 * TimeUnits.secondsPerMinute + 30), 45)
         XCTAssertEqual(JournalFacts.minutes(ofSeconds: 0), 0)
+    }
+
+    // SPEC: A26 · E7 — "Update my plan" changes ONE plan row: Pull repeats the rope curl, so the session row's order picks which;
+    // a plan edited since (no curl left at that order) falls back to the first curl; an exercise the plan lacks changes nothing
+    func testUpdateMyPlanNamesOneRowOfARepeatedExercise() {
+        let pull = PlanGenerator.generatePlan(days: [1, 3, 5], experience: "brandNew", seed: .shared).workouts[1].exercises
+        XCTAssertEqual(SessionSwap.planRowToSwap(pull, exerciseId: "cable-rope-curl", order: 3), 3)
+        XCTAssertEqual(SessionSwap.planRowToSwap(pull, exerciseId: "cable-rope-curl", order: 2), 1)
+        XCTAssertNil(SessionSwap.planRowToSwap(pull, exerciseId: "barbell-row", order: 2))
     }
 
     func testPlateMath() { // A22: the meal-tag half left with the plate journal (MealTag is gone)

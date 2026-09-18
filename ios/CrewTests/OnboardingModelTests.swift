@@ -42,12 +42,28 @@ final class OnboardingModelTests: XCTestCase {
         let incumbent = first.exercises.first { $0.type == "strength" }!
         let candidates = model.swapCandidates(for: incumbent.exerciseId)
         XCTAssertGreaterThanOrEqual(candidates.count, SpecConstants.swapCandidatesMin)
-        model.swap(exerciseId: incumbent.exerciseId, in: first.kind, with: candidates[0])
+        model.swap(order: incumbent.order, in: first.kind, with: candidates[0])
         let swapped = model.draft!.workouts[0].exercises[incumbent.order]
         XCTAssertEqual(swapped.exerciseId, candidates[0].id)
         XCTAssertEqual(swapped.order, incumbent.order)
         XCTAssertEqual(model.draft!.workouts[1], draft.workouts[1]) // the other workouts are untouched
         XCTAssertEqual(model.draft!.trainingWeekdays, draft.trainingWeekdays)
+    }
+
+    // SPEC: A26 — Pull carries the rope curl three times, so a swap names the ROW (its order): the tapped curl changes and the
+    // other two stay. Addressed by exercise id, one tap used to rewrite every row that shared it.
+    func testSwappingARepeatedExerciseChangesOnlyTheTappedRow() throws {
+        let model = OnboardingModel(draftStore: temporaryStore())
+        model.choose(experience: "some")
+        let pull = try XCTUnwrap(model.draft?.workouts.first { $0.kind == "pull" })
+        let curls = pull.exercises.filter { $0.exerciseId == "cable-rope-curl" }
+        XCTAssertEqual(curls.map(\.order), [1, 3, 5])
+        let dumbbellCurl = try XCTUnwrap(model.swapCandidates(for: "cable-rope-curl").first { $0.id == "dumbbell-curl" }) // the owner's named swap
+        model.swap(order: 3, in: "pull", with: dumbbellCurl)
+        let after = try XCTUnwrap(model.draft?.workouts.first { $0.kind == "pull" })
+        XCTAssertEqual(after.exercises.filter { $0.type == "strength" }.map(\.exerciseId), ["lat-pulldown", "cable-rope-curl", "machine-row", "dumbbell-curl", "cable-face-pull", "cable-rope-curl"])
+        XCTAssertEqual(after.exercises[3].targetSets, SpecConstants.someExperienceTargetSets) // the row keeps its sets × reps
+        XCTAssertEqual(after.exercises.map(\.order), Array(0..<after.exercises.count))
     }
 
     // SPEC: A1 — the reveal projects this week: seven rows Mon..Sun; a rest row on every unselected day; every planned row
@@ -65,7 +81,7 @@ final class OnboardingModelTests: XCTestCase {
         if let kind = saturday.kind {
             XCTAssertEqual(kind, "push") // a fresh cycle starts at its first workout
             XCTAssertEqual(saturday.title, "Sat · Push day")
-            XCTAssertEqual(saturday.detail, "\(SpecConstants.someExperienceExerciseCount) exercises + mobility")
+            XCTAssertEqual(saturday.detail, "\(SpecConstants.templatePushExerciseCount) exercises + mobility") // A26: the owner's Push, at every experience
         } else {
             XCTAssertEqual(saturday.title, "Sat") // already past this week: open — the day alone, no word, no dash (W6)
         }

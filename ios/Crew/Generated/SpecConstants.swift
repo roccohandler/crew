@@ -114,22 +114,20 @@ enum SpecConstants {
     static let minTrainingDaysToContinue: Int = 1
     /// SPEC: A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5
     static let planEstimateRoundingMinutes: Int = 5
-    /// SPEC: Flow 1 step 3 — Brand new = 4 simple exercises
-    static let beginnerExerciseCount: Int = 4
-    /// SPEC: Flow 1 step 3 — at 3×10
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Push is the owner's five rows at every experience; supersedes Flow 1 step 3's 4 / G7's 5 / 6
+    static let templatePushExerciseCount: Int = 5
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Pull is the owner's six rows at every experience
+    static let templatePullExerciseCount: Int = 6
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Legs is the owner's five rows at every experience
+    static let templateLegsExerciseCount: Int = 5
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — brand-new 3×8 (was Flow 1 step 3's 3×10)
     static let beginnerTargetSets: Int = 3
-    /// SPEC: Flow 1 step 3 — at 3×10
-    static let beginnerTargetReps: Int = 10
-    /// SPEC: Flow 1 step 3 — Experienced = 6 incl. barbell lifts
-    static let experiencedExerciseCount: Int = 6
-    /// SPEC: Decision Registry G7 (2026-09-04) — Some experience = 5 exercises per workout
-    static let someExperienceExerciseCount: Int = 5
-    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
-    static let someExperienceTargetSets: Int = 3
-    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
-    static let someExperienceTargetRepsMin: Int = 8
-    /// SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10
-    static let someExperienceTargetRepsMax: Int = 10
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — some 4×8 (was G7's 3×8–10)
+    static let someExperienceTargetSets: Int = 4
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — experienced 5×8 (the spec never stated one; the seed's GAP reading was 3×8)
+    static let experiencedTargetSets: Int = 5
+    /// SPEC: A26 (owner-approved 2026-09-18, canonical templates) — experience changes sets only: every template row is sets × 8
+    static let templateTargetReps: Int = 8
     /// SPEC: Flow 1 step 3 — 2–3 holds close each workout
     static let mobilityHoldsMin: Int = 2
     /// SPEC: Flow 1 step 3 — 2–3 holds close each workout

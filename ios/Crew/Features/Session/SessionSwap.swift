@@ -27,18 +27,27 @@ enum SessionSwap {
         try store.save()
         try SyncQueue.shared.enqueue(.patchSession, payload: PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: SessionActions.exerciseDTOs(session), status: nil, completedAt: nil, post: nil), now: now)
         guard scope == .plan, let kind = session.workoutKind ?? PlanRotation.workoutKindFromName(session.workoutName) else { return } // a legacy row infers its kind (A1)
-        try updatePlan(userId: session.userId, kind: kind, previousId: previousId, replacement: replacement, store: store, now: now)
+        try updatePlan(userId: session.userId, kind: kind, previousId: previousId, order: exercise.order, replacement: replacement, store: store, now: now)
+    }
+
+    // SPEC: A26 — a workout may repeat an exercise (Pull's three rope curls), so ONE plan row changes: the one at the session
+    // row's order when it still holds that exercise, else the first row that does. Twin of web planRowToSwap.
+    static func planRowToSwap(_ rows: [PlanDraftExercise], exerciseId: String, order: Int) -> Int? {
+        let matches = rows.filter { $0.exerciseId == exerciseId }
+        let atOrder = matches.first(where: { $0.order == order })
+        return (atOrder ?? matches.first)?.order
     }
 
     // SPEC: Flow 8 · A1 — the plan's workout of this kind gets the same replacement; the other workouts and the training days are
     // untouched; applies forward. A kind outside the plan (a cardio log, a rebuilt plan) changes nothing.
-    private static func updatePlan(userId: String, kind: String, previousId: String, replacement: SeedExercise, store: Store, now: Date) throws {
+    private static func updatePlan(userId: String, kind: String, previousId: String, order: Int, replacement: SeedExercise, store: Store, now: Date) throws {
         guard let plan = try store.plan(for: userId) else { return }
         let draft = PlanLocal.draft(plan)
         let workouts = draft.workouts.map { workout -> PlanDraftWorkout in
             guard workout.kind == kind else { return workout }
+            let target = planRowToSwap(workout.exercises, exerciseId: previousId, order: order)
             return PlanDraftWorkout(name: workout.name, kind: workout.kind, exercises: workout.exercises.map { row in
-                guard row.exerciseId == previousId else { return row }
+                guard row.order == target else { return row }
                 return PlanDraftExercise(exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment, type: row.type, targetSets: row.targetSets, targetReps: row.targetReps, targetRepsMax: row.targetRepsMax, holdSeconds: row.holdSeconds, perSide: row.perSide, order: row.order)
             })
         }

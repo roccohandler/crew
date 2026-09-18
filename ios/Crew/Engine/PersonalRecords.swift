@@ -31,11 +31,15 @@ enum PersonalRecords {
         sets.filter { $0.done && !$0.isWarmup }.compactMap { set in set.weight.map { WeightUnits.normalizedForCompare($0, unit: set.weightUnit ?? accountUnit) } }.max() ?? 0
     }
 
-    // The exercises of `current` that set a new best against `earlier` (any order) — the celebration's PR badges
+    // The exercises of `current` that set a new best against `earlier` (any order) — the celebration's PR badges.
+    // SPEC: A26 — a workout may repeat an exercise (the owner's Pull: three rope curls). A record belongs to the EXERCISE, so
+    // its rows are one candidate — the best across all of them, decided once — or one heavy day would award and count three.
     static func newRecords(_ current: [RecordExercise], earlier: [RecordSession], accountUnit: String = "lb") -> [String] {
         var records: [String] = []
+        var decided: Set<String> = []
         for exercise in current {
-            let best = bestWeight(exercise.sets, accountUnit: accountUnit)
+            guard decided.insert(exercise.exerciseId).inserted else { continue }
+            let best = current.filter { $0.exerciseId == exercise.exerciseId }.map { bestWeight($0.sets, accountUnit: accountUnit) }.max() ?? 0
             guard best > 0 else { continue }
             let previousBest = earlier.flatMap { session in session.exercises.filter { $0.exerciseId == exercise.exerciseId }.map { bestWeight($0.sets, accountUnit: accountUnit) } }.max() ?? 0
             if previousBest > 0, best > previousBest { records.append(exercise.name) }

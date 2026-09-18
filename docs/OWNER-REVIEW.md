@@ -45,8 +45,11 @@ holds every reading made without you, `docs/debt.md` every compromise.
 6. **The education copy (A23).** Read `docs/education-copy-draft.md` line by line — twelve whispers and the How Crew works page —
    and **rewrite the note from Max in your own words**. On screen the note is labelled "Draft" until you do. Send the final text;
    the builder changes `shared/copy/education.json` (`page.note.draft` → false) and both apps follow.
-7. **The canonical Push / Pull / Legs lists.** `shared/seed/plan-templates.json` has not been touched since W2, as ordered. Send the
-   lists (per day kind and experience level, in order) as a ruling; the builder applies them with new vectors.
+7. **The canonical Push / Pull / Legs lists — DONE 2026-09-18 (A26).** Your lists are the templates at every experience (3×8 · 4×8 ·
+   5×8), every named swap is always offered, and the phone draws a symbol beside each equipment tag. No vector moved (the templates
+   are no gamification rule). Yours to look at on the phone: the names the rows took (`docs/ratification.md` R-079 (3)), the five
+   symbols (R-079 (6) — each is a one-word change), and the one "no" in it: the WEB chip stays words, because a browser has no SF
+   Symbols and you ruled out assets (R-079 (5)). An existing account keeps its plan until Rebuild my plan.
 8. **Fast-food chains.** Six chains ship (Chick-fil-A, Chipotle, Panera Bread, Starbucks, Subway, Wendy's). McDonald's, Burger King,
    Five Guys and Taco Bell are held in `docs/fast-food-seed-sources.md` with the reason each could not be read from its own current
    publication. Release a chain by sending its published nutrition PDF or page; nothing else is needed.
@@ -74,6 +77,7 @@ holds every reading made without you, `docs/debt.md` every compromise.
 | Education: `how.invite` shows on the Crew tab, not inside the Invite sheet (a whisper never sits in a sheet) | R-076 | Rule 3 of the whisper contract wins over the placement table |
 | 6.9 density on Today: Quick add and "Logged today" became their own screens; How Crew works stays one scrolling page | R-077 | Nothing was removed; the second scroll-length moved one tap away. S19 is prose, read once |
 | W9: the store's first versioned schema is build 150's; the legal pages leave three blanks for you | R-078 | See §2.4 |
+| A26: a row may repeat an exercise, so rows are named by their order; named swaps are kept by swap-group size, not a new rule; six rows renamed to your words; the web chip stays words | R-079 | Each the narrowest reading of your ruling |
 
 ## 4. The phone checklist (TestFlight, latest build — the number is on the top line of `docs/progress.md`)
 

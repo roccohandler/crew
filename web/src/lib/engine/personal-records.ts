@@ -29,11 +29,16 @@ export function bestWeight(sets: RecordSet[], accountUnit: WeightUnit = "lb"): n
   return Math.max(0, ...sets.filter((set) => set.done && !set.isWarmup && set.weight !== null).map((set) => normalizedForCompare(set.weight ?? 0, set.weightUnit ?? accountUnit)));
 }
 
-// The exercises of `current` that set a new best against `earlier` (any order) — the celebration's PR badges
+// The exercises of `current` that set a new best against `earlier` (any order) — the celebration's PR badges.
+// SPEC: A26 — a workout may repeat an exercise (the owner's Pull: three rope curls). A record belongs to the EXERCISE, so its
+// rows are one candidate — the best across all of them, decided once — or one heavy day would award and count three.
 export function newRecords(current: RecordExercise[], earlier: RecordSession[], accountUnit: WeightUnit = "lb"): string[] {
   const records: string[] = [];
+  const decided = new Set<string>();
   for (const exercise of current) {
-    const best = bestWeight(exercise.sets, accountUnit);
+    if (decided.has(exercise.exerciseId)) continue;
+    decided.add(exercise.exerciseId);
+    const best = Math.max(0, ...current.filter((row) => row.exerciseId === exercise.exerciseId).map((row) => bestWeight(row.sets, accountUnit)));
     if (best === 0) continue;
     const previousBest = Math.max(0, ...earlier.flatMap((session) => session.exercises.filter((row) => row.exerciseId === exercise.exerciseId).map((row) => bestWeight(row.sets, accountUnit))));
     if (previousBest > 0 && best > previousBest) records.push(exercise.name);

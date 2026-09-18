@@ -16,12 +16,20 @@ export function swappedExercise(current: SessionExerciseView, replacement: SeedE
 }
 
 // SPEC: Flow 8 · A1 — the plan's workout of this session's kind gets the same replacement; the other workouts and the training
-// days are untouched (the PUT always carries trainingWeekdays + the ordered workouts)
-export async function updatePlanWithSwap(kind: string | null, exerciseId: string, replacement: SeedExercise): Promise<void> {
+// days are untouched (the PUT always carries trainingWeekdays + the ordered workouts). A26: a workout may repeat an exercise, so ONE
+// plan row changes — the one at the session row's order when it still holds that exercise, else the first row that does.
+export function planRowToSwap(rows: { exerciseId: string; order: number }[], exerciseId: string, order: number): number | null {
+  const matches = rows.filter((row) => row.exerciseId === exerciseId);
+  return (matches.find((row) => row.order === order) ?? matches[0])?.order ?? null;
+}
+
+export async function updatePlanWithSwap(kind: string | null, exerciseId: string, order: number, replacement: SeedExercise): Promise<void> {
   const plan = await getPlan();
-  const workouts = plan.workouts.map((workout) => (workout.kind === kind
-    ? { ...workout, exercises: workout.exercises.map((row) => (row.exerciseId === exerciseId ? { ...row, exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment } : row)) }
-    : workout));
+  const workouts = plan.workouts.map((workout) => {
+    if (workout.kind !== kind) return workout;
+    const target = planRowToSwap(workout.exercises, exerciseId, order);
+    return { ...workout, exercises: workout.exercises.map((row) => (row.order === target ? { ...row, exerciseId: replacement.id, name: replacement.name, pattern: replacement.pattern, equipment: replacement.equipment } : row)) };
+  });
   await putPlan({ trainingWeekdays: plan.trainingWeekdays, workouts });
 }
 

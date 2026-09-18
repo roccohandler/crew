@@ -1,16 +1,18 @@
 // SPEC: T020 (Verify: both unit suites) · 8.3 plan generator property test: every days × experience combo yields a valid plan
 // (limits respected, mobility block present) · A21.1 (owner-approved 2026-09-17): the equipment axis is gone — every user trains
 // in a full gym, so a row's equipment is any of the five tags · A1 (owner-directed 2026-09-08): every combination yields exactly
-// the pplCycle's kinds once, in order, at every day count — Full-Body A/B is never generated.
+// the pplCycle's kinds once, in order, at every day count — Full-Body A/B is never generated · A26 (owner-approved 2026-09-18,
+// canonical templates): the rows are the owner's own Push, Pull and Legs at EVERY experience; experience changes the sets only.
 import { describe, expect, it } from "vitest";
 import { cardioRow, generatePlan, type SeedCatalog } from "@/lib/engine/plan-generator";
-import { exercises, planTemplates, type Equipment, type Experience } from "@/generated/seed";
+import { exercises, planTemplates, type Equipment, type Experience, type TemplateKind } from "@/generated/seed";
 import { SpecConstants } from "@/generated/spec-constants";
 
 const seed: SeedCatalog = { exercises, planTemplates };
 const experiences: Experience[] = ["brandNew", "some", "experienced"];
 const equipmentTags: Equipment[] = ["barbell", "dumbbell", "machine", "cable", "bodyweight"];
-const countFor: Record<Experience, number> = { brandNew: SpecConstants.beginnerExerciseCount, some: SpecConstants.someExperienceExerciseCount, experienced: SpecConstants.experiencedExerciseCount };
+const countFor: Record<TemplateKind, number> = { push: SpecConstants.templatePushExerciseCount, pull: SpecConstants.templatePullExerciseCount, legs: SpecConstants.templateLegsExerciseCount };
+const setsFor: Record<Experience, number> = { brandNew: SpecConstants.beginnerTargetSets, some: SpecConstants.someExperienceTargetSets, experienced: SpecConstants.experiencedTargetSets };
 
 // every non-empty subset of Mon..Sun (127 of them)
 function daySubsets(): number[][] {
@@ -36,7 +38,8 @@ describe("generatePlan — every days × experience combination is a valid PPL p
         for (const workout of plan.workouts) {
           const strength = workout.exercises.filter((row) => row.type === "strength");
           const holds = workout.exercises.filter((row) => row.type === "mobility");
-          expect(strength).toHaveLength(countFor[experience]);
+          expect(strength).toHaveLength(countFor[workout.kind as TemplateKind]);
+          for (const row of strength) expect([row.targetSets, row.targetReps, row.targetRepsMax]).toEqual([setsFor[experience], SpecConstants.templateTargetReps, undefined]); // A26: sets by experience × 8, no range
           expect(workout.exercises.length).toBeLessThanOrEqual(SpecConstants.planMaxExercisesPerDay);
           expect(holds.length).toBeGreaterThanOrEqual(SpecConstants.mobilityHoldsMin);
           expect(holds.length).toBeLessThanOrEqual(SpecConstants.mobilityHoldsMax);
@@ -64,13 +67,24 @@ describe("generatePlan — every days × experience combination is a valid PPL p
     }
   });
 
-  it("brand new = 4 exercises at 3×10; some = 5 at 3×8–10; experienced = 6 with barbell lifts", () => {
-    const brandNew = generatePlan([1, 3, 5], "brandNew", seed).workouts[0]!;
-    expect(brandNew.exercises.filter((row) => row.type === "strength").every((row) => row.targetSets === 3 && row.targetReps === 10)).toBe(true);
-    const some = generatePlan([1, 3, 5], "some", seed).workouts[0]!;
-    expect(some.exercises.filter((row) => row.type === "strength").every((row) => row.targetReps === 8 && row.targetRepsMax === 10)).toBe(true);
-    const experienced = generatePlan([1, 3, 5], "experienced", seed);
-    expect(experienced.workouts.some((workout) => workout.exercises.some((row) => row.equipment === "barbell"))).toBe(true);
+  it("the rows are the owner's canonical Push, Pull and Legs at every experience — 3×8 · 4×8 · 5×8 (A26)", () => {
+    const strengthIds = (experience: Experience) => generatePlan([1, 3, 5], experience, seed).workouts.map((workout) => workout.exercises.filter((row) => row.type === "strength").map((row) => row.exerciseId));
+    const canonical = [
+      ["barbell-bench-press", "cable-rope-triceps-extension", "machine-incline-press", "cable-triceps-pushdown", "machine-decline-press"],
+      ["lat-pulldown", "cable-rope-curl", "machine-row", "cable-rope-curl", "cable-face-pull", "cable-rope-curl"],
+      ["machine-standing-calf-raise", "leg-press", "leg-extension", "seated-leg-curl", "dumbbell-walking-lunge"],
+    ];
+    for (const experience of experiences) expect(strengthIds(experience)).toEqual(canonical);
+    const firstRow = (experience: Experience) => generatePlan([1, 3, 5], experience, seed).workouts[0]!.exercises[0]!;
+    expect(experiences.map((experience) => `${firstRow(experience).targetSets}×${firstRow(experience).targetReps}`)).toEqual(["3×8", "4×8", "5×8"]);
+    expect(firstRow("brandNew")).toMatchObject({ name: "Barbell Bench Press", equipment: "barbell", order: 0 });
+  });
+
+  it("a repeated exercise keeps one row per slot, each with its own order (A26: Pull's three rope curls)", () => {
+    const pull = generatePlan([1, 3, 5], "some", seed).workouts[1]!;
+    const curls = pull.exercises.filter((row) => row.exerciseId === "cable-rope-curl");
+    expect(curls.map((row) => row.order)).toEqual([1, 3, 5]);
+    expect(pull.exercises.some((row) => row.equipment === "barbell")).toBe(false); // barbell is never the default on Pull
   });
 
   it("a cardio row is duration-based: one set, no reps, the activity's seed seconds (A2)", () => {

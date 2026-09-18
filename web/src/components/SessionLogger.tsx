@@ -60,7 +60,7 @@ async function performSwap(exercises: SessionExerciseView[], index: number, repl
   const current = exercises[index];
   if (current === undefined) return;
   await save(exercises.map((exercise, candidate) => (candidate === index ? swappedExercise(exercise, replacement) : exercise)));
-  if (scope === "plan") await updatePlanWithSwap(kind, current.exerciseId, replacement).catch(onPlanError);
+  if (scope === "plan") await updatePlanWithSwap(kind, current.exerciseId, current.order, replacement).catch(onPlanError);
 }
 
 function withSet(exercises: SessionExerciseView[], exerciseIndex: number, setIndex: number, set: SessionExerciseView["sets"][number]): SessionExerciseView[] {

@@ -134,13 +134,15 @@ final class OnboardingModel {
         return SwapFinder.swapCandidates(for: incumbent, experience: experience ?? "brandNew", seed: seed)
     }
 
-    // Flow 1 step 4 — two taps, no questions asked, ever; the row keeps its order (A1: workouts are keyed by kind)
-    func swap(exerciseId: String, in kind: String, with replacement: SeedExercise) {
+    // Flow 1 step 4 — two taps, no questions asked, ever; the row keeps its order (A1: workouts are keyed by kind).
+    // SPEC: A26 — the ROW is named by its order: a template may repeat an exercise (Pull's three rope curls), so an
+    // exercise id names more than one row and only the tapped one changes.
+    func swap(order: Int, in kind: String, with replacement: SeedExercise) {
         guard let draft, let experience else { return }
         let workouts = draft.workouts.map { workout -> PlanDraftWorkout in
             guard workout.kind == kind else { return workout }
             let exercises = workout.exercises.map { row -> PlanDraftExercise in
-                guard row.exerciseId == exerciseId else { return row }
+                guard row.order == order else { return row }
                 return PlanGenerator.strengthRow(replacement.id, experience: experience, order: row.order, seed: seed) ?? row
             }
             return PlanDraftWorkout(name: workout.name, kind: workout.kind, exercises: exercises)

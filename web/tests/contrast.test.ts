@@ -168,7 +168,7 @@ describe("A18.11 — outline controls draw their boundary with controlOutline, n
   // Anything else that reaches for the 1.26:1 family fails here.
   const SURFACE_STROKES = new Set([
     "ios/Crew/Shared/Card.swift", // the card itself
-    "ios/Crew/Features/Plan/ExerciseSheet.swift", // EquipmentChip — a read-only label, not a button
+    "ios/Crew/Shared/EquipmentChip.swift", // EquipmentChip — a read-only label, not a button (A26 moved it out of ExerciseSheet.swift with its SF Symbol)
     "ios/Crew/Features/Progress/JournalRow.swift", // the "Sending ↻" status chip
     "ios/Crew/Features/Session/UnitConfirmLine.swift", // the one-line unit banner
     "ios/Crew/Features/Plan/WorkoutEditorScreen.swift", // the Undo snackbar's own edge (its Undo is a control inside it)

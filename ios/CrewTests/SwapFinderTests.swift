@@ -1,5 +1,6 @@
 // SPEC: T020 · 8.3 SwapFinder: candidates share the job (same type; tiers swapGroup → pattern → region), never return the
-// incumbent · Flow 1 step 4 (3–5) · A21.1 (owner-approved 2026-09-17): no equipment tier — the pool is the whole gym catalog.
+// incumbent · Flow 1 step 4 (3–5) · A21.1 (owner-approved 2026-09-17): no equipment tier — the pool is the whole gym catalog
+// · A26 (owner-approved 2026-09-18): three flat template lists; every swap the owner NAMED is offered at every experience.
 // Twin of web/tests/engine/swap-finder.test.ts. WRITTEN — UNVERIFIED (needs Mac).
 
 import XCTest
@@ -8,10 +9,22 @@ import XCTest
 final class SwapFinderTests: XCTestCase {
     private let seed = SeedCatalog.shared
     private let equipmentTags: Set<String> = ["barbell", "dumbbell", "machine", "cable", "bodyweight"]
+    private let experiences = ["brandNew", "some", "experienced"]
+
+    func testEverySwapTheOwnerNamedIsOfferedAtEveryExperience() {
+        XCTAssertFalse(seed.planTemplates.namedSwaps.isEmpty)
+        for (rowId, named) in seed.planTemplates.namedSwaps {
+            for experience in experiences {
+                let offered = SwapFinder.swapCandidates(for: seed.exercise(rowId)!, experience: experience, seed: seed).map(\.id)
+                for id in named { XCTAssertTrue(offered.contains(id), "\(rowId) / \(experience): \(id) is not offered") }
+            }
+        }
+        XCTAssertEqual(Set(seed.equipmentSymbol.keys), equipmentTags) // A26: one SF Symbol per equipment tag, in one place
+    }
 
     func testEveryTemplatedExerciseHasThreeToFiveSameJobAlternatives() {
-        for (_, byLevel) in seed.planTemplates.templates {
-            for (experience, ids) in byLevel {
+        for (_, ids) in seed.planTemplates.templates {
+            for experience in experiences {
                 for id in ids {
                     let incumbent = seed.exercise(id)!
                     let candidates = SwapFinder.swapCandidates(for: incumbent, experience: experience, seed: seed)

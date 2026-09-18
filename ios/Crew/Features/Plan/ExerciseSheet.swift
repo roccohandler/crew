@@ -88,16 +88,4 @@ struct StepperRow: View {
         .accessibilityLabel("\(label) \(value)")
     }
 }
-
-struct EquipmentChip: View {
-    let equipment: String
-
-    var body: some View {
-        Text(equipment.capitalized)
-            .font(.caption)
-            .foregroundStyle(EmberColors.secondaryText)
-            .padding(.horizontal, EmberTokens.Spacing.space8)
-            .padding(.vertical, EmberTokens.Spacing.space4)
-            .overlay(Capsule().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
-    }
-}
+// A26: EquipmentChip lives in Shared/EquipmentChip.swift now — the reveal, this sheet, the session and the swap lists share it

@@ -138,7 +138,7 @@ struct SessionScreen: View {
                             .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true) // 6.7: a long name wraps; it never pushes Swap and Skip past a 375-pt edge
                     }.buttonStyle(.plain)
                     Spacer(minLength: EmberTokens.Spacing.space8)
-                    Text(exercise.equipment.capitalized).font(.caption).foregroundStyle(EmberColors.secondaryText)
+                    EquipmentLabel(equipment: exercise.equipment) // A26: the tag with its SF Symbol, same ink, same size
                     // SPEC: 6.3 — Swap and Skip were bare caption Buttons hit-tested at their own text box (~36×16 pt),
                     // the exact shape TextActionButton was written to fix for "+ set" and never applied here. They share
                     // this row with an exercise name that wraps, so they take the 44 pt minimum with NO extra slack.

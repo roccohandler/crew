@@ -137,11 +137,12 @@ struct WorkoutDraft: Equatable {
 
     // MARK: Pickers
 
+    // SPEC: A26 — a swap offers the finder's list whole, as the web editor always has: the owner's Pull repeats the rope curl and
+    // names the dumbbell curl as the swap for EACH of the three, so "already in this workout" is no reason to hide a candidate.
     func swapCandidates(order: Int, seed: SeedCatalog) -> [SeedExercise] {
         guard let row = row(order: order), let incumbent = seed.exercise(row.exerciseId) else { return [] }
-        let present = Set(exercises.map(\.exerciseId))
         if row.type == "cardio" { return seed.exercises.filter { $0.type == "cardio" && $0.id != row.exerciseId } }
-        return SwapFinder.swapCandidates(for: incumbent, experience: "experienced", seed: seed).filter { !present.contains($0.id) }
+        return SwapFinder.swapCandidates(for: incumbent, experience: "experienced", seed: seed)
     }
 
     // SPEC: A21.1 — every strength exercise in the gym catalog that is not already in the workout

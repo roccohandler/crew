@@ -25,10 +25,12 @@ final class HomeModelTests: XCTestCase {
         guard case .workout(let actual, let count, let hasCardio, let lines, _) = state else {
             return XCTFail("expected a workout day, got \(state)", file: file, line: line)
         }
+        // A26: the size is the KIND's — the owner's Push is five rows, Pull six (the rope curl three times), at every experience
+        let sizes = ["Push day": SpecConstants.templatePushExerciseCount, "Pull day": SpecConstants.templatePullExerciseCount, "Leg day": SpecConstants.templateLegsExerciseCount]
         XCTAssertEqual(actual, name, file: file, line: line)
-        XCTAssertEqual(count, SpecConstants.beginnerExerciseCount, file: file, line: line)
+        XCTAssertEqual(count, sizes[name], file: file, line: line)
         XCTAssertFalse(hasCardio, file: file, line: line)
-        XCTAssertEqual(lines.count, SpecConstants.beginnerExerciseCount, file: file, line: line) // one row per strength exercise
+        XCTAssertEqual(lines.count, sizes[name], file: file, line: line) // one row per strength ROW — a repeated exercise is a row each time
     }
 
     private func post(_ store: Store, id: String, dayKey: String) throws { try HomeTestFixtures.post(store, userId: userId, id: id, dayKey: dayKey) }
@@ -79,7 +81,7 @@ final class HomeModelTests: XCTestCase {
         try post(store, id: "p3", dayKey: "2026-09-06")
         model.refresh(now: sunday)
         XCTAssertEqual(model.today, .rest)
-        XCTAssertEqual(model.nextUpLine, "Tomorrow: Push day · \(SpecConstants.beginnerExerciseCount) exercises")
+        XCTAssertEqual(model.nextUpLine, "Tomorrow: Push day · \(SpecConstants.templatePushExerciseCount) exercises")
         store.context.insert(LocalPause(userId: userId, startDay: "2026-09-05", endDay: "2026-09-12", createdAt: saturday))
         try store.save()
         model.refresh(now: saturday)

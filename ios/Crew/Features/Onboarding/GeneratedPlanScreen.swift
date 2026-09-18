@@ -11,7 +11,7 @@ struct GeneratedPlanScreen: View {
     let onLooksGood: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var revealed = 0
-    @State private var swapping: (kind: String, exerciseId: String)?
+    @State private var swapping: (kind: String, order: Int, exerciseId: String)? // A26: the ROW (order) — an exercise id may name several
 
     var body: some View {
         ScrollView {
@@ -24,8 +24,8 @@ struct GeneratedPlanScreen: View {
                 Text("Every workout rotates in, so each gets equal time.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 if model.mode == .signup { Whisper(.howRevealSwap) } // 1C's one whisper, now part of the A23 system: once per account
                 ForEach(Array((model.draft?.workouts ?? []).enumerated()), id: \.element.kind) { index, workout in
-                    WorkoutCard(workout: workout) { exerciseId in
-                        swapping = (workout.kind, exerciseId)
+                    WorkoutCard(workout: workout) { row in
+                        swapping = (workout.kind, row.order, row.exerciseId)
                     }
                     .opacity(index < revealed ? 1 : 0)
                 }
@@ -46,7 +46,7 @@ struct GeneratedPlanScreen: View {
         .sheet(isPresented: Binding(get: { swapping != nil }, set: { if !$0 { swapping = nil } })) {
             if let swapping {
                 SwapSheet(candidates: model.swapCandidates(for: swapping.exerciseId)) { replacement in
-                    model.swap(exerciseId: swapping.exerciseId, in: swapping.kind, with: replacement)
+                    model.swap(order: swapping.order, in: swapping.kind, with: replacement)
                     self.swapping = nil
                 }
             }
@@ -69,14 +69,15 @@ struct GeneratedPlanScreen: View {
 // One workout of the cycle (A1): its name, the strength rows (tap to swap), the mobility block that closes it
 struct WorkoutCard: View {
     let workout: PlanDraftWorkout
-    let onTapExercise: (String) -> Void
+    let onTapExercise: (PlanDraftExercise) -> Void
 
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
                 Text(workout.name).font(.headline).foregroundStyle(EmberColors.inkText)
-                ForEach(workout.exercises.filter { $0.type == "strength" }, id: \.exerciseId) { row in
-                    Button { onTapExercise(row.exerciseId) } label: { ExerciseRow(row: row) }.buttonStyle(.plain)
+                // A26: keyed by ORDER — the owner's Pull repeats the rope curl, and a repeated id is not an identity
+                ForEach(workout.exercises.filter { $0.type == "strength" }, id: \.order) { row in
+                    Button { onTapExercise(row) } label: { ExerciseRow(row: row) }.buttonStyle(.plain)
                 }
                 let holds = workout.exercises.filter { $0.type == "mobility" }
                 if !holds.isEmpty {

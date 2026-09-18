@@ -57,8 +57,9 @@ function Dialogs({ draft, ui, setUi, edit }: { draft: DraftWorkout; ui: Ui; setU
   if (ui.picker === "exercise") return <ExercisePicker title="Add exercise" candidates={addCandidates(draft)} onPick={(exercise) => { edit(addStrengthRow(draft, exercise)); setUi(QUIET); }} onClose={() => setUi(QUIET)} />;
   if (ui.picker === "cardio") return <ExercisePicker title="Add cardio" candidates={cardioActivities()} onPick={(activity) => { edit(addCardio(draft, activity)); setUi(QUIET); }} onClose={() => setUi(QUIET)} />;
   if (open === undefined) return null;
+  // A26: after a move the sheet follows the ROW (one slot, by order) — an exercise id may name several rows
   return <ExerciseSheet row={open} workoutName={draft.name} rows={rows} onSets={(direction) => edit(adjustSets(draft, open.order, direction))} onReps={(direction) => edit(adjustReps(draft, open.order, direction))} onMinutes={(direction) => edit(adjustMinutes(draft, open.order, direction))} onSwap={(replacement) => edit(swapRow(draft, open.order, replacement))}
-    onMove={(direction) => { const next = moveRow(draft, open.order, direction); const moved = editableRows(next).find((row) => row.exerciseId === open.exerciseId); edit(next); setUi({ ...ui, sheet: moved?.order ?? null }); }}
+    onMove={(direction) => { const next = moveRow(draft, open.order, direction); edit(next); setUi({ ...ui, sheet: next === draft ? open.order : open.order + direction }); }}
     onRemove={() => { edit(removeRow(draft, open.order), open); setUi({ ...QUIET, removed: open }); }} onClose={() => setUi(QUIET)} />;
 }
 

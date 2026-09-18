@@ -75,3 +75,12 @@ execution · 3. W7's code half on the vercel.app host (AASA, applinks by build v
 under the ratified addendum · 5. the education layer mechanism with the draft copy in one file (A23) · 6. W9. Commit per batch, push per
 item, the CI verdict read before the next. Owner tasks are never waited on; they live in `docs/OWNER-REVIEW.md`.
 composer) · W5 before W7 (production wiring lands on a hardened server) · W8 last before W9 (owner ruling: the final block before launch).
+
+
+## A26 — the canonical templates (owner-approved 2026-09-18; Appendix A)
+
+Every plan is the owner's own Push (5 rows), Pull (6 — the cable rope curl between each pull) and Legs (5), the same rows at every
+experience; experience changes the sets only — brand-new 3×8 · some 4×8 · experienced 5×8. Every swap the owner named is always
+offered; extras come from the catalog through Add exercise (131 exercises, fifteen of them catalog-only machine / cable movements);
+the phone draws an SF Symbol beside every equipment tag from one mapping in the seed. No vector moved. Parked, not built: a dynamic
+warm-up block. Readings: `docs/ratification.md` R-079.

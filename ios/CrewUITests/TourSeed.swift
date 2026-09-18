@@ -1,6 +1,6 @@
 // SPEC: Appendix A 2026-09-18 A24 (1) — the tour's "demo data" is a REAL member on the CI harness, built through the real API the
-// way 8.4's journeys are (C4: real things, no mocks; no fixture path inside the app): a plan that trains every day with loaded
-// barbell work (so Progress has a line to draw), a crew with two crew-mates, six backdated workout days — the server accepts a
+// way 8.4's journeys are (C4: real things, no mocks; no fixture path inside the app): a plan that trains every day — the A26 canonical
+// templates, every row loaded (so Progress has a line to draw) —, a crew with two crew-mates, six backdated workout days — the server accepts a
 // client instant up to syncClientTimestampMaxAgeDays back (web/src/lib/server-clock.ts) — and today left OPEN, so Home shows a
 // streak AND a workout to start. Macros are not seeded: "Log macros" is W8.
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
@@ -16,15 +16,31 @@ extension SeedClient {
     private static let secondsPerDay: TimeInterval = 86_400
     private static let seededDays = 6 // inside the 7-day reconciliation window, with a day to spare for a run that straddles midnight
 
-    private func tourRow(_ id: String, _ name: String, _ pattern: String, _ order: Int) -> [String: Any] {
-        ["exerciseId": id, "name": name, "pattern": pattern, "equipment": "barbell", "type": "strength", "targetSets": 3, "targetReps": 8, "order": order]
+    // A26 (owner-approved 2026-09-18): the tour member trains the CANONICAL templates — the owner's own Push, Pull and Legs, the
+    // brand-new 3×8 — so every toured screen shows the plan a real install gets, equipment tags and the repeated rope curl
+    // included. Typed by hand, as every tour fixture is: a UI-test bundle cannot import the app's SeedCatalog.
+    private func tourRows(_ rows: [(id: String, name: String, pattern: String, equipment: String)]) -> [[String: Any]] {
+        rows.enumerated().map { order, row in
+            ["exerciseId": row.id, "name": row.name, "pattern": row.pattern, "equipment": row.equipment, "type": "strength", "targetSets": 3, "targetReps": 8, "order": order]
+        }
     }
 
     private func tourWorkouts() -> [[String: Any]] {
-        [
-            ["name": "Push day", "kind": "push", "exercises": [tourRow("barbell-bench-press", "Barbell Bench Press", "horizontalPush", 0), tourRow("barbell-overhead-press", "Barbell Overhead Press", "verticalPush", 1)]],
-            ["name": "Pull day", "kind": "pull", "exercises": [tourRow("barbell-row", "Barbell Row", "horizontalPull", 0), tourRow("lat-pulldown", "Lat Pulldown", "verticalPull", 1)]],
-            ["name": "Leg day", "kind": "legs", "exercises": [tourRow("barbell-back-squat", "Barbell Back Squat", "squat", 0), tourRow("barbell-romanian-deadlift", "Barbell Romanian Deadlift", "hinge", 1)]],
+        let ropeCurl = (id: "cable-rope-curl", name: "Cable Rope Biceps Curl", pattern: "biceps", equipment: "cable")
+        return [
+            ["name": "Push day", "kind": "push", "exercises": tourRows([
+                ("barbell-bench-press", "Barbell Bench Press", "horizontalPush", "barbell"), ("cable-rope-triceps-extension", "Cable Rope Triceps Extension", "triceps", "cable"),
+                ("machine-incline-press", "Machine Incline Press", "horizontalPush", "machine"), ("cable-triceps-pushdown", "Cable Bar Triceps Extension", "triceps", "cable"),
+                ("machine-decline-press", "Machine Decline Press", "horizontalPush", "machine"),
+            ])],
+            ["name": "Pull day", "kind": "pull", "exercises": tourRows([
+                ("lat-pulldown", "Lat Pulldown", "verticalPull", "machine"), ropeCurl, ("machine-row", "Seated Machine Row", "horizontalPull", "machine"), ropeCurl,
+                ("cable-face-pull", "Cable Face Pull", "rearDelt", "cable"), ropeCurl,
+            ])],
+            ["name": "Leg day", "kind": "legs", "exercises": tourRows([
+                ("machine-standing-calf-raise", "Standing Calf Raise", "calf", "machine"), ("leg-press", "Leg Press", "squat", "machine"), ("leg-extension", "Leg Extension", "squat", "machine"),
+                ("seated-leg-curl", "Seated Hamstring Curl", "hinge", "machine"), ("dumbbell-walking-lunge", "Dumbbell Lunge", "lunge", "dumbbell"),
+            ])],
         ]
     }
 

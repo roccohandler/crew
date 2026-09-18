@@ -6,6 +6,7 @@ export type Pattern = "horizontalPush" | "verticalPush" | "chestIsolation" | "sh
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
+export type TemplateKind = "push" | "pull" | "legs"; // A26: the kinds a plan is generated from; a legacy plan may still carry the other two
 export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
 
 export interface SeedExercise {
@@ -15,10 +16,11 @@ export interface SeedExercise {
 export interface SeedTargets { sets: number; reps: number; repsMax?: number }
 export interface SeedPlanTemplates {
   targets: Record<Experience, SeedTargets>;
-  split: { fullBodyMaxTrainingDays: number; pplCycle: WorkoutKind[]; fullBodyCycle: WorkoutKind[] };
+  split: { fullBodyMaxTrainingDays: number; pplCycle: TemplateKind[]; fullBodyCycle: WorkoutKind[] };
   workoutNames: Record<WorkoutKind, string>;
-  templates: Record<WorkoutKind, Record<Experience, string[]>>; // A21.1: kind → experience → exercise ids (no equipment tier)
-  mobilityBlocks: Record<WorkoutKind, string[]>;
+  templates: Record<TemplateKind, string[]>; // A26: kind → exercise ids — the same rows at every experience; a row may repeat an exercise
+  namedSwaps: Record<string, string[]>; // A26: a template row's exercise id → the swaps the owner named for it (always offered; check-seeds + the SwapFinder tests)
+  mobilityBlocks: Record<TemplateKind, string[]>;
 }
 export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }
 export interface SeedFastFoodChain { id: string; name: string; icon: string; sourceUrl: string; retrievedOn: string }
@@ -42,6 +44,14 @@ export const regionOfPattern: Record<Pattern, Region> = {
   "core": "core",
   "mobility": "mobility",
   "cardio": "cardio"
+};
+// A26: the SF Symbol the PHONE draws beside an equipment tag (R-079: a browser has no SF Symbols, so the web chip stays words)
+export const equipmentSymbol: Record<Equipment, string> = {
+  "barbell": "figure.strengthtraining.traditional",
+  "dumbbell": "dumbbell",
+  "machine": "gearshape.2",
+  "cable": "cable.connector",
+  "bodyweight": "figure.stand"
 };
 export const exercises: SeedExercise[] = [
   {
@@ -68,7 +78,7 @@ export const exercises: SeedExercise[] = [
     "id": "incline-dumbbell-press",
     "name": "Incline Dumbbell Press",
     "pattern": "horizontalPush",
-    "swapGroup": "chestPress",
+    "swapGroup": "inclinePress",
     "equipment": "dumbbell",
     "level": "some",
     "type": "strength",
@@ -83,6 +93,36 @@ export const exercises: SeedExercise[] = [
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Seat so the handles sit at mid-chest, press forward and stop just short of locking out."
+  },
+  {
+    "id": "machine-incline-press",
+    "name": "Machine Incline Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "inclinePress",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Seat so the handles start at upper-chest height, press up and forward, stop just short of locking out."
+  },
+  {
+    "id": "machine-decline-press",
+    "name": "Machine Decline Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "lowerChest",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Seat so the handles sit at the lower chest, press down and forward, control the return."
+  },
+  {
+    "id": "smith-machine-incline-press",
+    "name": "Smith Machine Incline Press",
+    "pattern": "horizontalPush",
+    "swapGroup": "inclinePress",
+    "equipment": "machine",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Bench at 30° under the bar, unrack with a twist, lower to the upper chest, press straight up."
   },
   {
     "id": "push-up",
@@ -108,7 +148,7 @@ export const exercises: SeedExercise[] = [
     "id": "decline-push-up",
     "name": "Decline Push-Up",
     "pattern": "horizontalPush",
-    "swapGroup": "chestPress",
+    "swapGroup": "inclinePress",
     "equipment": "bodyweight",
     "level": "some",
     "type": "strength",
@@ -128,7 +168,7 @@ export const exercises: SeedExercise[] = [
     "id": "dip",
     "name": "Dip",
     "pattern": "horizontalPush",
-    "swapGroup": "chestPress",
+    "swapGroup": "lowerChest",
     "equipment": "bodyweight",
     "level": "experienced",
     "type": "strength",
@@ -138,11 +178,31 @@ export const exercises: SeedExercise[] = [
     "id": "cable-chest-fly",
     "name": "Cable Chest Fly",
     "pattern": "chestIsolation",
-    "swapGroup": "chestFly",
+    "swapGroup": "lowerChest",
     "equipment": "cable",
     "level": "some",
     "type": "strength",
     "cueLine": "Handles at chest height, soft elbows, sweep your hands together in front of you."
+  },
+  {
+    "id": "low-to-high-cable-fly",
+    "name": "Low-to-High Cable Fly",
+    "pattern": "chestIsolation",
+    "swapGroup": "inclinePress",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Pulleys at the bottom, soft elbows, sweep the handles up and together at chin height."
+  },
+  {
+    "id": "high-to-low-cable-fly",
+    "name": "High-to-Low Cable Fly",
+    "pattern": "chestIsolation",
+    "swapGroup": "lowerChest",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Pulleys at the top, slight forward lean, sweep the handles down and together at your hips."
   },
   {
     "id": "dumbbell-chest-fly",
@@ -156,9 +216,9 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "pec-deck",
-    "name": "Pec Deck",
+    "name": "Machine Chest Fly",
     "pattern": "chestIsolation",
-    "swapGroup": "chestFly",
+    "swapGroup": "lowerChest",
     "equipment": "machine",
     "level": "brandNew",
     "type": "strength",
@@ -225,6 +285,26 @@ export const exercises: SeedExercise[] = [
     "cueLine": "Cable set low, raise the arm out to the side until level with the shoulder."
   },
   {
+    "id": "cable-front-raise",
+    "name": "Cable Front Raise",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Low pulley behind you, raise the handle straight ahead to shoulder height, lower slowly."
+  },
+  {
+    "id": "cable-upright-row",
+    "name": "Cable Upright Row",
+    "pattern": "shoulderIsolation",
+    "swapGroup": "lateralRaise",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Bar on the low pulley, pull to the lower chest with the elbows leading, stop at shoulder height."
+  },
+  {
     "id": "machine-lateral-raise",
     "name": "Machine Lateral Raise",
     "pattern": "shoulderIsolation",
@@ -266,13 +346,53 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "cable-triceps-pushdown",
-    "name": "Cable Triceps Pushdown",
+    "name": "Cable Bar Triceps Extension",
     "pattern": "triceps",
     "swapGroup": "tricepsExtension",
     "equipment": "cable",
     "level": "brandNew",
     "type": "strength",
-    "cueLine": "Elbows pinned to your sides, push the bar down until the arms are straight."
+    "cueLine": "Straight bar on the high pulley, elbows pinned to your sides, push down until the arms are straight."
+  },
+  {
+    "id": "cable-rope-triceps-extension",
+    "name": "Cable Rope Triceps Extension",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Rope on the high pulley, elbows pinned to your sides, push down and spread the rope at the bottom."
+  },
+  {
+    "id": "overhead-cable-triceps-extension",
+    "name": "Overhead Cable Triceps Extension",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Rope on the low pulley, face away, elbows by your ears, extend overhead until the arms are straight."
+  },
+  {
+    "id": "machine-triceps-extension",
+    "name": "Machine Triceps Extension",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Elbows on the pad, grip the handles, press down until the arms are straight, return slowly."
+  },
+  {
+    "id": "machine-dip",
+    "name": "Seated Dip Machine",
+    "pattern": "triceps",
+    "swapGroup": "tricepsExtension",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Belt snug, elbows tucked, press the handles down until the arms are straight, return slowly."
   },
   {
     "id": "overhead-dumbbell-triceps-extension",
@@ -366,7 +486,7 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "machine-row",
-    "name": "Machine Row",
+    "name": "Seated Machine Row",
     "pattern": "horizontalPull",
     "swapGroup": "row",
     "equipment": "machine",
@@ -378,7 +498,7 @@ export const exercises: SeedExercise[] = [
     "id": "inverted-row",
     "name": "Inverted Row",
     "pattern": "horizontalPull",
-    "swapGroup": "row",
+    "swapGroup": "bodyweightRow",
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
@@ -398,7 +518,7 @@ export const exercises: SeedExercise[] = [
     "id": "doorframe-row",
     "name": "Suspension Trainer Row",
     "pattern": "horizontalPull",
-    "swapGroup": "row",
+    "swapGroup": "bodyweightRow",
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
@@ -439,10 +559,30 @@ export const exercises: SeedExercise[] = [
     "name": "Lat Pulldown",
     "pattern": "verticalPull",
     "swapGroup": "pulldown",
-    "equipment": "cable",
+    "equipment": "machine",
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Grip wider than the shoulders, pull the bar to your upper chest, lean back slightly."
+  },
+  {
+    "id": "close-grip-lat-pulldown",
+    "name": "Close-Grip Lat Pulldown",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Narrow handle, chest tall, pull to the upper chest with the elbows driving down and back."
+  },
+  {
+    "id": "straight-arm-cable-pulldown",
+    "name": "Straight-Arm Cable Pulldown",
+    "pattern": "verticalPull",
+    "swapGroup": "pulldown",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Bar on the high pulley, arms nearly straight, sweep the bar down to your thighs."
   },
   {
     "id": "assisted-pull-up",
@@ -475,8 +615,18 @@ export const exercises: SeedExercise[] = [
     "cueLine": "Rope at face height, pull toward your eyes with the elbows high and wide."
   },
   {
+    "id": "cable-rear-delt-fly",
+    "name": "Cable Rear Delt Fly",
+    "pattern": "rearDelt",
+    "swapGroup": "facePull",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Pulleys at shoulder height, arms crossed, pull the handles apart and back with soft elbows."
+  },
+  {
     "id": "dumbbell-rear-delt-fly",
-    "name": "Dumbbell Rear Delt Fly",
+    "name": "Dumbbell Reverse Fly",
     "pattern": "rearDelt",
     "swapGroup": "facePull",
     "equipment": "dumbbell",
@@ -518,7 +668,7 @@ export const exercises: SeedExercise[] = [
     "id": "dumbbell-concentration-curl",
     "name": "Dumbbell Concentration Curl",
     "pattern": "biceps",
-    "swapGroup": "curl",
+    "swapGroup": "curlVariation",
     "equipment": "dumbbell",
     "level": "brandNew",
     "type": "strength",
@@ -565,6 +715,16 @@ export const exercises: SeedExercise[] = [
     "cueLine": "Bar on the low pulley, curl to the shoulders, keep tension at the bottom."
   },
   {
+    "id": "cable-rope-curl",
+    "name": "Cable Rope Biceps Curl",
+    "pattern": "biceps",
+    "swapGroup": "curl",
+    "equipment": "cable",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Rope on the low pulley, elbows at your sides, curl to the shoulders and turn the palms up at the top."
+  },
+  {
     "id": "machine-preacher-curl",
     "name": "Machine Preacher Curl",
     "pattern": "biceps",
@@ -578,7 +738,7 @@ export const exercises: SeedExercise[] = [
     "id": "underhand-inverted-row",
     "name": "Underhand Inverted Row",
     "pattern": "biceps",
-    "swapGroup": "curl",
+    "swapGroup": "curlVariation",
     "equipment": "bodyweight",
     "level": "brandNew",
     "type": "strength",
@@ -623,6 +783,16 @@ export const exercises: SeedExercise[] = [
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Feet shoulder-width on the platform, lower until the knees hit 90°, press without locking out."
+  },
+  {
+    "id": "hack-squat",
+    "name": "Hack Squat",
+    "pattern": "squat",
+    "swapGroup": "squat",
+    "equipment": "machine",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Shoulders under the pads, feet forward on the platform, lower to 90°, drive up through the heels."
   },
   {
     "id": "bodyweight-squat",
@@ -726,13 +896,43 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "lying-leg-curl",
-    "name": "Lying Leg Curl",
+    "name": "Lying Hamstring Curl",
     "pattern": "hinge",
     "swapGroup": "hamstringCurl",
     "equipment": "machine",
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Pad just above the heels, curl toward your glutes, lower slowly."
+  },
+  {
+    "id": "seated-leg-curl",
+    "name": "Seated Hamstring Curl",
+    "pattern": "hinge",
+    "swapGroup": "hamstringCurl",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Thigh pad snug, pad behind the ankles, curl the heels under the seat, return slowly."
+  },
+  {
+    "id": "standing-leg-curl",
+    "name": "Standing Hamstring Curl",
+    "pattern": "hinge",
+    "swapGroup": "hamstringCurl",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Thigh against the pad, curl one heel toward your glutes, lower slowly, then switch legs."
+  },
+  {
+    "id": "cable-pull-through",
+    "name": "Cable Pull-Through",
+    "pattern": "hinge",
+    "swapGroup": "hinge",
+    "equipment": "cable",
+    "level": "some",
+    "type": "strength",
+    "cueLine": "Rope between your legs on the low pulley, hinge back, then drive the hips forward to stand."
   },
   {
     "id": "nordic-curl",
@@ -746,13 +946,13 @@ export const exercises: SeedExercise[] = [
   },
   {
     "id": "dumbbell-walking-lunge",
-    "name": "Dumbbell Walking Lunge",
+    "name": "Dumbbell Lunge",
     "pattern": "lunge",
     "swapGroup": "lunge",
     "equipment": "dumbbell",
     "level": "some",
     "type": "strength",
-    "cueLine": "Dumbbells at your sides, step forward, back knee to the floor, step through."
+    "cueLine": "Dumbbells at your sides, step forward, back knee toward the floor; walk it or alternate in place."
   },
   {
     "id": "reverse-lunge",
@@ -763,6 +963,16 @@ export const exercises: SeedExercise[] = [
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Step back, lower the back knee toward the floor, push through the front foot to stand."
+  },
+  {
+    "id": "bodyweight-lunge",
+    "name": "Bodyweight Lunge",
+    "pattern": "lunge",
+    "swapGroup": "lunge",
+    "equipment": "bodyweight",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Hands on your hips, step forward, back knee toward the floor, push back to standing."
   },
   {
     "id": "bulgarian-split-squat",
@@ -813,6 +1023,16 @@ export const exercises: SeedExercise[] = [
     "level": "brandNew",
     "type": "strength",
     "cueLine": "Pads on the knees, rise onto the toes, pause at the top."
+  },
+  {
+    "id": "leg-press-calf-raise",
+    "name": "Leg Press Calf Raise",
+    "pattern": "calf",
+    "swapGroup": "calfRaise",
+    "equipment": "machine",
+    "level": "brandNew",
+    "type": "strength",
+    "cueLine": "Balls of the feet on the platform edge, press through the toes, lower for a full stretch."
   },
   {
     "id": "single-leg-calf-raise",
@@ -1188,15 +1408,14 @@ export const planTemplates: SeedPlanTemplates = {
   "targets": {
     "brandNew": {
       "sets": 3,
-      "reps": 10
+      "reps": 8
     },
     "some": {
-      "sets": 3,
-      "reps": 8,
-      "repsMax": 10
+      "sets": 4,
+      "reps": 8
     },
     "experienced": {
-      "sets": 3,
+      "sets": 5,
       "reps": 8
     }
   },
@@ -1220,121 +1439,56 @@ export const planTemplates: SeedPlanTemplates = {
     "fullBodyB": "Full body B"
   },
   "templates": {
-    "push": {
-      "brandNew": [
-        "machine-chest-press",
-        "machine-shoulder-press",
-        "dumbbell-lateral-raise",
-        "cable-triceps-pushdown"
-      ],
-      "some": [
-        "dumbbell-bench-press",
-        "dumbbell-shoulder-press",
-        "cable-chest-fly",
-        "cable-lateral-raise",
-        "cable-triceps-pushdown"
-      ],
-      "experienced": [
-        "barbell-bench-press",
-        "barbell-overhead-press",
-        "incline-dumbbell-press",
-        "cable-chest-fly",
-        "dumbbell-lateral-raise",
-        "skull-crusher"
-      ]
-    },
-    "pull": {
-      "brandNew": [
-        "lat-pulldown",
-        "seated-cable-row",
-        "cable-face-pull",
-        "dumbbell-curl"
-      ],
-      "some": [
-        "lat-pulldown",
-        "seated-cable-row",
-        "chest-supported-dumbbell-row",
-        "cable-face-pull",
-        "barbell-curl"
-      ],
-      "experienced": [
-        "pull-up",
-        "barbell-row",
-        "seated-cable-row",
-        "lat-pulldown",
-        "cable-face-pull",
-        "barbell-curl"
-      ]
-    },
-    "legs": {
-      "brandNew": [
-        "leg-press",
-        "lying-leg-curl",
-        "leg-extension",
-        "machine-standing-calf-raise"
-      ],
-      "some": [
-        "leg-press",
-        "dumbbell-romanian-deadlift",
-        "dumbbell-walking-lunge",
-        "lying-leg-curl",
-        "machine-standing-calf-raise"
-      ],
-      "experienced": [
-        "barbell-back-squat",
-        "barbell-romanian-deadlift",
-        "leg-press",
-        "dumbbell-walking-lunge",
-        "lying-leg-curl",
-        "machine-standing-calf-raise"
-      ]
-    },
-    "fullBodyA": {
-      "brandNew": [
-        "leg-press",
-        "machine-chest-press",
-        "seated-cable-row",
-        "lying-leg-curl"
-      ],
-      "some": [
-        "leg-press",
-        "dumbbell-bench-press",
-        "seated-cable-row",
-        "dumbbell-romanian-deadlift",
-        "cable-face-pull"
-      ],
-      "experienced": [
-        "barbell-back-squat",
-        "barbell-bench-press",
-        "barbell-row",
-        "barbell-romanian-deadlift",
-        "cable-face-pull",
-        "cable-triceps-pushdown"
-      ]
-    },
-    "fullBodyB": {
-      "brandNew": [
-        "reverse-lunge",
-        "machine-shoulder-press",
-        "lat-pulldown",
-        "machine-standing-calf-raise"
-      ],
-      "some": [
-        "dumbbell-walking-lunge",
-        "dumbbell-shoulder-press",
-        "lat-pulldown",
-        "lying-leg-curl",
-        "cable-crunch"
-      ],
-      "experienced": [
-        "barbell-deadlift",
-        "barbell-overhead-press",
-        "pull-up",
-        "dumbbell-walking-lunge",
-        "lying-leg-curl",
-        "hanging-knee-raise"
-      ]
-    }
+    "push": [
+      "barbell-bench-press",
+      "cable-rope-triceps-extension",
+      "machine-incline-press",
+      "cable-triceps-pushdown",
+      "machine-decline-press"
+    ],
+    "pull": [
+      "lat-pulldown",
+      "cable-rope-curl",
+      "machine-row",
+      "cable-rope-curl",
+      "cable-face-pull",
+      "cable-rope-curl"
+    ],
+    "legs": [
+      "machine-standing-calf-raise",
+      "leg-press",
+      "leg-extension",
+      "seated-leg-curl",
+      "dumbbell-walking-lunge"
+    ]
+  },
+  "namedSwaps": {
+    "barbell-bench-press": [
+      "dumbbell-bench-press"
+    ],
+    "machine-incline-press": [
+      "incline-dumbbell-press"
+    ],
+    "machine-decline-press": [
+      "pec-deck",
+      "cable-chest-fly"
+    ],
+    "cable-rope-curl": [
+      "dumbbell-curl"
+    ],
+    "machine-row": [
+      "one-arm-dumbbell-row",
+      "barbell-row"
+    ],
+    "cable-face-pull": [
+      "dumbbell-rear-delt-fly"
+    ],
+    "seated-leg-curl": [
+      "lying-leg-curl"
+    ],
+    "dumbbell-walking-lunge": [
+      "bodyweight-lunge"
+    ]
   },
   "mobilityBlocks": {
     "push": [
@@ -1351,16 +1505,6 @@ export const planTemplates: SeedPlanTemplates = {
       "couch-stretch",
       "pigeon-stretch",
       "wall-calf-stretch"
-    ],
-    "fullBodyA": [
-      "couch-stretch",
-      "thoracic-opener",
-      "lying-hamstring-stretch"
-    ],
-    "fullBodyB": [
-      "kneeling-hip-flexor-stretch",
-      "doorway-pec-stretch",
-      "deep-squat-hold"
     ]
   }
 };

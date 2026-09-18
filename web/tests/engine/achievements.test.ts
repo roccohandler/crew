@@ -25,6 +25,17 @@ describe("personal records", () => {
     expect(prCount([later, earlier])).toBe(1);
     expect(newRecords(later.exercises, [earlier])).toEqual(["row"]);
   });
+
+  // A26: the owner's Pull repeats the rope curl — three rows, ONE exercise, so one record at most and one count
+  it("treats the rows of a repeated exercise as one record candidate: the best across them, decided once", () => {
+    const rows = (weights: number[]) => weights.map((weight) => ({ exerciseId: "curl", name: "curl", sets: [{ done: true, isWarmup: false, weight }] }));
+    const earlier: RecordSession = { completedAt: "2026-09-02T10:00:00Z", exercises: rows([40, 35, 30]) };
+    const later: RecordSession = { completedAt: "2026-09-09T10:00:00Z", exercises: rows([45, 42, 41]) };
+    expect(newRecords(later.exercises, [earlier])).toEqual(["curl"]);
+    expect(prCount([earlier, later])).toBe(1);
+    expect(newRecords(rows([30, 45, 30]), [earlier])).toEqual(["curl"]); // the best row need not be the first
+    expect(newRecords(rows([38, 39, 40]), [earlier])).toEqual([]); // matching the old best is not a record
+  });
 });
 
 describe("crew full pulse", () => {

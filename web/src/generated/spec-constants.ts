@@ -114,22 +114,20 @@ export const SpecConstants = {
   minTrainingDaysToContinue: 1,
   /** SPEC: A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5 */
   planEstimateRoundingMinutes: 5,
-  /** SPEC: Flow 1 step 3 — Brand new = 4 simple exercises */
-  beginnerExerciseCount: 4,
-  /** SPEC: Flow 1 step 3 — at 3×10 */
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Push is the owner's five rows at every experience; supersedes Flow 1 step 3's 4 / G7's 5 / 6 */
+  templatePushExerciseCount: 5,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Pull is the owner's six rows at every experience */
+  templatePullExerciseCount: 6,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Legs is the owner's five rows at every experience */
+  templateLegsExerciseCount: 5,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — brand-new 3×8 (was Flow 1 step 3's 3×10) */
   beginnerTargetSets: 3,
-  /** SPEC: Flow 1 step 3 — at 3×10 */
-  beginnerTargetReps: 10,
-  /** SPEC: Flow 1 step 3 — Experienced = 6 incl. barbell lifts */
-  experiencedExerciseCount: 6,
-  /** SPEC: Decision Registry G7 (2026-09-04) — Some experience = 5 exercises per workout */
-  someExperienceExerciseCount: 5,
-  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
-  someExperienceTargetSets: 3,
-  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
-  someExperienceTargetRepsMin: 8,
-  /** SPEC: Decision Registry G7 (2026-09-04) — at 3×8–10 */
-  someExperienceTargetRepsMax: 10,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — some 4×8 (was G7's 3×8–10) */
+  someExperienceTargetSets: 4,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — experienced 5×8 (the spec never stated one; the seed's GAP reading was 3×8) */
+  experiencedTargetSets: 5,
+  /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — experience changes sets only: every template row is sets × 8 */
+  templateTargetReps: 8,
   /** SPEC: Flow 1 step 3 — 2–3 holds close each workout */
   mobilityHoldsMin: 2,
   /** SPEC: Flow 1 step 3 — 2–3 holds close each workout */

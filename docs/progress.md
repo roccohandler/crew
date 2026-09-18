@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-18 21:06Z (**LATEST TESTFLIGHT BUILD: 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-18 evening (**A26 THE CANONICAL TEMPLATES built on both engines and both clients — every local gate green, pushed; the CI verdict, the build number and ui-reviewer's verdicts are under the A26 section**; until that build lands the latest TestFlight build is 193) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -732,6 +732,39 @@ Recorded 2026-09-18 ~20:30Z by the housekeeping session that followed (the sessi
 | web `npm test` | **50 files, 522 tests passed** (23 skipped = the retired vectors) |
 | web `npm run vectors` · `build` | 61 passed, 23 retired-skipped (84) · green |
 | e2e · the Swift gates | NOT RUN: no page, component, route shape, Swift file, constant or seed changed — CI runs them on the push |
+
+## 2026-09-18 (evening) — A26, THE CANONICAL TEMPLATES (owner-approved; Appendix A A26; readings R-079) — BUILT ON BOTH ENGINES AND BOTH CLIENTS
+
+Plan, as stated before the code (rule 5): **files** spec-constants + the two seeds + render-seed / check-seeds → the PlanGenerator, SeedCatalog and
+PersonalRecords twins → the reveal, the session swap and the editor on both clients → the phone's equipment chip → the tour seed · **tests** the
+property tests over days × experience on both engines, the named-swap and repeated-row tests, `EquipmentSymbolTests` · **vectors** none (84 stay 84).
+
+| What | State |
+|---|---|
+| Registry | A26 in Appendix A with markers at Flow 1, the G-entries and Appendix B; the dynamic warm-up block recorded as a PARKED owner idea, not built |
+| Templates | `plan-templates.json` → **3 lists** (push 5 · pull 6 · legs 5), kind → exercise ids; `targets` 3×8 · 4×8 · 5×8; `namedSwaps` (8 rows); Full-Body A/B's six lists and two closing blocks gone; the mobility blocks for Push, Pull and Legs unchanged |
+| Constants | six leave, five arrive, `someExperienceTargetSets` 3 → 4 (the A26 entry lists them) |
+| Catalog | 110 → **131** exercises, ids stable: six rows renamed to the owner's words, lat pulldown tagged machine, six new template rows / named swaps, fifteen catalog-only machine / cable movements (shoulder work on Push included); four swap groups re-cut so every named swap is always offered |
+| check-seeds | list length per kind, no level gate, repeats allowed, no barbell row on Pull, every named swap in a 3–5 group, targets = the constants with no rep range, one SF Symbol per equipment tag |
+| Engines | `generatePlan` / `workoutFor` select the list by KIND and the sets by EXPERIENCE (both twins); `newRecords` treats the rows of a repeated exercise as ONE record candidate (both twins) — three heavy curl rows would otherwise have awarded and counted three PRs |
+| A row may repeat | rows are named by ORDER wherever a tap names one: the reveal's swap (iOS + web), "Update my plan" from a session swap (`planRowToSwap` twins), the web editor's move; the phone editor's swap no longer hides a candidate already in the workout |
+| Equipment icons | `Shared/EquipmentChip.swift` — `EquipmentLabel` (symbol + word, secondary ink) and the outlined `EquipmentChip`; on the reveal, the editor's rows and exercise sheet, the session's active card and every swap list; ONE mapping (`exercises.json` enums.equipmentSymbol → `SeedCatalog.equipmentSymbol`). The WEB chip stays words (R-079 (5), debt) |
+| Fixtures | the tour member trains the canonical templates (`TourSeed`); unit fixtures follow the new constants; the journeys name no exercise and needed nothing |
+| Docs | R-079 · three debt lines (the owner's stale-Keychain flash · one history for a repeated exercise · the web chip) · OWNER-REVIEW §2.7 marked done · mvp-definition's A26 section |
+
+| Gate (run here, 2026-09-18 evening) | Result |
+|---|---|
+| `generate` · `check-drift` · `check-vectors` · `check-seeds` · `check-copy` | match · **84** vectors / 11 files (23 retired) · 131 exercises, **3 lists**, 8 named-swap rows · clean |
+| `doctrine-lint` · `swift-xref` · `launch-audit` | clean — **253** Swift files · 253 files, 502 types · 18 checks clean |
+| web `typecheck` · `lint` · `build` | exit 0 · exit 0 · green |
+| web `npm test` · `vectors` | **51 files, 528 tests passed** (522 → 528) · 61 passed, 23 retired-skipped |
+| web `npm run e2e` | **50 passed, 1 skipped (by design), 0 failed** — 375 / 768 / 1280 |
+| native `swift test` (engine package) | **97 tests, 0 failures** (94 → 97) |
+| native `swiftc -typecheck` of the new non-engine Swift shapes (scratch copy) | clean — the tuple-literal tour rows, the memberwise init with a defaulted `symbol`, `planRowToSwap` |
+
+**WRITTEN-UNVERIFIED until the macOS job:** `EquipmentChip.swift`, the reveal keyed by order, `SessionSwap.planRowToSwap`, `ExerciseListRow`'s symbol,
+`EquipmentSymbolTests` (asks the system for each of the five symbol names — a wrong name draws nothing and fails no build), the new `OnboardingModelTests`
+and `SessionModelTests` cases, the rewritten tour seed. The CI verdict, the build number and ui-reviewer's verdicts are recorded below once read.
 
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 

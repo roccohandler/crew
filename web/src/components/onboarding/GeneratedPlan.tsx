@@ -24,13 +24,14 @@ function projectionLine(day: DayProjection, draft: PlanDraft): string {
   return workout === undefined ? name : `${name} · ${workout.name}`; // W6: an open day is the day alone — no word, no dash (twin of WeekRow.swift)
 }
 
-function WorkoutCard({ workout, onTap }: { workout: PlanDraftWorkout; onTap: (exerciseId: string) => void }) {
+// A26: a template may repeat an exercise, so a row is keyed and tapped by its ORDER, never by its exercise id
+function WorkoutCard({ workout, onTap }: { workout: PlanDraftWorkout; onTap: (row: PlanDraftExercise) => void }) {
   const holds = workout.exercises.filter((row) => row.type === "mobility");
   return (
     <section className="card stack stack--tight" aria-label={workout.name}>
       <h3>{workout.name}</h3>
       {workout.exercises.filter((row) => row.type === "strength").map((row) => (
-        <button key={row.exerciseId} type="button" className="row row--between button--text" onClick={() => onTap(row.exerciseId)} aria-label={`${row.name}, ${row.equipment}, ${targetsLabel(row)}. Swap`}>
+        <button key={row.order} type="button" className="row row--between button--text" onClick={() => onTap(row)} aria-label={`${row.name}, ${row.equipment}, ${targetsLabel(row)}. Swap`}>
           <span>{row.name}</span>
           <span className="chip" aria-hidden="true">{row.equipment}</span>
           <span>{targetsLabel(row)}</span>
@@ -41,10 +42,10 @@ function WorkoutCard({ workout, onTap }: { workout: PlanDraftWorkout; onTap: (ex
   );
 }
 
-interface Props { draft: PlanDraft; todayKey: string; swapCandidates: (exerciseId: string) => SeedExercise[]; onSwap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; onAccept: () => void }
+interface Props { draft: PlanDraft; todayKey: string; swapCandidates: (exerciseId: string) => SeedExercise[]; onSwap: (kind: PlanDraftWorkout["kind"], order: number, replacement: SeedExercise) => void; onAccept: () => void }
 
 export function GeneratedPlan({ draft, todayKey, swapCandidates, onSwap, onAccept }: Props) {
-  const [swapping, setSwapping] = useState<{ kind: PlanDraftWorkout["kind"]; exerciseId: string } | null>(null);
+  const [swapping, setSwapping] = useState<{ kind: PlanDraftWorkout["kind"]; order: number; exerciseId: string } | null>(null);
   const cycle = draft.workouts.map((workout) => workout.kind);
   const week = projectWeek({ weekKey: weekKeyFor(todayKey), todayKey, trainingWeekdays: draft.trainingWeekdays, cycle, nextKind: cycle[0] ?? "", completedKindByDay: {} });
   return (
@@ -57,13 +58,13 @@ export function GeneratedPlan({ draft, todayKey, swapCandidates, onSwap, onAccep
       <p className="muted">Every workout rotates in, so each gets equal time.</p>
       <Whisper id="how.revealSwap" />{/* 1C's one whisper, now part of the A23 system: once per account, directly above the rows it explains */}
       {draft.workouts.map((workout) => (
-        <WorkoutCard key={workout.kind} workout={workout} onTap={(exerciseId) => setSwapping({ kind: workout.kind, exerciseId })} />
+        <WorkoutCard key={workout.kind} workout={workout} onTap={(row) => setSwapping({ kind: workout.kind, order: row.order, exerciseId: row.exerciseId })} />
       ))}
       {swapping ? (
         <dialog open className="card stack stack--tight" aria-label="Swap">
           <h2>Swap</h2>
           {swapCandidates(swapping.exerciseId).map((candidate) => (
-            <button key={candidate.id} type="button" className="card stack stack--tight" onClick={() => { onSwap(swapping.kind, swapping.exerciseId, candidate); setSwapping(null); }}>
+            <button key={candidate.id} type="button" className="card stack stack--tight" onClick={() => { onSwap(swapping.kind, swapping.order, candidate); setSwapping(null); }}>
               <strong>{candidate.name}</strong>
               <span className="muted">{candidate.cueLine}</span>
             </button>

@@ -1,6 +1,7 @@
 // Renders the three seed JSONs as SeedData.swift (raw JSON bundled for Codable decoding) and seed.ts
 // (typed constants). SPEC: Part V 5.2 (SeedData.swift bundles the three seed JSONs · seed.ts) · Part IX seed data ·
-// A21.1 (owner-approved 2026-09-17: no equipment tiers — templates nest kind → experience; the equipment TAG stays)
+// A21.1 (owner-approved 2026-09-17: no equipment tiers; the equipment TAG stays) · A26 (owner-approved 2026-09-18: the
+// templates are the owner’s three lists, kind → exercise ids; one SF Symbol per equipment tag, from exercises.json enums)
 
 const swiftHeader = `// GENERATED FILE — DO NOT EDIT. Source: shared/seed/*.json · Generator: shared/scripts/generate.mjs
 // Re-run \`node shared/scripts/generate.mjs\`; \`node shared/scripts/check-drift.mjs\` fails CI when this file drifts.
@@ -35,6 +36,7 @@ const seedTypes = `export type Pattern = "horizontalPush" | "verticalPush" | "ch
 export type Equipment = "barbell" | "dumbbell" | "machine" | "cable" | "bodyweight";
 export type Experience = "brandNew" | "some" | "experienced";
 export type WorkoutKind = "push" | "pull" | "legs" | "fullBodyA" | "fullBodyB";
+export type TemplateKind = "push" | "pull" | "legs"; // A26: the kinds a plan is generated from; a legacy plan may still carry the other two
 export type Region = "push" | "pull" | "legs" | "core" | "mobility" | "cardio";
 
 export interface SeedExercise {
@@ -44,10 +46,11 @@ export interface SeedExercise {
 export interface SeedTargets { sets: number; reps: number; repsMax?: number }
 export interface SeedPlanTemplates {
   targets: Record<Experience, SeedTargets>;
-  split: { fullBodyMaxTrainingDays: number; pplCycle: WorkoutKind[]; fullBodyCycle: WorkoutKind[] };
+  split: { fullBodyMaxTrainingDays: number; pplCycle: TemplateKind[]; fullBodyCycle: WorkoutKind[] };
   workoutNames: Record<WorkoutKind, string>;
-  templates: Record<WorkoutKind, Record<Experience, string[]>>; // A21.1: kind → experience → exercise ids (no equipment tier)
-  mobilityBlocks: Record<WorkoutKind, string[]>;
+  templates: Record<TemplateKind, string[]>; // A26: kind → exercise ids — the same rows at every experience; a row may repeat an exercise
+  namedSwaps: Record<string, string[]>; // A26: a template row's exercise id → the swaps the owner named for it (always offered; check-seeds + the SwapFinder tests)
+  mobilityBlocks: Record<TemplateKind, string[]>;
 }
 export interface SeedAchievement { id: string; title: string; line: string; scope: "solo" | "crew"; trigger: string; threshold: number; spec: string }
 export interface SeedFastFoodChain { id: string; name: string; icon: string; sourceUrl: string; retrievedOn: string }
@@ -59,8 +62,10 @@ export function renderSeedTs(seeds) {
   return [
     tsHeader, "", seedTypes, "",
     `export const regionOfPattern: Record<Pattern, Region> = ${JSON.stringify(exercises.enums.region, null, 2)};`,
+    `// A26: the SF Symbol the PHONE draws beside an equipment tag (R-079: a browser has no SF Symbols, so the web chip stays words)`,
+    `export const equipmentSymbol: Record<Equipment, string> = ${JSON.stringify(exercises.enums.equipmentSymbol, null, 2)};`,
     `export const exercises: SeedExercise[] = ${JSON.stringify(exercises.exercises, null, 2)};`,
-    `export const planTemplates: SeedPlanTemplates = ${JSON.stringify({ targets: planTemplates.targets, split: planTemplates.split, workoutNames: planTemplates.workoutNames, templates: planTemplates.templates, mobilityBlocks: planTemplates.mobilityBlocks }, null, 2)};`,
+    `export const planTemplates: SeedPlanTemplates = ${JSON.stringify({ targets: planTemplates.targets, split: planTemplates.split, workoutNames: planTemplates.workoutNames, templates: planTemplates.templates, namedSwaps: planTemplates.namedSwaps, mobilityBlocks: planTemplates.mobilityBlocks }, null, 2)};`,
     `export const achievements: SeedAchievement[] = ${JSON.stringify(achievements.achievements, null, 2)};`,
     `export const fastFood: SeedFastFood = ${JSON.stringify({ chains: fastFood.chains, items: fastFood.items }, null, 2)};`,
     "",
