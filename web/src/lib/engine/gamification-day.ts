@@ -1,5 +1,6 @@
 // SPEC: README "postUndone" (V34 same-day atomic reversal; V35 achievements survive; V43 a rolled-over day's post is a
-// deletion, no change) · "dayRolledOver" (V04 reset, V15/V16 shields, V19–V21 pause, sole judge of a miss) ·
+// deletion, no change) · "dayRolledOver" (V69 reset, V68/V16 shields, V79 pause, sole judge of a miss; A22 G1 (a): hadRequirement
+// is the caller's word that dayKey was a planned training day — a rest day rolls over with false, V66) ·
 // "reactionGiven" (V27: +2 for the first five, 0 after; nothing during a pause). Twin: ios/Crew/Engine/GamificationDay.swift.
 import type { Award, GameEvent, GamificationState, Pause } from "@/lib/engine/gamification";
 import { isPaused } from "@/lib/engine/gamification";

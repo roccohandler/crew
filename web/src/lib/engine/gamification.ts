@@ -53,7 +53,7 @@ export interface GamificationState {
 export type PostKind = "workout" | "meal" | "text";
 
 export type GameEvent =
-  | { type: "postCreated"; kind: PostKind; dayKey: string; isPlannedDay: boolean; workoutCompleted?: boolean }
+  | { type: "postCreated"; kind: PostKind; dayKey: string; isPlannedDay: boolean; workoutCompleted?: boolean; plannedWeekdays?: number[] } // A22 G1 (a): the plan's ISO weekdays; [] = all-rest; absent = pre-A22 fixture
   | { type: "postUndone"; dayKey: string }
   | { type: "dayRolledOver"; dayKey: string; hadRequirement: boolean }
   | { type: "reactionGiven"; dayKey: string };

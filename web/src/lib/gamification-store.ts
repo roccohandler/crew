@@ -7,6 +7,7 @@ import { achievementsEarned } from "@/lib/engine/achievements";
 import { publicState, type Pause, type PublicState } from "@/lib/engine/gamification";
 import { recomputeState } from "@/lib/engine/gamification-recompute";
 import { logEvent } from "@/lib/events";
+import { findPlan } from "@/lib/plans";
 import { gamificationStates, pauses, posts, reactions, sessions, users } from "@/lib/db";
 import { weightUnitOf } from "@/lib/users";
 
@@ -22,6 +23,7 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
   const userId = new ObjectId(userIdText);
   const user = await (await users()).findOne({ _id: userId });
   const timezone = user?.timezone ?? "UTC";
+  const plan = await findPlan(userId); // A22 G1 (a): the fold judges a day by the CURRENT plan's weekdays (R-068 reading 1)
   const sessionDocs = await (await sessions()).find({ userId }, { projection: { _id: 1, dayKey: 1, status: 1 } }).toArray();
   const postDocs = await (await posts()).find({ userId, deletedAt: null }, { projection: { dayKey: 1, type: 1, isPlannedDay: 1, sessionId: 1, createdAt: 1 } }).sort({ createdAt: 1 }).toArray();
   const reactionDocs = await (await reactions()).find({ userId }, { projection: { dayKey: 1 } }).toArray();
@@ -29,12 +31,13 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
   const full = recomputeState(
     sessionDocs.map((doc) => ({ id: doc._id.toHexString(), dayKey: doc.dayKey, completed: doc.status === "completed" })),
     // SPEC: A14 · V25/V30/V31 — the engine knows three post kinds and always has; a cardio post is a WORKOUT to it, so a
-    // walk still earns +25, still sustains the streak, and every gamification vector stays green without being re-expected.
+    // walk still earns +25 and, on a planned day, counts it — never on a rest day (V70, A22 G1 (a)); the vectors stay unedited.
     // The new "cardio" type exists for the journal, the heat map and Home's vector row — never for XP.
     postDocs.map((doc) => ({ dayKey: doc.dayKey, kind: doc.type === "cardio" ? "workout" : doc.type, isPlannedDay: doc.isPlannedDay, sessionId: doc.sessionId?.toHexString() })),
     reactionDocs.map((doc) => ({ dayKey: doc.dayKey })),
     await pausesFor(userId),
     todayKey,
+    plan?.trainingWeekdays ?? [],
   );
   const existing = await (await gamificationStates()).findOne({ userId }, { projection: { earnedAchievementIds: 1 } });
   const earnedBefore = existing?.earnedAchievementIds ?? []; // V35: achievements never recomputed away

@@ -1206,3 +1206,13 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   branches no client reaches (A22's constraint).
 - **Verdict.** READINGS, not rulings: each is the smallest change that satisfies the owner's words on both engines with the
   surviving vectors unedited. Any of the five may be overturned by an Appendix A line; the vectors they add are append-only.
+
+- **R-069 · 2026-09-18 · A22 G1 (a), the comeback — READING (supersedes R-068 reading (4)).** G1 (a) names no comeback rule. The
+  engine's `comebackMissedDaysThreshold` counts "missed days"; under G1 (a) a rest day is never missed ("neither requires nor
+  breaks"), so the engine counts only non-paused PLANNED weekdays strictly between the last counted day and the counting post
+  (`missedDaysBetween` on both twins, tagged `// GAP:`). Consequences: a Mon/Wed/Fri plan earns a comeback after three missed
+  planned days (Mon, Wed, Fri → the next Monday, V82), not after one missed Monday (V68 shows none); an all-rest plan never earns
+  one (nothing can be missed); a pre-A22 fixture (no `plannedWeekdays`) keeps the calendar count, so every surviving vector runs
+  unedited. The crew's comeback BANNER (V37–V39, `quietDaysBetween`) is a different rule — silence in the stream — and is untouched;
+  "engine and banner agree" in R-068 (4) is withdrawn. Why this reading: it awards less and follows the ruling's letter; the calendar
+  reading would pay +50 for a single missed Monday on every three-day plan. Overturnable by an Appendix A line; V82 is append-only.

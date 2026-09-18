@@ -1,5 +1,6 @@
 // SPEC: README "postUndone" (V34 same-day atomic reversal; V35 achievements survive; V43 rolled-over day = deletion) ·
-// "dayRolledOver" (V04 reset, V15/V16 shields, V19–V21 pause) · "reactionGiven" (V27). Twin of gamification-day.ts.
+// "dayRolledOver" (V69 reset, V68/V16 shields, V79 pause; A22 G1 (a): hadRequirement is the caller's word that dayKey was a planned
+// training day — a rest day rolls over with false and nothing moves, V66) · "reactionGiven" (V27). Twin of gamification-day.ts.
 // WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation

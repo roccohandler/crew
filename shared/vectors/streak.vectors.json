@@ -4,6 +4,7 @@
   "vectors": [
     {
       "id": "V01",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V67","V72"]},
       "title": "first-ever post starts streak at 1",
       "spec": "8.1 V01; Flow 1 step 6 (first flame); Part IV table",
       "kind": "apply",
@@ -40,6 +41,7 @@
     },
     {
       "id": "V03",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V66","V67"]},
       "title": "rest day + meal post → +1",
       "spec": "8.1 V03; Flow 5 (streak stays safe if you post something)",
       "kind": "apply",
@@ -58,6 +60,7 @@
     },
     {
       "id": "V04",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"a rest day's silence broke the streak; G1 (a) exempts rest days — only a planned training day can be missed","replacedBy":["V66","V69"]},
       "title": "rest day, silence → streak 0 at 3 AM",
       "spec": "8.1 V04; Flow 7 unplanned miss; E8",
       "kind": "apply",
@@ -134,6 +137,7 @@
     },
     {
       "id": "V09",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V80"]},
       "title": "timezone travel west (27 h day) → one increment, no double-count",
       "spec": "8.1 V09; E8 (timezones follow the device); V11",
       "kind": "apply",
@@ -154,6 +158,7 @@
     },
     {
       "id": "V10",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V80"]},
       "title": "timezone travel east (21 h day) → never retro-missed",
       "spec": "8.1 V10; E8; Part IX Post.dayKey (stored at creation)",
       "kind": "apply",
@@ -176,6 +181,7 @@
     },
     {
       "id": "V11",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V71"]},
       "title": "two qualifying posts same day → one increment",
       "spec": "8.1 V11; Flow 2 (workout then dinner)",
       "kind": "apply",
@@ -196,6 +202,7 @@
     },
     {
       "id": "V12",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V72"]},
       "title": "all-rest plan: meal posts alone sustain indefinitely",
       "spec": "8.1 V12; E16 (all-rest plans allowed; streak runs on meal posts)",
       "kind": "apply",

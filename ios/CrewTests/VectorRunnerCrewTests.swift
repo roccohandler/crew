@@ -9,6 +9,7 @@ final class VectorRunnerCrewTests: XCTestCase {
         var checked = 0
         for loaded in try VectorFiles.load() {
             for vector in loaded.vectors {
+                if vector["retired"] != nil { continue } // README "Retired vectors": kept, shape-checked, never run
                 let id = vector["id"] as? String ?? "?"
                 switch vector["kind"] as? String {
                 case "crewPulse": try runCrewPulse(id: id, vector: vector)
@@ -19,7 +20,7 @@ final class VectorRunnerCrewTests: XCTestCase {
                 checked += 1
             }
         }
-        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
+        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { $0["retired"] == nil && ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
         XCTAssertEqual(checked, crewKinds)
         XCTAssertGreaterThan(checked, 0)
     }

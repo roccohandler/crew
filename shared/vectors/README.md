@@ -40,19 +40,24 @@ touch. Fields asserted by `expect.state`: `currentStreak`, `longestStreak`, `tot
 
 Events, applied in the listed (chronological) order:
 
-- `postCreated { kind: workout|meal|text, dayKey|at+tz, isPlannedDay, workoutCompleted? }`
-  - Not paused: the FIRST post of the day counts the day: `streak + 1` (or `1` when starting),
-    `lastCountedDayKey = dayKey`, `+xpFirstPostOfDay`. Then the kind's XP: workout with
-    `workoutCompleted` on a planned day → `+xpPlannedWorkout` for the first completed workout of
-    the day, `+xpBonusWorkout` for every further one and for any completed workout on a rest day;
-    meal → `+xpMealPost` for the first `mealXpDailyCap` meals of the day, then 0; text → 0.
-  - Comeback: when the number of non-paused days strictly between `lastCountedDayKey` and this
-    dayKey is ≥ `comebackMissedDaysThreshold`, the first post of the day also awards `comeback`
-    and `+xpComeback`. Never on the first-ever post. Once per return.
-  - Perfect week (Decision Registry G6): after each post, if the Mon–Sun week of this dayKey now
-    has ≥1 post on EVERY day, a completed workout on EVERY planned day, and ≥1 planned day, award
-    `perfectWeek`, `+xpPerfectWeek`, and `shieldEarned` if `shields < maxShields`. Fires once per week,
-    on the event that completes it.
+- `postCreated { kind: workout|meal|text, dayKey|at+tz, isPlannedDay, workoutCompleted?, plannedWeekdays? }`
+  - Not paused: the FIRST post of the day pays `+xpFirstPostOfDay`, whatever its kind. The day COUNTS
+    (`streak + 1`, or `1` when starting; `lastCountedDayKey = dayKey`) only when the post is a completed
+    workout on a planned day — or, under an all-rest plan (`plannedWeekdays: []`), any completed workout
+    (A22 G1 (a), 2026-09-18: rest days are exempt; a rest day neither requires nor breaks). A fixture
+    without `plannedWeekdays` (pre-A22) counts a planned completed workout and nothing else. Then the
+    kind's XP: workout with `workoutCompleted` on a planned day → `+xpPlannedWorkout` for the first
+    completed workout of the day, `+xpBonusWorkout` for every further one and for any completed workout
+    on a rest day (the streak unchanged, V70); meal → `+xpMealPost` for the first `mealXpDailyCap` meals
+    of the day, then 0; text → 0 (meal and text are fixture-only kinds since A22 — no client creates them).
+  - Comeback (R-069): when the post COUNTS the day and the number of non-paused PLANNED days (weekday in
+    `plannedWeekdays`; every day when the field is absent) strictly between `lastCountedDayKey` and this
+    dayKey is ≥ `comebackMissedDaysThreshold`, it also awards `comeback` and `+xpComeback`. Never on the
+    first-ever counted day. Once per return. An all-rest plan misses nothing and never earns one.
+  - Perfect week (Decision Registry G6 as amended by A22 G1 (a)): after each post, if EVERY weekday in
+    `plannedWeekdays` of the Mon–Sun week of this dayKey carries a completed workout (≥1 planned day),
+    award `perfectWeek`, `+xpPerfectWeek`, and `shieldEarned` if `shields < maxShields`. Fires once per
+    week, on the event that completes it. An event without `plannedWeekdays` completes no week.
   - Paused day: nothing happens — no XP, no counting, no awards (V20).
   - Level (G2): `level = max N ≥ 1 with totalXP ≥ levelBaseXp × (N−1) × N / 2`; when an event
     raises the level, one `levelUp(newLevel)` award is emitted last.
@@ -61,8 +66,10 @@ Events, applied in the listed (chronological) order:
   increment, `lastCountedDayKey` and `longestStreak` revert with the XP, atomically (V34). A post
   from an already rolled-over day is a deletion: no gamification change (E3, V43). Earned
   achievements are never removed (V35).
-- `dayRolledOver { dayKey, hadRequirement }` — 3 AM passed for `dayKey`. No-op when
-  `hadRequirement` is false (paused, or before the first-ever post) or when the day was counted.
+- `dayRolledOver { dayKey, hadRequirement }` — 3 AM passed for `dayKey`. `hadRequirement` is the
+  caller's word that `dayKey` was a planned training day of a started, unpaused account (A22 G1 (a): a
+  rest day is never required, so it rolls over with `false` — V66). No-op when `hadRequirement` is
+  false or when the day was counted.
   Otherwise the day is missed: consume one shield (`shieldConsumed`, streak intact) or, with none,
   `currentStreak = 0` (`streakTo(0)`, emitted only if the streak was above 0). Fixtures list a
   rollover for EVERY missed day, in order; rollovers for counted days may be omitted.
@@ -86,6 +93,16 @@ comeback, perfectWeek` → `streakTo` → `comeback` → `perfectWeek` → `shie
 `{ complete, setsDone, setsPlanned, setsAsPlanned, sets: [{ done, asPlanned }] }`. Warm-up rows are
 excluded from every count; `complete = setsDone ≥ 1`; `asPlanned = done && actualReps ≥ targetReps`.
 
+## Retired vectors — the marker
+
+A vector is never edited or deleted (CLAUDE.md rule 7). When a ruling repeals the behaviour it asserts,
+the vector RETIRES: it gains `"retired": { "by", "reason", "replacedBy": [ids] }` right after its `id`,
+its expectations stay as written, both runners skip it (the web runner as `it.skip`, the Swift runners by
+`continue`; their count assertions exclude it), and `check-vectors` still shape-checks it and verifies
+that every `replacedBy` id exists and is not itself retired. Precedent: the twenty-three vectors A22
+G1 (a) retired on 2026-09-18 (V01, V03, V04, V09–V15, V17, V18, V18b, V20, V21, V24, V26, V28–V30, V35,
+V36, V43), replaced by V66–V84 in `streak-rest-days.vectors.json`.
+
 ## kind: `recompute` — server truth from facts
 
 `variants[]` each give `sessions[]` (`{ id, dayKey, completed, sets }`), `posts[]` (`{ dayKey, kind,
@@ -93,7 +110,9 @@ isPlannedDay, sessionId? }` — `isPlannedDay` is stamped on the post at creatio
 `reactions[]` (`{ dayKey }`); with the vector's `pauses`, `tz` and `asOfDayKey`, `recompute(...)` must
 return `expect.state` for EVERY variant (V36: set edits never change the state). Recompute folds the
 facts chronologically through the same rules as `apply` (a workout post's `workoutCompleted` is its
-session's `completed`), judging every day up to `asOfDayKey`.
+session's `completed`), judging every day up to `asOfDayKey`. The vector's `trainingWeekdays` (ISO 1–7; `[]`
+when absent) is the plan: every synthesized post carries it as `plannedWeekdays`, and a day before
+`asOfDayKey` is required only when its weekday is in it (V77, V78; A22 G1 (a)).
 
 ## kind: `pauseValidation` — SettingsModel.pause(until) / POST /api/v1/pause
 

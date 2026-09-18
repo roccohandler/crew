@@ -26,6 +26,7 @@
     },
     {
       "id": "V20",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V79"]},
       "title": "posts during pause → 0 XP, no increments",
       "spec": "8.1 V20; Flow 7 (no XP accrues)",
       "kind": "apply",
@@ -43,6 +44,7 @@
     },
     {
       "id": "V21",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V79"]},
       "title": "pause ends → next day's requirement resumes",
       "spec": "8.1 V21; Flow 7 (resumes automatically)",
       "kind": "apply",

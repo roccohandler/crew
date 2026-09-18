@@ -19,6 +19,9 @@ const REJECT_REASONS = ["retroactive", "tooLong", "alreadyPaused"];
 const isInt = (value) => Number.isInteger(value);
 const isDay = (value) => typeof value === "string" && DAY.test(value);
 
+// A22 G1 (a): a plan's weekdays — ISO 1–7, unique, ascending; [] is an all-rest plan
+const isWeekdayList = (list) => Array.isArray(list) && list.every((day, index) => Number.isInteger(day) && day >= 1 && day <= 7 && (index === 0 || list[index - 1] < day));
+
 function checkDayRef(id, where, thing, fail) {
   if (typeof thing.dayKey === "string") { if (!isDay(thing.dayKey)) fail(id, `${where}: bad dayKey ${thing.dayKey}`); return; }
   if (!INSTANT.test(thing.at ?? "") || typeof thing.tz !== "string") fail(id, `${where}: needs dayKey or at + tz`);
@@ -41,6 +44,7 @@ function checkEvent(id, index, event, fail) {
     if (!POST_KINDS.includes(event.kind)) fail(id, `${where}: kind must be workout | meal | text`);
     if (typeof event.isPlannedDay !== "boolean") fail(id, `${where}: isPlannedDay must be a boolean`);
     if (event.kind === "workout" && typeof event.workoutCompleted !== "boolean") fail(id, `${where}: workout posts need workoutCompleted`);
+    if (event.plannedWeekdays !== undefined && !isWeekdayList(event.plannedWeekdays)) fail(id, `${where}: plannedWeekdays must be ISO weekdays 1–7, unique and ascending`);
     return checkDayRef(id, where, event, fail);
   }
   if (event.type === "postUndone" || event.type === "reactionGiven") { if (!isDay(event.dayKey)) fail(id, `${where}: needs dayKey`); return; }
@@ -90,6 +94,7 @@ function checkCompletionCase(id, where, item, fail) {
 function checkRecompute(vector, fail) {
   if (typeof vector.tz !== "string" || !isDay(vector.asOfDayKey)) fail(vector.id, "recompute needs tz + asOfDayKey");
   checkPauses(vector.id, vector.pauses, fail);
+  if (vector.trainingWeekdays !== undefined && !isWeekdayList(vector.trainingWeekdays)) fail(vector.id, "trainingWeekdays must be ISO weekdays 1–7, unique and ascending");
   if (!Array.isArray(vector.variants) || vector.variants.length === 0) return fail(vector.id, "variants must be non-empty");
   for (const variant of vector.variants) {
     for (const session of variant.sessions ?? []) if (typeof session.id !== "string" || !isDay(session.dayKey) || typeof session.completed !== "boolean" || !Array.isArray(session.sets)) fail(vector.id, `bad session ${JSON.stringify(session)}`);

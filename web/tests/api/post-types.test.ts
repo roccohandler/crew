@@ -57,8 +57,8 @@ describe("A14 post types", () => {
     await completeSession(sampleCardioSessionBody({ activity: "Bike", minutes: 30 }), "6a1c0e2a-8f9b-4c1e-9d10-00000000a003");
     const after = await recomputeAndStore(me.id);
     expect((await postFor("6a1c0e2a-8f9b-4c1e-9d10-00000000a003")).type).toBe("cardio");
-    expect(after.totalXP - before.totalXP).toBe(25); // V30/V31 — an unplanned completed workout, cardio or not
-    expect(after.currentStreak).toBe(before.currentStreak); // already counted today; the day does not count twice (V01)
+    expect(after.totalXP - before.totalXP).toBe(25); // V70 — an unplanned completed workout, cardio or not
+    expect(after.currentStreak).toBe(before.currentStreak); // V70/V71 — a bonus day leaves the streak; a counted day never counts twice
   });
 
   // A6 — the words do not change: both row types read the summary the completion wrote

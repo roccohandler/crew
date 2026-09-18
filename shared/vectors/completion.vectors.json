@@ -90,6 +90,7 @@
     },
     {
       "id": "V35",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V83"]},
       "title": "earned achievements survive undo",
       "spec": "8.1 V35",
       "kind": "apply",
@@ -111,6 +112,7 @@
     },
     {
       "id": "V36",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V77","V78"]},
       "title": "editing yesterday's reps changes stats, never XP/streak",
       "spec": "8.1 V36; S16 (editing a past session never alters XP); 5.6.1 recompute (server truth)",
       "kind": "recompute",
@@ -151,6 +153,7 @@
     },
     {
       "id": "V43",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V84"]},
       "title": "deleting a post from an already rolled-over day never retro-breaks the streak or XP",
       "spec": "E3 (post ≠ log; deleting a post never retro-breaks a streak); V34 (same-day is the only reversal)",
       "kind": "apply",

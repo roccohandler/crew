@@ -22,13 +22,13 @@ afterAll(async () => {
 });
 
 describe("posts", () => {
-  it("creates a text post with the server dayKey, counts the day (+25), and is idempotent on clientId", async () => {
+  it("creates a text post with the server dayKey, pays the first-post XP without counting the day (A22 G1 (a)), and is idempotent on clientId", async () => {
     const body = { clientId: randomUUID(), type: "text", caption: "protein shake post-gym", shareToCrew: false, timezone: "America/Los_Angeles", isPlannedDay: false };
     const first = await createPost(request("POST", "/posts", { token: me.accessToken, body }));
     expect(first.status).toBe(201);
     const reply = await readJson<PostReply>(first);
     expect(reply.post.dayKey).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(reply.gamification).toMatchObject({ currentStreak: 1, totalXP: 25 });
+    expect(reply.gamification).toMatchObject({ currentStreak: 0, totalXP: 25 }); // V70: only a completed workout counts a day
     const again = await createPost(request("POST", "/posts", { token: me.accessToken, body }));
     expect(again.status).toBe(200);
     expect((await readJson<PostReply>(again)).post.id).toBe(reply.post.id);
@@ -53,7 +53,7 @@ describe("posts", () => {
     const before = await readJson<{ items: { id: string; clientId: string }[] }>(await listPosts(request("GET", "/posts", { token: me.accessToken })));
     expect(before.items.find((item) => item.id === created.post.id)?.clientId).toMatch(/^[0-9a-f-]{36}$/); // a phone addresses its journal by clientId (hydration, deletePost)
     const deleted = await readJson<{ gamification: { currentStreak: number } }>(await deletePost(request("DELETE", `/posts/${created.post.id}`, { token: me.accessToken }), params(created.post.id)));
-    expect(deleted.gamification.currentStreak).toBe(1); // other posts today still count the day
+    expect(deleted.gamification.currentStreak).toBe(0); // no workout today: a text or meal post never counted the day (A22 G1 (a))
     const after = await readJson<{ items: unknown[] }>(await listPosts(request("GET", "/posts", { token: me.accessToken })));
     expect(after.items.length).toBe(before.items.length - 1);
     expect((await getPost(request("GET", `/posts/${created.post.id}`, { token: me.accessToken }), params(created.post.id))).status).toBe(404);

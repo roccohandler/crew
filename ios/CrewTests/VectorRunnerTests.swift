@@ -10,6 +10,7 @@ final class VectorRunnerTests: XCTestCase {
         var checked = 0
         for loaded in try VectorFiles.load() {
             for vector in loaded.vectors {
+                if vector["retired"] != nil { continue } // README "Retired vectors": kept, shape-checked, never run
                 let id = vector["id"] as? String ?? "?"
                 switch vector["kind"] as? String {
                 case "dayKey": try runDayKey(id: id, vector: vector)
@@ -28,8 +29,8 @@ final class VectorRunnerTests: XCTestCase {
         }
         // Every vector is run by one of the two runners: the counts must add up to the files' own total, or a fixture was
         // added that neither engine half sees (8.1 — the whole suite is the gate, not the part that happens to be wired).
-        let total = try VectorFiles.load().reduce(0) { $0 + $1.vectors.count }
-        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
+        let total = try VectorFiles.load().reduce(0) { $0 + $1.vectors.filter { $0["retired"] == nil }.count }
+        let crewKinds = try VectorFiles.load().reduce(0) { count, loaded in count + loaded.vectors.filter { $0["retired"] == nil && ["crewPulse", "crewWeeklyRing", "comebackBanner"].contains($0["kind"] as? String ?? "") }.count }
         XCTAssertEqual(checked, total - crewKinds)
         XCTAssertGreaterThan(checked, 0)
     }
@@ -101,7 +102,7 @@ final class VectorRunnerTests: XCTestCase {
         switch json["type"] as? String {
         case "postCreated":
             let kind = try XCTUnwrap(PostKind(rawValue: try XCTUnwrap(json["kind"] as? String)))
-            return .postCreated(kind: kind, dayKey: dayKey, isPlannedDay: json["isPlannedDay"] as? Bool ?? false, workoutCompleted: json["workoutCompleted"] as? Bool ?? false)
+            return .postCreated(kind: kind, dayKey: dayKey, isPlannedDay: json["isPlannedDay"] as? Bool ?? false, workoutCompleted: json["workoutCompleted"] as? Bool ?? false, plannedWeekdays: json["plannedWeekdays"] as? [Int])
         case "postUndone": return .postUndone(dayKey: dayKey)
         case "dayRolledOver": return .dayRolledOver(dayKey: dayKey, hadRequirement: json["hadRequirement"] as? Bool ?? false)
         case "reactionGiven": return .reactionGiven(dayKey: dayKey)
@@ -146,7 +147,7 @@ final class VectorRunnerTests: XCTestCase {
             let sessions = try VectorFiles.decode([SessionFacts].self, from: variant["sessions"] ?? [])
             let posts = try VectorFiles.decode([PostFacts].self, from: variant["posts"] ?? [])
             let reactions = try VectorFiles.decode([ReactionFacts].self, from: variant["reactions"] ?? [])
-            XCTAssertEqual(GamificationRecompute.recompute(sessions: sessions, posts: posts, reactions: reactions, pauses: pauses, asOfDayKey: asOf), expected, "\(id) \(variant["label"] ?? "")")
+            XCTAssertEqual(GamificationRecompute.recompute(sessions: sessions, posts: posts, reactions: reactions, pauses: pauses, asOfDayKey: asOf, trainingWeekdays: vector["trainingWeekdays"] as? [Int] ?? []), expected, "\(id) \(variant["label"] ?? "")")
         }
     }
 

@@ -1,7 +1,10 @@
-// SPEC: Part VIII V01–V44 · 5.6.1 GamificationEngine (state in, state out; one event type; awards) · shared/vectors/README.md.
+// SPEC: Part VIII V01–V44, V66–V84 · 5.6.1 GamificationEngine (state in, state out; one event type; awards) · shared/vectors/README.md.
 // Twin of web/src/lib/engine/gamification.ts — identical names. Pure functions, Foundation only; the dayKey of every
 // event is computed by the caller with the device timezone of that moment (V10). Handlers: GamificationPost.swift,
-// GamificationDay.swift; recompute: GamificationRecompute.swift. WRITTEN — UNVERIFIED (needs Mac). T017–T019
+// GamificationDay.swift; recompute: GamificationRecompute.swift. A22 G1 (a) (owner-approved 2026-09-18): a day counts toward
+// the streak only when a completed workout lands on a PLANNED training day (or on any day under an all-rest plan), so
+// postCreated carries the plan's weekdays; the meal/text kinds stay as fixture-only branches (their vectors are retired, never
+// edited). WRITTEN — UNVERIFIED (needs Mac). T017–T019
 
 import Foundation
 
@@ -68,8 +71,10 @@ enum PostKind: String, Codable {
     case workout, meal, text
 }
 
+// plannedWeekdays (A22 G1 (a)): the plan's ISO weekdays at the moment of the post — [] is an all-rest plan (any completed
+// workout day counts); nil is a fixture written before the field existed (a planned completed workout counts, nothing else)
 enum GameEvent: Equatable {
-    case postCreated(kind: PostKind, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool)
+    case postCreated(kind: PostKind, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool, plannedWeekdays: [Int]? = nil)
     case postUndone(dayKey: String)
     case dayRolledOver(dayKey: String, hadRequirement: Bool)
     case reactionGiven(dayKey: String)
@@ -108,8 +113,8 @@ enum GamificationEngine {
         var next = state
         let awards: [Award]
         switch event {
-        case .postCreated(let kind, let dayKey, let isPlannedDay, let workoutCompleted):
-            awards = GamificationPost.applyPostCreated(&next, kind: kind, dayKey: dayKey, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, pauses: pauses)
+        case .postCreated(let kind, let dayKey, let isPlannedDay, let workoutCompleted, let plannedWeekdays):
+            awards = GamificationPost.applyPostCreated(&next, kind: kind, dayKey: dayKey, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, plannedWeekdays: plannedWeekdays, pauses: pauses)
         case .postUndone(let dayKey):
             awards = GamificationDay.applyPostUndone(&next, dayKey: dayKey)
         case .dayRolledOver(let dayKey, let hadRequirement):

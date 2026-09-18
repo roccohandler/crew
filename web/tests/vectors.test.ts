@@ -57,7 +57,7 @@ function runCompletion(vector: Vector) {
 function runRecompute(vector: Vector) {
   const expected = (vector.expect as { state: PublicState }).state;
   for (const variant of vector.variants as { label: string; sessions: SessionFacts[]; posts: PostFacts[]; reactions: ReactionFacts[] }[]) {
-    expect(recompute(variant.sessions, variant.posts, variant.reactions, vector.pauses as Pause[], vector.asOfDayKey as string), `${vector.id} ${variant.label}`).toEqual(expected);
+    expect(recompute(variant.sessions, variant.posts, variant.reactions, vector.pauses as Pause[], vector.asOfDayKey as string, (vector.trainingWeekdays as number[] | undefined) ?? []), `${vector.id} ${variant.label}`).toEqual(expected);
   }
 }
 
@@ -124,7 +124,8 @@ const runners: Record<string, (vector: Vector) => void> = {
 for (const file of files) {
   describe(file.file, () => {
     for (const vector of file.vectors) {
-      it(`${vector.id} ${vector.title}`, () => {
+      const spec = vector.retired === undefined ? it : it.skip; // README "Retired vectors": kept, shape-checked, never run
+      spec(`${vector.id} ${vector.title}`, () => {
         const run = runners[vector.kind];
         if (run === undefined) throw new Error(`no runner for kind ${vector.kind}`);
         run(vector);

@@ -4,6 +4,7 @@
   "vectors": [
     {
       "id": "V24",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V70"]},
       "title": "first post of day = 25",
       "spec": "8.1 V24; Part IV table (25 XP first post)",
       "kind": "apply",
@@ -41,6 +42,7 @@
     },
     {
       "id": "V26",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"the meal XP cap has no successor: meals left the product with A22","replacedBy":[]},
       "title": "4th+ meal of day = 0 XP",
       "spec": "8.1 V26; Flow 4 XP cap (first 3 meals earn +15 each)",
       "kind": "apply",
@@ -93,6 +95,7 @@
     },
     {
       "id": "V28",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V73"]},
       "title": "perfect week bonus = +150 on final completion",
       "spec": "8.1 V28; Part IV table (+150 XP + shield); Decision Registry G6",
       "kind": "apply",
@@ -125,6 +128,7 @@
     },
     {
       "id": "V29",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"its fixture posts a meal or text — kinds no client can create since A22 — and leans on the rest-day requirement G1 (a) repealed","replacedBy":["V82"]},
       "title": "comeback (first post after 3+ missed) = +50",
       "spec": "8.1 V29; Flow 6 (quiet for 3+ days → COMEBACK 🎉); Flow 7 (return post gets the comeback)",
       "kind": "apply",
@@ -149,6 +153,7 @@
     },
     {
       "id": "V30",
+      "retired": {"by":"Appendix A 2026-09-18 — A22 G1 (a): rest days are exempt; the meal-carrying vectors retire by marker","reason":"a bonus workout incremented the streak; G1 (a) keeps its XP and leaves the streak unchanged","replacedBy":["V70"]},
       "title": "bonus/unplanned workout = +25",
       "spec": "8.1 V30; Flow 5 (bonus workout = +25 XP, never expected)",
       "kind": "apply",

@@ -32,7 +32,7 @@ describe("sync", () => {
     ];
     const first = await readJson<SyncReply>(await sync(request("POST", "/sync", { token: me.accessToken, body: { timezone: session.timezone, ops } })));
     expect(first.results.map((result) => result.ok)).toEqual([true, true, true]);
-    expect(first.gamification).toMatchObject({ currentStreak: 1, totalXP: 40 });
+    expect(first.gamification).toMatchObject({ currentStreak: 0, totalXP: 40 }); // A22 G1 (a): the meal pays, the day is not counted
     const replay = await readJson<SyncReply>(await sync(request("POST", "/sync", { token: me.accessToken, body: { timezone: session.timezone, ops } })));
     expect(replay.results.every((result) => result.ok)).toBe(true);
     expect(replay.gamification.totalXP).toBe(40); // idempotent: nothing counted twice

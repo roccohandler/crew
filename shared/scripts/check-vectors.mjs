@@ -11,11 +11,12 @@ import { shapeChecks } from "./vector-shapes.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const vectorsDir = join(repoRoot, "shared", "vectors");
-const REQUIRED_IDS = [...Array.from({ length: 50 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b"]; // V41–V44 (S02) · V45–V50 achievements (2026-09-04)
+const REQUIRED_IDS = [...Array.from({ length: 50 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b", ...Array.from({ length: 19 }, (_, index) => `V${66 + index}`)]; // V41–V44 (S02) · V45–V50 achievements (2026-09-04) · V66–V84 rest days, A22 G1 (a) (2026-09-18)
 const problems = [];
 const fail = (id, message) => problems.push(`${id}: ${message}`);
 
 const seen = new Map();
+const retired = new Map(); // id → replacedBy (README "Retired vectors": a marker, never an edit or a deletion)
 let total = 0;
 const files = readdirSync(vectorsDir).filter((name) => name.endsWith(".vectors.json")).sort();
 for (const file of files) {
@@ -27,16 +28,25 @@ for (const file of files) {
     if (seen.has(vector.id)) fail(vector.id, `duplicate id (also in ${seen.get(vector.id)})`);
     seen.set(vector.id, file);
     for (const field of ["title", "spec", "kind", "rule"]) if (typeof vector[field] !== "string") fail(vector.id, `missing ${field}`);
+    if (vector.retired !== undefined) {
+      const marker = vector.retired;
+      if (marker === null || typeof marker !== "object" || typeof marker.by !== "string" || typeof marker.reason !== "string" || !Array.isArray(marker.replacedBy)) fail(vector.id, "retired needs { by, reason, replacedBy[] }");
+      else retired.set(vector.id, marker.replacedBy);
+    }
     if (shapeChecks[vector.kind]) shapeChecks[vector.kind](vector, fail);
     else fail(vector.id, `unknown kind ${vector.kind}`);
   }
   console.log(`${file}: ${(doc.vectors ?? []).map((vector) => vector.id).join(" ")}`);
 }
 for (const id of REQUIRED_IDS) if (!seen.has(id)) fail(id, "required vector is missing");
+for (const [id, replacements] of retired) for (const replacement of replacements) {
+  if (!seen.has(replacement)) fail(id, `retired: replacedBy ${replacement} does not exist`);
+  else if (retired.has(replacement)) fail(id, `retired: replacedBy ${replacement} is itself retired`);
+}
 
 for (const problem of problems) console.log(`PROBLEM  ${problem}`);
 if (problems.length > 0) {
   console.log(`check-vectors: ${problems.length} problem(s)`);
   process.exit(1);
 }
-console.log(`check-vectors: ${total} vectors across ${files.length} files — shape and invariants hold`);
+console.log(`check-vectors: ${total} vectors across ${files.length} files — shape and invariants hold (${retired.size} retired by marker, still shape-checked)`);

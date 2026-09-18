@@ -1,0 +1,447 @@
+{
+  "file": "streak-rest-days.vectors.json",
+  "spec": "Part VIII 8.1 — A22 G1 (a), owner-approved 2026-09-18 (V66–V84): rest days are exempt; the streak counts planned training days; a bonus or cardio day pays XP and leaves the streak; all-rest plans count any completed workout day; perfect week from the plan alone. Replaces the retired V01, V03, V04, V09–V15, V17, V18, V18b, V20, V21, V24, V26, V28–V30, V35, V36, V43 (each carries the marker).",
+  "vectors": [
+    {
+      "id": "V66",
+      "title": "a rest day's silence leaves the streak (replaces V04)",
+      "spec": "8.1 V66; A22 G1 (a); Flow 5",
+      "kind": "apply",
+      "rule": "The plan trains Mon/Wed/Fri. Saturday and Sunday roll over with hadRequirement false — the caller's word for a rest day — and nothing moves: no shield, no reset, no award.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false }
+      ],
+      "expect": {
+        "awardsByEvent": [ [], [] ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V67",
+      "title": "a planned day completed counts; the rest days between do not (replaces V01, V03)",
+      "spec": "8.1 V67; A22 G1 (a); Flow 2",
+      "kind": "apply",
+      "rule": "Friday counted. Saturday and Sunday are rest days (no requirement). Monday's completed planned workout is the next counted day: +25 first post, +100 planned workout, streak 5 → 6.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 }, { "award": "levelUp", "value": 2 } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 590, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-07", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V68",
+      "title": "a planned day missed consumes a shield; the streak stands and continues on Wednesday (replaces V15)",
+      "spec": "8.1 V68; A22 G1 (a); Flow 7",
+      "kind": "apply",
+      "rule": "Monday is planned and rolls over uncompleted (hadRequirement true): the one shield absorbs it. Wednesday's completed planned workout continues the streak 10 → 11.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1200, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-05", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [],
+          [],
+          [ { "award": "shieldConsumed" } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 11 } ]
+        ],
+        "state": { "currentStreak": 11, "longestStreak": 11, "totalXP": 1325, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-09", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V69",
+      "title": "a planned day missed with no shield resets the streak (the planned-day half of the old V04)",
+      "spec": "8.1 V69; A22 G1 (a); Flow 5",
+      "kind": "apply",
+      "rule": "Monday is planned and rolls over uncompleted with no shield: streak 10 → 0, stated once; longest stands.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1200, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true }
+      ],
+      "expect": {
+        "awardsByEvent": [ [ { "award": "streakTo", "value": 0 } ] ],
+        "state": { "currentStreak": 0, "longestStreak": 10, "totalXP": 1200, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V70",
+      "title": "a bonus workout on a rest day pays 25 + 25 and leaves the streak unchanged (replaces V30, V24)",
+      "spec": "8.1 V70; A22 G1 (a); A3 bonus workout; A2 cardio log",
+      "kind": "apply",
+      "rule": "Saturday is a rest day. A completed workout there is the first post of the day (+25) and a bonus workout (+25); it does not count the day, so no streakTo. A standalone cardio log is the same event to the engine (the server maps cardio to workout).",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-05", "isPlannedDay": false, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [ [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "levelUp", "value": 2 } ] ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 515, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V71",
+      "title": "two completed workouts on one planned day: one increment, the second is a bonus (replaces V11)",
+      "spec": "8.1 V71; A22 G1 (a); E7 two-a-days",
+      "kind": "apply",
+      "rule": "Monday is planned. The first completed workout counts the day (+25, +100, streak 5 → 6); the second completed workout the same day is +25 and nothing else.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "xp", "amount": 25, "reason": "bonusWorkout" } ]
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 450, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-07", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V72",
+      "title": "an all-rest plan: any completed workout day counts (replaces V12, V18b)",
+      "spec": "8.1 V72; A22 G1 (a); E16",
+      "kind": "apply",
+      "rule": "plannedWeekdays is empty, so no day is planned and none can be missed: three completed workouts on three days count three days (each +25 first post, +25 bonus — no planned workout exists); the rest-day rollover between them does nothing; no week is ever perfect.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": false, "workoutCompleted": true, "plannedWeekdays": [] },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-08", "isPlannedDay": false, "workoutCompleted": true, "plannedWeekdays": [] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-10", "isPlannedDay": false, "workoutCompleted": true, "plannedWeekdays": [] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "streakTo", "value": 1 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "streakTo", "value": 2 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "streakTo", "value": 3 } ]
+        ],
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 150, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-10", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V73",
+      "title": "perfect week from the plan alone — no rest-day posts needed (replaces V13, V28)",
+      "spec": "8.1 V73; A22 G1 (a); G6",
+      "kind": "apply",
+      "rule": "Mon/Wed/Fri planned and completed, Tue/Thu/Sat/Sun untouched: Friday's workout completes the week — +150 and a shield, once.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-10", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 2 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "xp", "amount": 150, "reason": "perfectWeek" }, { "award": "streakTo", "value": 3 }, { "award": "perfectWeek" }, { "award": "shieldEarned" }, { "award": "levelUp", "value": 2 } ]
+        ],
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 525, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V74",
+      "title": "perfect week at the shield cap: +150, no shield (replaces V14)",
+      "spec": "8.1 V74; A22 G1 (a); G6 maxShields",
+      "kind": "apply",
+      "rule": "The same perfect week with two shields already held pays the XP and awards perfectWeek, and no third shield.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 2, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 2 } ],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "xp", "amount": 150, "reason": "perfectWeek" }, { "award": "streakTo", "value": 3 }, { "award": "perfectWeek" }, { "award": "levelUp", "value": 2 } ]
+        ],
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 525, "level": 2, "shields": 2, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V75",
+      "title": "a planned day rolled over uncompleted makes the week imperfect (replaces V18)",
+      "spec": "8.1 V75; A22 G1 (a); G6",
+      "kind": "apply",
+      "rule": "Monday completed; Wednesday planned and missed with no shield (streak 1 → 0); Friday completed (streak 1). Wednesday never entered plannedDone, so Friday completes no perfect week.",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-10", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ],
+          [],
+          [ { "award": "streakTo", "value": 0 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ]
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 1, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V76",
+      "title": "the first partial week never completes a perfect week (replaces V17)",
+      "spec": "8.1 V76; A22 G1 (a); G6",
+      "kind": "apply",
+      "rule": "Joining on Wednesday of a Mon/Wed/Fri plan: Wednesday and Friday complete, Monday was before the account existed and never carries a completed workout, so the week is not perfect; no penalty for the days before the first post (Thursday rolls over with no requirement).",
+      "initialState": { "currentStreak": 0, "longestStreak": 0, "totalXP": 0, "level": 1, "shields": 0, "lastCountedDayKey": null, "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-09", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-10", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 1 } ],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 2 } ]
+        ],
+        "state": { "currentStreak": 2, "longestStreak": 2, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V77",
+      "title": "recompute with the plan: two planned workouts, the rest days between them unjudged (replaces V36)",
+      "spec": "8.1 V77; 5.6.1 recompute (server truth); A22 G1 (a)",
+      "kind": "recompute",
+      "rule": "recompute() from the same sessions and posts returns the identical state whether the sets read 8·8·8 or 5·5·5 — reps are stats, not gamification inputs; and with trainingWeekdays Mon/Wed/Fri the Tuesday between two counted days is never required.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-11",
+      "trainingWeekdays": [1, 3, 5],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "as logged",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-07", "completed": true, "sets": [ { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false } ] },
+            { "id": "s2", "dayKey": "2026-09-09", "completed": true, "sets": [ { "targetReps": 8, "actualReps": 8, "done": true, "isWarmup": false } ] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-07", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-09", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" }
+          ],
+          "reactions": []
+        },
+        {
+          "label": "reps edited the next day",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-07", "completed": true, "sets": [ { "targetReps": 8, "actualReps": 5, "done": true, "isWarmup": false } ] },
+            { "id": "s2", "dayKey": "2026-09-09", "completed": true, "sets": [ { "targetReps": 8, "actualReps": 5, "done": true, "isWarmup": false } ] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-07", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-09", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 2, "longestStreak": 2, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-09", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V78",
+      "title": "recompute judges a missed planned day from the plan: Wednesday breaks, Friday restarts",
+      "spec": "8.1 V78; 5.6.1 recompute (server truth); A22 G1 (a)",
+      "kind": "recompute",
+      "rule": "Monday counted; Wednesday is a planned weekday with no completed workout, so the fold rolls it over as required and the streak resets; Friday counts again. The rest days never roll over as required.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-12",
+      "trainingWeekdays": [1, 3, 5],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "Monday and Friday",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-07", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-11", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-07", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-11", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 1, "longestStreak": 1, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V79",
+      "title": "a pause: nothing inside it, the return day counts, a planned miss after it breaks (replaces V20, V21)",
+      "spec": "8.1 V79; Flow 7; A22 G1 (a)",
+      "kind": "apply",
+      "rule": "Paused Mon–Wed (return Thursday): a completed workout inside the pause changes nothing; the paused planned days roll over with no requirement; Friday's completed planned workout counts 10 → 11; the next Monday is planned, missed and unshielded: 0.",
+      "initialState": { "currentStreak": 10, "longestStreak": 10, "totalXP": 1200, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [ { "startDay": "2026-09-07", "endDay": "2026-09-10" } ],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": false },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-11", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-14", "hadRequirement": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [],
+          [],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 11 } ],
+          [ { "award": "streakTo", "value": 0 } ]
+        ],
+        "state": { "currentStreak": 0, "longestStreak": 11, "totalXP": 1325, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-11", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V80",
+      "title": "travelling across the date line: the day is the device's day at each moment (replaces V09, V10)",
+      "spec": "8.1 V80; E8; V05–V08; A22 G1 (a)",
+      "kind": "apply",
+      "rule": "A planned Friday workout at 23:30 in Tokyo and a second completed workout at 22:00 the same calendar day in Honolulu both key 2026-09-04: one increment, the second workout a bonus.",
+      "initialState": { "currentStreak": 2, "longestStreak": 2, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-02", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "at": "2026-09-04T23:30:00+09:00", "tz": "Asia/Tokyo", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "postCreated", "kind": "workout", "at": "2026-09-04T22:00:00-10:00", "tz": "Pacific/Honolulu", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 3 } ],
+          [ { "award": "xp", "amount": 25, "reason": "bonusWorkout" } ]
+        ],
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 400, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V81",
+      "title": "a bonus workout is not insurance: the next planned miss still resets",
+      "spec": "8.1 V81; A22 G1 (a); A3 bonus workout",
+      "kind": "apply",
+      "rule": "Friday counted. Sunday's completed bonus workout pays 25 + 25 (and the level it crosses) without counting the day; Sunday rolls over unrequired; Monday is planned, missed and unshielded: streak 5 → 0, lastCountedDayKey stays Friday.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 465, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-06", "isPlannedDay": false, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-06", "hadRequirement": false },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 25, "reason": "bonusWorkout" }, { "award": "levelUp", "value": 2 } ],
+          [],
+          [ { "award": "streakTo", "value": 0 } ]
+        ],
+        "state": { "currentStreak": 0, "longestStreak": 5, "totalXP": 515, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V82",
+      "title": "comeback: the first counted day after three missed planned days (replaces V29; R-069)",
+      "spec": "8.1 V82; A22 G1 (a); R-069",
+      "kind": "apply",
+      "rule": "Friday counted. Monday, Wednesday and Friday are planned and missed (the first miss resets, the next two change nothing at 0). The next Monday's completed planned workout is the first counted day after three missed planned days: +25, +100, +50 comeback, streak 1, comeback. The four rest days between were never missed — one missed Monday alone earns no comeback on Wednesday (V68).",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-09", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-11", "hadRequirement": true },
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-14", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "streakTo", "value": 0 } ],
+          [],
+          [],
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "xp", "amount": 50, "reason": "comeback" }, { "award": "streakTo", "value": 1 }, { "award": "comeback" } ]
+        ],
+        "state": { "currentStreak": 1, "longestStreak": 5, "totalXP": 475, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-14", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V83",
+      "title": "earned achievements survive the undo of the post that counted the day (replaces V35)",
+      "spec": "8.1 V83; E3; V34; A22 G1 (a)",
+      "kind": "apply",
+      "rule": "Monday's completed planned workout counts (5 → 6); undoing it the same day reverts the streak and the XP; the achievement ids earned before stay.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": ["first-flame", "showed-up"] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "postUndone", "dayKey": "2026-09-07" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [ { "award": "streakTo", "value": 5 } ]
+        ],
+        "state": { "currentStreak": 5, "longestStreak": 5, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": ["first-flame", "showed-up"] }
+      }
+    },
+    {
+      "id": "V84",
+      "title": "deleting a post from an already rolled-over day changes nothing (replaces V43)",
+      "spec": "8.1 V84; E3; A22 G1 (a)",
+      "kind": "apply",
+      "rule": "Monday's completed planned workout counts; Monday rolls over (counted, so no miss) and Tuesday too (rest); undoing Monday's post afterwards is a deletion: no gamification change.",
+      "initialState": { "currentStreak": 5, "longestStreak": 5, "totalXP": 300, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-04", "earnedAchievementIds": [] },
+      "pauses": [],
+      "events": [
+        { "type": "postCreated", "kind": "workout", "dayKey": "2026-09-07", "isPlannedDay": true, "workoutCompleted": true, "plannedWeekdays": [1, 3, 5] },
+        { "type": "dayRolledOver", "dayKey": "2026-09-07", "hadRequirement": true },
+        { "type": "dayRolledOver", "dayKey": "2026-09-08", "hadRequirement": false },
+        { "type": "postUndone", "dayKey": "2026-09-07" }
+      ],
+      "expect": {
+        "awardsByEvent": [
+          [ { "award": "xp", "amount": 25, "reason": "firstPostOfDay" }, { "award": "xp", "amount": 100, "reason": "plannedWorkout" }, { "award": "streakTo", "value": 6 } ],
+          [],
+          [],
+          []
+        ],
+        "state": { "currentStreak": 6, "longestStreak": 6, "totalXP": 425, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-07", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}
