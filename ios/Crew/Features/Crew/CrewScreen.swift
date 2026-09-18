@@ -3,7 +3,8 @@
 // A21.2 (owner-approved 2026-09-17): free-text chat is gone — there is NO composer on this screen; the stream is posts + system
 // lines + reactions. A5 (owner-directed 2026-09-08): the header is pinned above the stream; a crew of one gets the invite card;
 // the invite sheet follows a create. A21.3 / W4 (owner-approved 2026-09-17): the solo tab offers "I have an invite" (JoinByCodeSheet);
-// 1C: the profile-photo prompt shows once after the first join or create, after any invite sheet is down. Screens hold ZERO logic
+// 1C: the profile-photo prompt shows once after the first join or create, after any invite sheet is down. W7 (owner order 2026-09-18,
+// item 3): a tapped invite link opens the same join sheet with the code filled and looked up (InviteInbox). Screens hold ZERO logic
 // (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T031
 
 import SwiftUI
@@ -31,6 +32,15 @@ struct CrewScreen: View {
         return model.offline ? .offline : .ready
     }
 
+    // SPEC: 1A · A21.3 · W7 — the link's token takes the same path as a pasted code; the server's refusals (already in a crew, full,
+    // dead) read under the field exactly as they do for a paste (S13)
+    private func openInviteFromLink() async {
+        guard let code = InviteInbox.shared.consume() else { return }
+        model.inviteCode = code
+        showsJoinByCode = true
+        await model.lookUpInvite()
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -55,6 +65,7 @@ struct CrewScreen: View {
             .onChange(of: model.crew?.id) { _, id in if id != nil, !showsInvite, !showsJoinByCode, model.consumePhotoPrompt() { showsPhotoPrompt = true } }
             .onChange(of: showsCreate) { _, showing in if !showing, model.consumeInvitePrompt() { showsInvite = true } } // Flow 6: link follows the name
             .task { await model.refresh(); model.startPolling(); if model.consumePhotoPrompt() { showsPhotoPrompt = true } } // 1C: an invited signup lands here with the prompt pending
+            .task(id: InviteInbox.shared.pendingCode) { await openInviteFromLink() }
             .onDisappear { model.stopPolling() }
         }
     }

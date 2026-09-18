@@ -4,7 +4,7 @@
 // draws anyway and ServerHydrate fills it behind the screen, piece by piece) · Flow 10 (solo is a full experience — every tab works with zero
 // friends) · A21.3 / W4 (owner-approved 2026-09-17): an invited signup lands INSIDE the crew — the join marks it once, the tab
 // bar opens on Crew once · A21.4: an already-authorized phone re-registers for push on every signed-in launch (PushRegistrar) ·
-// T013. Screens hold ZERO logic (5.6.6): this view only branches on view state. WRITTEN — UNVERIFIED (needs Mac).
+// W7 (owner order 2026-09-18, item 3): a tapped invite link is received HERE and takes the pasted-code path (InviteInbox) · T013. Screens hold ZERO logic (5.6.6): this view only branches on view state. WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
 
@@ -12,11 +12,14 @@ struct RootView: View {
     private let auth = AuthStore.shared
 
     var body: some View {
-        if auth.isSignedIn {
-            MainTabs() // 2026-09-18: straight to the real screens; a reinstalled phone's Store fills behind them (MainTabs.task)
-        } else {
-            OnboardingFlow()
+        Group {
+            if auth.isSignedIn {
+                MainTabs() // 2026-09-18: straight to the real screens; a reinstalled phone's Store fills behind them (MainTabs.task)
+            } else {
+                OnboardingFlow()
+            }
         }
+        .onOpenURL { InviteInbox.shared.receive($0) } // 1A · W7: https://<host>/join/<token> — the token takes the A21.3 code path
     }
 }
 
@@ -55,7 +58,10 @@ struct MainTabs: View {
         .tint(EmberColors.inkText) // Part III law ① — chrome is monochrome forever
         // E6: the queue runs from the first signed-in frame — launch, foreground, network back. 2026-09-18: the reinstall pull runs
         // here too, in the background — Home is already on screen saying "syncing" and fills as each piece lands (ServerHydrate.state)
+        // W7 / A21.3 — a tapped invite link opens the Crew tab, where the join sheet takes the code (CrewScreen)
+        .onChange(of: InviteInbox.shared.pendingCode) { _, code in if code != nil { selection = .crew } }
         .task {
+            if InviteInbox.shared.pendingCode != nil { selection = .crew } // a cold start by link
             SyncDriver.start()
             await PushRegistrar.registerIfAuthorized()
             await ServerHydrate.pullIfEmpty(userId: AuthStore.shared.currentUser?.id ?? "local", store: .shared)

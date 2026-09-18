@@ -15,6 +15,10 @@
 #   CREW_BUNDLE_ID                    the bundle id of the app record in App Store Connect (an existing record works — a rejected
 #                                     App Store version does not stop TestFlight uploads)
 #   CREW_API_HOST                     the deployed server, e.g. crew-yourname.vercel.app (no scheme, no trailing slash)
+#   CREW_APPLINKS_HOST                (optional, W7) the host whose /join/* links open the app — the same host, or your own domain
+#                                     once APP_BASE_URL points at it. EMPTY → the build carries no associated-domains entitlement.
+#                                     The host must serve /.well-known/apple-app-site-association (it does once APPLE_TEAM_ID — or
+#                                     APNS_TEAM_ID — and APPLE_BUNDLE_ID are set on the server).
 name: testflight
 
 on:
@@ -71,6 +75,13 @@ jobs:
       # The bundle id and the server come from repository variables, so nothing in the repo names your account.
       - name: Point the project at your bundle id
         run: sed -i '' "s/com.yourteam.crew/${{ vars.CREW_BUNDLE_ID }}/g" ios/project.yml
+      # W7 (owner order 2026-09-18, item 3): universal links by a build variable — empty → no entitlement. The placeholder comment in
+      # project.yml becomes the real key; xcodegen then writes it into Crew.entitlements.
+      - name: Wire universal links (only when CREW_APPLINKS_HOST is set)
+        if: ${{ vars.CREW_APPLINKS_HOST != '' }}
+        run: |
+          sed -i '' "s|# CREW_APPLINKS com.apple.developer.associated-domains: \[\"applinks:CREW_APPLINKS_HOST\"\]|com.apple.developer.associated-domains: [\"applinks:${{ vars.CREW_APPLINKS_HOST }}\"]|" ios/project.yml
+          grep -n "associated-domains" ios/project.yml
       - run: cd ios && xcodegen generate
 
       # The API key file: xcodebuild reads it to fetch or create the App Store profile and to use the team's cloud-managed
@@ -99,6 +110,18 @@ jobs:
           CURRENT_PROJECT_VERSION=$CREW_BUILD
           CREW_API_HOST=${{ vars.CREW_API_HOST }}
 
+      # W7: an UNSIGNED archive carries no entitlements, and the export keeps what the app already declares — so the app is ad-hoc
+      # signed here with the entitlements xcodegen wrote (Sign in with Apple, push, applinks:<host>); the export re-signs it with the
+      # cloud-managed Apple Distribution identity and keeps them (aps-environment becomes production). Only when the links variable is
+      # set: deleting the variable restores, with no code change, the exact path every upload before this one took.
+      - name: Declare the entitlements on the archived app (ad-hoc — the export re-signs)
+        if: ${{ vars.CREW_APPLINKS_HOST != '' }}
+        run: |
+          cd ios
+          plutil -p Crew/Crew.entitlements
+          codesign --force --sign - --entitlements Crew/Crew.entitlements --timestamp=none build/Crew.xcarchive/Products/Applications/Crew.app
+          codesign -d --entitlements :- build/Crew.xcarchive/Products/Applications/Crew.app | head -40
+
       # An unsigned archive records no team, so the export is told which team signs (the id never lives in the repo).
       - name: Name the team for the export
         run: cd ios && plutil -insert teamID -string "${{ secrets.APPLE_TEAM_ID }}" ExportOptions.plist && plutil -lint ExportOptions.plist
@@ -112,6 +135,13 @@ jobs:
           -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
           -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+      # What the uploaded app actually declares — the only place a machine without a Mac can read it (the team id is masked)
+      - name: What the export signed (entitlements, from the distribution log)
+        if: always()
+        run: |
+          LOG=$(find /var/folders "${TMPDIR:-/tmp}" -name "IDEDistribution.standard.log" 2>/dev/null | head -1)
+          if [ -n "$LOG" ]; then grep -n -i -A14 "entitlements" "$LOG" | head -80; else echo "no distribution log on this runner"; fi
 
       # The upload is not the arrival. App Store Connect processes a build for a few minutes before TestFlight offers
       # it, and the phone shows it only after that — which is the other half of "why don't I see the update yet".

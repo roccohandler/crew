@@ -1,7 +1,8 @@
 // SPEC: Flow 1 — hero → two questions → reveal → save (A21.1, owner-approved 2026-09-17: the equipment question is gone);
 // A21.3 / W4: "I have an invite" → the invite-code screen first, then the same two questions (the token rides along, 1A);
 // every arrival type has its path on screen one (1A); back-swipe preserves every answer (1B: NavigationStack keeps the
-// model). Screens branch only on view state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
+// model). W7 (owner order 2026-09-18, item 3): a tapped invite link opens the same invite-code screen with the code filled and looked
+// up (InviteInbox). Screens branch only on view state (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T021 + T022
 
 import SwiftUI
 
@@ -35,6 +36,16 @@ struct OnboardingFlow: View {
         }
         .tint(EmberColors.inkText)
         .onAppear { if model.step == .save { path = [.days, .experience, .reveal, .save] } } // S05 resume
+        .task(id: InviteInbox.shared.pendingCode) { await openInviteFromLink() }
+    }
+
+    // SPEC: 1A · A21.3 · W7 — signup only (a rebuild is a signed-in flow; the Crew tab takes the link there): the link's token takes
+    // the pasted-code path — the field filled, the crew looked up, the same explicit states for a dead code or a full crew (S13)
+    private func openInviteFromLink() async {
+        guard mode == .signup, let code = InviteInbox.shared.consume() else { return }
+        model.inviteCode = code
+        path = [.inviteCode]
+        await model.lookUpInvite()
     }
 
     @ViewBuilder private var root: some View {
