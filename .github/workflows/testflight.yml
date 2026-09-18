@@ -32,16 +32,18 @@ on:
         description: "Build number — leave blank to use the commit count (must be higher than the last upload)"
         required: false
 
-# Two pushes in quick succession must not race two uploads at App Store Connect. Latest commit wins: an in-flight
-# build for an older commit is cancelled, because the point of this workflow is that the phone has the newest code.
-concurrency:
-  group: testflight
-  cancel-in-progress: true
-
 jobs:
   upload:
     name: archive · sign · upload to TestFlight
     runs-on: macos-latest
+    # Two pushes in quick succession must not race two uploads at App Store Connect. Latest commit wins: an in-flight
+    # build for an older commit is cancelled, because the point of this workflow is that the phone has the newest code.
+    # 2026-09-18: the group is claimed by the JOB, not the workflow. At workflow level every `workflow_run` event took the
+    # slot — including the ones for a CANCELLED ci run, whose job is skipped by the `if` below — and cancelled a real
+    # dispatched upload seconds after it started (run 35310448236). A job that is skipped never enters a job-level group.
+    concurrency:
+      group: testflight
+      cancel-in-progress: true
     # `workflow_run` fires on EVERY ci completion — failures, cancellations, and pull-request runs included. Only a
     # GREEN run on master earns a build; a manual dispatch carries no workflow_run payload and is always allowed.
     if: >

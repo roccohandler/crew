@@ -122,9 +122,8 @@ struct HomeScreen: View {
         }
     }
 
-    // SPEC: 6.1 as amended 2026-09-18 (owner-directed, "launch: real UI first") — the reinstall wait is Home's OWN chrome: the header
-    // as it stands (an empty week, a cold flame) and one card that says what is arriving, with a small indicator; never a skeleton.
-    // Each pull that lands re-reads the Store (onChange of ServerHydrate.state.revision) and the card gives way to the day.
+    // SPEC: 6.1 as amended 2026-09-18 (owner-directed, "launch: real UI first") — the reinstall wait is Home's OWN chrome: the header as
+    // it stands and one card saying what is arriving, never a skeleton; each landed pull re-reads the Store and the card gives way to the day.
     private var syncing: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
