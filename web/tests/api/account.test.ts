@@ -135,4 +135,22 @@ describe("users/me + export + delete cascade", () => {
     expect(again.status).toBe(201);
     expect((await readJson<{ user: { id: string } }>(again)).user.id).not.toBe(me.id);
   });
+
+  // Q12 — seen on production 2026-09-08: the cascade had finished and the answer was 500, because Resend refused the send. The
+  // transport here is the REAL one pointed at a closed local port (the SDK reads RESEND_BASE_URL per client), so `deliver` throws
+  // without touching the network; the deletion still answers 200, the account is gone, and no confirmation row was written.
+  it("answers 200 with the cascade done when the account-deleted email cannot be sent (Q12, E9)", async () => {
+    const gone = await createUser("unmailable", "UTC");
+    process.env.RESEND_API_KEY = "re_unreachable";
+    process.env.RESEND_BASE_URL = "http://127.0.0.1:9";
+    try {
+      expect((await deleteMe(request("DELETE", "/users/me", { token: gone.accessToken, body: { confirm: "delete" } }))).status).toBe(200);
+    } finally {
+      delete process.env.RESEND_API_KEY; // back to the outbox transport every other test uses
+      delete process.env.RESEND_BASE_URL;
+    }
+    expect((await getMe(request("GET", "/users/me", { token: gone.accessToken }))).status).toBe(404);
+    expect(await (await users()).countDocuments({ _id: new ObjectId(gone.id) })).toBe(0);
+    expect(await (await emailOutbox()).countDocuments({ to: gone.email })).toBe(0);
+  });
 });

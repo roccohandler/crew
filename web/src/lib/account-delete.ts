@@ -4,6 +4,9 @@
 // the audit found go too — other people's reactions on the user's posts (orphans once the posts are gone), reports the user
 // filed or that name the user or their posts, and the dev/test outbox rows (email by address, push by user); the "account
 // deleted" email is written AFTER the sweep, so it is the one row that remains. T041
+// Q12: that email is BEST-EFFORT. By the time it is sent the cascade is irreversible and complete, and E9 promises a confirmation
+// that "states the cascade is done" — not a deletion that waits on a mail provider. A transport that throws is one log line
+// (never the address); the caller still answers 200, because the account IS gone.
 import { ObjectId } from "mongodb";
 import { removeMember } from "@/lib/crews";
 import { blocks, crewMemberships, dayTemplates, events, gamificationStates, mealLogs, messages, nutritionTargets, passwordResets, pauses, plans, posts, pushTokens, reactions, refreshTokens, reports, savedMeals, sessions, users } from "@/lib/db";
@@ -42,5 +45,9 @@ export async function deleteAccount(userId: ObjectId, now: Date = new Date()): P
   ]);
   await deletePhotosOf(userId);
   await (await users()).deleteOne({ _id: userId });
-  await sendAccountDeletedEmail(user.email);
+  try {
+    await sendAccountDeletedEmail(user.email);
+  } catch (error) {
+    console.error("account deleted; the confirmation email was not sent", error);
+  }
 }
