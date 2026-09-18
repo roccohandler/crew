@@ -15,6 +15,7 @@ struct HomeScreen: View {
     @State private var rebuilding = false
     @State private var choosingBonus = false
     @State private var loggingCardio = false
+    @State private var loggingMacros = false // A22 G4: Home's "Log macros" row opens nutrition Today
     @State private var offerReminder = false // A21.4: decided when a celebration is answered, presented once the sheet is down
     @State private var showsReminder = false
     @Environment(\.scenePhase) private var scenePhase
@@ -33,6 +34,8 @@ struct HomeScreen: View {
             .navigationTitle(title)
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
+            .navigationDestination(isPresented: $loggingMacros) { NutritionTodayScreen() } // nutrition addendum Q3: the Home row is the way in
+            .onChange(of: loggingMacros) { _, open in if !open { model.refresh() } } // back from Today: the row's count may have moved
             // SPEC: A21.9 — no swipe-to-dismiss: a celebration is answered by one of its two buttons or not at all; the tapped
             // button posts (answerCelebration), then the sheet comes down, then — after the first workout — the reminder opt-in (A21.4)
             .sheet(item: $celebration, onDismiss: { if offerReminder { offerReminder = false; showsReminder = true } }) { outcome in
@@ -91,10 +94,11 @@ struct HomeScreen: View {
                         VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
                             // A14 — the vectors as peers. Every standalone duplicate that used to sit here or in the
                             // card (Log cardio, Bonus workout) is gone: these ARE those affordances now, at a position
-                            // that no longer moves between states (F10, A17.3). A22 G4: two rows until W8 ships "Log macros".
+                            // that no longer moves between states (F10, A17.3). A22 G4: "Log macros" is the third row wherever nutrition exists.
                             VectorRow(slots: model.vectors,
                                       onWorkout: { if let session = model.startWorkout() { activeSession = session } else { choosingBonus = true } },
-                                      onCardio: { loggingCardio = true })
+                                      onCardio: { loggingCardio = true },
+                                      onMacros: { loggingMacros = true })
                             // absent (not empty) for solo AND below crewMinMembers (A17.1)
                             if let members = model.crewStrip {
                                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {

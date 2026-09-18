@@ -29,6 +29,16 @@ final class AuthStore {
     var weightUnit: String { currentUser?.weightUnitOrLegacy ?? "lb" }
     var distanceUnit: String { currentUser?.distanceUnitOrLegacy ?? "mi" }
 
+    // SPEC: A16.c · nutrition addendum §6 · A22 G3 — whether the nutrition surface EXISTS for this account, as the server judged it
+    // from the birth year (which never leaves the server). Unknown — signed out, or a user cached by a build that predates the field —
+    // reads as absent: the surface is never shown on a guess. refreshNutritionIfUnknown() replaces the guess on the next signed-in frame.
+    var nutrition: NutritionAvailability { NutritionAvailability(rawValue: currentUser?.nutrition ?? "") ?? .absent }
+
+    func refreshNutritionIfUnknown() async {
+        guard isSignedIn, currentUser?.nutrition == nil, let me = try? await Api.shared.me() else { return }
+        updateCurrentUser(me.user)
+    }
+
     private let keychain = KeychainStore(service: "com.yourteam.crew.auth")
 
     init() {

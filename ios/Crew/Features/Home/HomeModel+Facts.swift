@@ -21,6 +21,12 @@ import Foundation
 struct VectorSlots: Equatable {
     let workoutDone: Bool
     let cardioMinutes: Int?  // nil = no cardio logged today
+    var macros: MacrosSlot? = nil // A22 G4 · A16.c: nil = the "Log macros" row is ABSENT (no nutrition surface for this account)
+}
+
+// SPEC: A22 G4 · nutrition addendum Q3 — the third row's measurement: a COUNT of today's entries, or nothing (A8) — never grams, never a verdict
+struct MacrosSlot: Equatable {
+    let logged: Int?
 }
 
 // SPEC: Flow 2 ("weekly ring 2/4") · A17.4 — the week's seven marks and the ring's fraction, from one pass.
@@ -94,12 +100,17 @@ extension HomeModel {
     // first. A2 says a cardio BLOCK inside a workout is cardio; nothing in A14 said the row should disagree.
     // `workoutDone` keeps its own split and is unchanged: a standalone cardio log is still not a workout (A2), which is
     // what keeps the week strip and the ring honest.
-    static func slots(userId: String, dayKey: String, store: Store) throws -> VectorSlots {
+    // A22 G4 · A16.c — `nutrition` is the account's answer (AuthStore.nutrition): under 18 the macros row does not exist, with no copy;
+    // with no birth year yet it exists and leads to the one-time ask. The count is this phone's own private rows (clause ④).
+    static func slots(userId: String, dayKey: String, nutrition: NutritionAvailability = .absent, store: Store) throws -> VectorSlots {
         let completed = try store.sessions(for: userId, dayKey: dayKey).filter { $0.status == "completed" }
         let cardioSeconds = completed.flatMap { JournalFacts.doneSets($0, type: "cardio") }.reduce(0) { $0 + ($1.holdSeconds ?? 0) }
+        var macros: MacrosSlot?
+        if nutrition != .absent { macros = MacrosSlot(logged: try NutritionLocal.loggedCount(for: userId, dayKey: dayKey, store: store)) }
         return VectorSlots(
             workoutDone: completed.contains { $0.workoutKind != "cardio" },
-            cardioMinutes: cardioSeconds > 0 ? JournalFacts.minutes(ofSeconds: cardioSeconds) : nil
+            cardioMinutes: cardioSeconds > 0 ? JournalFacts.minutes(ofSeconds: cardioSeconds) : nil,
+            macros: macros
         )
     }
 }

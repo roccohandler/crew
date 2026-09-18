@@ -64,6 +64,7 @@ struct MainTabs: View {
             if InviteInbox.shared.pendingCode != nil { selection = .crew } // a cold start by link
             SyncDriver.start()
             await PushRegistrar.registerIfAuthorized()
+            await AuthStore.shared.refreshNutritionIfUnknown() // A16.c: a user cached by an older build carries no answer yet
             await ServerHydrate.pullIfEmpty(userId: AuthStore.shared.currentUser?.id ?? "local", store: .shared)
         }
     }

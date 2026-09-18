@@ -16,6 +16,7 @@ final class Store {
             LocalPlan.self, LocalWorkoutTemplate.self, LocalExerciseTemplate.self,
             LocalSession.self, LocalSessionExercise.self, LocalSetLog.self,
             LocalPost.self, LocalGamificationState.self, LocalPause.self, LocalCrewSnapshot.self,
+            LocalNutritionTargets.self, LocalSavedMeal.self, LocalDayTemplate.self, LocalMealLog.self, // W8 (nutrition addendum §2)
             OpRecord.self,
         ])
         let configuration = ModelConfiguration(isStoredInMemoryOnly: inMemory)

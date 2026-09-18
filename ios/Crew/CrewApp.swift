@@ -28,6 +28,10 @@ struct CrewApp: App {
         try? context.delete(model: LocalGamificationState.self)
         try? context.delete(model: LocalPause.self)
         try? context.delete(model: LocalCrewSnapshot.self)
+        try? context.delete(model: LocalNutritionTargets.self) // W8: the next account on this phone never reads this one's bodyweight
+        try? context.delete(model: LocalSavedMeal.self)
+        try? context.delete(model: LocalDayTemplate.self)
+        try? context.delete(model: LocalMealLog.self)
         try? context.delete(model: OpRecord.self)
         try? Store.shared.save()
     }

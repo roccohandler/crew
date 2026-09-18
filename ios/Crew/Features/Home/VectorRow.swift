@@ -17,9 +17,10 @@
 //      6.5's 3:1 gate, so the one mark that says "this is a control" could not be seen. A18.11 gives it its own
 //      `controlOutline` token (3.32:1 / 3.13:1), app-wide.
 //
-// A22 G4 (owner-approved 2026-09-18) — the third row is no longer "Log a meal" → the composer (the plate journal is gone). It
-// reads "Log macros" and opens nutrition Today once W8 ships it; gated off (G3: an under-18 account has no nutrition surface)
-// the row is ABSENT, never disabled. Until W8 there is nothing to open, so today the row is absent and two rows remain.
+// A22 G4 (owner-approved 2026-09-18) · nutrition addendum Q3 — the third row is no longer "Log a meal" → the composer (the plate
+// journal is gone). It reads "Log macros" and opens nutrition Today (W8); gated off (G3: an under-18 account has no nutrition
+// surface) the row is ABSENT, never disabled — `slots.macros` is nil and two rows remain. Its status is a COUNT of today's
+// entries, never grams and never a verdict.
 //
 // Why these controls are still legal under "one primary action per view" (6.1 · §1B · S07 · §1D): every row is an OUTLINE
 // control, and the day's workout keeps the single ink-filled primary inside the card above. Position makes them peers;
@@ -39,12 +40,17 @@ struct VectorRow: View {
     let slots: VectorSlots
     let onWorkout: () -> Void
     let onCardio: () -> Void
+    let onMacros: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             VectorLogRow(verb: "Log workout", status: slots.workoutDone ? "Done" : nil, action: onWorkout)
             rowDivider
             VectorLogRow(verb: "Log cardio", status: slots.cardioMinutes.map { "\($0) min" }, action: onCardio)
+            if let macros = slots.macros {
+                rowDivider
+                VectorLogRow(verb: "Log macros", status: macros.logged.map { "\($0) logged" }, action: onMacros)
+            }
         }
         // One boundary around the group, not one per row: the rows are a set of peers, and separate outlines would
         // put two hairlines between every pair. `controlOutline` (A18.11), never the surface hairline.

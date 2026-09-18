@@ -95,7 +95,7 @@ final class HomeModel {
             quickCompleteAvailable = todayWorkout != nil && resumeSession == nil && !isPaused
             nextUp = whatsNext(plan: plan, rotation: rotation, todayKey: todayKey)
             bonusWorkouts = NextUp.bonusOrder(plan?.workouts ?? [], nextKind: rotation?.nextKind)
-            vectors = try HomeModel.slots(userId: userId, dayKey: todayKey, store: store) // A14
+            vectors = try HomeModel.slots(userId: userId, dayKey: todayKey, nutrition: AuthStore.shared.nutrition, store: store) // A14 · A22 G4
             todaySummaryLines = try HomeModel.todaySummary(userId: userId, dayKey: todayKey, distanceUnit: AuthStore.shared.distanceUnit, store: store) // A18.9
             let marks = try HomeModel.weekMarks(userId: userId, plan: plan, todayKey: todayKey, pause: pause, store: store) // Flow 2 · A17.4 · A18.6a/A18.7
             weeklyRing = marks.days

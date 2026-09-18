@@ -27,9 +27,10 @@ struct SeedClient {
         return "203.0.113.\((ipCounter + Int(ProcessInfo.processInfo.processIdentifier)) % 250)"
     }
 
-    func register(name: String) async throws -> SeedSession {
+    // birthYear: 1993 is an adult (the nutrition surface exists); journey ⑤ also registers a 15-year-old to see it absent (A16.c)
+    func register(name: String, birthYear: Int = 1993) async throws -> SeedSession {
         let email = "\(name.lowercased().replacingOccurrences(of: " ", with: "-"))-\(Int(Date().timeIntervalSince1970))-\(Int.random(in: 0..<1_000_000))@example.com"
-        let body: [String: Any] = ["email": email, "password": "journey password 1", "displayName": name, "timezone": TimeZone.current.identifier, "eulaAccepted": true, "birthYear": 1993]
+        let body: [String: Any] = ["email": email, "password": "journey password 1", "displayName": name, "timezone": TimeZone.current.identifier, "eulaAccepted": true, "birthYear": birthYear]
         let (data, status) = try await call("POST", "auth/register", body: body, token: nil)
         guard status == 201, let reply = try JSONSerialization.jsonObject(with: data) as? [String: Any], let token = reply["accessToken"] as? String,
               let user = reply["user"] as? [String: Any], let id = user["id"] as? String else { throw SeedError.unexpected("register → \(status) \(String(decoding: data, as: UTF8.self).prefix(300))") }
@@ -64,6 +65,18 @@ struct SeedClient {
         let post: [String: Any] = ["clientId": UUID().uuidString.lowercased(), "shareToCrew": true]
         let (_, done) = try await call("PATCH", "sessions/\(id)", body: ["timezone": TimeZone.current.identifier, "status": "completed", "post": post], token: session.accessToken)
         guard done == 200 else { throw SeedError.unexpected("sessions/\(id) → \(done)") }
+    }
+
+    // SPEC: 8.4 journey ⑤ — nutrition as ANOTHER device left it: targets from 176 lb (V58: 145 · 385 · 60), one saved meal and a
+    // one-slot template. The phone has none of it, so what Today shows proves the pull (NutritionHydrate) and not a local write.
+    func seedNutrition(as session: SeedSession) async throws {
+        let (_, targets) = try await call("PUT", "nutrition/targets", body: ["bodyweight": 176, "unit": "lb"], token: session.accessToken)
+        guard targets == 200 else { throw SeedError.unexpected("nutrition/targets → \(targets)") }
+        let mealId = UUID().uuidString.lowercased()
+        let (_, meal) = try await call("POST", "nutrition/saved-meals", body: ["clientId": mealId, "name": "Oats and whey", "proteinG": 30, "carbsG": 45, "fatG": 10], token: session.accessToken)
+        guard meal == 201 else { throw SeedError.unexpected("nutrition/saved-meals → \(meal)") }
+        let (_, template) = try await call("PUT", "nutrition/template", body: ["slots": [["savedMealId": mealId, "label": "Breakfast"]]], token: session.accessToken)
+        guard template == 200 else { throw SeedError.unexpected("nutrition/template → \(template)") }
     }
 
     // SPEC: A18 / J034 — the seeds Home's four non-bridge states need, so CI can PHOTOGRAPH each one. Before this the

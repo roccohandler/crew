@@ -18,9 +18,10 @@ struct UpdateMeRequestDTO: Codable {
     var clearsProfilePhoto = false
     var notificationPrefs: NotificationPrefsPatchDTO? = nil
     var welcomeBackAckDay: String? = nil
+    var birthYear: Int? = nil                // A16.c · addendum §6: stored ONCE, when Nutrition is first opened on an account without one (409 birthYearSet after)
 
     enum CodingKeys: String, CodingKey {
-        case displayName, units, weightUnit, distanceUnit, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay
+        case displayName, units, weightUnit, distanceUnit, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay, birthYear
     }
 
     func encode(to encoder: Encoder) throws {
@@ -34,6 +35,7 @@ struct UpdateMeRequestDTO: Codable {
         if clearsProfilePhoto { try container.encodeNil(forKey: .profilePhotoKey) } else { try container.encodeIfPresent(profilePhotoKey, forKey: .profilePhotoKey) }
         try container.encodeIfPresent(notificationPrefs, forKey: .notificationPrefs)
         try container.encodeIfPresent(welcomeBackAckDay, forKey: .welcomeBackAckDay)
+        try container.encodeIfPresent(birthYear, forKey: .birthYear)
     }
 }
 

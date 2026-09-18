@@ -14,7 +14,8 @@ enum OpKind: String, Codable, CaseIterable {
     // the server answers chatRetired (non-retryable), the queue holds it, and FailedUploadSheet names it through its default.
     // A22 (2026-09-18): createPost is retired with the plate journal the same way — the server answers postsRetired; the case stays
     // so a record from an older build still decodes and drains.
-    case createSession, patchSession, createPost, deletePost, react, unreact, putPlan, pause, pushToken
+    // W8 (nutrition addendum §2, a 5.6.3 map change): the six nutrition ops — none of them ever carries a post or moves the game state.
+    case createSession, patchSession, createPost, deletePost, react, unreact, putPlan, pause, pushToken, putNutritionTargets, upsertSavedMeal, deleteSavedMeal, putDayTemplate, createMealLog, deleteMealLog
 }
 
 enum OpState: String {

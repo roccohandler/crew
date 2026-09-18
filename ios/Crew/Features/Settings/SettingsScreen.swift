@@ -37,6 +37,7 @@ struct SettingsScreen: View {
                         .onChange(of: distanceUnit) { _, value in Task { await model.setDistanceUnit(value) } }
                 }
                 NotificationRows(model: model)
+                if auth.nutrition != .absent { NutritionSettingsRows(availability: auth.nutrition) } // A16.c: under 18 the rows are absent, with no copy
                 Section("Privacy & safety") {
                     NavigationLink("Blocked people") { BlockedPeopleScreen() }
                     Button("Privacy policy") { legalPage = .privacy }.foregroundStyle(EmberColors.inkText)
