@@ -54,9 +54,15 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit # phone-375 runs on WebKit (iPhone descriptor)
       - run: npm run e2e
+      # Owner order 2026-09-18, item 1: traces ON for every journey (playwright.config.ts) and uploaded ALWAYS — before this the
+      # artifact named a directory only the html reporter writes, and the reporter was `list`, so a red e2e run left no evidence.
       - uses: actions/upload-artifact@v4
-        if: failure()
-        with: { name: playwright-report, path: web/playwright-report }
+        if: always()
+        with:
+          name: playwright-traces
+          path: |
+            web/playwright-report
+            web/test-results
 
   engine-swift:
     # The twin engine on the OPEN-SOURCE toolchain: no Xcode, no macOS runner, no minutes multiplier. ios/Package.swift
@@ -155,6 +161,25 @@ jobs:
         if: always()
         shell: bash
         run: bash ios/scripts/verdict.sh "${{ steps.test.outcome }}"
+      # Owner order 2026-09-18, item 1 — THE STORYBOARD: every journey step is a numbered attachment ("NN-<screen> — <action>",
+      # CrewUITests/Screenshots.swift); this exports them from the bundle and writes storyboard/<Test>/NN-<slug>.png + index.md
+      # (test · step · screen · action), uploaded as its own small artifact so a flow can be reviewed without the whole xcresult.
+      - name: storyboard — export every journey step as NN-<action>.png with an index
+        if: always()
+        shell: bash
+        run: |
+          if [ -d ios/TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path ios/TestResults.xcresult --output-path ios/storyboard-raw
+            node ios/scripts/storyboard.mjs ios/storyboard-raw ios/storyboard
+          else
+            echo "no TestResults.xcresult — the test step never ran; nothing to export"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-storyboard
+          path: ios/storyboard/**
+          if-no-files-found: warn
       # Always, not only on failure: TestResults.xcresult carries every test's screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
       # J034 (A18, 2026-09-10) — that bundle now contains Home's four non-bridge states by name, from HomeStatesTests:

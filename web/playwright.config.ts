@@ -14,8 +14,11 @@ export default defineConfig({
   globalSetup: deployed ? undefined : "./tests/e2e/warm-up.ts",
   expect: { timeout: 10_000 }, // a first-hit route under three workers can still take longer than the 5 s default
 
-  reporter: [["list"]],
-  use: { baseURL: deployed ?? "http://localhost:3000", trace: "retain-on-failure" },
+  // Owner order 2026-09-18, item 1: traces and screenshots ON for every journey, pass or fail, and an html report beside the
+  // list — the agent reviews every web flow from the CI artifact (playwright-traces), not only the red ones.
+  reporter: [["list"], ["html", { open: "never" }]],
+  outputDir: "test-results",
+  use: { baseURL: deployed ?? "http://localhost:3000", trace: "on", screenshot: "on" },
   projects: [
     { name: "phone-375", use: { ...devices["iPhone 13"], viewport: { width: 375, height: 812 } } },
     { name: "tablet-768", use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } } },
