@@ -637,7 +637,28 @@ today's weekday from the wall-clock calendar while Home judges today by the 3 AM
 names tomorrow's weekday — the run began at 00:28 UTC, the first run ever inside that window (neither test file had changed since the
 last green run). **F53**: the seed client gains `appToday()` (now minus `dayBoundaryHour`, mirrored by name because a UI-test bundle
 cannot import SpecConstants) and both the plan and the pause helpers count that day. Test-only; no app file changed. TestFlight
-correctly skipped (run 35291354103). The verdict of the F53 run and the TestFlight build number follow below.
+correctly skipped (run 35291354103).
+
+**CI run 35291594989 (F53, b918332) — attempt 1:** the two #39 failures PASS (the 3 AM diagnosis held; all-done 32 s, workout day
+13 s, paused 12 s) and ONE new failure, `HomeStatesTests.testRestDayNamesItsNumbersAndStatesThePremise`, 112.5 s, "the screen says:"
+EMPTY. The xcodebuild log dates it: `Launch` at t = 0.45 s, the first `Requesting snapshot of accessibility hierarchy for app with pid
+28918` at t = 46.7 s, never answered, then `Restarting after unexpected exit, crash, or test timeout` — an UNRESPONSIVE APP at launch,
+not a wrong seed and not a wrong assertion. Across #39 and #40 the same signature hit 2 of 8 seeded-Home launches (#39 all-done
+110.7 s, #40 rest day 112.5 s); both had the member's single training day on the app's TOMORROW, but a third launch with that seed
+(#39 workout day) rendered normally, and every "tomorrow" path is bounded (`nextTrainingDayKey` ≤ 7 steps, `kindOn` ≤ 7,
+`pullIfEmptyBounded` capped) — so INTERMITTENT, recorded in debt.md, NOT fixed and NOT papered over. **Attempt 2** (`gh run rerun
+--failed`, the four green jobs carried over): macOS job GREEN — 140 unit tests, journeys ① ②, CameraDenied, OfflineSession and all
+four Home states. **CI GREEN on b918332.**
+
+**TestFlight run 35294010935 FAILED at Archive** (exit 65): "Choose a certificate to revoke. Your account has reached the maximum
+number of certificates" and "No profiles for 'com.maxwellcuenca.crew' were found … iOS App Development provisioning profiles". Cause:
+the archive step signs with automatic signing on a FRESH runner every time, and a runner that holds no private key mints a NEW Apple
+Development certificate per build; the builds since 2026-09-08 exhausted Apple's per-team cap. Not the code, not W2: the same
+workflow shipped build 126 on 2026-09-16. Recorded in debt.md. **OWNER ACTION (one step): at developer.apple.com → Certificates,
+Identifiers & Profiles → Certificates, revoke every "Apple Development" certificate (all runner-minted — the owner has no Mac, so none
+is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
+commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
+before it is touched.
 ## Ledger
 
 Phase 0 — contracts
