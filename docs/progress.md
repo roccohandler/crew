@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-18 04:02Z (TestFlight UNBLOCKED — the archive is unsigned and the export signs with the cloud-managed Distribution identity; BUILD 145 UPLOADED, run 35305232232, carrying W2 → W6; earlier: W3 → W6 pushed, CI green first attempt, run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; earlier: TestFlight repaired at build 145, W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -659,6 +659,21 @@ Identifiers & Profiles → Certificates, revoke every "Apple Development" certif
 is in use; keep the "Apple Distribution" ones), then Actions → testflight → Run workflow with the build number blank → build 136 (the
 commit count).** The workflow-side repair (an archive that does not mint a development certificate) is a debt entry, owner-approved
 before it is touched.
+## 2026-09-18 05:48Z — BUILD 150 (016721f) UPLOADED AND CI-GREEN: the one to smoke-test
+
+- **CI run 35311124097 green on every job** for 016721f (light always via the Info.plist key + "launch: real UI first" + the C9 trim +
+  the job-level concurrency): contracts · web · web e2e (32) · ios engine · ios (unit and all UI journeys, including HomeStates and
+  journey ② landing on the new syncing chrome before the account arrives). **TestFlight run 35311167431 uploaded build 150.**
+- Two lessons on the way, both repaid in the same hour: (1) a gate piped into `tail` hides its exit code — cadce76 went up with a
+  doctrine C9 finding (HomeScreen at 201 lines) and CI failed in 13 s; chains now call `doctrine-lint.mjs` bare so a finding stops them.
+  (2) `testflight.yml`'s concurrency group sat at WORKFLOW level, so the `workflow_run` event for that cancelled/failed ci run claimed
+  the slot — even though its job was skipped by the `if` — and cancelled the live dispatched upload (run 35310448236) eight seconds in;
+  the group now sits on the job, which a skipped job never enters.
+- Observed, not chased: the ios job log carries two `CoreData … addPersistentStoreWithType … NSCocoaErrorDomain (512)` lines in the
+  `xcodebuild test` step — identical count in the previous green run 35302729856, so pre-existing, tests green (debt.md).
+- NEXT (owner): install 150, the ONE smoke test (invite by code · two celebration buttons + the reminder question · chat-free Crew ·
+  Charts | Journal, Units, Version 0.1.0 (150) · light on a dark phone · a reinstall shows Home at once with "Syncing your week…").
+  Still owed: Build B (A21.12), A22's G1–G4. NEXT (builder): nothing until those arrive.
 ## 2026-09-18 — OWNER-DIRECTED "LAUNCH: REAL UI FIRST" — SHIPPED (and the light ruling corrected: build 147 was still dark)
 
 - **Light, corrected.** `INFOPLIST_KEY_UIUserInterfaceStyle` only applies to a GENERATED Info.plist; Crew's is written by xcodegen from
