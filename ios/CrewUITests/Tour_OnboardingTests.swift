@@ -35,10 +35,10 @@ final class Tour_OnboardingTests: XCTestCase {
         _ = app.buttons["Looks good"].waitForExistence(timeout: 15)
         tourShot(app, "onboarding_plan_built", "answered Brand new")
         // A26: the first row of every plan is the owner's flat bench. The workout cards start BELOW the week rows, so the step scrolls
-        // to the row before it taps (run 35400020876 lost this shot: the old "second button whose label says Press" sat under the
-        // bottom bar, was not hittable, and the two shots after it were renumbered)
+        // to the row before it shoots and taps (run 35400020876 lost the swap-sheet shot to the old "second button whose label says
+        // Press" query, and run 35403203894 shot the rows still hidden under the bottom bar — TourSteps says why)
         let exercise = tourButton(app, startingWith: "Barbell Bench Press")
-        tourScroll(app, until: exercise)
+        tourScrollClearOfBottomBar(app, until: exercise)
         if exercise.exists { tourShot(app, "onboarding_plan_rows", "scrolled to the workout cards — every row with its equipment chip") } // ui-reviewer, run 35400020876: the chip was in no shot
         if tourTap(exercise, timeout: 5) {
             tourShot(app, "onboarding_swap_sheet", "tapped an exercise")

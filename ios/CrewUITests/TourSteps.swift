@@ -53,6 +53,18 @@ extension XCTestCase {
         }
     }
 
+    // A screen with a BOTTOM BAR (A19.1's safeAreaInset) reports a row under the bar as existing AND hittable, so `tourScroll` stops
+    // too early there: run 35403203894 shot the reveal unscrolled and tapped "Open …" through the session's bar to no effect. This
+    // one swipes up until the element's frame is clear of the bottom quarter of the screen, where those bars live; never an assertion
+    func tourScrollClearOfBottomBar(_ app: XCUIApplication, until element: XCUIElement, pages: Int = 4) {
+        let clearBelow = app.frame.height * 0.75
+        for _ in 0..<pages where !(element.waitForExistence(timeout: 1) && element.frame.maxY <= clearBelow) {
+            // a slow drag of 40% of the screen, not a flick (a flick's momentum can carry a short page's row past the TOP edge), and in
+            // the canvas GUTTER: mid-screen on the logger is the weight tape, which takes a drag for itself
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.7)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)))
+        }
+    }
+
     // A pushed screen goes back by the navigation bar's first button; a sheet has none and takes the pull
     func tourBack(_ app: XCUIApplication) {
         let back = app.navigationBars.buttons.element(boundBy: 0)
