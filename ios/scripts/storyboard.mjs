@@ -5,6 +5,9 @@
 // exporter (an array of { testIdentifier, attachments: [{ exportedFileName, suggestedHumanReadableName, … }] } — or, on an older
 // exporter, a flat array of attachments). Anything it cannot parse still lands in the storyboard under its raw name, so a
 // manifest change never hides a picture. Owner order 2026-09-18, item 1. Usage: node ios/scripts/storyboard.mjs <raw> <out>
+// A24 (2026-09-18): a TOUR shot is named "NN_<tab>_<screen>_<state> — <action taken>" (CrewUITests/TourSteps.swift). It keeps that
+// name as its file — storyboard/<tour class>/NN_<tab>_<screen>_<state>.png, the key design/baselines/ is compared by — and its row
+// also lands in TOUR.md (flow · step · action taken · screenshot file).
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, extname, join } from "node:path";
 
@@ -26,6 +29,8 @@ function cleanName(name) {
 // "03-S04 the week, built" → { step: "03", screen: "S04", action: "the week, built" }; "S07 Home — rest day" → screen "S07 Home", action "rest day"
 function parseName(raw) {
   const name = cleanName(raw);
+  const tour = /^(\d{2})_([A-Za-z0-9_]+)(?: — (.*))?$/.exec(name);
+  if (tour) return { step: tour[1], screen: tour[2], action: (tour[3] ?? "").trim(), tourFile: `${tour[1]}_${tour[2].toLowerCase()}` };
   const numbered = /^(\d{2})-(.*)$/.exec(name);
   const step = numbered ? numbered[1] : "";
   const rest = numbered ? numbered[2] : name;
@@ -59,20 +64,23 @@ const rows = (manifest.length > 0 ? manifest : files.map((file) => ({ test: "", 
   .sort((a, b) => a.test.localeCompare(b.test) || a.parsed.step.localeCompare(b.parsed.step) || a.name.localeCompare(b.name)); // a test's steps in the order taken
 
 mkdirSync(outDir, { recursive: true });
+const tourLines = ["# UI tour — every flow, step by step", "", "| Flow | Step | Action taken | Screenshot file |", "|---|---|---|---|"];
 const lines = ["# Storyboard — every journey step, in the order it was taken", "", "| Test | Step | Screen | Action | File |", "|---|---|---|---|---|"];
 let copied = 0;
 for (const row of rows) {
   const source = join(rawDir, row.file);
   if (!row.file || !existsSync(source)) continue;
   const testClass = (row.test.split("/")[0] || "unknown").replace(/\(\)$/, "");
-  const { step, screen, action } = row.parsed;
+  const { step, screen, action, tourFile } = row.parsed;
   const ext = extname(row.file) || ".png";
-  const fileName = `${step ? `${step}-` : ""}${slug(`${screen} ${action}`)}${ext}`;
+  const fileName = tourFile ? `${tourFile}${ext}` : `${step ? `${step}-` : ""}${slug(`${screen} ${action}`)}${ext}`;
   const dir = join(outDir, slug(testClass));
   mkdirSync(dir, { recursive: true });
   copyFileSync(source, join(dir, fileName));
   lines.push(`| ${row.test || "—"} | ${step || "—"} | ${screen || "—"} | ${action} | ${slug(testClass)}/${fileName} |`);
+  if (tourFile) tourLines.push(`| ${testClass} | ${step} | ${action || "—"} | ${slug(testClass)}/${fileName} |`);
   copied += 1;
 }
+writeFileSync(join(outDir, "TOUR.md"), `${tourLines.join("\n")}\n`);
 writeFileSync(join(outDir, "index.md"), `${lines.join("\n")}\n`);
 console.log(`storyboard: ${copied} shot(s) from ${rows.length} manifest row(s) → ${outDir}/index.md`);

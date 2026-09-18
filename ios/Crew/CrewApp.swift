@@ -11,9 +11,13 @@ struct CrewApp: App {
 
     init() {
         Signposts.beginLaunch() // 8.8: the launch → Home interval starts here
+        // A24 (2026-09-18): the test bundle's launch arguments are read in a Debug build ONLY — no Release build (TestFlight, the
+        // App Store) can be reset or handed a session from its command line
+        #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("-resetState") { Self.resetState() }               // CrewUITests journey ①: a fresh install, every run
         if arguments.contains("-seededReturningUser") { Self.seedReturningUser() } // CrewUITests journey ②: yesterday's member
+        #endif
     }
 
     // 8.4 journey ① starts from nothing: the Keychain session, the SwiftData store and the pre-auth draft are cleared.
@@ -40,11 +44,13 @@ struct CrewApp: App {
     // 8.4 journey ②: the test bundle (CrewUITests/SeedClient) registers the member, their plan, first post and crew through the
     // real API, then hands the signed-in session over in CREW_SEED_SESSION. The phone wakes signed in with an empty Store and
     // hydrates from the server exactly as a reinstalled phone does (RootView → ServerHydrate) — no test-only path in the app.
+    #if DEBUG
     private static func seedReturningUser() {
         guard let raw = ProcessInfo.processInfo.environment["CREW_SEED_SESSION"], let session = try? JSONDecoder.crew.decode(AuthSessionDTO.self, from: Data(raw.utf8)) else { return }
         resetState()
         AuthStore.shared.store(session)
     }
+    #endif
 
     var body: some Scene {
         WindowGroup {

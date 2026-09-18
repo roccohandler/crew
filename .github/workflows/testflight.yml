@@ -50,9 +50,11 @@ jobs:
       cancel-in-progress: true
     # `workflow_run` fires on EVERY ci completion — failures, cancellations, and pull-request runs included. Only a
     # GREEN run on master earns a build; a manual dispatch carries no workflow_run payload and is always allowed.
+    # A24 (2026-09-18): and only a PUSH run. ci now has a workflow_dispatch of its own (the UI tour) that runs contracts + ios and
+    # skips the web jobs — green, on master, and proof of nothing a TestFlight build should ride on.
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master')
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.event == 'push')
     steps:
       # A workflow_run job checks out the DEFAULT BRANCH's tip by default, NOT the commit whose CI run triggered it —
       # which would silently ship whatever landed while this build was queued. Naming the sha is what makes the

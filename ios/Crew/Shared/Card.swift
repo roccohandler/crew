@@ -3,6 +3,7 @@
 
 import SwiftUI
 
+
 struct Card<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
