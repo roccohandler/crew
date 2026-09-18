@@ -1271,3 +1271,31 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (its site refused every non-browser client, and reading it meant presenting a script as a browser — held for the owner's word),
   Burger King (the only readable official document is dated November 2022), Five Guys (publishes per component only, and its patty
   row does not reconcile with its own calories), Taco Bell (publishes through a third-party host only). `fastFoodChainCount` says 6.
+
+- **R-075 · 2026-09-18 · W8c, the nutrition screens — READINGS (each the smallest in-contract answer; overturnable by a registry line).**
+  (1) CLAUSE ② SAYS AN OVERAGE NAMES TOMORROW "IN THE SAME BREATH", and the addendum's Today cites clause ②: one ink sentence sits
+  under the four lines whenever any of them is over — "Tomorrow starts from your full targets." — a fact, never a verb aimed at the
+  user, and silent on a day at or under target (`MacroDay.horizonText`, both engines). (2) EXACTLY ON TARGET prints no "0 to go": the
+  amounts already say it, and a zero is never a verdict (A8). (3) THE BAR's target marker sits at `macroBarTargetPercent` (80 %) of
+  the track so an overage has room to show as LENGTH; the colour never bends (§7.4 ⑤). (4) "TODAY CARRIES NO INK-FILLED PRIMARY" is
+  read as the populated Today (Q3: the Home row is the action); its FIRST-RUN state is one number and one ink button ("Estimate my
+  targets"), and the birth-year ask has one too — a state with a single action keeps Part III law ①'s one primary. (5) THE HOME ROW
+  reports a COUNT ("2 logged") or nothing (A8) — never grams, never a verdict. (6) THE GRAM STEPPERS step by `macroGramsRoundTo` AND
+  the number is typeable on both platforms: forty grams is eight taps otherwise. (7) WEB: "Saved meals & template" is two routes under
+  one segment (the ProgressSegments precedent, A19.4), and the chain picker prints the chain's NAME alone — the seed's neutral icons
+  are SF Symbols, which the phone draws. (8) THE BODYWEIGHT FORM speaks the account's CURRENT weight unit (a bodyweight typed in
+  pounds reads in kilograms after the switch, A9's `weightIn`); one parser on both engines accepts "80.5" and "80,5" and rounds to a
+  tenth. (9) THE PHONE PULLS NUTRITION ONLY WHEN NUTRITION OPENS (never at launch, §6) and ONLY while no nutrition op is queued — a
+  pull REPLACES the phone's rows, so while the phone is ahead it waits (the A3 reconcile-guard precedent); a row arriving from the
+  server names its meal by server id and is translated to the clientId the phone keys by. (10) A QUEUED DELETE IS IDEMPOTENT on the
+  server: a log or a meal that is already gone is the state the op asked for, so the op is delivered, never held as poison for the user
+  to "retry" (E19 is for real failures). (11) AN ACCOUNT WITH NO BIRTH YEAR sees the Settings rows; its "Nutrition targets" row leads to
+  where the year is asked (the page on web, Today on the phone). A user cached by a build that predates `user.nutrition` reads as
+  ABSENT until the next signed-in frame refreshes it — the surface is never shown on a guess. (12) WEB WRITES SURVIVE THE PAGE GOING
+  AWAY: `apiFetch` sets `keepalive` on every JSON write (never on a file upload), and an undo tapped while its log is still on the way
+  up waits for that create to land — found by journey ⑤, which reloaded straight after an optimistic delete and read the old day.
+  (13) AN ERROR ON A NUTRITION SURFACE IS INK (`.notice`): the semantic red does not exist there (law ⑥'s exception), and
+  `launch-audit.mjs` now fails CI on one. (14) `shared/copy/*.json` is the ONE place shared words live; its numbers are
+  {placeholders} the generator resolves from spec-constants (C7), `check-copy.mjs` holds its rules, and the methodology page's four
+  sources were each read on 2026-09-18 before being linked (Kerksick 2018 for 25–35 kcal/kg, Jäger 2017 for 1.4–2.0 g/kg protein, the
+  Institute of Medicine's 2005 AMDR for fat at 20–35 % of energy, FAO paper 77 for the Atwater 4 · 4 · 9).

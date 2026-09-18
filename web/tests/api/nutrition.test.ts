@@ -149,6 +149,9 @@ describe("export, the two cascades and the phone's ops", () => {
     ];
     const replay = await readJson<{ results: { ok: boolean }[] }>(await sync(request("POST", "/sync", { token: me.accessToken, body: { timezone: TZ, ops } })));
     expect(replay.results.map((result) => result.ok)).toEqual([true, true, true, true, true, true]);
+    // a queued delete is idempotent: the log is already gone, which IS what the op asked for — delivered, never held as poison
+    const again = await readJson<{ results: { ok: boolean }[] }>(await sync(request("POST", "/sync", { token: me.accessToken, body: { timezone: TZ, ops: [{ opId: "d2", kind: "deleteMealLog", payload: { id: logId } }, { opId: "d3", kind: "deleteSavedMeal", payload: { id: randomUUID() } }] } })));
+    expect(again.results.map((result) => result.ok)).toEqual([true, true]);
     expect((await readJson<{ items: Meal[] }>(await listMeals(request("GET", "/nutrition/saved-meals", { token: me.accessToken })))).items.map((saved) => saved.name)).toEqual(["Overnight oats"]);
     const teen = await registered("teen-sync", thisYear - 16, "198.51.100.202");
     const refused = await readJson<{ results: { ok: boolean; error?: string; retryable?: boolean }[] }>(await sync(request("POST", "/sync", { token: teen.accessToken, body: { timezone: TZ, ops: [ops[0]] } })));

@@ -5,7 +5,7 @@
 // Twin of ios Features/Home/HomeModel+Facts.swift, split from today-state.ts for the same reason that file is split
 // from HomeModel.swift: the state machine answers "what day is this", these answer "what is there to report".
 import type { ObjectId } from "mongodb";
-import { posts, sessions } from "@/lib/db";
+import { mealLogs, posts, sessions } from "@/lib/db";
 import { addDays, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
 import { TimeUnits } from "@/lib/time-units";
 
@@ -23,6 +23,14 @@ export async function todaySummary(userId: ObjectId, todayKey: string): Promise<
     .sort({ createdAt: 1 })
     .toArray();
   return rows.map((row) => row.summary ?? "").filter((line) => line.length > 0);
+}
+
+// SPEC: A22 G4 · nutrition addendum Q3 — the "Log macros" row's measurement: how many entries today's macro log holds, or nothing
+// (A8: an unlogged row reports nothing, never a zero). A COUNT, never grams and never a verdict; read only for the signed-in user's
+// own Home — a macro entry is never joined into anything a crew can see (clause ④). Twin of ios HomeModel.macrosLogged.
+export async function macrosLoggedToday(userId: ObjectId, todayKey: string): Promise<number | null> {
+  const count = await (await mealLogs()).countDocuments({ userId, dayKey: todayKey, deletedAt: null });
+  return count > 0 ? count : null;
 }
 
 // SPEC: A14 — today per vector, the server twin of ios HomeModel.slots. A completed session of kind `cardio` is CARDIO,

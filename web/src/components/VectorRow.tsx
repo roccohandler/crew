@@ -9,9 +9,10 @@
 // 6.6 requires verb-first control labels; and the border measured 1.26:1 against 6.5's 3:1 gate, so the one mark that
 // says "this is a control" could not be seen (A18.11 gives it its own `controlOutline` token).
 //
-// A22 G4 (owner-approved 2026-09-18) — the third row is no longer "Log a meal" → the composer (the plate journal is gone). It
-// reads "Log macros" and opens nutrition Today once W8 ships it; gated off (G3: an under-18 account has no nutrition surface)
-// the row is ABSENT, never disabled. Until W8 there is nothing to open, so today the row is absent and two rows remain.
+// A22 G4 (owner-approved 2026-09-18) · nutrition addendum Q3 — the third row is no longer "Log a meal" → the composer (the plate
+// journal is gone). It reads "Log macros" and opens nutrition Today (W8); gated off (G3: an under-18 account has no nutrition
+// surface) the row is ABSENT, never disabled — `macros` is null and two rows remain. Its status is a COUNT of today's entries,
+// never grams and never a verdict.
 //
 // Full-width rows: ink verb leading, today's status trailing when there is one. A8 — an unlogged row REPORTS NOTHING
 // rather than reporting a zero or an em dash (H028 established that "—" reads as disabled); the verb is the invitation.
@@ -36,11 +37,12 @@ function LogRow({ verb, status, href }: { verb: string; status: string | null; h
   );
 }
 
-export function VectorRow({ slots, workoutHref }: { slots: VectorSlots; workoutHref: string }) {
+export function VectorRow({ slots, workoutHref, macros }: { slots: VectorSlots; workoutHref: string; macros: { logged: number | null } | null }) {
   return (
     <div className="logrows">
       <LogRow verb="Log workout" status={slots.workoutDone ? "Done" : null} href={workoutHref} />
       <LogRow verb="Log cardio" status={slots.cardioMinutes === null ? null : `${slots.cardioMinutes} min`} href="/log-cardio" />
+      {macros === null ? null : <LogRow verb="Log macros" status={macros.logged === null ? null : `${macros.logged} logged`} href="/nutrition" />}
     </div>
   );
 }

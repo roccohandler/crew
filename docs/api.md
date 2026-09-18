@@ -51,10 +51,10 @@ follows `COOKIE_SECURE` when set and DEFAULTS TO ON in production (`NODE_ENV=pro
 
 | Method + path | Schema | Does | Errors |
 |---|---|---|---|
-| GET `users/me` | — | `{ user, gamification, pause, crew }` — `user` is the public User: id, email, authProvider, displayName, profilePhotoKey, units, timezone, reminderTime, `notificationPrefs { workoutReminder, streakRisk, crewActivity }` (always present, defaults `true` — A7), welcomeBackAckDay, createdAt; `crew` = `{ id, name, emoji, muted }` or null | — |
-| PATCH `users/me` | `updateMeSchema` { displayName?, units?, timezone?, reminderTime? (null clears), profilePhotoKey? (null clears), notificationPrefs? (partial), welcomeBackAckDay? } | update profile fields; `profilePhotoKey` must name a photo the caller uploaded with `purpose: "profile"` (400 `validation` otherwise — A7/E1); `notificationPrefs` is merged over the stored toggles (send only the row that changed — A7); `welcomeBackAckDay` (YYYY-MM-DD) records the answer to the welcome-back screen (E4) so no device asks twice in one quiet spell; replies with the public User | `validation` |
+| GET `users/me` | — | `{ user, gamification, pause, crew }` — `user` is the public User: id, email, authProvider, displayName, profilePhotoKey, units, timezone, reminderTime, `notificationPrefs { workoutReminder, streakRisk, crewActivity }` (always present, defaults `true` — A7), welcomeBackAckDay, `nutrition` (available \| askBirthYear \| absent — A16.c; the birth year itself is never returned), createdAt; `crew` = `{ id, name, emoji, muted }` or null | — |
+| PATCH `users/me` | `updateMeSchema` { displayName?, units?, timezone?, reminderTime? (null clears), profilePhotoKey? (null clears), notificationPrefs? (partial), welcomeBackAckDay?, birthYear? (A16.c: stored ONCE, behind the 13+ floor — `birthYearSet` 409 when the account already has one, `underage` 403) } | update profile fields; `profilePhotoKey` must name a photo the caller uploaded with `purpose: "profile"` (400 `validation` otherwise — A7/E1); `notificationPrefs` is merged over the stored toggles (send only the row that changed — A7); `welcomeBackAckDay` (YYYY-MM-DD) records the answer to the welcome-back screen (E4) so no device asks twice in one quiet spell; replies with the public User | `validation` |
 | DELETE `users/me` | `deleteAccountSchema` { confirm: "delete" } | the cascade (E9, 8.2 Account): posts vanish from streams, blobs deleted, memberships removed (captaincy auto-passes, last-out archives), refresh tokens revoked, Resend "account deleted" email; afterwards every resource 404s and re-signup is a fresh identity | `validation` |
-| GET `users/me/export` | — | streamed JSON export of everything the user owns (user, plan — in the A1 shape, sessions, sets, posts, reactions given, memberships, messages (system lines about you — the chat is gone, A21.2), gamification, pauses, blocks) — 8.2 completeness test | — |
+| GET `users/me/export` | — | streamed JSON export of everything the user owns (user, plan — in the A1 shape, sessions, sets, posts, reactions given, memberships, messages (system lines about you — the chat is gone, A21.2), gamification, pauses, blocks, and `nutrition` { targets, savedMeals, template, logs } — W8) — 8.2 completeness test | — |
 
 ## Photos — `photos` (T027) — tree addition, see ratification R-004
 
@@ -132,7 +132,8 @@ itself never leaves the server. NO nutrition route recomputes gamification, awar
 
 Sync ops (5.6.3 map change): `putNutritionTargets` (PUT targets body) · `upsertSavedMeal` (POST body; a later op with the same clientId edits it) ·
 `deleteSavedMeal` { id } · `putDayTemplate` (PUT template body) · `createMealLog` (POST logs body; timezone defaults to the batch's) ·
-`deleteMealLog` { id }. A gated account's op is refused per op (`notFound` / `birthYearRequired`), never as a failed batch.
+`deleteMealLog` { id }. A gated account's op is refused per op (`notFound` / `birthYearRequired`), never as a failed batch. A queued
+DELETE is idempotent: a row that is already gone is the state the op asked for, so `deleteSavedMeal` / `deleteMealLog` answer ok (R-075).
 
 ## Sync — `sync` (T023)
 

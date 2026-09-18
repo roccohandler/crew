@@ -750,3 +750,166 @@ a {
   font-size: 0.875rem;
   color: var(--ember-secondary-text);
 }
+
+/* SPEC: nutrition addendum §4 · ux-plan §7.4 (law ⑥'s ONE bounded exception) — the macro lines. The three macro tokens are
+   IDENTITY only and render nowhere else; no ember element and no semantic token shares a surface with them. The redundant
+   encoders that live in CSS: ④ fill treatment — protein solid, carbs solid + an ink hairline, fat an OUTLINE + an ink hairline —
+   and the target marker, an ink hairline at macroBarTargetPercent of the track, so an overage shows as LENGTH past it and the
+   colour never bends (⑤). Letters, numbers and "N to go / N over" are ink (② ③ ⑤). Twin of ios MacroLines. */
+.macro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ember-space-4);
+}
+
+.macro__name {
+  font-weight: 600;
+  color: var(--ember-ink-text);
+}
+
+.macro__letter {
+  display: inline-block;
+  min-width: 1.5ch;
+  font-weight: 700;
+}
+
+.macro__amount {
+  color: var(--ember-ink-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.macro__rest {
+  margin: 0;
+  color: var(--ember-ink-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.macro__track {
+  position: relative;
+  height: var(--ember-space-12);
+  border-radius: var(--ember-space-4);
+  overflow: hidden;
+}
+
+.macro__track--protein {
+  background: var(--ember-macro-protein-track);
+}
+
+.macro__track--carbs {
+  background: var(--ember-macro-carbs-track);
+}
+
+.macro__track--fat {
+  background: var(--ember-macro-fat-track);
+}
+
+.macro__fill {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.macro__fill--protein {
+  background: var(--ember-macro-protein);
+}
+
+.macro__fill--carbs {
+  background: var(--ember-macro-carbs);
+  border: var(--ember-size-hairline) solid var(--ember-ink-text);
+}
+
+.macro__fill--fat {
+  background: transparent;
+  border: calc(var(--ember-size-hairline) * 3) solid var(--ember-macro-fat);
+  box-shadow: inset 0 0 0 var(--ember-size-hairline) var(--ember-ink-text);
+}
+
+.macro__marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--ember-size-hairline);
+  background: var(--ember-ink-text);
+}
+
+/* an error on a nutrition surface is INK — the semantic red does not exist here (law ⑥'s exception) */
+.notice {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ember-ink-text);
+}
+
+/* one gram amount: the label, then − [ number ] + (6.3: 44 px targets; 6.7: never wider than a 375 px row) */
+.gramfield {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ember-space-8);
+}
+
+.gramfield__label {
+  font-weight: 600;
+}
+
+.gramfield__input {
+  width: 6ch;
+  min-height: var(--crew-min-touch-target);
+  border: var(--ember-size-hairline) solid var(--ember-control-outline);
+  border-radius: var(--ember-space-12);
+  padding: var(--ember-space-8);
+  background: var(--ember-card);
+  color: var(--ember-ink-text);
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* a log row that is a BUTTON (a template slot, a chain, a chain's item) rather than a link */
+button.logrow {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.logrow--tall {
+  align-items: flex-start;
+}
+
+/* a meal, a slot or a log with its own visible actions (6.3): the words take the first line and the actions drop under them when a
+   375 px row cannot hold both (6.7: never a sideways scroll); the three numbers never break apart */
+.mealrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ember-space-4) var(--ember-space-8);
+}
+
+.mealrow__actions {
+  display: flex;
+  margin-inline-start: auto;
+}
+
+button.logrow .logrow__status,
+.mealrow .worklist__detail {
+  white-space: nowrap;
+}
+
+button.logrow .logrow__status {
+  flex-shrink: 0;
+}
+
+/* the number is typed or stepped by the two ink buttons beside it — the native spinner is a third, 12 px control (6.3) */
+.gramfield__input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.gramfield__input::-webkit-outer-spin-button,
+.gramfield__input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}

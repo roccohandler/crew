@@ -15,6 +15,7 @@ import { blockedIdsFor, memberDots } from "@/lib/crew-stream";
 import { crewMemberships, crews } from "@/lib/db";
 import { storedState } from "@/lib/gamification-store";
 import { shouldShowWelcomeBack } from "@/lib/lapsed-user";
+import { macrosLoggedToday } from "@/lib/home-facts";
 import { findPlan } from "@/lib/plans";
 import { readSession } from "@/lib/session";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -83,7 +84,7 @@ function title(today: HomeFacts["today"]): string {
 // SPEC: A17.2 / H019 — everything from the card down is ONE bottom-anchored group, so the slack lands as a section
 // break under the header rather than as a hole between the card and the vector row. Twin of the iOS Spacer moving
 // above TodayCard: the day's ink-filled primary is now in the thumb zone on every state.
-function BottomGroup({ facts, bonusKind, userId, isBridge }: { facts: HomeFacts; bonusKind: string | null; userId: ObjectId; isBridge: boolean }) {
+function BottomGroup({ facts, bonusKind, userId, isBridge, macros }: { facts: HomeFacts; bonusKind: string | null; userId: ObjectId; isBridge: boolean; macros: { logged: number | null } | null }) {
   // H008 — the twin divergence. iOS opens the BonusWorkoutSheet on a rest day; web went to "/plan", which answers a
   // question the user did not ask and leaves the screen entirely. Both offer the bonus workout now; "/plan" survives
   // only as the last resort when the plan has no next kind to offer.
@@ -99,7 +100,7 @@ function BottomGroup({ facts, bonusKind, userId, isBridge }: { facts: HomeFacts;
           crew avatar was a fourth vector slot. */}
       {!isBridge ? (
         <div className="stack stack--sections">
-          <VectorRow slots={facts.vectors} workoutHref={workoutHref} />
+          <VectorRow slots={facts.vectors} workoutHref={workoutHref} macros={macros} />
           {facts.inCrew ? <CrewToday userId={userId} todayKey={facts.todayKey} /> : null}
         </div>
       ) : null}
@@ -118,6 +119,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   if (shouldShowWelcomeBack(facts.lastPostDay, session.user.welcomeBackAckDay, facts.todayKey)) return <WelcomeBack todayKey={facts.todayKey} longestStreak={state?.longestStreak ?? 0} />; // E4 / S18
   const bonusKind = await bonusKindFor(userId, facts);
   const isBridge = facts.today.kind === "bridge";
+  // A22 G4 · A16.c — the macros row exists only when the nutrition surface does: absent under 18, with no copy
+  const macros = session.user.nutrition === "absent" ? null : { logged: await macrosLoggedToday(userId, facts.todayKey) };
   return (
     <div className="stack stack--page">
       <h1>{title(facts.today)}</h1>
@@ -129,7 +132,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {facts.openSessionId && !facts.openSessionStale && facts.today.kind !== "workout" && !isBridge ? <Link className="button button--secondary" href={`/session/${facts.openSessionId}`}>Resume workout</Link> : null}
       <WeekHeader facts={facts} streak={state?.currentStreak ?? 0} shields={state?.shields ?? 0} isBridge={isBridge} />
       <NextUpBlock facts={facts} />
-      <BottomGroup facts={facts} bonusKind={bonusKind} userId={userId} isBridge={isBridge} />
+      <BottomGroup facts={facts} bonusKind={bonusKind} userId={userId} isBridge={isBridge} macros={macros} />
     </div>
   );
 }

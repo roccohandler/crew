@@ -16,7 +16,7 @@ export async function fromFreshIp(page: Page): Promise<string> {
 
 // Hero → two questions → reveal → email save → Home (Flow 1; A21.1: 4 decisions before Home — hero, days-confirm, experience,
 // auth; the equipment question is gone because every user has full commercial gym access)
-export async function buildWeekAndSave(page: Page, options: { invite?: string; label?: string } = {}): Promise<string> {
+export async function buildWeekAndSave(page: Page, options: { invite?: string; label?: string; birthYear?: string } = {}): Promise<string> {
   const email = `${unique(options.label ?? "journey")}@example.com`;
   await fromFreshIp(page);
   await page.goto(options.invite ? `/?invite=${options.invite}` : "/");
@@ -35,7 +35,7 @@ export async function buildWeekAndSave(page: Page, options: { invite?: string; l
   await page.getByLabel("Name").fill("Journey");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("journey password 1");
-  await page.getByLabel("Birth year").fill("1994");
+  await page.getByLabel("Birth year").fill(options.birthYear ?? "1994"); // journey ⑤ signs a 15-year-old up to see the nutrition surface absent (A16.c)
   await page.getByRole("button", { name: "Save your plan" }).click();
   return email;
 }

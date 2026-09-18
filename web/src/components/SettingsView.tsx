@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BlockedPeople } from "@/components/BlockedPeople";
 import { NotificationRows } from "@/components/NotificationRows";
+import { NutritionSettings } from "@/components/nutrition/NutritionSettings";
 import { ProfileForm } from "@/components/ProfileForm";
 import { logout } from "@/lib/api-client";
 import { createPause, deleteAccount, endPause, updateMe } from "@/lib/api-client-crew";
@@ -74,6 +75,7 @@ export function SettingsView({ user, crew, pause, todayKey, zones }: Props) {
         <PlanSection user={user} zones={zones} onChanged={refresh} />
       </section>
       <NotificationRows user={user} crew={crew} />
+      {user.nutrition === "absent" ? null : <NutritionSettings />}{/* A16.c: under 18 the rows are absent, with no copy */}
       <BlockedPeople />
       <section className="card stack stack--tight" aria-label="Privacy and safety">
         <h2>Privacy &amp; safety</h2>

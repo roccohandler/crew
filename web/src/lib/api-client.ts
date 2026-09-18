@@ -27,7 +27,10 @@ async function refreshOnce(): Promise<boolean> {
 export async function apiFetch(path: string, init: RequestInit = {}, retry = true): Promise<unknown> {
   const headers = new Headers(init.headers);
   if (init.body !== undefined && !(init.body instanceof FormData)) headers.set("content-type", "application/json");
-  const response = await fetch(`/api/v1${path}`, { ...init, headers, credentials: "include" });
+  // SPEC: 5.3 optimistic write — a write the screen has already shown must survive the page going away (a tap, then a reload or a
+  // link): `keepalive` lets the browser finish a small JSON write after unload. Never for a file upload (keepalive caps the body).
+  const keepalive = init.method !== undefined && init.method !== "GET" && !(init.body instanceof FormData);
+  const response = await fetch(`/api/v1${path}`, { ...init, headers, credentials: "include", keepalive });
   if (response.status === UNAUTHORIZED && retry && !path.startsWith("/auth/")) {
     if (await refreshOnce()) return apiFetch(path, init, false);
   }
