@@ -26,3 +26,6 @@ ios/**/*.xcworkspace/xcshareddata/swiftpm/
 # os
 .DS_Store
 Thumbs.db
+
+# ui tour (A24): the fetched tour is per-machine; design/baselines/ and design/targets/ ARE committed
+design/tour/

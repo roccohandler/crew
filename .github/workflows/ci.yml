@@ -2,20 +2,41 @@
 # 5.3 (doctrine lint CI-blocking; formatting machine-owned) · 8.1 (a red vector on either engine blocks every merge) · T008
 name: ci
 
+# A24 (Appendix A 2026-09-18) — THE UI TOUR RIDES THIS WORKFLOW; there is no second one. The tour classes (CrewUITests/Tour_*)
+# run inside the ONE `xcodebuild test` the ios job already pays for, so nothing compiles twice. What A24 added here:
+#   · workflow_dispatch (input `branch`) and a push to ANY branch. Off master/main a run is `contracts` + `ios` only, and `ios`
+#     only when ios/scripts/ui-changed.mjs finds a UI path in the push — a scratch branch costs a Linux minute unless its UI moved.
+#   · a newer push cancels an in-progress run on the same branch — never on master/main, where every commit's verdict is kept.
+#   · the `ui-tour` artifact (tour shots · TOUR.md · CHANGES.md against design/baselines/, 7 days) beside `ios-storyboard`.
+# testflight.yml ships only a PUSH run on master, so dispatching a tour on master can never upload a build.
 on:
   push:
-    branches: [master, main]
+    branches: ["**"]
     paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to tour (blank = the ref this run was started from; /ui-check starts it from the branch itself)"
+        required: false
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ inputs.branch || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main' }}
 
 jobs:
   contracts:
     name: shared contracts (generate · drift · vectors · seeds · doctrine)
     runs-on: ubuntu-latest
+    outputs:
+      run_ios: ${{ steps.ui.outputs.run_ios }}
     steps:
       - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.branch || github.sha }}", fetch-depth: 0 } # depth 0: ui-changed.mjs diffs the push
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
+      - id: ui
+        run: node ios/scripts/ui-changed.mjs "${{ github.event.before }}"
       - run: node shared/scripts/generate.mjs
       - run: node shared/scripts/check-drift.mjs
       - run: node shared/scripts/check-vectors.mjs
@@ -29,6 +50,7 @@ jobs:
     name: web (lint · typecheck · test · vectors)
     runs-on: ubuntu-latest
     needs: contracts
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) # A24: a branch push or a dispatched tour runs contracts + ios only
     defaults: { run: { working-directory: web } }
     steps:
       - uses: actions/checkout@v4
@@ -71,6 +93,7 @@ jobs:
     name: ios engine (swift build · unit + vectors, Linux)
     runs-on: ubuntu-latest
     needs: contracts
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) # A24: a branch push or a dispatched tour runs contracts + ios only
     container: swift:5.10
     steps:
       - uses: actions/checkout@v4
@@ -84,8 +107,10 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45 # a hung simulator must not burn the six-hour default; a green run is 6–7½ minutes, most of it the journeys
     needs: contracts
+    if: needs.contracts.outputs.run_ios == 'true' # A24: always on master / main / a PR / a dispatch; on another branch only when the UI moved
     steps:
       - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.branch || github.sha }}" }
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
       - run: brew install xcodegen
@@ -116,6 +141,18 @@ jobs:
           test -n "$CREW_SIM"
           echo "Simulator: $CREW_SIM"
           echo "CREW_SIM=$CREW_SIM" >> "$GITHUB_ENV"
+      # A24 (4): the status bar is PINNED so a screenshot never differs by the minute it was taken — 9:41, full battery, full bars.
+      # The simulator is booted here by the same name xcodebuild is about to ask for; if the pin fails the tour still runs and
+      # CHANGES.md shows a sliver of drift at the top of every screen, which says exactly what went wrong.
+      - name: pin the simulator's status bar (9:41)
+        continue-on-error: true
+        shell: bash
+        run: |
+          UDID=$(xcrun simctl list devices available -j | node -e 'const all=JSON.parse(require("fs").readFileSync(0,"utf8")).devices;const hits=Object.entries(all).filter(([runtime])=>runtime.includes("iOS")).flatMap(([runtime,list])=>list.filter((d)=>d.name===process.env.CREW_SIM).map((d)=>({runtime,udid:d.udid})));hits.sort((a,b)=>a.runtime.localeCompare(b.runtime,undefined,{numeric:true}));console.log(hits.length?hits[hits.length-1].udid:"")')
+          test -n "$UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
       # ONE xcodebuild invocation, on a scheme (CrewAll, ios/project.yml) that carries BOTH test bundles.
       #
       # This job used to run `xcodebuild test` twice, once per scheme, which compiled the 151-file app twice. Run
@@ -142,6 +179,16 @@ jobs:
       # Keychain write fail with errSecMissingEntitlement (-34018): the session lived in memory only, so a kill-and-relaunch
       # woke on the hero and the offline journey could never pass (run 34367618719, Q09). Raw xcodebuild output into a log —
       # `shell: bash` is what gives the pipe `pipefail`, so tee never hides xcodebuild's exit status.
+      # A24 (3): a TOUR-ONLY run — a dispatch, or a push to a branch that is not master/main — runs the seven tour classes and nothing
+      # else: same single xcodebuild, same build, minus the unit suite and the journeys (≈ 5½ min of the first tour run, 35324724476).
+      # master, main and pull requests run everything, as before. -only-testing takes no wildcard, so the classes are named.
+      - name: tour-only run? (dispatch or a non-master branch push)
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main')
+        shell: bash
+        run: |
+          ONLY=""
+          for flow in Onboarding Home Plan Crew Progress Settings Session; do ONLY="$ONLY -only-testing:CrewUITests/Tour_${flow}Tests"; done
+          echo "CREW_ONLY_TESTING=$ONLY" >> "$GITHUB_ENV"
       - id: test
         name: build · unit + vectors · journeys ①② (xcodebuild test · scheme CrewAll)
         continue-on-error: true
@@ -149,7 +196,7 @@ jobs:
         run: >
           cd ios && xcodebuild test -project Crew.xcodeproj -scheme CrewAll
           -destination "platform=iOS Simulator,name=$CREW_SIM,OS=latest"
-          -resultBundlePath TestResults.xcresult
+          -resultBundlePath TestResults.xcresult $CREW_ONLY_TESTING
           CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO
           OTHER_SWIFT_FLAGS="-continue-building-after-errors" 2>&1 | tee test.log
       # The verdict: the ONE step that passes or fails this job, and the first thing to read when it is red. It prints the
@@ -179,6 +226,25 @@ jobs:
         with:
           name: ios-storyboard
           path: ios/storyboard/**
+          if-no-files-found: warn
+      # A24 (4): the tour's shots against design/baselines/ → CHANGES.md (changed · expected drift · new · removed · unchanged). It
+      # reports and never fails. `ui-tour` is what .claude/hooks/fetch-tour.mjs and /ui-check download: small, tour-only, 7 days.
+      - name: ui tour — diff against design/baselines, write CHANGES.md
+        if: always()
+        shell: bash
+        run: |
+          if [ -d ios/storyboard ]; then
+            node ios/scripts/tour-diff.mjs ios/storyboard design/baselines ios/ui-tour
+            cat ios/ui-tour/CHANGES.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "no storyboard — nothing to diff"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-tour
+          path: ios/ui-tour/**
+          retention-days: 7
           if-no-files-found: warn
       # Always, not only on failure: TestResults.xcresult carries every test's screenshots (CrewUITests/Screenshots.swift),
       # which is how the app is LOOKED AT from a machine that is not a Mac. docs/testing-without-a-mac.md says how to read it.
