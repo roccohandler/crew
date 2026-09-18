@@ -5,7 +5,10 @@
 //               session: offline, no runs, gh missing — each exits 0 with a one-line note. The download gets 40 s in the foreground (the
 //               12 MB artifact took 90 s on the owner's line, 2026-09-18); past that the same script finishes it detached.
 //   --run <id>  /ui-check: that run exactly, green or red, plain-text output, no deadline.
-//   --sync      the owner's scheduled task (every 10 min, no Claude session needed): EVERY branch with a newer tour, no deadline.
+//   --sync      the owner's scheduled task (no Claude session needed): EVERY branch with a newer tour, no deadline. The CADENCE lives in
+//               Task Scheduler, not here (daily since 2026-09-18; it was every 10 min). Nothing depends on it: a session fetches its own
+//               branch at start and /ui-check fetches its own run, so the task only keeps the OTHER branches' folders fresh. One bound:
+//               the artifact lives 7 days (ci.yml), so a cadence past that loses tours.
 // WHERE IT LANDS. By default design/tour/latest/ (git-ignored). When the machine sets CREW_TOUR_DIR — the owner's is a OneDrive folder —
 // each branch gets its own folder there: <CREW_TOUR_DIR>/<branch>/, so the sync task and a session never overwrite one another.
 import { execFileSync, spawn } from "node:child_process";
