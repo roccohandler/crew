@@ -6,8 +6,8 @@
 // area hittable rather than merely drawn.
 //
 // It moves to Shared/ because that diagnosis was never applied to the eight other controls with the identical shape —
-// Swap · Skip · Open (SessionScreen), Skip · rest length (RestTimerView), React (PostCard), "Same as yesterday"
-// (PostComposer) and "Open Settings" (EditProfileScreen) — every one of them a bare text Button relying on an ancestor's
+// Swap · Skip · Open (SessionScreen), Skip · rest length (RestTimerView), React (PostCard) and "Open Settings"
+// (EditProfileScreen) — every one of them a bare text Button relying on an ancestor's
 // minHeight. One concrete view now owns the shape so a ninth cannot appear. Ink, never ember (Part III law ①).
 //
 // `horizontalPadding` exists because the two uses genuinely differ: a standalone control ("+ warm-up", "Open Settings")

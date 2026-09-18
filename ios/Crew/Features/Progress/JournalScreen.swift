@@ -35,7 +35,7 @@ struct JournalScreen: View {
         Group {
             if posts.isEmpty {
                 // SPEC: A6 · 6.1 Empty — an invitation with exactly one CTA; W6: the CTA is today (Home), where a first workout starts
-                EmptyState(title: "Your first post lands here.", line: "Workouts and meals stack up day by day.", ctaTitle: "Go to today", action: onGoHome)
+                EmptyState(title: "Your first post lands here.", line: "Every workout you post stacks up here, day by day.", ctaTitle: "Go to today", action: onGoHome)
             } else {
                 list
             }

@@ -1,5 +1,5 @@
 // SPEC: T025 (Verify: ios tests + S09 criteria) — one-tap set logging at pre-fill, ghost row, warm-ups excluded from x/y, holds
-// auto-check, out-of-order, skips, completion numbers match the engine (S10), plate math, meal tags. A2 (owner-directed
+// auto-check, out-of-order, skips, completion numbers match the engine (S10), plate math. A2 (owner-directed
 // 2026-09-08): a cardio block's Done stores minutes as seconds plus an optional bounded distance, and the celebration line reads
 // "+ Walk 25 min"; A6: the journal line for the session. A1: the fixture is a rotation plan (trainingWeekdays + ordered
 // workouts, no weekday). In-memory Store (C4). WRITTEN — UNVERIFIED (needs Mac).
@@ -121,12 +121,8 @@ final class SessionModelTests: XCTestCase {
         XCTAssertEqual(JournalFacts.minutes(ofSeconds: 0), 0)
     }
 
-    func testPlateMathAndMealTags() {
+    func testPlateMath() { // A22: the meal-tag half left with the plate journal (MealTag is gone)
         XCTAssertEqual(PlateMath.plateLine(totalWeight: 190, units: "lb"), "45 + 25 + 2.5 per side")
         XCTAssertEqual(PlateMath.plateLine(totalWeight: 45, units: "lb"), "just the bar")
-        XCTAssertEqual(MealTag.tagFor(minuteOfDay: 7 * 60), .breakfast)
-        XCTAssertEqual(MealTag.tagFor(minuteOfDay: 12 * 60 + 30), .lunch)
-        XCTAssertEqual(MealTag.tagFor(minuteOfDay: 19 * 60), .dinner)
-        XCTAssertEqual(MealTag.tagFor(minuteOfDay: 2 * 60), .snack)
     }
 }

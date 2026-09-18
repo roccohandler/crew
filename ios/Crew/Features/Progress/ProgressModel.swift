@@ -1,5 +1,5 @@
 // SPEC: 5.6.2 ProgressModel — state: heatMap [DayCell], weeks [RingRecord], totals, strength [ExerciseTrend] (only where weight
-// logged); actions: select(dayKey) → DayDetail (workout + plates). Flow 9 layers 1–3, all from the local Store (offline-first).
+// logged); actions: select(dayKey) → DayDetail (the day's workouts; A22: the plates left with the plate journal). Flow 9 layers 1–3, all from the local Store (offline-first).
 // A2/A6 (owner-directed 2026-09-08): sets = strength work sets; cardio and mobility are minutes per week (facts, never targets);
 // A1: planned = trainingWeekdays. Twin of web/src/lib/progress-facts.ts. WRITTEN — UNVERIFIED (needs Mac). T040
 
@@ -21,7 +21,6 @@ struct RingRecord: Equatable, Identifiable {
     let done: Int
     let planned: Int
     let sets: Int            // strength work sets (A6)
-    let meals: Int
     let cardioMinutes: Int   // A2 — a fact, never a target
     let mobilityMinutes: Int
     var id: String { weekKey }
@@ -38,7 +37,6 @@ struct ExerciseTrend: Equatable, Identifiable {
 struct DayDetail: Equatable {
     let dayKey: String
     let workouts: [String]      // A6 lines: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km"
-    let plates: [LocalPost]
 }
 
 @Observable
@@ -80,7 +78,7 @@ final class ProgressModel {
         heatMap = heatMapCells(completed: completed, posts: posts)
         let plannedCount = plan?.trainingWeekdays.count ?? 0 // SPEC: A1 — planned = the plan's training days
         weeks = (0..<ringWeeks).reversed().map { offset in
-            weekRecord(DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek), completed: completed, posts: posts, planned: plannedCount)
+            weekRecord(DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek), completed: completed, planned: plannedCount)
         }
         totals = (completed.count, posts.count, state.longestStreak, state.currentStreak)
         balance = balanceOf(completed)
@@ -102,11 +100,10 @@ final class ProgressModel {
     }
 
     // SPEC: A6 — sets = strength work sets; A2 — cardio and mobility minutes are the rounded sum of done seconds (facts, never targets)
-    private func weekRecord(_ weekKey: String, completed: [LocalSession], posts: [LocalPost], planned: Int) -> RingRecord {
+    private func weekRecord(_ weekKey: String, completed: [LocalSession], planned: Int) -> RingRecord {
         let end = DayKey.addDays(weekKey, TimeUnits.daysPerWeek)
         let inWeek = completed.filter { $0.dayKey >= weekKey && $0.dayKey < end }
-        let meals = posts.filter { $0.type == "meal" && $0.dayKey >= weekKey && $0.dayKey < end }.count
-        return RingRecord(weekKey: weekKey, done: Set(inWeek.map(\.dayKey)).count, planned: planned, sets: doneSets(inWeek, type: "strength").count, meals: meals,
+        return RingRecord(weekKey: weekKey, done: Set(inWeek.map(\.dayKey)).count, planned: planned, sets: doneSets(inWeek, type: "strength").count,
                           cardioMinutes: minutes(of: doneSets(inWeek, type: "cardio")), mobilityMinutes: minutes(of: doneSets(inWeek, type: "mobility")))
     }
 
@@ -148,11 +145,10 @@ final class ProgressModel {
         return trends.values.sorted { $0.name < $1.name }
     }
 
-    // SPEC: Flow 9 layer 1 — tap a day: that day's workouts and plates; every session reads its A6 line ("Push day · 12/12 sets ·
+    // SPEC: Flow 9 layer 1 — tap a day: that day's workouts; every session reads its A6 line ("Push day · 12/12 sets ·
     // 44 min" · "Walk · 25 min · 2.1 km"), so a hold-only day never says "0 sets" (A8)
     func select(_ dayKey: String) -> DayDetail {
         let sessions = ((try? store.sessions(for: userId, dayKey: dayKey)) ?? []).filter { $0.status == "completed" }
-        let plates = ((try? store.posts(for: userId, dayKey: dayKey)) ?? []).filter { $0.type != "workout" }
-        return DayDetail(dayKey: dayKey, workouts: sessions.map { JournalFacts.summaryLine($0, distanceUnit: distanceUnit) }, plates: plates)
+        return DayDetail(dayKey: dayKey, workouts: sessions.map { JournalFacts.summaryLine($0, distanceUnit: distanceUnit) })
     }
 }

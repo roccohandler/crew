@@ -1,4 +1,5 @@
-// SPEC: E19 — a held op past the 24 h mark needs the user’s choice: Retry · Post without photo · Delete (FailedUploadSheet).
+// SPEC: E19 — a held op past the 24 h mark needs the user’s choice: Retry · Delete (FailedUploadSheet). A22 G2 (owner-approved
+// 2026-09-18): "Post without photo" is gone with the plate journal — no queued op carries a photo any more.
 //
 // Split from SyncQueue.swift for the C9 200-line cap, the way HomeModel+Edges.swift already splits HomeModel and
 // SyncDelivery.swift already holds the delivered half. The file header of SyncQueue.swift names this half as E19’s, so
@@ -9,7 +10,7 @@ import Foundation
 import SwiftData
 
 extension SyncQueue {
-    // SPEC: E19 — after ~24 h a held op needs the user's choice: Retry · Post without photo · Delete
+    // SPEC: E19 — after ~24 h a held op needs the user's choice: Retry · Delete
     func heldOver24h(now: Date = Date()) throws -> [OpRecord] {
         let held = OpState.held.rawValue
         let cutoff = now.addingTimeInterval(-TimeInterval(SpecConstants.failedUploadChoiceAfterHours * TimeUnits.secondsPerHour))
@@ -19,11 +20,6 @@ extension SyncQueue {
     func resolve(_ record: OpRecord, choice: UserChoice, now: Date = Date()) throws {
         switch choice {
         case .retry:
-            record.state = OpState.pending.rawValue
-            record.attempts = 0
-            record.nextAttemptAt = now
-        case .postWithoutPhoto:
-            record.payload = try PostPayloadPhotoStripper.strip(record.payload)
             record.state = OpState.pending.rawValue
             record.attempts = 0
             record.nextAttemptAt = now

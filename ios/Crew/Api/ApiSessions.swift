@@ -1,4 +1,4 @@
-// SPEC: docs/api.md sessions + the sync op payloads (createSession · patchSession · createPost) — DTOs mirror
+// SPEC: docs/api.md sessions + the sync op payloads (createSession · patchSession; A22: createPost is retired) — DTOs mirror
 // lib/validate-sessions.ts and lib/validate-posts.ts 1:1. A1 (2026-09-08): the snapshot names its plan kind; A2: a cardio set
 // carries an optional distance; A6: a workout post carries the server-written summary line. WRITTEN — UNVERIFIED (needs Mac).
 // T024–T027
@@ -47,8 +47,7 @@ struct CreateSessionPayload: Codable {
 struct CompletionPostDTO: Codable {
     let clientId: String
     let shareToCrew: Bool
-    let caption: String?
-    let photoKey: String?
+    let caption: String?   // A22 G2: the optional line is the one thing a workout post carries — no photo
 }
 
 struct PatchSessionPayload: Codable {
@@ -60,41 +59,19 @@ struct PatchSessionPayload: Codable {
     let post: CompletionPostDTO?
 }
 
-struct CreatePostPayload: Codable {
-    let clientId: String
-    let type: String
-    let sessionId: String?
-    let photoKey: String?
-    let caption: String?
-    let mealTag: String?
-    let shareToCrew: Bool
-    let timezone: String
-    let isPlannedDay: Bool
-    let workoutCompleted: Bool
-    let earlierToday: Bool?
-    let createdAt: Date
-}
-
+// A22 (2026-09-18): no photoKey, no mealTag, no earlierToday — the plate journal is gone (posts.ts PostResponse)
 struct PostDTO: Codable, Equatable {
     let id: String
     let clientId: String?      // the id this phone (or another) created it with — hydration and deletePost address it by this
-    let type: String
+    let type: String           // workout | cardio (a legacy meal or text row reads by its caption)
     let sessionId: String?
-    let photoKey: String?
     let caption: String
-    let mealTag: String?
     let crewId: String?
     let dayKey: String
     let isPlannedDay: Bool
     let workoutCompleted: Bool
-    let earlierToday: Bool
-    let summary: String?       // A6: the one readable line the server wrote at workout completion; nil on meals and text
+    let summary: String?       // A6: the one readable line the server wrote at workout completion
     let createdAt: Date
-}
-
-struct PostReplyDTO: Codable {
-    let post: PostDTO
-    let gamification: GamificationStateDTO
 }
 
 struct PostListDTO: Codable {
@@ -122,10 +99,6 @@ struct SessionListDTO: Codable {
 }
 
 extension Api {
-    func createPost(_ payload: CreatePostPayload) async throws -> PostReplyDTO {
-        try await send("POST", "posts", body: payload)
-    }
-
     // The journal and the history, forever (Flow 6; Progress) — a fresh phone hydrates from them (ServerHydrate)
     func myPosts() async throws -> PostListDTO { try await send("GET", "posts") }
     func mySessions() async throws -> SessionListDTO { try await send("GET", "sessions") }

@@ -12,6 +12,8 @@ import SwiftData
 enum OpKind: String, Codable, CaseIterable {
     // A21.2 / W3 (2026-09-17): sendMessage is retired with the chat. A record with that raw kind from an older build still drains:
     // the server answers chatRetired (non-retryable), the queue holds it, and FailedUploadSheet names it through its default.
+    // A22 (2026-09-18): createPost is retired with the plate journal the same way — the server answers postsRetired; the case stays
+    // so a record from an older build still decodes and drains.
     case createSession, patchSession, createPost, deletePost, react, unreact, putPlan, pause, pushToken
 }
 
@@ -43,7 +45,7 @@ final class OpRecord {
 }
 
 enum UserChoice {
-    case retry, postWithoutPhoto, delete
+    case retry, delete // A22 G2: "Post without photo" left with the plate journal
 }
 
 enum ProcessOutcome: Equatable {

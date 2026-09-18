@@ -1,5 +1,5 @@
 // SPEC: A14 (owner-directed 2026-09-09) — the three-vector row facts: a walk fills Cardio and never Workout, a workout
-// fills Workout, meals count meal posts, and an empty day reports nothing rather than a zero (A8).
+// fills Workout, and an empty day reports nothing rather than a zero (A8). A22: the meal slot left with the plate journal.
 // A18.6a / A18.7 / A18.9 — and the other two things Home REPORTS: the week's seven marks (pause-aware, every planned
 // day marked, the training-day guard before any session is read) and what today actually held.
 //
@@ -35,7 +35,7 @@ final class HomeVectorSlotsTests: XCTestCase {
     func testAnEmptyDayReportsNothingRatherThanZero() throws {
         let store = Store(inMemory: true)
         let slots = try HomeModel.slots(userId: userId, dayKey: dayKey, store: store)
-        XCTAssertEqual(slots, VectorSlots(workoutDone: false, cardioMinutes: nil, meals: 0))
+        XCTAssertEqual(slots, VectorSlots(workoutDone: false, cardioMinutes: nil))
     }
 
     // A14 — the split that is the whole point: a walk fills the Cardio slot and leaves Workout empty. Before A14 the walk
@@ -142,16 +142,5 @@ final class HomeVectorSlotsTests: XCTestCase {
     func testTodaySummaryIsEmptyOnADayWithNothingCompleted() throws {
         let store = Store(inMemory: true)
         XCTAssertEqual(try HomeModel.todaySummary(userId: userId, dayKey: dayKey, distanceUnit: "mi", store: store), [])
-    }
-
-    // Meals count meal posts only — a workout post is not a meal, and the slot is capped by nothing (Flow 4: post freely)
-    func testMealsCountMealPostsOnly() throws {
-        let store = Store(inMemory: true)
-        for id in ["m1", "m2"] {
-            store.context.insert(LocalPost(clientId: id, userId: userId, type: "meal", sessionClientId: nil, caption: "eggs", mealTag: "breakfast", shareToCrew: false, dayKey: dayKey, isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: friday))
-        }
-        store.context.insert(LocalPost(clientId: "w-post", userId: userId, type: "workout", sessionClientId: nil, caption: "", mealTag: nil, shareToCrew: false, dayKey: dayKey, isPlannedDay: true, workoutCompleted: true, earlierToday: false, createdAt: friday))
-        try store.save()
-        XCTAssertEqual(try HomeModel.slots(userId: userId, dayKey: dayKey, store: store).meals, 2)
     }
 }

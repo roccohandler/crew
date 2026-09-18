@@ -1,13 +1,12 @@
 // SPEC: S07 (all five states) · 8.4 (the journeys are the record) · 8.9 (the snapshot matrix these shots are the first
-// step toward) · A18 (J029 / J034).
+// step toward) · A18 (J029 / J034) · A22 G1 (a) (owner-approved 2026-09-18: a rest day asks nothing).
 //
 // WHY THIS FILE EXISTS. The owner sent a photograph of Home's REST DAY and asked four questions about it, and nothing
 // in CI had ever rendered that screen with an assertion on it. Journey ② seeds a member who trains every day, so its
-// Home is always a workout day; OfflineSessionTests asserts the bridge; CameraDeniedTests reaches a rest day and then
-// only checks that one string is absent. The paused state — the one that contradicted its own copy for a whole
-// release — had never been on screen in any test, on either engine.
+// Home is always a workout day; OfflineSessionTests asserts the bridge. The paused state — the one that contradicted its
+// own copy for a whole release — had never been on screen in any test, on either engine.
 //
-// So this walks Home's four non-bridge states, asserts what A17.4 and A18 promise each of them, and PHOTOGRAPHS each
+// So this walks Home's four non-bridge states, asserts what A17.4, A18 and A22 promise each of them, and PHOTOGRAPHS each
 // one into the run's xcresult. From a machine with no Mac, those artifacts are the only way to look at the app; the
 // assertions are what makes a regression go red rather than merely look wrong to whoever opens the bundle.
 //
@@ -22,15 +21,15 @@ final class HomeStatesTests: XCTestCase {
     private let app = XCUIApplication()
     private let seed = SeedClient()
 
-    // Every state below needs the bridge gone (§1D: it survives until the first POST exists), so every seed posts once.
-    // NOTE WHAT THAT COSTS, because it invalidated an assertion for three releases: the meal lands TODAY, so every
-    // state this file can reach has `posted == true`, and the unposted branch of any rest-day copy is unreachable here.
+    // Every state below needs the bridge gone (§1D: it survives until the first POST exists), so every seed posts once. A22: the
+    // post is a WORKOUT post — a standalone cardio log (A2), which never fills the planned slot, so today's state is judged as it
+    // would be with no seed at all.
     private func launchHome(trainingDayOffset: Int, name: String, paused: Bool = false) async throws {
         continueAfterFailure = false
         dismissSystemPrompts()
         let member = try await seed.register(name: name)
         try await seed.putPlan(oneTrainingDayOffsetFromToday: trainingDayOffset, as: member)
-        try await seed.postMeal(as: member)
+        try await seed.logCardio(as: member)
         if paused { try await seed.pause(untilDaysFromNow: 7, as: member) }
         app.launchArguments = ["-uiTest", "-seededReturningUser"]
         app.launchEnvironment["CREW_SEED_SESSION"] = member.json
@@ -44,35 +43,30 @@ final class HomeStatesTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Your first flame lights today."].exists, "the bridge is still on screen — the seeded post did not land")
     }
 
-    // A18.5 — the three logging vectors, verb-first, on every non-bridge state. The owner called their predecessors
-    // "three strange divs"; a noun title over a value is a stat readout, and 6.6 requires a verb.
+    // A18.5 — the logging vectors, verb-first, on every non-bridge state. The owner called their predecessors "three strange
+    // divs"; a noun title over a value is a stat readout, and 6.6 requires a verb. A22 G4: two rows until W8 ships "Log macros".
     private func expectLogRows() {
-        for verb in ["Log workout", "Log cardio", "Log a meal"] {
-            XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", verb)).firstMatch.exists, "the \(verb) row is missing — A18.5 puts all three on every non-bridge state")
+        for verb in ["Log workout", "Log cardio"] {
+            XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", verb)).firstMatch.exists, "the \(verb) row is missing — A18.5 puts every row on every non-bridge state")
         }
+        XCTAssertFalse(app.buttons.containing(NSPredicate(format: "label CONTAINS 'meal'")).firstMatch.exists, "A22 — a meal control survived the plate journal's removal")
     }
 
     // THE SCREEN THE OWNER PHOTOGRAPHED.
-    func testRestDayNamesItsNumbersAndStatesThePremise() async throws {
+    func testRestDayAsksNothing() async throws {
         try await launchHome(trainingDayOffset: 1, name: "Home Rest") // today trains nothing; tomorrow does
         expectTitle("Rest day")
 
         // A18.1 — the two bare numerals are named where they sit. The ring is NOT asserted here: A18.2 renders it only
-        // once the week holds a completed workout, and this member has posted a meal rather than trained.
+        // once the week holds a completed workout, and this member has logged a walk rather than trained.
         XCTAssertTrue(app.staticTexts["day streak"].exists, "A18.1 — the flame's numeral is unnamed again")
         // A17.1 — the sentence that names the strip's colours in place
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'This week:'")).firstMatch.exists)
-        // A18.4 — the card states what today is WORTH. NOTE WHICH BRANCH THIS IS, because the first version of this
-        // assertion demanded the other one and had never passed: `launchHome` posts a meal to clear the bridge, so
-        // every state this file seeds has `posted == true`, and TodayCard.stakeLine's posted branch correctly returns
-        // "Today counts." The engine was right and the assertion was wrong — the same shape as the today-state pause
-        // fixture that was right on a Thursday and wrong on a Friday. The UNPOSTED premise line cannot be reached from
-        // a UI test that must post to leave the bridge.
-        XCTAssertTrue(app.staticTexts["Today counts."].exists, "A18.4 — the rest card no longer says what today was worth")
+        // A22 G1 (a) — the card asks nothing: no control, no stake, no premise (A18.4's line is gone with the daily requirement)
+        XCTAssertTrue(app.staticTexts["Nothing to do here. A rest day asks nothing of your streak."].exists, "Flow 5 / A22 — the rest card no longer says that a rest day asks nothing")
+        XCTAssertFalse(app.buttons["Post a meal"].exists || app.buttons["Post another"].exists, "A22 — the rest card offers a post again")
         // A18.3 — the what's-next fact is its own block above the card, not the card's quietest caption
         XCTAssertTrue(app.staticTexts["TOMORROW"].exists || app.staticTexts["NEXT WORKOUT"].exists, "A18.3 — the next-up block is missing from the space it was added to fill")
-        // A18.10 — and the toolbar camera is gone, because the card already asks for a meal
-        XCTAssertFalse(app.buttons["Post a meal"].exists && app.navigationBars["Rest day"].buttons["Post a meal"].exists, "A18.10 — the nav glyph is a third route to a destination the card already offers")
         expectLogRows()
         shoot(app, "S07 Home — rest day (the screen the owner photographed)")
     }

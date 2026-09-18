@@ -1,5 +1,6 @@
-// SPEC: Flow 4 — the [+] button IS the camera; snap or pick from library; no filters, no editing (allowsEditing = false); E5:
-// camera denied → text-first. First-party UIKit/PhotosUI pickers, no dependencies. WRITTEN — UNVERIFIED (needs Mac). T027
+// SPEC: E1 — the profile picture's camera (A22 G2, owner-approved 2026-09-18: the one photo left in the product): snap or pick from
+// the library; no filters, no editing (allowsEditing = false); E5: camera denied → the library still works. First-party UIKit/PhotosUI
+// pickers, no dependencies. WRITTEN — UNVERIFIED (needs Mac). T027 / T041
 
 import AVFoundation
 import PhotosUI

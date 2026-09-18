@@ -1,6 +1,6 @@
-// SPEC: A14 (owner-directed 2026-09-09) — Workout · Cardio · Meals, three co-equal logging vectors. The owner named
-// these as the three primary vectors; F10 measured how far Home was from treating them that way (one filled primary,
-// one outline button that moved between states, and one nav-bar glyph that disappeared on the bridge).
+// SPEC: A14 (owner-directed 2026-09-09) — the co-equal logging vectors as full-width rows. The owner named Workout · Cardio ·
+// Meals as the three primary vectors; F10 measured how far Home was from treating them that way (one filled primary, one
+// outline button that moved between states, and one nav-bar glyph that disappeared on the bridge).
 //
 // A18.5 (owner-directed 2026-09-10) — THE GEOMETRY AND THE GRAMMAR MOVE; A14's content does not. The owner's report
 // was "three strange divs at the bottom with workout, cardio, and meals", and there were three separate reasons for it:
@@ -17,19 +17,20 @@
 //      6.5's 3:1 gate, so the one mark that says "this is a control" could not be seen. A18.11 gives it its own
 //      `controlOutline` token (3.32:1 / 3.13:1), app-wide.
 //
-// Why three controls here are still legal under "one primary action per view" (6.1 · §1B · S07 · §1D): every row is
-// an OUTLINE control, and the day's workout keeps the single ink-filled primary inside the card above. Position makes
-// them peers; weight still says which one the plan is asking for today. (Recorded because the repo cites that rule as
-// HIG in four places and it is not one: Apple writes "keep the number of prominent buttons to one or two per view".
-// It is a Crew rule, and it is a ceiling, not a floor.)
+// A22 G4 (owner-approved 2026-09-18) — the third row is no longer "Log a meal" → the composer (the plate journal is gone). It
+// reads "Log macros" and opens nutrition Today once W8 ships it; gated off (G3: an under-18 account has no nutrition surface)
+// the row is ABSENT, never disabled. Until W8 there is nothing to open, so today the row is absent and two rows remain.
+//
+// Why these controls are still legal under "one primary action per view" (6.1 · §1B · S07 · §1D): every row is an OUTLINE
+// control, and the day's workout keeps the single ink-filled primary inside the card above. Position makes them peers;
+// weight still says which one the plan is asking for today. (Recorded because the repo cites that rule as HIG in four places
+// and it is not one: Apple writes "keep the number of prominent buttons to one or two per view". It is a Crew rule, and it
+// is a ceiling, not a floor.)
 //
 // Part III law ① — no row ever wears ember, even when done: a filled INK dot marks a logged vector, and law ④ keeps
 // ember scarce for the flame, the ring and the strip. A8 — an unlogged row REPORTS NOTHING rather than reporting a
 // zero or an em dash: the verb is the invitation, and H028 already established that "—" reads as disabled.
 // 6.3 — each row is its own ≥ 44 pt target, guaranteed by the frame and contentShape rather than inherited.
-//
-// The `ViewThatFits` fallback is retired with the grid: it existed only because three across truncates ("Workout" at
-// accessibilityExtraExtraLarge measures ~124 pt in a 106.3 pt SE cell, H009). A full-width row cannot truncate.
 // WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
@@ -38,17 +39,14 @@ struct VectorRow: View {
     let slots: VectorSlots
     let onWorkout: () -> Void
     let onCardio: () -> Void
-    let onMeal: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             VectorLogRow(verb: "Log workout", status: slots.workoutDone ? "Done" : nil, action: onWorkout)
             rowDivider
             VectorLogRow(verb: "Log cardio", status: slots.cardioMinutes.map { "\($0) min" }, action: onCardio)
-            rowDivider
-            VectorLogRow(verb: "Log a meal", status: slots.meals > 0 ? "\(slots.meals)" : nil, action: onMeal)
         }
-        // One boundary around the group, not three: the rows are a set of peers, and three separate outlines would
+        // One boundary around the group, not one per row: the rows are a set of peers, and separate outlines would
         // put two hairlines between every pair. `controlOutline` (A18.11), never the surface hairline.
         .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
         .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))

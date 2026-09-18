@@ -73,7 +73,7 @@ struct CrewScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                     if model.stream.isEmpty && model.hasCrewmates {
-                        Text("Quiet in here. Post a workout or a plate and it lands right here.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                        Text("Quiet in here. Post a workout and it lands right here.").font(.body).foregroundStyle(EmberColors.secondaryText)
                     }
                     StreamList(items: model.stream, members: model.members, myUserId: myUserId,
                                onReact: { postId, emoji in model.react(postId: postId, emoji: emoji) },

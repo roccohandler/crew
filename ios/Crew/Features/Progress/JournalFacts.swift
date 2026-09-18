@@ -1,6 +1,6 @@
 // SPEC: A6 (owner-directed 2026-09-08) — one summary line per post: a workout reads LocalPost.summary (the server's line) or the
 // same line computed from the local session through the SessionSummaryLine twin, with the server's rounding (wall-clock minutes
-// and cardio minutes both rounded); a meal reads "Dinner · 4:31 PM" (+ " · earlier today"). A2 — cardio minutes and distance
+// and cardio minutes both rounded); a legacy plate-journal row (pre-A22) reads its caption. A2 — cardio minutes and distance
 // come from done cardio sets. Plain functions over the Store (C2), shared by the journal, the day card and the celebration.
 // WRITTEN — UNVERIFIED (needs Mac).
 
@@ -63,15 +63,13 @@ enum JournalFacts {
         abs((session.completedAt ?? session.startedAt).timeIntervalSince(post.createdAt))
     }
 
-    // SPEC: A6 — the one line under a journal row: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km" · "Dinner · 4:31 PM"
+    // SPEC: A6 — the one line under a journal row: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km"
     static func line(for post: LocalPost, store: Store = .shared, distanceUnit: String) -> String {
         // A14: workout and cardio are two row types; both read the summary completion wrote, so the WORDS are unchanged
         if post.type == "workout" || post.type == "cardio" {
             if let summary = post.summary, !summary.isEmpty { return summary }
             return session(for: post, store: store).map { summaryLine($0, distanceUnit: distanceUnit) } ?? (post.type == "cardio" ? "Cardio ✓" : "Workout ✓")
         }
-        let meal = MealTag(rawValue: post.mealTag ?? "").map { $0.rawValue.capitalized } ?? "Meal"
-        let time = post.createdAt.formatted(date: .omitted, time: .shortened)
-        return "\(meal) · \(time)\(post.earlierToday ? " · earlier today" : "")"
+        return post.caption.isEmpty ? "Post" : post.caption // A22: a legacy meal or text row — never created again, still readable
     }
 }

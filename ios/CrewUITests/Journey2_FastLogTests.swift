@@ -18,7 +18,7 @@ final class Journey2_FastLogTests: XCTestCase {
         dismissSystemPrompts() // JourneySteps.swift: a signed build shows system prompts (Save Password, permissions)
         let member = try await seed.register(name: "Journey Two")
         try await seed.putPlanForEveryDay(as: member)
-        try await seed.postMeal(as: member)
+        try await seed.logCardio(as: member) // A22: the first post is a workout post — a walk, which leaves today's planned slot open
         let crew = try await seed.createCrew(as: member)
         crewId = crew.id
         mate = try await seed.register(name: "Sam")
@@ -33,10 +33,10 @@ final class Journey2_FastLogTests: XCTestCase {
         // A17.4 made the title NAME THE STATE ("Push", "Rest day", "Done for today"); only the bridge still says "Today".
         // This member has posted and trains every day, so waiting for a navigation bar called "Today" waited for a screen
         // this state can never show — run 34540455856, and the ONE thing red in it. What marks a warm start on a
-        // non-bridge Home is A3's camera toolbar button, which no other screen in the app carries; the title is then
+        // non-bridge Home is the "Log workout" row (A18.5), which the bridge never shows (§1D); the title is then
         // asserted for what it must NOT be, so a regression back to the constant is still caught here.
-        let postAMeal = app.buttons["Post a meal"]
-        XCTAssertTrue(postAMeal.waitForExistence(timeout: 10), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        let logWorkout = app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch
+        XCTAssertTrue(logWorkout.waitForExistence(timeout: 10), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         XCTAssertFalse(app.navigationBars["Today"].exists, "Home's title is the constant 'Today' again — A17.4 makes it name the state on every non-bridge day")
         XCTAssertFalse(app.staticTexts["Your first flame lights today."].exists)
         shoot(app, "S07 Home — a returning member")
@@ -51,7 +51,7 @@ final class Journey2_FastLogTests: XCTestCase {
         XCTAssertTrue(app.buttons["Keep it private"].exists, "A21.9: the second button")
         shoot(app, "S10 celebration — quick complete")
         share.tap()
-        // A21.4 — the seed posted a meal, so this is the member's FIRST completed workout and the reminder opt-in follows, once
+        // A21.4 — the seed logged a walk, so this is the member's FIRST completed WORKOUT and the reminder opt-in may follow, once
         let notNow = app.buttons["Not now"]
         if notNow.waitForExistence(timeout: 5) { notNow.tap() }
         // Quick Complete is hidden once today counts

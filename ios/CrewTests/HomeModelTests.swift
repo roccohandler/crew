@@ -74,11 +74,11 @@ final class HomeModelTests: XCTestCase {
         try post(store, id: "p2", dayKey: "2026-09-04")
         let model = HomeModel(store: store, userId: userId, timeZone: tz)
         model.refresh(now: saturday)
-        XCTAssertEqual(model.today, .rest(posted: false))
+        XCTAssertEqual(model.today, .rest) // A22 G1 (a): a rest day asks nothing — no posted flag
         XCTAssertEqual(model.nextUpLine, "Next workout: Mon · Push day")
         try post(store, id: "p3", dayKey: "2026-09-06")
         model.refresh(now: sunday)
-        XCTAssertEqual(model.today, .rest(posted: true))
+        XCTAssertEqual(model.today, .rest)
         XCTAssertEqual(model.nextUpLine, "Tomorrow: Push day · \(SpecConstants.beginnerExerciseCount) exercises")
         store.context.insert(LocalPause(userId: userId, startDay: "2026-09-05", endDay: "2026-09-12", createdAt: saturday))
         try store.save()

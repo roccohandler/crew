@@ -1,10 +1,10 @@
-// SPEC: S15 Progress — LAYER 1 did I show up (heat map → day detail with workout + plates; rings history; streaks; totals;
-// meals/week) · LAYER 2 how much work (sets/week, Push/Pull/Legs balance, cardio and mobility minutes — A2) · LAYER 3 am I
+// SPEC: S15 Progress — LAYER 1 did I show up (heat map → day detail with the day's workouts; rings history; streaks; totals —
+// A22: the plates and meals/week left with the plate journal) · LAYER 2 how much work (sets/week, Push/Pull/Legs balance, cardio and mobility minutes — A2) · LAYER 3 am I
 // stronger (only where weights were logged) · empty (new user) invites. A6: week captions and the day card read the DayLabel twin.
 // 6.1: a Store error is the failed state with Try again. A19.4 (owner-ruled; built in W6, 2026-09-17): a two-way SEGMENT at the top
 // — Charts | Journal — so both halves of Flow 9 are one tap from the tab and neither hides in chrome (the toolbar "Journal" button is
 // gone). W6, the owner's walkthrough: the empty state's CTA goes to TODAY (Home, where the first workout starts) instead of opening
-// the meal composer. WRITTEN — UNVERIFIED (needs Mac). T040
+// a composer. WRITTEN — UNVERIFIED (needs Mac). T040
 
 import SwiftUI
 
@@ -56,7 +56,7 @@ struct ProgressScreen: View {
     @ViewBuilder private var charts: some View {
         switch loadState {
         case .loading: LoadingLine(line: "Adding up your weeks…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
-        case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout and every plate lands here.", ctaTitle: "Go to today", action: onGoHome) // W6: the CTA is the day, not a composer
+        case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout you complete lands here.", ctaTitle: "Go to today", action: onGoHome) // W6: the CTA is the day, not a composer
         case .failed(let line): ErrorState(line: line) { load() }
         case .ready, .offline: content
         }
@@ -88,7 +88,7 @@ struct ProgressScreen: View {
                         }
                     }
                 }
-                Text("Streak \(model.totals.currentStreak) · longest \(model.totals.longestStreak) · \(model.totals.workouts) workouts · \(model.totals.posts) posts · \(model.weeks.last?.meals ?? 0) meals this week").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                Text("Streak \(model.totals.currentStreak) · longest \(model.totals.longestStreak) · \(model.totals.workouts) workouts · \(model.totals.posts) posts").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 Text("How much work?").font(.headline).foregroundStyle(EmberColors.inkText)
                 Text("Sets per week: \(model.weeks.map { String($0.sets) }.joined(separator: " · "))").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                 Text(balanceLine).font(.footnote).foregroundStyle(EmberColors.secondaryText)
@@ -114,14 +114,13 @@ struct ProgressScreen: View {
         return "Cardio \(week.cardioMinutes) min · Mobility \(week.mobilityMinutes) min this week"
     }
 
-    // SPEC: Flow 9 layer 1 — the day card: its DayLabel (A6), that day's workouts and plates
+    // SPEC: Flow 9 layer 1 — the day card: its DayLabel (A6), that day's workouts
     private func dayCard(_ detail: DayDetail) -> some View {
         Card {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
                 Text(DayLabel.dayLabel(detail.dayKey, todayKey: model.todayKey)).font(.subheadline.weight(.semibold)).foregroundStyle(EmberColors.inkText)
                 ForEach(detail.workouts, id: \.self) { Text($0).foregroundStyle(EmberColors.inkText) }
-                ForEach(detail.plates, id: \.clientId) { Text($0.caption.isEmpty ? (MealTag(rawValue: $0.mealTag ?? "")?.emoji ?? "🍽") : $0.caption).foregroundStyle(EmberColors.secondaryText) }
-                if detail.workouts.isEmpty && detail.plates.isEmpty { Text("Nothing that day. Tomorrow's a fresh one.").foregroundStyle(EmberColors.secondaryText) }
+                if detail.workouts.isEmpty { Text("Nothing that day. Tomorrow's a fresh one.").foregroundStyle(EmberColors.secondaryText) }
             }
         }
     }

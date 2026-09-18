@@ -28,7 +28,7 @@ final class HomeModel {
     var welcomeBack = false          // E4 / S18: 14+ quiet days
     var staleSession: LocalSession?  // S01: in progress for more than a day
     var heldUploads: [OpRecord] = [] // E19: held for more than 24 h — the user chooses
-    var vectors = VectorSlots(workoutDone: false, cardioMinutes: nil, meals: 0) // A14: today's Workout · Cardio · Meals row
+    var vectors = VectorSlots(workoutDone: false, cardioMinutes: nil) // A14: today's Workout · Cardio rows (A22 G4: the macros row arrives with W8)
     var nextUp: NextUpFacts?                       // A3 / A18.3: nil on an undone training day, when paused, and on a workout-day bridge
     var todaySummaryLines: [String] = []           // A18.9: what today actually held, in the journal's own sentence
     // A20.9 — copied in `refresh()`, `offline` was a snapshot taken BEFORE the drain that finds the network gone, and
@@ -70,7 +70,6 @@ final class HomeModel {
             let rotation = try plan.map { try NextUp.rotationFor(userId: userId, plan: $0, todayKey: todayKey, store: store) }
             let todayEntry = rotation?.week.first(where: { $0.dayKey == todayKey })
             todayWorkout = todayEntry?.state == .planned ? plan?.workouts.first(where: { $0.kind == todayEntry?.kind }) : nil
-            let postedToday = !(try store.posts(for: userId, dayKey: todayKey)).isEmpty
             let lastPostDay = try store.allPosts(for: userId).map(\.dayKey).max()
             let state = try store.gamificationState(for: userId)
             streak = state.currentStreak
@@ -79,7 +78,7 @@ final class HomeModel {
             hasPlan = plan != nil
             resumeSession = try store.openSession(for: userId)
             let pause = try store.activePause(for: userId, today: todayKey)
-            today = todayState(restDay: todayEntry == nil || todayEntry?.state == .rest, postedToday: postedToday, hasEverPosted: lastPostDay != nil, pause: pause, todayKey: todayKey)
+            today = todayState(restDay: todayEntry == nil || todayEntry?.state == .rest, hasEverPosted: lastPostDay != nil, pause: pause, todayKey: todayKey)
             // SPEC: Flow 7 · V25 — H002, and F14 recurring verbatim. The rotation projection (NextUp.rotationFor →
             // projectWeek) takes only trainingWeekdays and the cycle and NEVER consults the pause, so on a paused
             // training day `todayWorkout` stayed non-nil and every reader of it could hand out full planned-day credit
@@ -88,8 +87,8 @@ final class HomeModel {
             // (that is exactly how F14 came back). A bonus workout is still REACHABLE while paused and it is allowed —
             // "pauses without penalty" never meant "pauses pay planned credit". CORRECTION (A18.6, 2026-09-10): the
             // previous version of this comment said it "correctly earns the unplanned +25 (V30/V31)". It earns ZERO.
-            // V20 expects `awardsByEvent: [[], []]` for a meal AND a completed workout inside a pause window, and
-            // both engines implement it (GamificationPost.swift:64, gamification-post.ts:72 return [] while paused).
+            // V79 expects [] for a workout completed inside a pause window, and both engines implement it
+            // (GamificationPost.applyPostCreated returns [] while paused).
             if isPaused { todayWorkout = nil }
             // A8 · Flow 7 — a paused plan offers nothing to complete: `today` is decided above, so the flag reads the
             // STATE rather than the raw workout, which is what put "Quick complete" under a card saying the plan is paused
@@ -114,10 +113,10 @@ final class HomeModel {
 
     private var isPaused: Bool { if case .paused = today { return true } else { return false } }
     // SPEC: A1 — done = a completed ROTATION workout today (projectWeek); a standalone cardio log (A2) leaves the day planned
-    private func todayState(restDay: Bool, postedToday: Bool, hasEverPosted: Bool, pause: LocalPause?, todayKey: String) -> TodayState {
+    private func todayState(restDay: Bool, hasEverPosted: Bool, pause: LocalPause?, todayKey: String) -> TodayState {
         if let pause { return .paused(until: DayLabel.dayLabel(pause.endDay, todayKey: todayKey)) }
         if !hasEverPosted { return .bridge(todayWorkout == nil ? .rest : .workout) } // 1D: the bridge persists until the first post exists
-        if restDay { return .rest(posted: postedToday) }
+        if restDay { return .rest } // A22 G1 (a): a rest day asks nothing — there is no "posted" to report
         guard let workout = todayWorkout else { return .allDone }
         // A14: the card carries the day's rows, built by the HomeLines twin so the web card reads word-for-word the same
         let rows = HomeModel.homeExercises(workout)

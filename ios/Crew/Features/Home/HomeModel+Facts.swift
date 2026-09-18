@@ -1,12 +1,13 @@
 // SPEC: A14 / A17 (owner-directed 2026-09-09 and 2026-09-10) — the facts Home REPORTS, as opposed to the state it is
-// in: the week's seven marks (with their done/planned counts) and today's three vector slots.
+// in: the week's seven marks (with their done/planned counts) and today's vector slots.
 //
-// A14: the three primary logging vectors are Workout · Cardio · Meals, and Home has to treat them as peers. Owner-
-// directed: "users should log workouts, cardio, and nutrition — those are the three primary vectors". Before this they
-// were not close to co-equal (F10): a workout was one tap on the only filled primary, cardio two taps on an outline
-// button whose position MOVED between states, and a meal a nav-bar glyph that vanished on the bridge — so logging a
-// 45-minute walk changed Home not at all. This is RITUAL equality, not magnitude equality (plan §5): the same slot,
-// the same journal row, the same streak weight. It is never a comparison and never a score.
+// A14: the primary logging vectors are Workout · Cardio · Meals, and Home has to treat them as peers. Owner-directed:
+// "users should log workouts, cardio, and nutrition — those are the three primary vectors". Before this they were not
+// close to co-equal (F10): a workout was one tap on the only filled primary, cardio two taps on an outline button whose
+// position MOVED between states, and a meal a nav-bar glyph that vanished on the bridge — so logging a 45-minute walk
+// changed Home not at all. This is RITUAL equality, not magnitude equality (plan §5): the same slot, the same journal
+// row, the same streak weight. It is never a comparison and never a score. A22 (owner-approved 2026-09-18): the meal count
+// left with the plate journal; G4's "Log macros" row reads nutrition Today once W8 exists and is absent while gated off.
 //
 // Everything here is STATIC and takes what it needs, because HomeModel's `store` and `userId` are `private let` and a
 // Swift extension in another file cannot reach them. That is also why these are testable without a HomeModel at all.
@@ -20,7 +21,6 @@ import Foundation
 struct VectorSlots: Equatable {
     let workoutDone: Bool
     let cardioMinutes: Int?  // nil = no cardio logged today
-    let meals: Int
 }
 
 // SPEC: Flow 2 ("weekly ring 2/4") · A17.4 — the week's seven marks and the ring's fraction, from one pass.
@@ -97,11 +97,9 @@ extension HomeModel {
     static func slots(userId: String, dayKey: String, store: Store) throws -> VectorSlots {
         let completed = try store.sessions(for: userId, dayKey: dayKey).filter { $0.status == "completed" }
         let cardioSeconds = completed.flatMap { JournalFacts.doneSets($0, type: "cardio") }.reduce(0) { $0 + ($1.holdSeconds ?? 0) }
-        let meals = try store.posts(for: userId, dayKey: dayKey).filter { $0.type == "meal" }.count
         return VectorSlots(
             workoutDone: completed.contains { $0.workoutKind != "cardio" },
-            cardioMinutes: cardioSeconds > 0 ? JournalFacts.minutes(ofSeconds: cardioSeconds) : nil,
-            meals: meals
+            cardioMinutes: cardioSeconds > 0 ? JournalFacts.minutes(ofSeconds: cardioSeconds) : nil
         )
     }
 }

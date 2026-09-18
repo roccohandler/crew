@@ -7,7 +7,7 @@
 //
 // TIMEOUT CONVENTION (2026-09-10, run 34542854485). A POSITIVE wait — `XCTAssertTrue(x.waitForExistence(timeout:))` —
 // returns the moment the element appears, so a generous timeout costs a fast run NOTHING and is the only thing standing
-// between a loaded runner and a false red. Sixteen of them sat at 2–3 s; CameraDenied's wait for "Your week, built."
+// between a loaded runner and a false red. Sixteen of them sat at 2–3 s; the retired CameraDenied's wait for "Your week, built."
 // blew one on a run where synthesizing a single tap took 10 s, and the suite was only 47% slower overall. They are 15 s.
 // A NEGATIVE wait — `XCTAssertFalse(x.waitForExistence(timeout:))` — is the opposite: it burns its WHOLE timeout every
 // time it passes, so those three stay at 2–3 s, and `share || done` stays too (a solo member waits out the first branch
@@ -36,7 +36,7 @@ extension XCTestCase {
     }
 
     // SPEC: 8.4 · A20 (2026-09-11) — the third occurrence of "tap a field and type into it", extracted as a plain
-    // function (C5). Journey ①, CameraDenied and OfflineSession each walk S05's five fields.
+    // function (C5). Journey ① and OfflineSession each walk S05's five fields.
     //
     // WHY IT IS NOT `field.tap(); field.typeText(…)`. Run 34590287373 failed those three tests on the identical
     // diagnostic at the identical field — "Failed to synthesize event: Neither element nor any descendant has keyboard

@@ -128,7 +128,7 @@ enum SessionActions {
         try store.save()
         let weekdays = try GamificationLocal.trainingWeekdays(for: session.userId, store: store)
         let awards = try GamificationLocal.apply(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, plannedWeekdays: weekdays), for: session.userId, store: store)
-        let payload = PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: nil, status: "completed", completedAt: session.completedAt, post: CompletionPostDTO(clientId: clientId, shareToCrew: shareToCrew, caption: nil, photoKey: nil))
+        let payload = PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: nil, status: "completed", completedAt: session.completedAt, post: CompletionPostDTO(clientId: clientId, shareToCrew: shareToCrew, caption: nil))
         try SyncQueue.shared.enqueue(.patchSession, payload: payload, now: now)
         return awards
     }

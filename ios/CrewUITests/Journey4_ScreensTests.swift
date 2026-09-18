@@ -17,7 +17,7 @@ final class Journey4_ScreensTests: XCTestCase {
         dismissSystemPrompts() // JourneySteps.swift: a signed build shows system prompts (Save Password, permissions)
         let member = try await seed.register(name: "Screens")
         try await seed.putPlanForEveryDay(as: member)
-        try await seed.postMeal(as: member)
+        try await seed.logCardio(as: member) // A22: the first post is a workout post
         _ = try await seed.createCrew(as: member)
         app.launchArguments = ["-uiTest", "-seededReturningUser", "-AppleInterfaceStyle", "Dark"] // the phone says dark; Crew stays light (A21.10 amended)
         app.launchEnvironment["CREW_SEED_SESSION"] = member.json
@@ -27,7 +27,7 @@ final class Journey4_ScreensTests: XCTestCase {
     private func screenSays() -> String { app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | ") }
 
     func testEveryTabOpensAndIsPhotographed() {
-        XCTAssertTrue(app.buttons["Post a meal"].waitForExistence(timeout: 20), "never landed on Home — the screen says: \(screenSays())")
+        XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch.waitForExistence(timeout: 20), "never landed on Home — the screen says: \(screenSays())")
         shoot(app, "S07 Home")
         app.tabBars.buttons["Plan"].tap()
         XCTAssertTrue(app.navigationBars["Plan"].waitForExistence(timeout: 10), "Plan did not open")

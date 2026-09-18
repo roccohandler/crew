@@ -25,7 +25,7 @@ final class Journey1_NewUserTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["3 days a week — solid."].waitForExistence(timeout: 15))
         shoot(app, "S03 days")
         // Every day trains, so today is a workout day whatever the calendar says and the journey always logs a set (the
-        // meal-first bridge is CameraDeniedTests' path). Until 2026-09-09 this ran Mon/Wed/Fri and took a different branch
+        // rest-day bridge offers a bonus workout instead — A22 / R-070). Until 2026-09-09 this ran Mon/Wed/Fri and took a different branch
         // each weekday — the set row's defect (run 34360394481) hid behind a Tuesday.
         for unselected in [1, 3, 5, 6] { app.dayToggle(unselected).tap() }
         app.buttons["Continue"].tap()
@@ -56,8 +56,9 @@ final class Journey1_NewUserTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20), "Home never showed the bridge — the save screen says: \(app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))")
         shoot(app, "S07 Home — the bridge")
         let startFirst = app.buttons["Start your first workout"]
-        let postMeal = app.buttons["Start your streak — post a meal"]
-        XCTAssertTrue(startFirst.exists || postMeal.exists)
+        let bonus = app.buttons["Start a bonus workout"] // A22 / R-070: the rest-day bridge's one control
+        XCTAssertTrue(startFirst.exists || bonus.exists)
+        XCTAssertTrue(startFirst.exists, "the plan trains every day, so the bridge must offer the first workout, not the bonus")
         if startFirst.exists {
             startFirst.tap()
             // S09: check the first set, run one hold, complete
@@ -87,13 +88,6 @@ final class Journey1_NewUserTests: XCTestCase {
             XCTAssertTrue(app.staticTexts["Get a nudge on workout days?"].exists)
             shoot(app, "1D reminder opt-in")
             notNow.tap()
-        } else {
-            postMeal.tap()
-            let caption = app.textFields["Say something (or don't)"]
-            XCTAssertTrue(caption.waitForExistence(timeout: 15))
-            // A20.11 — same animating edge as S05: NutritionPostScreen adopts .crewBottomBar (A19.1)
-            typeInto(caption, "protein shake post-gym", in: app)
-            app.buttons["Post"].tap()
         }
         // Back on Home the bridge is gone forever; the flame is lit
         XCTAssertFalse(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 2))

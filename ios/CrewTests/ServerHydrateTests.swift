@@ -12,7 +12,7 @@ final class ServerHydrateTests: XCTestCase {
     private let when = ISO8601DateFormatter().date(from: "2026-09-04T18:00:00Z")!
 
     private func post(_ id: String, clientId: String? = nil, summary: String? = nil) -> PostDTO {
-        PostDTO(id: id, clientId: clientId, type: summary == nil ? "meal" : "workout", sessionId: nil, photoKey: nil, caption: "oats", mealTag: summary == nil ? "breakfast" : nil, crewId: "crew-1", dayKey: "2026-09-03", isPlannedDay: false, workoutCompleted: summary != nil, earlierToday: false, summary: summary, createdAt: when)
+        PostDTO(id: id, clientId: clientId, type: summary == nil ? "cardio" : "workout", sessionId: nil, caption: "oats", crewId: "crew-1", dayKey: "2026-09-03", isPlannedDay: false, workoutCompleted: true, summary: summary, createdAt: when)
     }
 
     private func session(_ clientId: String, workoutName: String, workoutKind: String?, exercise: SessionExerciseDTO) -> SessionDTO {
@@ -39,7 +39,7 @@ final class ServerHydrateTests: XCTestCase {
         XCTAssertNotNil(try store.post(clientId: "p2")) // no clientId on the wire → the server id stands in
         let home = HomeModel(store: store, userId: userId, timeZone: TimeZone(identifier: "UTC")!)
         home.refresh(now: when)
-        XCTAssertEqual(home.today, .rest(posted: false)) // 1D: the journal exists, so the bridge is gone; no plan yet → a rest day
+        XCTAssertEqual(home.today, .rest) // 1D: the journal exists, so the bridge is gone; no plan yet → a rest day
     }
 
     // A6: the line the server wrote at completion arrives with the post

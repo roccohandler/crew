@@ -1,7 +1,8 @@
 // SPEC: 5.6.2 HomeModel state types — enum TodayState { bridge · workout · rest · paused · allDone } (S07: all five states,
 // the bridge until the first post, 1D) and the crew strip's MemberDot (Flow 10: the strip is absent, not empty, for solo).
 // A2: a workout state knows whether its workout carries a cardio block. A3 (owner-directed 2026-09-08): the paused day is a
-// DayLabel, never raw ISO. Split from HomeModel.swift for the C9 cap. WRITTEN — UNVERIFIED (needs Mac). T024
+// DayLabel, never raw ISO. A22 G1 (a) (owner-approved 2026-09-18): a rest day asks nothing, so `rest` carries no "posted" flag.
+// Split from HomeModel.swift for the C9 cap. WRITTEN — UNVERIFIED (needs Mac). T024
 
 import Foundation
 
@@ -15,7 +16,7 @@ enum TodayState: Equatable {
     // the mobility/cardio summary — the card shows what you are doing, not how big it is; the count line stays but drops
     // to a whisper (the identity line outranks it).
     case workout(name: String, exerciseCount: Int, hasCardio: Bool, lines: [HomeLine], tail: String?)
-    case rest(posted: Bool)
+    case rest                                                         // A22 G1 (a): nothing to report and nothing to ask
     case paused(until: String)                                        // A3: a DayLabel ("Sat Sep 12"), never raw ISO
     case allDone
 }

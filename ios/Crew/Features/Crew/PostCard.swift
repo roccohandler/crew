@@ -25,10 +25,9 @@ struct PostCard: View {
                 HStack {
                     Text(authorName.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(EmberColors.secondaryText)
                     Spacer()
-                    Text(item.post?.type == "workout" ? "Workout ✓" : (item.post?.mealTag.map { MealTag(rawValue: $0)?.emoji ?? "" } ?? "")).font(.caption).foregroundStyle(EmberColors.secondaryText)
+                    Text(item.post?.type == "workout" ? "Workout ✓" : "").font(.caption).foregroundStyle(EmberColors.secondaryText)
                 }
                 if let summary = item.post?.summary, !summary.isEmpty { Text(summary).font(.subheadline).foregroundStyle(EmberColors.inkText) }
-                if let key = item.post?.photoKey { PostPhoto(photoKey: key) }
                 if let caption = item.post?.caption, !caption.isEmpty { Text(caption).font(.body).foregroundStyle(EmberColors.inkText) }
                 if let reactions = item.reactions, !reactions.isEmpty {
                     HStack(spacing: EmberTokens.Spacing.space8) {
@@ -71,17 +70,3 @@ struct PostCard: View {
     }
 }
 
-struct PostPhoto: View {
-    let photoKey: String
-    @State private var image: UIImage?
-
-    var body: some View {
-        ZStack {
-            // 6.1 (2026-09-18): a photo still arriving holds its own frame with a small indicator — progressive loading of the one thing that is late, not a skeleton of the card
-            if let image { Image(uiImage: image).resizable().scaledToFill() } else { Rectangle().fill(EmberColors.hairline).frame(height: EmberTokens.Size.skeletonHero).overlay(ProgressView().controlSize(.small).tint(EmberColors.secondaryText)).accessibilityHidden(true) }
-        }
-        .frame(maxWidth: .infinity, maxHeight: EmberTokens.Size.skeletonHero + EmberTokens.Size.skeletonHero)
-        .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-        .task { image = try? await Api.shared.photo(key: photoKey) }
-    }
-}

@@ -51,11 +51,19 @@ struct SeedClient {
         guard status == 200 else { throw SeedError.unexpected("plans → \(status)") }
     }
 
-    // The first flame: yesterday's member has posted before (1D — the bridge is gone for good)
-    func postMeal(as session: SeedSession) async throws {
-        let body: [String: Any] = ["clientId": UUID().uuidString.lowercased(), "type": "meal", "caption": "overnight oats", "shareToCrew": true, "timezone": TimeZone.current.identifier, "isPlannedDay": true]
-        let (_, status) = try await call("POST", "posts", body: body, token: session.accessToken)
-        guard status == 201 else { throw SeedError.unexpected("posts → \(status)") }
+    // The first flame's precondition (1D — the bridge is gone for good): yesterday's member has posted before. A22 (2026-09-18): a
+    // post is a WORKOUT post, created the one way the product creates one — a session completed with `post`. A standalone cardio
+    // log (A2) never fills a planned slot, so the seeded day's state stays what the plan says it is.
+    func logCardio(as session: SeedSession) async throws {
+        let set: [String: Any] = ["targetReps": 0, "actualReps": 0, "weight": NSNull(), "holdSeconds": 1_500, "distanceMeters": NSNull(), "isWarmup": false, "done": true]
+        let exercise: [String: Any] = ["exerciseId": "walk", "name": "Walk", "equipment": "bodyweight", "type": "cardio", "targetSets": 1, "targetReps": 0, "holdSeconds": 1_500, "order": 0, "sets": [set]]
+        let snapshot: [String: Any] = ["name": "Walk", "kind": "cardio", "isPlannedDay": false, "exercises": [exercise]]
+        let body: [String: Any] = ["clientId": UUID().uuidString.lowercased(), "timezone": TimeZone.current.identifier, "startedAt": ISO8601DateFormatter().string(from: Date()), "workoutSnapshot": snapshot]
+        let (data, status) = try await call("POST", "sessions", body: body, token: session.accessToken)
+        guard status == 201, let reply = try JSONSerialization.jsonObject(with: data) as? [String: Any], let created = reply["session"] as? [String: Any], let id = created["id"] as? String else { throw SeedError.unexpected("sessions → \(status)") }
+        let post: [String: Any] = ["clientId": UUID().uuidString.lowercased(), "shareToCrew": true]
+        let (_, done) = try await call("PATCH", "sessions/\(id)", body: ["timezone": TimeZone.current.identifier, "status": "completed", "post": post], token: session.accessToken)
+        guard done == 200 else { throw SeedError.unexpected("sessions/\(id) → \(done)") }
     }
 
     // SPEC: A18 / J034 — the seeds Home's four non-bridge states need, so CI can PHOTOGRAPH each one. Before this the

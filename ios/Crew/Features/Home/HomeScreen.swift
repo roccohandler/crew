@@ -1,7 +1,7 @@
 // SPEC: S07 Home — all five states; the BRIDGE until the first post (1D); today-state < 500 ms warm; ≤3 taps launch→fast-logged;
 // Quick Complete hidden once today counts; Resume banner when a session is open; crew strip absent for solo. A3 (owner-directed
-// 2026-09-08): a camera toolbar button ("Post a meal") on every non-bridge state, Log cardio under the workout card, the Bonus
-// workout sheet, the what's-next line. Part III law ④: the flame is the first ember the user sees. Screens hold ZERO logic
+// 2026-09-08): Log cardio under the workout card, the Bonus workout sheet, the what's-next line; A22 (owner-approved 2026-09-18):
+// the camera toolbar button and every meal CTA are gone with the plate journal. Part III law ④: the flame is the first ember the user sees. Screens hold ZERO logic
 // (5.6.6). A21.9 (owner-approved 2026-09-17): the celebration's two buttons are the only way out and the post follows the tap;
 // A21.4: the reminder opt-in follows the FIRST completed workout's celebration, once. WRITTEN — UNVERIFIED (needs Mac). T024
 
@@ -12,7 +12,6 @@ struct HomeScreen: View {
     @State private var loaded = false
     @State private var activeSession: LocalSession?
     @State private var celebration: CelebrationOutcome?
-    @State private var posting = false
     @State private var rebuilding = false
     @State private var choosingBonus = false
     @State private var loggingCardio = false
@@ -32,11 +31,6 @@ struct HomeScreen: View {
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle(title)
-            // A3 gave every non-bridge state a camera. A18.10 NARROWS it: not on a state whose CARD already offers a
-            // meal CTA. On the rest day the owner photographed, posting was reachable three ways at three weights —
-            // an unlabelled nav glyph, an ink-filled card primary and a slot — and the glyph was the screen's only
-            // unlabelled control. Apple's own navigation guidance names that redundancy as a cause of confusion.
-            .toolbar { if showsCameraButton { ToolbarItem(placement: .primaryAction) { postButton } } }
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
             // SPEC: A21.9 — no swipe-to-dismiss: a celebration is answered by one of its two buttons or not at all; the tapped
@@ -46,7 +40,6 @@ struct HomeScreen: View {
                     .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showsReminder) { ReminderOptInSheet(userId: model.userId, storedReminderTime: AuthStore.shared.currentUser?.reminderTime) { showsReminder = false } }
-            .sheet(isPresented: $posting) { NutritionPostScreen { posting = false; model.refresh() } }
             .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() } }
             .sheet(isPresented: $choosingBonus) { BonusWorkoutSheet(workouts: model.bonusWorkouts) { workout in choosingBonus = false; activeSession = model.startBonus(workout) } }
             .task { model.postUnanswered(); load() } // A21.9: a celebration the app died under posts privately first
@@ -84,12 +77,11 @@ struct HomeScreen: View {
                     if let nextUp = model.nextUp, !isBridge { NextUpBlock(facts: nextUp) }
                     Spacer(minLength: 0)
                     TodayCard(state: model.today,
-                              streak: model.streak,
                               nextUpLine: model.nextUpLine,
                               todaySummaryLines: model.todaySummaryLines,
                               resuming: model.resumeSession != nil,
                               onStart: { activeSession = model.startWorkout() },
-                              onPost: { posting = true },
+                              onBonus: { choosingBonus = true }, // A22 / R-070: the rest-day bridge's one control is the bonus workout
                               onEndPause: { Task { await model.endPause() } })
                     if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete() } }
                     if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
@@ -97,13 +89,12 @@ struct HomeScreen: View {
                         // documents as "within one group", while every real boundary on this screen is 24 — so the
                         // layout asserted the crew avatar was a fourth vector slot.
                         VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
-                            // A14 — the three vectors as peers. Every standalone duplicate that used to sit here or in
-                            // the card (Log cardio, Bonus workout) is gone: these ARE those affordances now, at a
-                            // position that no longer moves between states (F10, A17.3).
+                            // A14 — the vectors as peers. Every standalone duplicate that used to sit here or in the
+                            // card (Log cardio, Bonus workout) is gone: these ARE those affordances now, at a position
+                            // that no longer moves between states (F10, A17.3). A22 G4: two rows until W8 ships "Log macros".
                             VectorRow(slots: model.vectors,
                                       onWorkout: { if let session = model.startWorkout() { activeSession = session } else { choosingBonus = true } },
-                                      onCardio: { loggingCardio = true },
-                                      onMeal: { posting = true })
+                                      onCardio: { loggingCardio = true })
                             // absent (not empty) for solo AND below crewMinMembers (A17.1)
                             if let members = model.crewStrip {
                                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
@@ -134,18 +125,6 @@ struct HomeScreen: View {
         }
     }
 
-    // Ink, like every control (Part III law ①); the label is the a11y name — the glyph alone says nothing to VoiceOver
-    private var postButton: some View {
-        // 6.3: a bare toolbar Image is hit-tested at the glyph (~22×18 pt) plus whatever padding UIKit happens to add;
-        // the frame and contentShape make the target explicit rather than inherited
-        Button { posting = true } label: {
-            Image(systemName: "camera")
-                .frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                .contentShape(Rectangle())
-        }
-        .accessibilityLabel("Post a meal")
-    }
-
     // SPEC: A17.4 / S07 — the title NAMES THE STATE, so the screen says what today is before anything else is read.
     // The BRIDGE keeps "Today": §1D says that screen carries one CTA and nothing else, and a state name there would be
     // the first thing a brand-new user reads about a day they have not started.
@@ -162,21 +141,12 @@ struct HomeScreen: View {
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }
     private var isBridge: Bool { if case .bridge = model.today { return true } else { return false } } // 1D: nothing else competes
 
-    // A18.10 — no camera where the card already asks for a meal. Rest is the state that asks (a filled "Post a meal"
-    // before the day counts, an outline "Post another" after); every other state keeps the glyph, because there the
-    // camera is the only nav-level route and "Log a meal" is a row rather than a screen-level action.
-    private var showsCameraButton: Bool {
-        if isBridge { return false } // §1D
-        if case .rest = model.today { return false }
-        return true
-    }
-
     // A18.12 — the branch lives in HomeLoadState.of (5.6.6: a screen holds zero logic), which is also what makes
     // `.offline` — declared since T013 and assigned nowhere — testable as REACHABLE rather than merely declared.
     //
     // A20.9 — IT IS COMPUTED, NOT `@State`. As stored state it was assigned in exactly ONE place, inside `load()`,
     // which runs on `.task` and on `scenePhase → .active` and nowhere else — while EIGHT paths call `model.refresh()`
-    // directly (the session and cardio completions, the celebration and nutrition sheet dismissals, `endPause`,
+    // directly (the session and cardio completions, the celebration dismissal, `endPause`,
     // `startBonus`, `quickComplete`, and the edge prompts). So after logging anything, the banner and the error layer
     // were whatever they had been at the last foreground: `loadError` could be set inside `refresh()` and the screen
     // would not become `.failed` until the app was backgrounded and reopened. Computing it over the `@Observable`

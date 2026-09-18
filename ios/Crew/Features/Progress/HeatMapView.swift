@@ -1,4 +1,4 @@
-// SPEC: Flow 9 layer 1 — the heat map; tap a day → that day's workout + plates; ember fills = progress (Part III law ④); a missed
+// SPEC: Flow 9 layer 1 — the heat map; tap a day → that day's workouts; ember fills = progress (Part III law ④); a missed
 // day is neutral, never red. A6 (owner-directed 2026-09-08): VoiceOver reads the DayLabel ("Yesterday", "Mon Sep 1"), never a
 // raw ISO date. WRITTEN — UNVERIFIED (needs Mac). T040
 

@@ -9,17 +9,17 @@ final class LocalPost {
     @Attribute(.unique) var clientId: String
     var serverId: String?
     var userId: String
-    var type: String                 // workout | meal | text
+    var type: String                 // workout | cardio; "meal" | "text" are LEGACY values (A22, 2026-09-18) — nothing writes them
     var sessionClientId: String?
-    var photoKey: String?
-    var localPhotoPath: String?      // pending upload (E19: counted vs delivered are separate facts)
-    var caption: String
-    var mealTag: String?
+    var photoKey: String?            // LEGACY (A22 G2): never written since 2026-09-18; kept for the SwiftData schema until W9's migration
+    var localPhotoPath: String?      // LEGACY (A22 G2): the outbox photo path; never written since 2026-09-18
+    var caption: String              // A22 G2: the optional line a workout post carries (≤ captionMaxChars)
+    var mealTag: String?             // LEGACY (A22): never written since 2026-09-18
     var shareToCrew: Bool
     var dayKey: String
     var isPlannedDay: Bool
     var workoutCompleted: Bool
-    var earlierToday: Bool
+    var earlierToday: Bool           // LEGACY (A22): always false since 2026-09-18
     var summary: String?             // A6: a workout post's one readable line, computed at completion (SessionSummaryLine) and hydrated from the server
     var createdAt: Date
     var deliveredAt: Date?

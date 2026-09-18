@@ -26,7 +26,7 @@ final class HomeModelEdgeTests: XCTestCase {
 
     func testWelcomeBackAfterFourteenQuietDaysAndSilentOnceAnswered() throws {
         let store = try storeWithPlan()
-        store.context.insert(LocalPost(clientId: "old", userId: userId, type: "meal", sessionClientId: nil, caption: "eggs", mealTag: "breakfast", shareToCrew: false, dayKey: "2026-08-20", isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: friday.addingTimeInterval(-15 * TimeInterval(TimeUnits.secondsPerDay))))
+        store.context.insert(LocalPost(clientId: "old", userId: userId, type: "cardio", sessionClientId: nil, caption: "", mealTag: nil, shareToCrew: false, dayKey: "2026-08-20", isPlannedDay: false, workoutCompleted: false, earlierToday: false, createdAt: friday.addingTimeInterval(-15 * TimeInterval(TimeUnits.secondsPerDay))))
         try store.save()
         let model = HomeModel(store: store, userId: userId, timeZone: tz, syncQueue: queue(store), welcomeBackAckDay: nil)
         model.refresh(now: friday) // 15 quiet days
