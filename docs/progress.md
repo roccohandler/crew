@@ -627,7 +627,17 @@ commit that closes the three A21 GAP readings (owner-confirmed as written) and a
 | native `swift test` (engine package) | **76 tests, 0 failures** |
 
 NO VECTOR CHANGED (56 stay 56). WRITTEN-UNVERIFIED on a device: the two-question onboarding and the swap sheets on iOS — the macOS CI
-job compiles them and runs the three rewritten journeys; its verdict and the TestFlight build number are recorded below once read.
+job compiles them and runs the three rewritten journeys.
+
+**CI run 35290103306 (push 6ff0cd0, 2026-09-18 00:28Z): contracts ✓ · web ✓ · web e2e ✓ · ios engine ✓ · ios ✗ — 0 compile errors,
+140 unit tests green (PlanGenerator, SwapFinder and OnboardingModel under Xcode), journeys ① ②, CameraDenied and OfflineSession green
+without the "Full gym" tap, and 2 failures, both `HomeStatesTests` (workout day, all-done): "expected Home's title to name the state
+(Push day); the screen says: Rest day".** Not W2's doing and not Home's: `SeedClient.putPlan(oneTrainingDayOffsetFromToday:)` took
+today's weekday from the wall-clock calendar while Home judges today by the 3 AM boundary (E8), so between midnight and 3 AM the seed
+names tomorrow's weekday — the run began at 00:28 UTC, the first run ever inside that window (neither test file had changed since the
+last green run). **F53**: the seed client gains `appToday()` (now minus `dayBoundaryHour`, mirrored by name because a UI-test bundle
+cannot import SpecConstants) and both the plan and the pause helpers count that day. Test-only; no app file changed. TestFlight
+correctly skipped (run 35291354103). The verdict of the F53 run and the TestFlight build number follow below.
 ## Ledger
 
 Phase 0 — contracts

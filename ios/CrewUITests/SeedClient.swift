@@ -62,10 +62,17 @@ struct SeedClient {
     // only non-bridge Home any test ever rendered was a workout day (journey ②, whose member trains every day) and a
     // rest day that asserted one string's absence. The owner reported a rest day; nothing in CI had ever looked at it.
 
+    // SPEC: E8 — the app's "today" ends at 3 AM local (DayKey.dayKey), so a seed that names TODAY's weekday must count the
+    // same day the app does: between midnight and 3 AM the calendar is already on tomorrow while Home is still on today.
+    // CI run 35290103306 (00:28 UTC, F53) seeded Thursday for a Home that judged Wednesday and read "Rest day" where the
+    // workout day was expected — a time-of-day flake in this helper, not in Home. A UI-test bundle cannot import
+    // SpecConstants, so dayBoundaryHour is mirrored here by name.
+    private static let dayBoundaryHour = 3
+    private static func appToday() -> Date { Date().addingTimeInterval(-TimeInterval(dayBoundaryHour * 3_600)) }
     // A plan with ONE training day, chosen relative to today, so a state is deterministic on any day of the week.
     // `offsetFromToday` 0 → today trains (workout / all-done); 1 → tomorrow trains (today is a rest day).
     func putPlan(oneTrainingDayOffsetFromToday offset: Int, as session: SeedSession) async throws {
-        let weekday = (Calendar.current.component(.weekday, from: Date().addingTimeInterval(TimeInterval(offset * 86_400))) + 5) % 7 + 1 // Foundation Sun=1 → ISO Mon=1
+        let weekday = (Calendar.current.component(.weekday, from: Self.appToday().addingTimeInterval(TimeInterval(offset * 86_400))) + 5) % 7 + 1 // Foundation Sun=1 → ISO Mon=1; E8's day, not the calendar's
         let workouts: [[String: Any]] = [
             ["name": "Push day", "kind": "push", "exercises": [["exerciseId": "push-up", "name": "Push-Up", "pattern": "horizontalPush", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]]],
             ["name": "Pull day", "kind": "pull", "exercises": [["exerciseId": "inverted-row", "name": "Inverted Row", "pattern": "horizontalPull", "equipment": "bodyweight", "type": "strength", "targetSets": 3, "targetReps": 10, "order": 0]]],
@@ -80,7 +87,7 @@ struct SeedClient {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.timeZone = TimeZone.current
-        let body: [String: Any] = ["startDay": formatter.string(from: Date()), "endDay": formatter.string(from: Date().addingTimeInterval(TimeInterval(days * 86_400))), "timezone": TimeZone.current.identifier]
+        let body: [String: Any] = ["startDay": formatter.string(from: Self.appToday()), "endDay": formatter.string(from: Self.appToday().addingTimeInterval(TimeInterval(days * 86_400))), "timezone": TimeZone.current.identifier] // E8's day, not the calendar's
         let (_, status) = try await call("POST", "pause", body: body, token: session.accessToken)
         guard status == 201 || status == 200 else { throw SeedError.unexpected("pause → \(status)") }
     }
