@@ -15,7 +15,7 @@ struct NutritionTargetsScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 NutritionTextField(title: "Bodyweight (\(model.weightUnit))", text: $model.bodyweightText, keyboard: .decimalPad, focus: $focused, key: "bodyweight")
                 Text("Used for the estimate and nothing else. Only you can see it.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                if model.hasTargets { GramFields(grams: $model.grams, limit: SpecConstants.macroTargetGramsMax, focus: $focused, prefix: "target") }
+                if model.hasTargets { GramFields(grams: $model.grams, limit: SpecConstants.macroTargetGramsMax, focus: $focused, prefix: "target"); Whisper(.whyProtein) } // A23
                 if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
                 if let saved = model.savedLine { Text(saved).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
                 if model.hasTargets {

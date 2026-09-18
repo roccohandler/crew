@@ -34,6 +34,7 @@ struct HomeHeader: View {
                     if !isBridge, let caption = streakCaption {
                         Text(caption).font(.caption).foregroundStyle(EmberColors.secondaryText)
                     }
+                    if !isBridge, !isPaused, streak > 0 { Whisper(.whyStreak) } // A23: the first lit flame
                 }
                 Spacer()
                 // W043 — the ring is gone from the BRIDGE. There it read "0/3": a competing prompt on the one screen

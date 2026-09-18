@@ -25,6 +25,7 @@ struct SettingsScreen: View {
                 }
                 Section("Plan") {
                     NavigationLink { PauseScreen(model: model) } label: { LabeledContent("Pause my plan", value: model.pauseDetail) }
+                    Whisper(.howPause) // A23
                 }
                 // W6 (owner's walkthrough, 2026-09-17): the two unit pickers sat under "Plan" with the bare labels "Weight" and
                 // "Distance", which read as stats; their own section names what they are
@@ -45,6 +46,7 @@ struct SettingsScreen: View {
                 }
                 AccountRows(model: model)
                 Section("About") {
+                    NavigationLink("How Crew works") { HowCrewWorksScreen() } // A23 · S19: the page behind the whispers
                     LabeledContent("Version", value: model.versionLine)
                 }
             }

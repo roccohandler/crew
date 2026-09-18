@@ -76,7 +76,8 @@ struct CrewScreen: View {
             if loadState == .offline, let synced = model.lastSyncedAt { OfflineBanner(lastSyncedLine: "Last synced \(synced.formatted(date: .omitted, time: .shortened)).") }
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
                 if let crew = model.crew { MemberStrip(crewName: crew.name, emoji: crew.emoji, pulse: model.pulse, members: model.members) }
-                if model.isCrewOfOne, let crew = model.crew { CrewOfOneCard(crew: crew, isCaptain: model.isCaptain) { model.copyInviteLink() } }
+                if model.hasCrewmates { Whisper(.whyCrews) } // A23: a crew, not a crew of one
+                if model.isCrewOfOne, let crew = model.crew { CrewOfOneCard(crew: crew, isCaptain: model.isCaptain) { model.copyInviteLink() }; Whisper(.howInvite) } // A23 · R-076
                 if let notice = model.noticeLine { Text(notice).font(.footnote).foregroundStyle(EmberColors.secondaryText).accessibilityAddTraits(.updatesFrequently) }
             }
             .padding(.horizontal, EmberTokens.Spacing.space16)

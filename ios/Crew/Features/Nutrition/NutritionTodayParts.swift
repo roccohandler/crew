@@ -26,6 +26,7 @@ struct TemplateRows: View {
                 // One boundary around the group (A18.11: controlOutline on a control, the hairline only between two surfaces)
                 .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
                 .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                Whisper(.howShake) // A23: the first template slot
             }
         }
     }

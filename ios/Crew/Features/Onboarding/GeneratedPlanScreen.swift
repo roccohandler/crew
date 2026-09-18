@@ -17,16 +17,14 @@ struct GeneratedPlanScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 Text("Your week, built.").font(.title.weight(.bold)).foregroundStyle(EmberColors.inkText)
+                if model.mode == .signup { Whisper(.whyPpl) } // A23: never in a sheet — a rebuild is one (rule 3)
                 VStack(spacing: EmberTokens.Spacing.space8) {
                     ForEach(model.weekRows) { row in WeekRow(row: row, interactive: false) {} }
                 }
                 Text("Every workout rotates in, so each gets equal time.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                if !model.swapWhisperShown {
-                    Text("Tap any exercise to swap it.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                }
+                if model.mode == .signup { Whisper(.howRevealSwap) } // 1C's one whisper, now part of the A23 system: once per account
                 ForEach(Array((model.draft?.workouts ?? []).enumerated()), id: \.element.kind) { index, workout in
                     WorkoutCard(workout: workout) { exerciseId in
-                        model.swapWhisperShown = true
                         swapping = (workout.kind, exerciseId)
                     }
                     .opacity(index < revealed ? 1 : 0)

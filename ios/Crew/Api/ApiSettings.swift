@@ -18,10 +18,11 @@ struct UpdateMeRequestDTO: Codable {
     var clearsProfilePhoto = false
     var notificationPrefs: NotificationPrefsPatchDTO? = nil
     var welcomeBackAckDay: String? = nil
+    var whispersSeen: [String]? = nil        // A23: UNIONED into the account by the server — never a replacement, never a removal
     var birthYear: Int? = nil                // A16.c · addendum §6: stored ONCE, when Nutrition is first opened on an account without one (409 birthYearSet after)
 
     enum CodingKeys: String, CodingKey {
-        case displayName, units, weightUnit, distanceUnit, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay, birthYear
+        case displayName, units, weightUnit, distanceUnit, timezone, reminderTime, profilePhotoKey, notificationPrefs, welcomeBackAckDay, birthYear, whispersSeen
     }
 
     func encode(to encoder: Encoder) throws {
@@ -36,6 +37,7 @@ struct UpdateMeRequestDTO: Codable {
         try container.encodeIfPresent(notificationPrefs, forKey: .notificationPrefs)
         try container.encodeIfPresent(welcomeBackAckDay, forKey: .welcomeBackAckDay)
         try container.encodeIfPresent(birthYear, forKey: .birthYear)
+        try container.encodeIfPresent(whispersSeen, forKey: .whispersSeen)
     }
 }
 

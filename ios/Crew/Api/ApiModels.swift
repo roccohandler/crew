@@ -17,6 +17,7 @@ struct UserDTO: Codable, Equatable {
     let reminderTime: String?
     let notificationPrefs: NotificationPrefsDTO?   // A7: absent on an older reply = every toggle on (read `prefs`)
     let welcomeBackAckDay: String?   // E4: the day the welcome-back screen was answered (nil = never)
+    let whispersSeen: [String]?      // A23: the one-time whispers this account has seen, on any device (a union the server never shrinks); nil on an older reply
     let nutrition: String?           // A16.c · A22 G3: available | askBirthYear | absent — the birth year itself never leaves the server; nil on a reply cached by an older build
     let createdAt: Date
 

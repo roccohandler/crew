@@ -32,7 +32,6 @@ final class OnboardingModel {
     var isSaving = false
     var invitedCrew: CrewPreviewDTO?
     var inviteToken: String?
-    var swapWhisperShown = false   // 1C: the "Tap any exercise to swap it." whisper appears once, then never again
     var inviteCode = ""            // A21.3: what the person pasted — the bare code or the whole link (InviteCode.token reads it)
     var inviteError: String?       // S13: dead code · full crew · not a code — one line, always a way forward
     var isLookingUpInvite = false

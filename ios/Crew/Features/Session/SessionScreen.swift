@@ -147,7 +147,8 @@ struct SessionScreen: View {
                     }
                     TextActionButton(title: exercise.skipped ? "Unskip" : "Skip", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: exercise.skipped ? "Unskip \(exercise.name)" : "Skip \(exercise.name)") { model.skip(exercise) }
                 }
-                if let last = model.lastTimeLine(for: exercise) { Text(last).font(.caption).foregroundStyle(EmberColors.secondaryText) }
+                Whisper(.howSwapSkip) // A23: under Swap · Skip, the first time a session opens
+                if let last = model.lastTimeLine(for: exercise) { Text(last).font(.caption).foregroundStyle(EmberColors.secondaryText); Whisper(.howOverload) } // A23: under the first row that remembers last time (A12)
                 rows(exercise)
                 RestTimerView(timer: model.restTimer) // Flow 3: the countdown lives with the exercise that started it
             }

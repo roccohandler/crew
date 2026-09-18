@@ -20,6 +20,7 @@ struct CrewApp: App {
     // SPEC: A7 — the same reset serves Log out and Delete account (SettingsModel): the op queue and pauses go too (D7 fix).
     static func resetState() {
         AuthStore.shared.signOutLocally()
+        WhisperState.shared.signedOut() // A23: the next account's whispers are its own
         DraftStore().clear()
         let context = Store.shared.context
         try? context.delete(model: LocalPlan.self)

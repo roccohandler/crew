@@ -26,6 +26,7 @@ struct DayTemplateView: View {
                     MealLineAction(title: "Remove", spoken: "Remove \(slot.meal.name) from the template") { model.removeSlot(slot) },
                 ])
             }
+            if !model.slots.isEmpty { Whisper(.whyFreeDinner) } // A23: the first daily template
             if model.canAddSlot { addSlot }
         }
     }

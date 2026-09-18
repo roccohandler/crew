@@ -86,7 +86,12 @@ struct HomeScreen: View {
                               onStart: { activeSession = model.startWorkout() },
                               onBonus: { choosingBonus = true }, // A22 / R-070: the rest-day bridge's one control is the bonus workout
                               onEndPause: { Task { await model.endPause() } })
-                    if model.quickCompleteAvailable, !isBridge { SecondaryButton(title: "Quick complete") { celebration = model.quickComplete() } }
+                    if model.quickCompleteAvailable, !isBridge {
+                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
+                            SecondaryButton(title: "Quick complete") { celebration = model.quickComplete() }
+                            Whisper(.howQuickComplete) // A23
+                        }
+                    }
                     if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
                         // A17.1 / H034 — sectionGap, not rowGap. These were bound at 8 pt, the gap design-tokens.json
                         // documents as "within one group", while every real boundary on this screen is 24 — so the
