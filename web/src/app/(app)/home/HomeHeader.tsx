@@ -4,6 +4,7 @@
 // Split from page.tsx the way ios Features/Home/HomeHeader.swift is split from HomeScreen.swift, and for the same
 // reason: this is one composed group with its own gating rules, and the page was carrying all of them inline.
 import { StreakFlame } from "@/components/StreakFlame";
+import { Whisper } from "@/components/Whisper";
 import { WeeklyRing } from "@/components/WeeklyRing";
 import { WeekStrip } from "@/components/WeekStrip";
 import type { HomeFacts } from "@/lib/today-state";
@@ -32,6 +33,7 @@ export function WeekHeader({ facts, streak, shields, isBridge }: { facts: HomeFa
         <div className="stack stack--tight">
           <StreakFlame streak={streak} paused={isPaused} />
           {!isBridge && streakCaption !== null ? <p className="whisper">{streakCaption}</p> : null}
+          {!isBridge && !isPaused && streak > 0 ? <Whisper id="why.streak" /> : null}
         </div>
         {showsRing ? (
           <div className="stack stack--tight center">

@@ -43,7 +43,6 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     return saved?.plan ? { ...saved, invite: invite ?? saved.invite } : { days: [...SpecConstants.defaultTrainingWeekdays], experience: null, plan: null, invite };
   });
   const [step, setStep] = useState<Step>(() => (!signedIn && loadDraft()?.plan ? "save" : "days"));
-  const [whisperShown, setWhisperShown] = useState(false);
 
   const persist = (next: Draft) => {
     setDraft(next);
@@ -68,7 +67,6 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
       return { ...workout, exercises };
     });
     persist({ ...draft, plan: { trainingWeekdays: draft.plan.trainingWeekdays, workouts } });
-    setWhisperShown(true);
   };
 
   const finish = async () => {
@@ -80,15 +78,15 @@ export function OnboardingFlow({ appleHref, invite, signedIn }: { appleHref: str
     router.push(signedIn ? "/plan" : draft.invite ? "/crew" : "/home");
   };
 
-  return <StepView step={step} draft={draft} whisperShown={whisperShown} appleHref={appleHref} signedIn={signedIn} persist={persist} setStep={setStep} chooseExperience={chooseExperience} swap={swap} finish={finish} />;
+  return <StepView step={step} draft={draft} appleHref={appleHref} signedIn={signedIn} persist={persist} setStep={setStep} chooseExperience={chooseExperience} swap={swap} finish={finish} />;
 }
 
-interface StepViewProps { step: Step; draft: Draft; whisperShown: boolean; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseExperience: (value: string) => void; swap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
+interface StepViewProps { step: Step; draft: Draft; appleHref: string; signedIn: boolean; persist: (next: Draft) => void; setStep: (step: Step) => void; chooseExperience: (value: string) => void; swap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; finish: () => Promise<void> }
 
-function StepView({ step, draft, whisperShown, appleHref, signedIn, persist, setStep, chooseExperience, swap, finish }: StepViewProps) {
+function StepView({ step, draft, appleHref, signedIn, persist, setStep, chooseExperience, swap, finish }: StepViewProps) {
   if (step === "days") return <DaysQuestion days={draft.days} onToggle={(weekday) => persist({ ...draft, days: draft.days.includes(weekday) ? draft.days.filter((day) => day !== weekday) : [...draft.days, weekday] })} onContinue={() => { if (!signedIn) markFunnelStep("onboarding_days"); setStep("experience"); }} />;
   if (step === "experience") return <SingleSelect number={QUESTION.experience} title="How experienced are you?" selected={draft.experience} options={[{ value: "brandNew", label: "Brand new", symbol: "🚶" }, { value: "some", label: "Some", symbol: "🏋️" }, { value: "experienced", label: "Experienced", symbol: "🏆" }]} onChoose={(value) => { if (!signedIn) markFunnelStep("onboarding_experience"); chooseExperience(value); }} />;
-  if (step === "reveal" && draft.plan) return <GeneratedPlan draft={draft.plan} todayKey={dayKeyFor(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone)} whisperShown={whisperShown} swapCandidates={(exerciseId) => { const incumbent = exercises.find((candidate) => candidate.id === exerciseId); return incumbent ? swapCandidates(incumbent, draft.experience ?? "brandNew", exercises) : []; }} onSwap={swap} onAccept={() => { persist(draft); if (signedIn) void finish(); else setStep("save"); }} />;
+  if (step === "reveal" && draft.plan) return <GeneratedPlan draft={draft.plan} todayKey={dayKeyFor(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone)} swapCandidates={(exerciseId) => { const incumbent = exercises.find((candidate) => candidate.id === exerciseId); return incumbent ? swapCandidates(incumbent, draft.experience ?? "brandNew", exercises) : []; }} onSwap={swap} onAccept={() => { persist(draft); if (signedIn) void finish(); else setStep("save"); }} />;
   return <SaveForm appleHref={appleHref} onSaved={finish} />;
 }
 

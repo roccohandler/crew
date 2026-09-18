@@ -49,7 +49,35 @@ function checkNutritionMethod(doc) {
   if ((doc.steps ?? []).length === 0) report(name, "A16.a: the calculation must be named step by step");
 }
 
+// SPEC: A23 · docs/education-copy-draft.md §A — a whisper is ≤ whisperMaxWords words, unique, and gated or not; the page names its
+// sources as links; the note from Max says whether it is still the draft (the launch audit reports it while it is)
+function checkEducation(doc) {
+  const name = "education.json";
+  checkWords(doc, name);
+  const maxWords = sections.copy.whisperMaxWords.value;
+  const ids = new Set();
+  for (const whisper of doc.whispers ?? []) {
+    if (!/^(why|how)\.[a-zA-Z]+$/.test(whisper.id ?? "")) report(name, `whisper id ${whisper.id} must read why.<name> or how.<name>`);
+    if (ids.has(whisper.id)) report(name, `duplicate whisper id ${whisper.id}`);
+    ids.add(whisper.id);
+    const words = (whisper.line ?? "").trim().split(/\s+/).filter((word) => word !== "").length;
+    if (words === 0 || words > maxWords) report(name, `${whisper.id}: ${words} words — a whisper is 1…${maxWords}`);
+    if (!["all", "adult"].includes(whisper.gate)) report(name, `${whisper.id}: gate must be all or adult`);
+    if (typeof whisper.moment !== "string" || whisper.moment.trim() === "") report(name, `${whisper.id}: the page needs the moment it appeared`);
+  }
+  if (ids.size === 0) report(name, "no whispers");
+  const page = doc.page ?? {};
+  if (typeof page.note?.draft !== "boolean") report(name, "page.note.draft must say whether the note is still the draft");
+  for (const key of ["title", "whispersHeading", "clinician"]) if (typeof page[key] !== "string" || page[key].trim() === "") report(name, `page.${key} is required`);
+  for (const section of page.sections ?? []) {
+    if (typeof section.heading !== "string" || section.heading.trim() === "" || typeof section.body !== "string" || section.body.trim() === "") report(name, `section ${section.id}: heading and body are required`);
+    if (section.source !== null && !/^https:\/\/\S+$/.test(section.source?.url ?? "")) report(name, `section ${section.id}: a source is an https link`);
+    if (section.adultBody !== "" && section.source !== null && section.source.gate !== "adult") report(name, `section ${section.id}: a numeric adult sentence travels with an adult-gated source (A16.c)`);
+  }
+}
+
 checkNutritionMethod(copy.nutritionMethod);
+checkEducation(copy.education);
 
 for (const finding of findings) console.log(`COPY  ${finding}`);
 if (findings.length > 0) { console.log(`check-copy: ${findings.length} finding(s)`); process.exit(1); }

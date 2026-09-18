@@ -2,6 +2,7 @@
 // primitives and the auth DTOs; other groups live in validate-<group>.ts (C9 file cap). Every limit is a
 // SpecConstants value; the schemas are the only place input limits are enforced (8.3 Validators).
 import { z } from "zod";
+import { whisperIds } from "@/generated/copy";
 import { SpecConstants } from "@/generated/spec-constants";
 
 // A phone reports its zone as Foundation names it: "GMT" on a device (or a CI simulator) set to UTC, legacy names such as
@@ -57,6 +58,9 @@ export const resetConfirmSchema = z.object({ token: z.string().min(1), newPasswo
 // SPEC: A7 — per-row toggles; a partial object is merged over the stored preferences server-side
 export const notificationPrefsSchema = z.object({ workoutReminder: z.boolean(), streakRisk: z.boolean(), crewActivity: z.boolean() });
 
+// SPEC: A23 — only ids the shared copy file names (shared/copy/education.json); an unknown id is a validation error, never stored
+const whisperIdSchema = z.string().refine((id) => (whisperIds as string[]).includes(id), "not a whisper id");
+
 export const updateMeSchema = z.object({
   displayName: displayNameSchema.optional(),
   units: z.enum(["lb", "kg"]).optional(), // A9: legacy — an older build still sends it; the route mirrors it onto weightUnit
@@ -68,6 +72,7 @@ export const updateMeSchema = z.object({
   notificationPrefs: notificationPrefsSchema.partial().optional(),
   welcomeBackAckDay: dayKeySchema.optional(), // E4: set when the user answers the welcome-back screen
   birthYear: birthYearSchema.optional(), // A16.c · addendum §6: asked once, when Nutrition is opened on an account without one — never changed after
+  whispersSeen: z.array(whisperIdSchema).max(whisperIds.length).optional(), // A23: UNIONED into the stored list by the route — never a replacement, never a removal
 });
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;
 

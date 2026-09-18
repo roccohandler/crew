@@ -24,6 +24,7 @@ export interface PublicUser {
   notificationPrefs: NotificationPrefs; // always present — defaults filled (A7)
   welcomeBackAckDay: string | null;
   nutrition: NutritionAvailability; // A16.c · A22 G3: available · askBirthYear · absent — the birth year itself never leaves the server
+  whispersSeen: string[]; // A23: server-side, so the phone and the web agree on what has already been said once
   createdAt: string;
 }
 
@@ -58,6 +59,7 @@ export function publicUser(doc: UserDoc): PublicUser {
     notificationPrefs: notificationPrefsOf(doc),
     welcomeBackAckDay: doc.welcomeBackAckDay ?? null,
     nutrition: availability(doc.birthYear ?? null, new Date().getUTCFullYear()),
+    whispersSeen: doc.whispersSeen ?? [],
     createdAt: doc.createdAt.toISOString(),
   };
 }

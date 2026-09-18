@@ -64,7 +64,10 @@ function readDesignTokens() {
 // SPEC: A16.a · C7 — copy is shared words; its numbers are {placeholders} resolved from the constants above
 export function readCopy(sections) {
   const values = copyValues(sections);
-  const copy = { nutritionMethod: resolveCopy(JSON.parse(readFileSync(join(copyDir, "nutrition-method.json"), "utf8")), values, "nutrition-method.json") };
+  const copy = {
+    nutritionMethod: resolveCopy(JSON.parse(readFileSync(join(copyDir, "nutrition-method.json"), "utf8")), values, "nutrition-method.json"),
+    education: resolveCopy(JSON.parse(readFileSync(join(copyDir, "education.json"), "utf8")), values, "education.json"), // A23
+  };
   for (const [name, doc] of Object.entries(copy)) if (JSON.stringify(doc).includes('"#')) throw new Error(`copy ${name}: the sequence "# would break the Swift raw string`);
   return copy;
 }

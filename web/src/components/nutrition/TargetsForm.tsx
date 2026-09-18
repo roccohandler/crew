@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GramFields } from "@/components/nutrition/GramField";
+import { Whisper } from "@/components/Whisper";
 import { isApiClientError } from "@/lib/api-client";
 import { putNutritionTargets } from "@/lib/api-client-nutrition";
 import { bodyweightTenthsFrom } from "@/lib/engine/nutrition-targets";
@@ -55,6 +56,7 @@ export function TargetsForm({ targets, unit, next }: { targets: TargetsResponse 
       <label className="field field--short"><span>Bodyweight ({unit})</span><input type="text" inputMode="decimal" autoComplete="off" value={weight} onChange={(event) => setWeight(event.target.value)} /></label>
       <p className="whisper">Used for the estimate and nothing else. Only you can see it.</p>
       {targets === null ? null : <GramFields value={grams} max={SpecConstants.macroTargetGramsMax} onChange={setGrams} />}
+      {targets === null ? null : <Whisper id="why.protein" />}
       {error ? <p className="notice" role="alert">{error}</p> : null}
       {saved ? <p className="muted" role="status">Saved.</p> : null}
       {targets === null ? <button type="button" className="button button--primary" disabled={busy} onClick={() => void save(false)}>Estimate my targets</button> : null}

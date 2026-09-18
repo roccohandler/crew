@@ -4,6 +4,7 @@
 // the collapsed panel; S13 Captain tools only for the Captain — rename / change the emoji (E2, via PATCH crews/[id]; W3 under
 // A21.2, 2026-09-17), regenerate link, remove members; "crew full" explicit; leave. Mirrors ios InviteScreen + CreateCrewScreen.
 import { useState, useSyncExternalStore } from "react";
+import { Whisper } from "@/components/Whisper";
 import type { MemberDot } from "@/lib/crew-stream";
 import { leaveOrRemove, regenerateInvite, renameCrew, type CrewSummary } from "@/lib/api-client-crew";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -62,6 +63,7 @@ function ShareControls({ crew }: { crew: CrewSummary }) {
     <div className="stack stack--tight">
       {canShare ? <button type="button" className="button button--primary" onClick={share}>{sent ? "Invite more" : "Invite friends"}</button> : <button type="button" className="button button--primary" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>}
       {canShare ? <button type="button" className="button button--text" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button> : <a className="button button--secondary" href={`sms:?&body=${encodeURIComponent(`${message} ${link}`)}`}>Text it</a>}
+      <Whisper id="how.invite" />
       {sent ? <p className="muted" role="status">{"Link sent. We'll show them here when they join."}</p> : null}
     </div>
   );

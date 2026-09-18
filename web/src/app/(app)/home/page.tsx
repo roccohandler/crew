@@ -11,6 +11,7 @@ import { QuickCompleteButton } from "@/components/QuickCompleteButton";
 import { StaleSessionPrompt } from "@/components/StaleSessionPrompt";
 import { WelcomeBack } from "@/components/WelcomeBack";
 import { VectorRow } from "@/components/VectorRow";
+import { Whisper } from "@/components/Whisper";
 import { blockedIdsFor, memberDots } from "@/lib/crew-stream";
 import { crewMemberships, crews } from "@/lib/db";
 import { storedState } from "@/lib/gamification-store";
@@ -94,7 +95,7 @@ function BottomGroup({ facts, bonusKind, userId, isBridge, macros }: { facts: Ho
   return (
     <div className={facts.today.kind === "rest" ? "stack stack--sections stack--bottom stack--floating" : "stack stack--sections stack--bottom"}>{/* R-073: a rest day floats */}
       <TodayCard today={facts.today} todayKey={facts.todayKey} openSessionId={facts.openSessionId} bridgeLine={nextUpLineOf(facts.nextUp)} bonusHref={bonusKind === null ? null : `/session/new?bonus=${bonusKind}`} todaySummaryLines={facts.todaySummaryLines} />
-      {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <QuickCompleteButton kind={facts.todayWorkoutKind} /> : null}
+      {facts.quickCompleteAvailable && !isBridge && facts.todayWorkoutKind !== null ? <div className="stack stack--tight"><QuickCompleteButton kind={facts.todayWorkoutKind} /><Whisper id="how.quickComplete" /></div> : null}
       {/* A14 — the three vectors as peers; every standalone duplicate that used to sit here or in the card is gone
           (A17.3). A17.1 / H034 — sectionGap, not the 8 px "within one group" stack: the layout used to assert the
           crew avatar was a fourth vector slot. */}

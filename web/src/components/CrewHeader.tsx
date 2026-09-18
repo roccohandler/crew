@@ -4,6 +4,7 @@
 // avatar when a key exists, initials until then. A21.2 (owner-approved 2026-09-17): the chat composer that lived in this file is
 // gone — the stream is posts + system lines + reactions. Mirrors ios MemberStrip.
 import type { MemberDot } from "@/lib/crew-stream";
+import { Whisper } from "@/components/Whisper";
 import type { CrewSummary, StreamReply } from "@/lib/api-client-crew";
 import { SpecConstants } from "@/generated/spec-constants";
 
@@ -43,6 +44,7 @@ export function CrewHeader({ crew, feed }: { crew: CrewSummary; feed: StreamRepl
           </div>
         ))}
       </div>
+      {(feed?.members.length ?? 0) >= SpecConstants.crewMinMembers ? <Whisper id="why.crews" /> : null}{/* A23: a crew, not a crew of one */}
     </div>
   );
 }

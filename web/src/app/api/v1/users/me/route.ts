@@ -42,13 +42,16 @@ export async function PATCH(req: Request) {
       requireSignupGates(true, body.birthYear);
     }
     const changes: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(body)) if (value !== undefined) changes[key] = value;
+    for (const [key, value] of Object.entries(body)) if (value !== undefined && key !== "whispersSeen") changes[key] = value;
     if (body.notificationPrefs !== undefined) changes.notificationPrefs = { ...notificationPrefsOf(current), ...body.notificationPrefs };
     // SPEC: A9 — the two fields and the legacy mirror stay consistent whichever one the client sent, so an older build
     // switching `units` and a new build switching `weightUnit` never leave the account disagreeing with itself
     if (body.units !== undefined && body.weightUnit === undefined) changes.weightUnit = body.units;
     if (body.weightUnit !== undefined) changes.units = body.weightUnit;
-    await (await users()).updateOne({ _id: new ObjectId(userId) }, { $set: changes });
+    // SPEC: A23 — the seen whispers are a UNION: what one device saw, every device has seen; nothing a client sends can shrink the list
+    const seen = body.whispersSeen === undefined ? {} : { $addToSet: { whispersSeen: { $each: body.whispersSeen } } };
+    const update = { ...(Object.keys(changes).length === 0 ? {} : { $set: changes }), ...seen };
+    if (Object.keys(update).length > 0) await (await users()).updateOne({ _id: new ObjectId(userId) }, update); // an empty PATCH writes nothing
     const user = await findUserById(userId);
     if (user === null) throw notFound("User");
     await logEvent(userId, "profile_updated", { fields: Object.keys(changes).join(",") });

@@ -1299,3 +1299,24 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   {placeholders} the generator resolves from spec-constants (C7), `check-copy.mjs` holds its rules, and the methodology page's four
   sources were each read on 2026-09-18 before being linked (Kerksick 2018 for 25–35 kcal/kg, Jäger 2017 for 1.4–2.0 g/kg protein, the
   Institute of Medicine's 2005 AMDR for fat at 20–35 % of energy, FAO paper 77 for the Atwater 4 · 4 · 9).
+
+- **R-076 · 2026-09-18 · A23, the education layer — BUILT ON THE OWNER'S ORDER OF 2026-09-18 (item 5), WITH THE DRAFT COPY; READINGS.**
+  The copy document says nothing reaches a screen until it is ratified line by line; the owner's later order says build the
+  mechanism now with the copy in ONE file and the note from Max marked DRAFT — the order governs, and ratification is an owner task
+  that edits one file (`shared/copy/education.json`; both platforms regenerate from it, `check-copy.mjs` holds rule 5's twelve words).
+  (1) THE NOTE IS MARKED ON SCREEN: a secondary-ink "Draft" under "A note from Max" while `page.note.draft` is true; the launch audit
+  prints a NOTE line for it and never fails on it. (2) SEEN-STATE as the draft proposed it: `User.whispersSeen`, PATCH users/me UNIONS
+  (`$addToSet`), an unknown id is refused; the phone keeps server ∪ a per-account UserDefaults set and re-sends the WHOLE set on every
+  signed-in frame that finds the server behind; the web does the same with localStorage. (3) BEFORE AN ACCOUNT EXISTS (the plan reveal's
+  two whispers) the set is the device's own and joins the account at the first signed-in load; a log out forgets it, so the next
+  person on the phone sees the reveal's whispers. (4) RULE 3 BEATS A PLACEMENT: on the phone S13 Invite is a SHEET, and a whisper
+  never renders in a sheet — so `how.invite` sits under the crew-of-one card's "Invite friends" on the Crew tab, the invite control
+  that screen itself carries (on the web the invite controls are inline, and it sits under them as drafted). For the same reason the
+  reveal's two whispers render at signup only: a REBUILD is a sheet on the phone. (5) "THE FIRST TAP ANYWHERE" is one simultaneous tap
+  gesture on the root view (never taking a tap from the control under it) on the phone, and the first pointer or key event on the web,
+  so a keyboard user clears a whisper too. (6) `how.swapSkip` sits under the ACTIVE exercise's Swap · Skip on the phone (A21.11 shows one
+  card) and under the first exercise's on the web; `how.overload` under the first row that prints a last-time line. (7) `why.crews` needs
+  a crew, not a crew of one (`crewMinMembers`). (8) S19 under 18 OR with no birth year on file: the Protein section drops its numeric
+  sentence and its source, and the three nutrition whispers leave the list — the page reads `user.nutrition === available` and says
+  nothing about the omission. (9) The whisper ids are GENERATED (`WhisperId` on both platforms), so a call site naming an id the copy
+  file does not hold cannot compile.

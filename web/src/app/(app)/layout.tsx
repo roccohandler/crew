@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { SessionKeeper } from "@/components/SessionKeeper";
+import { WhispersSeen } from "@/components/Whisper";
 import { readSession } from "@/lib/session";
 
 const TABS = [
@@ -28,7 +29,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <SessionKeeper mode="keep" />
       <main className="app-column" id="main">
-        {children}
+        {/* A23: the account's seen whispers, for every one-time line under this shell (server-side, so the phone and the web agree) */}
+        <WhispersSeen seen={session.user.whispersSeen} userId={session.user.id}>{children}</WhispersSeen>
       </main>
       <nav className="tabs" aria-label="Sections">
         {TABS.map((tab) => (

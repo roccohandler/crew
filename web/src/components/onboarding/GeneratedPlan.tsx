@@ -4,6 +4,7 @@
 // "Monday · Push day" — and states the rotation; the workout cards are keyed by kind). Web twin of ios GeneratedPlanScreen + SwapSheet.
 import { useState } from "react";
 import { WEEKDAY_NAMES } from "@/components/onboarding/DaysQuestion";
+import { Whisper } from "@/components/Whisper";
 import { weekKeyFor } from "@/lib/engine/day-key";
 import { setsByReps } from "@/lib/engine/home-lines";
 import type { PlanDraft, PlanDraftExercise, PlanDraftWorkout } from "@/lib/engine/plan-generator";
@@ -40,20 +41,21 @@ function WorkoutCard({ workout, onTap }: { workout: PlanDraftWorkout; onTap: (ex
   );
 }
 
-interface Props { draft: PlanDraft; todayKey: string; swapCandidates: (exerciseId: string) => SeedExercise[]; onSwap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; onAccept: () => void; whisperShown: boolean }
+interface Props { draft: PlanDraft; todayKey: string; swapCandidates: (exerciseId: string) => SeedExercise[]; onSwap: (kind: PlanDraftWorkout["kind"], exerciseId: string, replacement: SeedExercise) => void; onAccept: () => void }
 
-export function GeneratedPlan({ draft, todayKey, swapCandidates, onSwap, onAccept, whisperShown }: Props) {
+export function GeneratedPlan({ draft, todayKey, swapCandidates, onSwap, onAccept }: Props) {
   const [swapping, setSwapping] = useState<{ kind: PlanDraftWorkout["kind"]; exerciseId: string } | null>(null);
   const cycle = draft.workouts.map((workout) => workout.kind);
   const week = projectWeek({ weekKey: weekKeyFor(todayKey), todayKey, trainingWeekdays: draft.trainingWeekdays, cycle, nextKind: cycle[0] ?? "", completedKindByDay: {} });
   return (
     <div className="stack">
       <h1>Your week, built.</h1>
-      {!whisperShown ? <p className="whisper">Tap any exercise to swap it.</p> : null}
+      <Whisper id="why.ppl" />
       <ul className="card stack stack--tight" style={{ listStyle: "none", margin: 0 }} aria-label="This week">
         {week.map((day) => <li key={day.dayKey} className={day.state === "planned" ? "" : "muted"}>{projectionLine(day, draft)}</li>)}
       </ul>
       <p className="muted">Every workout rotates in, so each gets equal time.</p>
+      <Whisper id="how.revealSwap" />{/* 1C's one whisper, now part of the A23 system: once per account, directly above the rows it explains */}
       {draft.workouts.map((workout) => (
         <WorkoutCard key={workout.kind} workout={workout} onTap={(exerciseId) => setSwapping({ kind: workout.kind, exerciseId })} />
       ))}

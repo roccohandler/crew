@@ -27,7 +27,8 @@ function walk(dir, out = []) {
 // Comments out, newlines kept (so a finding still names its line); a "//" inside a string or a URL is left alone
 function code(file) {
   const text = readFileSync(file, "utf8");
-  if (file.endsWith(".json")) return text;
+  // In shared copy a source's `label` is a CITATION — the publisher's own title ("…in healthy adults") is not Crew labelling a food
+  if (file.endsWith(".json")) return rel(file).startsWith("shared/copy/") ? text.replace(/"label"\s*:\s*"(?:[^"\\]|\\.)*"/g, '"label": ""') : text;
   const withoutBlocks = text.replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, " "));
   if (file.endsWith(".css")) return withoutBlocks;
   return withoutBlocks.split("\n").map((line) => line.replace(/(^|[^:"'`\\])\/\/.*$/, "$1")).join("\n");
@@ -91,6 +92,11 @@ scan("A21.13", "supersets, or A15's change-today's-workout sheet", /(superset|Ch
 scan("A21.13", "exercise media (A13 is lawyer-gated — not in MVP)", /(AVPlayer|VideoPlayer|\.mp4|exercise-media|exerciseVideo|<video)/i);
 scan("A21.13", "web push", /(serviceWorker|PushManager|web-push|pushManager|Notification\.requestPermission)/);
 absent("A21.13", "no Android project", ["android", "app/build.gradle", "AndroidManifest.xml"]);
+
+// A23 — reported, never failed: the education copy ships as the owner's DRAFT until it is ratified line by line, and the page says so
+// on screen ("Draft" under the note from Max). This line is here so a launch checklist cannot miss it.
+const education = JSON.parse(readFileSync(join(repoRoot, "shared", "copy", "education.json"), "utf8"));
+if (education.page?.note?.draft === true) console.log("NOTE   A23  the note from Max is still marked draft (shared/copy/education.json → page.note.draft) — the owner rewrites it before launch");
 
 for (const line of passed) console.log(`ok     ${line}`);
 for (const finding of findings) console.log(`AUDIT  ${finding}`);

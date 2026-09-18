@@ -4,6 +4,7 @@
 // PUTs the whole ordered list (the server replaces it) and is optimistic with a rollback, written out here (C5). The optional label
 // ("Breakfast") is the user's own word. Ink only. Twin: ios Features/Nutrition/DayTemplateView.swift.
 import Link from "next/link";
+import { Whisper } from "@/components/Whisper";
 import { useState } from "react";
 import { isApiClientError } from "@/lib/api-client";
 import { putDayTemplate } from "@/lib/api-client-nutrition";
@@ -65,6 +66,7 @@ export function TemplateView({ initialSlots, meals }: { initialSlots: TemplateSl
           </li>
         ))}
       </ol>
+      {slots.length > 0 ? <Whisper id="why.freeDinner" /> : null}
       {slots.length < SpecConstants.dayTemplateMaxSlots ? <AddSlot meals={meals} onAdd={(meal, label) => void put([...slots, { savedMealId: meal.id, label, meal }])} /> : <p className="muted">{`That's all ${SpecConstants.dayTemplateMaxSlots} slots.`}</p>}
     </div>
   );

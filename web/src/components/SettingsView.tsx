@@ -10,6 +10,7 @@ import { BlockedPeople } from "@/components/BlockedPeople";
 import { NotificationRows } from "@/components/NotificationRows";
 import { NutritionSettings } from "@/components/nutrition/NutritionSettings";
 import { ProfileForm } from "@/components/ProfileForm";
+import { Whisper } from "@/components/Whisper";
 import { logout } from "@/lib/api-client";
 import { createPause, deleteAccount, endPause, updateMe } from "@/lib/api-client-crew";
 import { addDays } from "@/lib/engine/day-key";
@@ -28,6 +29,7 @@ function PauseSection({ pause, todayKey, timezone, onChanged }: { pause: Props["
   return (
     <div className="stack stack--tight">
       <h3>Pause my plan</h3>
+      <Whisper id="how.pause" />
       <p className="muted">{"Vacations and injuries are life, not failure. Pick the day you're back — up to"} {SpecConstants.pauseMaxDays} days out.</p>
       <label className="field"><span>Return date</span><input type="date" min={addDays(todayKey, 1)} max={addDays(todayKey, SpecConstants.pauseMaxDays)} value={returnDay} onChange={(event) => setReturnDay(event.target.value)} /></label>
       {error ? <p className="danger" role="alert">{error}</p> : null}
@@ -84,7 +86,11 @@ export function SettingsView({ user, crew, pause, todayKey, zones }: Props) {
         <Link className="button button--text" href="/terms">Terms</Link>
       </section>
       <AccountSection onLogout={async () => { await logout(); router.push("/"); }} onDelete={async () => { await deleteAccount(); router.push("/"); }} />
-      <p className="whisper">Version {process.env.NEXT_PUBLIC_APP_VERSION ?? "beta"}</p>
+      <section className="stack stack--tight" aria-label="About">
+        <h2>About</h2>
+        <Link className="button button--text" href="/how-crew-works">How Crew works</Link>{/* A23 · S19: the page behind the whispers */}
+        <p className="whisper">Version {process.env.NEXT_PUBLIC_APP_VERSION ?? "beta"}</p>
+      </section>
     </div>
   );
 }

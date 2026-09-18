@@ -79,6 +79,20 @@ describe("users/me + export + delete cascade", () => {
     expect((await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { notificationPrefs: { streakRisk: "no" } } }))).status).toBe(400);
   });
 
+  // A23 — the seen-state round trip: what one device saw, every device has seen. The list is a UNION — it never shrinks, a
+  // repeat changes nothing, an id the copy file does not name is refused, and a PATCH that carries ONLY whispers is a real write.
+  it("unions the seen whispers into the account and never removes one (A23)", async () => {
+    const seen = async () => (await readJson<{ user: { whispersSeen: string[] } }>(await getMe(request("GET", "/users/me", { token: me.accessToken })))).user.whispersSeen;
+    expect(await seen()).toEqual([]);
+    const phone = await readJson<{ whispersSeen: string[] }>(await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { whispersSeen: ["how.pause"] } })));
+    expect(phone.whispersSeen).toEqual(["how.pause"]);
+    await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { whispersSeen: ["why.streak", "how.pause"] } })); // the web, later
+    expect(await seen()).toEqual(["how.pause", "why.streak"]);
+    await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { whispersSeen: [] } })); // nothing a client sends can shrink it
+    expect(await seen()).toEqual(["how.pause", "why.streak"]);
+    expect((await patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { whispersSeen: ["why.everything"] } }))).status).toBe(400);
+  });
+
   it("accepts a profile photo key only when it names the caller's own photo uploaded with purpose profile (A7, E1)", async () => {
     const patchPhoto = async (profilePhotoKey: string | null) => patchMe(request("PATCH", "/users/me", { token: me.accessToken, body: { profilePhotoKey } }));
     const photo = (photoKey: string, ownerId: string, purpose: "post" | "profile") => ({ _id: new ObjectId(), photoKey, ownerId: new ObjectId(ownerId), purpose, bytes: 1, width: 1, height: 1, storage: "local" as const, url: `C:/nonexistent/${photoKey}.jpg`, createdAt: new Date() });

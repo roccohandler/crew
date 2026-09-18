@@ -41,6 +41,7 @@ export interface MeUpdate {
   profilePhotoKey?: string | null; // a key uploaded with purpose "profile" (400 otherwise)
   notificationPrefs?: Partial<NotificationPrefs>; // merged server-side (A7)
   welcomeBackAckDay?: string;
+  whispersSeen?: string[]; // A23: UNIONED into the account by the server — never a replacement, never a removal
   birthYear?: number; // A16.c · addendum §6: stored ONCE, when Nutrition is first opened on an account without one (409 birthYearSet after)
 }
 export const updateMe = async (body: MeUpdate) => (await patchJson("/users/me", body)) as PublicUser;

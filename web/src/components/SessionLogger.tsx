@@ -9,6 +9,7 @@ import { HoldRow } from "@/components/HoldRow";
 import { RestTimer } from "@/components/RestTimer";
 import { SessionSwap, swappedExercise, updatePlanWithSwap, type SwapScope } from "@/components/SessionSwap";
 import { SetRow } from "@/components/SetRow";
+import { Whisper } from "@/components/Whisper";
 import { exercises as seedExercises, type SeedExercise } from "@/generated/seed";
 import { earnedQuery, patchSession, type SessionExerciseView, type SessionSummary } from "@/lib/api-client";
 import { asPlanned, completionFacts } from "@/lib/engine/completion";
@@ -36,7 +37,7 @@ function SetLine({ exercise, set, index, units, distanceUnit, onSet }: { exercis
     onSetWeight={(weight) => onSet(index, { ...set, weight, weightUnit: units })} />;
 }
 
-function ExerciseCard({ exercise, open, units, distanceUnit, lastTime, onOpen, onSkip, onSwap, onSet }: { exercise: SessionExerciseView; open: boolean; units: "lb" | "kg"; distanceUnit: "mi" | "km"; lastTime?: string; onOpen: () => void; onSkip: () => void; onSwap: () => void; onSet: SetUpdate }) {
+function ExerciseCard({ exercise, open, units, distanceUnit, lastTime, first, firstRemembered, onOpen, onSkip, onSwap, onSet }: { exercise: SessionExerciseView; open: boolean; units: "lb" | "kg"; distanceUnit: "mi" | "km"; lastTime?: string; first: boolean; firstRemembered: boolean; onOpen: () => void; onSkip: () => void; onSwap: () => void; onSet: SetUpdate }) {
   return (
     <section className="card stack stack--tight">
       <div className="row row--between row--wrap">{/* 6.7: name · chip · Swap · Skip wrap under wide fonts instead of scrolling sideways */}
@@ -45,7 +46,9 @@ function ExerciseCard({ exercise, open, units, distanceUnit, lastTime, onOpen, o
         {exercise.type === "strength" && !exercise.skipped ? <button type="button" className="button button--text" onClick={onSwap} aria-label={`Swap ${exercise.name}`}>Swap</button> : null}
         <button type="button" className="button button--text" onClick={onSkip}>{exercise.skipped ? "Unskip" : "Skip"}</button>
       </div>
+      {first ? <Whisper id="how.swapSkip" /> : null}{/* A23: under the FIRST exercise's Swap · Skip, the first time a session opens */}
       {lastTime ? <p className="whisper">{lastTime}</p> : null}
+      {firstRemembered ? <Whisper id="how.overload" /> : null}{/* A23: under the first row that remembers last time (A12) */}
       {!open && !exercise.skipped ? <button type="button" className="button button--text" onClick={onOpen}>Open</button> : null}
       {open && !exercise.skipped ? exercise.sets.map((set, index) => <SetLine key={index} exercise={exercise} set={set} index={index} units={units} distanceUnit={distanceUnit} onSet={onSet} />) : null}
     </section>
@@ -96,7 +99,7 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
       <h1>{initial.workoutName}</h1>
       <p className="muted">{facts.setsDone}/{facts.setsPlanned} sets</p>
       <RestTimer startToken={restToken} />
-      {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} distanceUnit={distanceUnit} lastTime={lastTime[exercise.exerciseId]} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
+      {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} distanceUnit={distanceUnit} lastTime={lastTime[exercise.exerciseId]} first={index === 0} firstRemembered={index === exercises.findIndex((candidate) => lastTime[candidate.exerciseId] !== undefined)} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
       {swapping !== null && exercises[swapping] ? <SessionSwap exercise={exercises[swapping]} onPick={swap} onClose={() => setSwapping(null)} /> : null}
       {inCrew ? <label className="row"><input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} /> Share to crew</label> : null}
       {error ? <p className="danger" role="alert">{error}</p> : null}

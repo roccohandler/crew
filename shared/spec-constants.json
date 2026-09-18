@@ -126,6 +126,9 @@
   "journal": {
     "dayLabelWeekdayWithinDays": { "value": 6, "spec": "A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8" }
   },
+  "copy": {
+    "whisperMaxWords": { "value": 12, "spec": "A23 · docs/education-copy-draft.md §A rule 5 — a whisper is at most twelve words; check-copy.mjs counts them" }
+  },
   "nutrition": {
     "nutritionAdultAgeYears": { "value": 18, "spec": "A16.c; nutrition addendum §6; A22 G3 — the nutrition surface exists only at 18+ (the app itself stays 13+)" },
     "bodyweightEntryScale": { "value": 10, "spec": "nutrition addendum §3 — a bodyweight is entered to one decimal and carried as TENTHS of its unit (integer arithmetic on both engines)" },

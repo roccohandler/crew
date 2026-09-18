@@ -229,6 +229,10 @@ enum SpecConstants {
     /// SPEC: A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8
     static let dayLabelWeekdayWithinDays: Int = 6
 
+    // MARK: copy
+    /// SPEC: A23 · docs/education-copy-draft.md §A rule 5 — a whisper is at most twelve words; check-copy.mjs counts them
+    static let whisperMaxWords: Int = 12
+
     // MARK: nutrition
     /// SPEC: A16.c; nutrition addendum §6; A22 G3 — the nutrition surface exists only at 18+ (the app itself stays 13+)
     static let nutritionAdultAgeYears: Int = 18

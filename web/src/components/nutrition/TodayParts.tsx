@@ -4,6 +4,7 @@
 // gram steppers and Add. Then today's log, every row with its visible Delete (6.3). Ink only: no macro fill, no ember, no semantic
 // colour (law ⑥'s exception). The empty state is the template INVITATION. Twin: ios Features/Nutrition/NutritionTodayParts.swift.
 import Link from "next/link";
+import { Whisper } from "@/components/Whisper";
 import { useState } from "react";
 import { GramFields } from "@/components/nutrition/GramField";
 import { gramsSpoken, gramsText, slotTicks } from "@/lib/engine/macro-day";
@@ -37,6 +38,7 @@ export function TemplateRows({ slots, logs, onLog, onUndo }: { slots: TemplateSl
           );
         })}
       </div>
+      <Whisper id="how.shake" />
     </section>
   );
 }
