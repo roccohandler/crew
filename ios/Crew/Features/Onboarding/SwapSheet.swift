@@ -8,6 +8,7 @@ struct SwapSheet: View {
     var title = "Swap"
     let candidates: [SeedExercise]
     let onPick: (SeedExercise) -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
@@ -30,6 +31,9 @@ struct SwapSheet: View {
             .background(EmberColors.canvas)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            // SPEC: 6.3 · 6.7 (DESIGN.md 4.2) — every swipe has a visible-button equivalent. The sheet could only be pulled down
+            // (ui-reviewer, run 35405384572), and a slip on the reveal opens it from any row; the other sheets already say Cancel.
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
         .presentationDetents([.medium, .large])
     }

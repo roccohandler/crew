@@ -1391,3 +1391,10 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   or cable-stack glyph in SF Symbols; these are the nearest honest ones and any of the five is a one-word change in exercises.json.
   (7) NO SCHEMA, ROUTE OR VECTOR MOVED. A plan stores its rows, so an existing account keeps its plan until Rebuild my plan; the
   server accepts the new rows as it accepted the old (ids are free strings ≤ 60). The tour member now trains the canonical templates.
+  (8) ADDED AFTER THE FIRST TOUR (run 35405384572, ui-reviewer): "OFFERED" WAS NOT ENOUGH — THE OWNER'S FIRST NAMED SWAP LEADS THE LIST. The
+  dumbbell bench press carried level "some", so for a brand-new lifter it sorted behind the level gate — fifth of five, under the fold of the
+  phone's half-height swap sheet, on the first row of every plan. Its level is now "brandNew" (the field gates nothing since A26 (3); it only
+  ranks), which puts it first at every experience, and both engines' SwapFinder tests assert that a row's FIRST named swap is within the
+  first `swapCandidatesMin` offered. The finder is still unchanged. Barbell row stays last among the seated row's five, as "barbell never the
+  default" reads. The swap sheet also gained a Cancel button (DESIGN.md 4.2: every swipe has a visible-button equivalent) — it could only be
+  pulled down, on all three of its entry points.

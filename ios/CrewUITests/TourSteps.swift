@@ -28,7 +28,8 @@ extension XCTestCase {
     // Sheets come down by their own button when they have one, by the pull otherwise. The pull starts just below the middle of the
     // screen — on a half-height sheet that is its header, on a full one its content at rest, and both drag the sheet away.
     func tourDismissSheet(_ app: XCUIApplication, button: String? = nil) {
-        if let button, tourTap(app.buttons[button], timeout: 3) { return }
+        // the swap sheets say Cancel now (A26 round), and so does the editor they open over: firstMatch never raises "multiple matches"
+        if let button, tourTap(app.buttons[button].firstMatch, timeout: 3) { return }
         let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
         from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.99)))
     }

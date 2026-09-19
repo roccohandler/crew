@@ -38,6 +38,10 @@ describe("swapCandidates", () => {
       for (const experience of experiences) {
         const offered = swapCandidates(byId.get(rowId)!, experience, exercises).map((candidate) => candidate.id);
         for (const id of named) expect(offered, `${rowId} / ${experience}`).toContain(id);
+        // ui-reviewer, run 35405384572: the flat bench's dumbbell swap ranked FIFTH for a brand-new lifter (level "some" sorts behind the
+        // level gate) — under the fold of the phone's half-height sheet. The owner's FIRST named swap leads the list: within the first
+        // swapCandidatesMin, at every experience.
+        expect(offered.indexOf(named[0]!), `${rowId} / ${experience}: ${named[0]} is not near the top`).toBeLessThan(SpecConstants.swapCandidatesMin);
       }
     }
     const offeredForRow = swapCandidates(byId.get("machine-row")!, "brandNew", exercises).map((candidate) => candidate.name);

@@ -17,6 +17,10 @@ final class SwapFinderTests: XCTestCase {
             for experience in experiences {
                 let offered = SwapFinder.swapCandidates(for: seed.exercise(rowId)!, experience: experience, seed: seed).map(\.id)
                 for id in named { XCTAssertTrue(offered.contains(id), "\(rowId) / \(experience): \(id) is not offered") }
+                // ui-reviewer, run 35405384572: the flat bench's dumbbell swap ranked FIFTH for a brand-new lifter (level "some" sorts
+                // behind the level gate) — under the fold of the half-height sheet. The owner's FIRST named swap leads the list.
+                let lead = offered.firstIndex(of: named[0]) ?? offered.count
+                XCTAssertLessThan(lead, SpecConstants.swapCandidatesMin, "\(rowId) / \(experience): \(named[0]) is not near the top")
             }
         }
         XCTAssertEqual(Set(seed.equipmentSymbol.keys), equipmentTags) // A26: one SF Symbol per equipment tag, in one place

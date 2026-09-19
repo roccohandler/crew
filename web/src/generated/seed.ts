@@ -70,7 +70,7 @@ export const exercises: SeedExercise[] = [
     "pattern": "horizontalPush",
     "swapGroup": "chestPress",
     "equipment": "dumbbell",
-    "level": "some",
+    "level": "brandNew",
     "type": "strength",
     "cueLine": "Dumbbells over your chest, elbows about 45° from your sides, press up until they nearly touch."
   },

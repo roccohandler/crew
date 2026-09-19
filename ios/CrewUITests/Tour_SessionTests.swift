@@ -36,6 +36,9 @@ final class Tour_SessionTests: XCTestCase {
         let openLongName = app.buttons["Open Cable Rope Triceps Extension"]
         tourScrollClearOfBottomBar(app, until: openLongName) // the compact rows sit under the Complete bar, where a tap goes nowhere
         if tourTap(openLongName, timeout: 5) {
+            // opening a lower exercise collapses the one above it, and the opened card's header lands under the navigation bar (run
+            // 35405384572; debt.md) — pull the page down a quarter of the screen, in the gutter, so the header is in the shot
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.4)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.65)))
             tourShot(app, "session_logger_longname", "opened the second exercise — the longest name in the template")
         }
         if tourTap(app.buttons["Discard"].firstMatch, timeout: 5) {

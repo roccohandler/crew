@@ -766,6 +766,59 @@ property tests over days × experience on both engines, the named-swap and repea
 `EquipmentSymbolTests` (asks the system for each of the five symbol names — a wrong name draws nothing and fails no build), the new `OnboardingModelTests`
 and `SessionModelTests` cases, the rewritten tour seed. The CI verdict, the build number and ui-reviewer's verdicts are recorded below once read.
 
+### CI run 35400020876 (3736213, A26) — THE FIRST COMPILE: 0 compile errors, every unit test green, ONE UI test red (a test defect); ui-reviewer: ten A26 screens, ten PASS
+
+contracts ✓ · web ✓ · web e2e ✓ · ios engine ✓ · **ios ✗** on `Journey4_ScreensTests`: "S19 did not open". Every new Swift file compiled first time and
+`EquipmentSymbolTests` passed — the five SF Symbol names are real. TestFlight did not fire (the gate needs `success`).
+
+**The red was read, not re-run.** The step waited only for the "How Crew works" row to EXIST; a List builds rows just past the screen's edge, so after
+one swipe the row existed UNDER the tab bar, the tap landed on the Settings TAB (the hierarchy dump shows the list scrolled back to its top — the tab's
+scroll-to-top) and S19 never opened. Nothing in A26 touches Settings; swipe distance decides which run meets it. c89ab00: the step scrolls until the
+whole row sits above the tab bar and says so if it never does. No app file changed for it.
+
+**/ui-check on that run's tour (9 changed · 14 expected drift · 15 new · 3 removed · 26 unchanged).** The three "removed" are one lost step and two
+renumbered shots: the onboarding tour's "second button whose label says Press" sat under the reveal's bottom bar, was not hittable, and the two Save shots
+moved up a number. ui-reviewer's verdicts:
+
+| Group | Screens | Verdict |
+|---|---|---|
+| A — touched by A26 | reveal · plan editor · exercise sheet · plan swap sheet · add-exercise sheet · logger start · logger mid-set · session swap sheet · Home filled · Home macros row | **10 PASS · 0 FAIL** — the symbol is visible, ink-only, aligned and crowds nothing wherever it was in shot |
+| B — Changed / New against the baselines, NOT touched by A26 | 3 Settings · 13 nutrition · 2 Save | **11 PASS · 7 FAIL**, all pre-existing (below) |
+
+Three Group A notes, none a rule breach, all acted on in c89ab00: (1) in the plan editor the symbol LED the detail line ("[glyph] 3 × 8 · Barbell"),
+away from its word, and the differing glyph widths made the column ragged → the row reads "3 × 8 · [glyph] Barbell"; (2) the reveal's chips were in no
+shot → the onboarding tour scrolls to the flat bench, shoots the rows (`onboarding_plan_rows`), then taps; (3) the session card was only ever shot with
+the shortest name → the session tour opens "Cable Rope Triceps Extension" and shoots it (`session_logger_longname`). Two reviewer remarks left for the
+owner's design session, recorded not acted on: `gearshape.2` (machine) is also the app's Settings metaphor and `cable.connector` is a sliver at caption
+size — each symbol is a one-word change in `exercises.json` (R-079 (6)); and in the session header the tag is now the only one of "Barbell · Swap · Skip"
+wearing an icon, which makes the LABEL look the most tappable (INVENTORY's inconsistency #1, a Component-kit question).
+
+Group B's seven FAILs, verbatim in kind, none from this change and none fixed here (they are the design session's input, with `design/INVENTORY.md`):
+Settings top — the OFF switch track and the "Off" value under 3:1 / 4.5:1 (1.6, §7) · Settings bottom and Settings (nutrition) — "Delete account" in
+`danger` as body text is 4.35:1 on the card, a token-level question like the one 1.3 settled for ember (§7) · Blocked people — the empty state is one gray
+sentence with no CTA (6.3) · Quick add — the disabled "Add" label is unreadable on its fill (§7) · Save your plan ×2 — two filled buttons (Apple's and
+ours, 3.1), Apple's squarer radius (4.1), placeholder-only labels (§7), `danger` caption text at 4.10:1 (§7).
+
+### CI run 35403203894 (c89ab00) — GREEN on five jobs · TestFlight run 35405188618 → **BUILD 197** · the tour-only dispatch 35405384572 (61063a2)
+
+The journey ④ fix held; every job green; **build 197 uploaded 23:22Z** (`Upload succeeded`). ui-reviewer re-passed the plan editor ("3 × 8 · [glyph]
+Barbell", one left edge, nothing truncated). The two new tour shots came back WRONG in that run — the reveal unscrolled, "Open …" tapped into the
+session's bar — because a row under A19.1's bottom bar reports existing AND hittable; `tourScrollClearOfBottomBar` (a slow drag in the gutter until the
+element clears the screen's bottom quarter) went up as 61063a2 with `[skip ci]` and was toured by a DISPATCH (A24 (3): tour-only, 21 min, can never
+ship). It also explains an old oddity: the approved baseline named `07_onboarding_swap_sheet` is a picture of the SAVE screen — that tap has been
+landing on "Looks good" since the tour was written.
+
+ui-reviewer on the dispatch's three shots: **reveal rows PASS** (the chip on all five Push rows — ink, aligned, a label, two wrapped names handled
+cleanly) · **onboarding swap sheet FAIL** · **session long-name card FAIL**. What failed, and what was done:
+
+| Finding | A26's? | Done |
+|---|---|---|
+| The swap sheet has no Cancel — it can only be pulled down (DESIGN.md 4.2), on all three entry points | no, but the sheet is an A26 surface | `SwapSheet` gains a Cancel toolbar button |
+| "Dumbbell Bench Press", the owner's named swap for row one of every plan, ranked FIFTH for a brand-new lifter — under the fold of the half-height sheet (level "some" sorts behind the level gate) | **yes** | its level is `brandNew`; both engines assert a row's FIRST named swap is within the first `swapCandidatesMin` offered, at every experience (R-079 (8)) |
+| The not-yet-reached set rows are dimmed to 0.5 while live: labels ≈ 2.1:1, values ≈ 3.3:1, rings ≈ 1.7:1 (§7, 1.6) | no — every session shot since A10 | debt; a design ruling ("ghost" is Flow 3's word), not a token nudge |
+| Opening a lower exercise leaves its header under the navigation bar, so the long-name header was STILL not in shot | no, likelier with five and six rows | debt; the session tour now pulls the page down before it shoots |
+| The weight ruler's needle and the readout disagree | no | debt, undiagnosed |
+
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 
 - The ruling arrived while W3b was being read (no W3b source had been touched) and it carries an explicit stop, so the "continue
