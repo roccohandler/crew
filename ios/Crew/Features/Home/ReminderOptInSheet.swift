@@ -56,24 +56,33 @@ struct ReminderOptInSheet: View {
         self.onDone = onDone
     }
 
+    // A28 (f) · R-094: the system's sheet — `card`, the grabber, the title in the content at `sheetTitle`, the 20 pt gutter, the one
+    // filled button at its foot and "Not now" as the kit's text button (it was a canvas page with a 20 pt title). The time is the
+    // platform's compact picker: its grey chip is recorded residue (docs/debt.md), as on Settings → Notifications.
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Spacer()
-            Text("Get a nudge on workout days?").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-            Text("One notification, on the days your plan trains. You can change the time in Settings.").font(.body).foregroundStyle(EmberColors.secondaryText)
+            Text("Get a nudge on workout days?").typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            Text("One notification, on the days your plan trains. You can change the time in Settings.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
             DatePicker("Remind me at", selection: $model.time, displayedComponents: .hourAndMinute)
-                .tint(EmberColors.inkText)
-                .foregroundStyle(EmberColors.inkText)
-            if let line = model.errorLine { Text(line).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-            Spacer()
+                .typeRole(EmberTokens.Typography.bodySemibold)
+                .tint(EmberColors.ink)
+                .foregroundStyle(EmberColors.ink)
+            if let line = model.errorLine { Text(line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) }
+            Spacer(minLength: 0)
             PrimaryButton(title: model.isSaving ? "Saving…" : "Remind me") { Task { await model.accept(); onDone() } }
                 .disabled(model.isSaving)
-            Button("Not now") { model.decline(); onDone() }
-                .font(.body)
-                .foregroundStyle(EmberColors.inkText)
-                .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+            TextActionButton(title: "Not now", role: EmberTokens.Typography.textButton) { model.decline(); onDone() }
+                .frame(maxWidth: .infinity)
         }
-        .padding(EmberTokens.Spacing.space24)
-        .background(EmberColors.canvas.ignoresSafeArea())
+        .padding(.horizontal, EmberTokens.Focus.gutter)
+        .padding(.top, EmberTokens.Spacing.space32)
+        .padding(.bottom, EmberTokens.Spacing.space12)
+        .background(EmberColors.card.ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(EmberTokens.Focus.cardRadius)
     }
 }

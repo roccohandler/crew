@@ -84,7 +84,7 @@ struct SetScreenBody: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Whisper(.howOverload) // A23: under the first line that remembers last time (A12)
             }
-            .padding(.horizontal, EmberTokens.Focus.space6)
+            // on the 20 pt edge the title and the card share (mockups 07, 08) — a 6 pt inset hung it off the column (R-094)
         }
         if !logged.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
@@ -108,7 +108,6 @@ struct SetScreenBody: View {
                 Text(numerals: line).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, EmberTokens.Focus.space6)
             .frame(minHeight: rowTarget)
             .contentShape(Rectangle())
         }

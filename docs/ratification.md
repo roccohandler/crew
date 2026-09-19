@@ -2000,3 +2000,34 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       no new component, and both jobs stay one tap from Today.
   (2) **The template's check is the kit's check.** This closes R-090 (3)'s open reading in the kit's favour.
   (3) **A gram's unit is "g" beside the number.** VoiceOver already said "grams", so the screen now says it too.
+
+### R-094 · 2026-09-19 · A28 review rounds — Home (round 3, the last), the Logger (round 3), Progress and Plan (round 3) fixed forward from ui-reviewer on run 35447860873 (Home + Logger 17 PASS · 13 FAIL; Progress + Plan 9 PASS · 6 FAIL) · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. Home has now had its three reviewer rounds. Its fixes below go out unreviewed, and
+  what stays is recorded in docs/debt.md.
+- What changed (iOS):
+  - **Home.**
+    - The "+" sheet has Cancel on its title row.
+    - The bonus sheet states "Next up" in words on the sub-line. The outlined capsule read as a second button.
+    - Log cardio's activities are capsules, and the chosen one wears an ink ring. The solid ink tile competed with the primary.
+      The back button is the bare chevron.
+    - The first-workout reminder is the system's sheet: card, grabber, sheet title, gutter, and "Not now" as a text button.
+  - **Logger.**
+    - The last-time block and the running ledger sit on the 20 pt edge. A 6 pt inset hung them off the column.
+    - The whole-workout sheet is sized to its rows and Finish, with the Logger dimmed above it, as mockup 09 draws it. The
+      large detent left ~290 pt of empty sheet.
+    - The holds' check sits right of the name and cue. It moves below them only at accessibility sizes (§10). The
+      ViewThatFits had picked the stacked row at default size.
+  - **Progress.** The Journal is one card of rows, each day an eyebrow over its rows. Single-row cards read as capsules.
+  - **Plan.**
+    - The week map keeps A1's rotation line and drops "Changes apply…". That line lives once, in Change days (A27 (a)).
+    - The editor's Save is the bottom-anchored primary, "Save changes". It sat top-right in the bar.
+    - The exercise sheet has one title row: the name, with Done beside it.
+- The builder's readings:
+  (1) **The reminder's time keeps the platform's compact picker.** Its grey chip is residue, as on Settings → Notifications. An
+      ink value opening a wheel would be a new component.
+  (2) **The whole-workout sheet's height is measured once**, when it appears. A height past the screen clamps to the large
+      detent, and the rows scroll.
+  (3) **The rotation line stays on the week map.** It is A1's owner-directed subtitle (docs/improvement-plan-2026-09-08.md), a
+      fact about the plan rather than a tip.
+  (4) **GAP: the Journal's XP sentence.** S16 requires it ("editing a past session never alters XP — copy says so"), and system
+      §11 bans permanent coaching copy. It stays as the page's quiet foot, after the record. This is the owner's call.

@@ -14,11 +14,16 @@ struct HomeAddSheet: View {
     let offersBonus: Bool
     let onPick: (HomeAddChoice) -> Void
     @ScaledMetric private var rowHeight: CGFloat = EmberTokens.Focus.rowButton // §8: a row button is 56 pt minimum
+    @Environment(\.dismiss) private var dismiss
     @State private var contentHeight: CGFloat = 0 // the sheet is as tall as its rows, not half the phone (6.9: no empty surface)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Add to today").typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
+            HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space12) {
+                Text("Add to today").typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
+                Spacer(minLength: EmberTokens.Spacing.space8)
+                TextActionButton(title: "Cancel", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { dismiss() } // 6.3: the pull has a visible twin (R-094)
+            }
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.top, EmberTokens.Focus.gutter)
                 .padding(.bottom, EmberTokens.Spacing.space12)

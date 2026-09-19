@@ -49,12 +49,21 @@ struct JournalScreen: View {
 
     private var list: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space24) {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+                // R-094: ONE card of rows, each day an eyebrow over its rows, days apart by a seam — a card per day drew one-row cards
+                // whose 28 pt corners met as capsules, the kit's button shape
+                FocusCard(padding: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
+                            if index > 0 { cardSeam(inset: 0) }
+                            JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)
+                        }
+                    }
+                }
+                // SPEC: S16 — "editing a past session never alters XP (copy says so)". GAP: system §11 bans coaching copy as permanent
+                // furniture; the spec requires the sentence, so it stays as the page's quiet foot, after the record (R-094 (4))
                 Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                ForEach(days) { day in
-                    JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)
-                }
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
             .padding(.vertical, EmberTokens.Spacing.space16)

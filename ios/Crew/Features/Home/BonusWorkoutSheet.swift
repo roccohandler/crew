@@ -47,17 +47,11 @@ struct BonusWorkoutSheet: View {
         return HStack(spacing: EmberTokens.Spacing.space12) {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
                 Text(workout.name).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
-                Text(numerals: size).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                // A3's "Next up" in words on the sub-line: an outlined capsule beside the chevron read as a second button (a capsule
+                // is the kit's button shape — ui-reviewer, run 35447860873 · R-094)
+                Text(numerals: isNext ? "Next up · \(size)" : size).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
             }
             Spacer(minLength: EmberTokens.Spacing.space8)
-            if isNext {
-                Text("Next up").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink)
-                    .padding(.horizontal, EmberTokens.Spacing.space8)
-                    .padding(.vertical, EmberTokens.Spacing.space4)
-                    // A18.11 — a workout row inside a Button — picking one starts a session: a control boundary, so controlOutline and
-                    // never the 1.26:1 hairline family, which is for the seam between two surfaces.
-                    .overlay(Capsule().stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
-            }
             Image(systemName: "chevron.right").foregroundStyle(EmberColors.chevron)
         }
         .padding(.vertical, EmberTokens.Spacing.space12)

@@ -10,6 +10,10 @@ struct WholeWorkoutSheet: View {
     let model: SessionModel
     let onJump: (LocalSessionExercise) -> Void
     let onFinish: () -> Void
+    // mockup 09 sizes the sheet to its title row, rows and Finish, with the Logger dimmed above it: a large detent left ~290 pt of
+    // empty sheet (ui-reviewer, run 35447860873 · R-094); a height past the screen clamps to large, and the rows still scroll
+    @State private var rowsHeight: CGFloat = 0
+    @State private var footHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,6 +38,7 @@ struct WholeWorkoutSheet: View {
                         row("Mobility", value: "\(count) \(count == 1 ? "hold" : "holds")", segments: nil, isCurrent: model.isOnChecklist) { onJump(first) }
                     }
                 }
+                .background(GeometryReader { proxy in Color.clear.onAppear { rowsHeight = proxy.size.height } })
             }
             VStack(spacing: EmberTokens.Spacing.space8) {
                 if let error = model.completeError { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) }
@@ -41,9 +46,11 @@ struct WholeWorkoutSheet: View {
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
             .padding(.vertical, EmberTokens.Spacing.space12)
+            .background(GeometryReader { proxy in Color.clear.onAppear { footHeight = proxy.size.height } })
         }
         .background(EmberColors.card.ignoresSafeArea())
-        .presentationDetents([.large]) // the Mobility row is the list's last: a medium detent hid it below the fold (run 35444308817)
+        // the whole list, Mobility (its last row) included, above Finish — never the medium detent that hid it (run 35444308817)
+        .presentationDetents(rowsHeight > 0 ? [.height(rowsHeight + footHeight + EmberTokens.Focus.gutter)] : [.large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(EmberTokens.Focus.cardRadius)
     }

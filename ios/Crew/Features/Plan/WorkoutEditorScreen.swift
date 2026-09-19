@@ -27,10 +27,13 @@ struct WorkoutEditorScreen: View {
         .navigationTitle(model.name(ofKind: kind))
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { cancel() } }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { if model.save(kind: kind) { onSaved() } }.disabled(!model.isDirty(kind: kind))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { cancel() } } }
+        // SPEC: 6.3 · 6.7 (DESIGN.md 4.2) — Save commits the screen, so it is the one filled button, bottom-anchored in the thumb zone
+        // (it sat top-right in the bar — ui-reviewer, run 35447860873 · R-094); Cancel stays at the top as text
+        .crewBottomBar {
+            if model.drafts[kind] != nil {
+                PrimaryButton(title: "Save changes") { if model.save(kind: kind) { onSaved() } }
+                    .disabled(!model.isDirty(kind: kind))
             }
         }
         .onAppear { model.edit(kind: kind) }

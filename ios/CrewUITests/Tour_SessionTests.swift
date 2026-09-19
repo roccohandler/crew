@@ -50,8 +50,8 @@ final class Tour_SessionTests: XCTestCase {
             }
         }
         // A28 (c), (f) — the holds' checklist (mockup 10), through the sheet's Mobility row
-        // the Mobility row is the sheet's last, below the medium detent's fold with a full workout: pull the sheet up to its large detent first
-        if tourTap(app.buttons["Whole workout"], timeout: 5), app.buttons["Finish workout"].waitForExistence(timeout: 5), tourSwipeSheetUp(app), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
+        // the Mobility row is the sheet's last; the sheet is sized to its rows (R-094), so it is on screen without a pull
+        if tourTap(app.buttons["Whole workout"], timeout: 5), app.buttons["Finish workout"].waitForExistence(timeout: 5), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
             _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
             tourShot(app, "session_logger_mobility", "jumped to the holds — the checklist")
         }
@@ -63,7 +63,7 @@ final class Tour_SessionTests: XCTestCase {
             if tourTap(app.buttons["Whole workout"], timeout: 5) {
                 _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
                 tourShot(app, "session_whole_workout_sheet_dark", "the whole-workout sheet in dark mode")
-                if tourSwipeSheetUp(app), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
+                if tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
                     _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
                     tourShot(app, "session_logger_mobility_dark", "the checklist in dark mode")
                 }
@@ -87,11 +87,5 @@ final class Tour_SessionTests: XCTestCase {
         tourLaunch(app, as: member, dark: true) // A28 (a): the done Home in Midnight
         tourWaitForHome(app)
         tourShot(app, "home_home_done_dark", "the same done Home in dark mode")
-    }
-
-    // A sheet at its medium detent grows to large under an upward drag that starts on its own surface; always true, so it chains in an if
-    private func tourSwipeSheetUp(_ app: XCUIApplication) -> Bool {
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)))
-        return true
     }
 }

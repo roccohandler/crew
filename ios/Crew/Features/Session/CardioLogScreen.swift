@@ -51,6 +51,7 @@ struct CardioLogScreen: View {
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle("Log cardio")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor) // the bare back chevron, as on the Logger
         .onChange(of: model.outcome) { _, outcome in if let outcome { onLogged(outcome) } }
     }
 
@@ -75,17 +76,18 @@ struct ActivityTile: View {
 
     var body: some View {
         Button(action: action) {
+            // R-094: a capsule (the kit's button shape; a 12 pt rounded tile was off the radii list), chosen by an ink ring the way
+            // a check and Create crew's emoji are — a solid ink tile competed with "Log {activity}" as a second filled control
             Text(name)
                 .typeRole(EmberTokens.Typography.textButton)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(selected ? EmberColors.onInk : EmberColors.ink)
-                .padding(.horizontal, EmberTokens.Spacing.space4)
+                .foregroundStyle(EmberColors.ink)
+                .padding(.horizontal, EmberTokens.Spacing.space8)
                 .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt))
-                .background(selected ? EmberColors.ink : EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-                // A18.11 — the activity tiles: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and never
-                // the 1.26:1 hairline family, which is for the seam between two surfaces.
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
-                .contentShape(Rectangle())
+                .background(EmberColors.card, in: Capsule())
+                // A18.11 — a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas), never the hairline family
+                .overlay(Capsule().strokeBorder(selected ? EmberColors.ink : EmberColors.controlOutline, lineWidth: selected ? EmberTokens.Focus.checkRing : EmberTokens.Size.hairline))
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(name)

@@ -49,12 +49,18 @@ struct HoldCheckRow: View {
     @ScaledMetric private var circle: CGFloat = EmberTokens.Focus.checkCircle
     @ScaledMetric private var glyph: CGFloat = EmberTokens.Focus.checkGlyph
     @ScaledMetric private var target: CGFloat = CGFloat(SpecConstants.minTouchTargetPt)
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Button(action: onToggle) {
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: EmberTokens.Spacing.space12) { words; Spacer(minLength: EmberTokens.Spacing.space8); check }
-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) { words; check }
+            // §10: the check sits right of the name and cue (mockup 10) and moves below the cue only at accessibility sizes. A
+            // ViewThatFits chose the stacked row at default size, because a wrapping cue never "fits" one line (R-094).
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) { words; check }
+                } else {
+                    HStack(spacing: EmberTokens.Spacing.space12) { words; Spacer(minLength: EmberTokens.Spacing.space8); check }
+                }
             }
             .padding(.horizontal, EmberTokens.Focus.setCardInset)
             .padding(.vertical, EmberTokens.Focus.setRowPadding)

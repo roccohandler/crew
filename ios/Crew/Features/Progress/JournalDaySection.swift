@@ -20,16 +20,16 @@ struct JournalDaySection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+        // one day inside the Journal's one card (R-094): its eyebrow, then its rows with the seam between them
+        VStack(alignment: .leading, spacing: 0) {
             Text(numerals: header).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary) // the role renders it uppercase
                 .accessibilityAddTraits(.isHeader)
-            FocusCard(padding: 0) {
-                VStack(spacing: 0) {
-                    ForEach(Array(posts.enumerated()), id: \.element.clientId) { index, post in
-                        if index > 0 { Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset) }
-                        row(post)
-                    }
-                }
+                .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                .padding(.top, EmberTokens.Spacing.space16)
+                .padding(.bottom, EmberTokens.Spacing.space4)
+            ForEach(Array(posts.enumerated()), id: \.element.clientId) { index, post in
+                if index > 0 { cardSeam() }
+                row(post)
             }
         }
         // A28 (a): red lives only inside the destructive confirm; the button that opens it is ink

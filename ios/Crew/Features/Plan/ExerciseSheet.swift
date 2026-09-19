@@ -14,14 +14,10 @@ struct ExerciseSheet: View {
     @State private var swapping = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if let order, let row = model.drafts[kind]?.row(order: order) { content(order: order, row: row) } else { EmptyView() }
-            }
-            .background(EmberColors.card.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { order = nil } } }
+        Group {
+            if let order, let row = model.drafts[kind]?.row(order: order) { content(order: order, row: row) } else { EmptyView() }
         }
+        .background(EmberColors.card.ignoresSafeArea())
         .tint(EmberColors.ink)
         .presentationDetents([.large]) // Remove sat below a medium detent's fold (ui-reviewer, run 35444308817)
         .presentationDragIndicator(.visible)
@@ -38,8 +34,14 @@ struct ExerciseSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
-                    Text(row.name).typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
-                        .fixedSize(horizontal: false, vertical: true)
+                    // one title row, as the Swap and Add sheets draw it: the name (it wraps) with Done beside it (R-094)
+                    HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space12) {
+                        Text(row.name).typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                        Spacer(minLength: EmberTokens.Spacing.space8)
+                        TextActionButton(title: "Done", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { self.order = nil }
+                    }
                     EquipmentLabel(equipment: row.equipment) // A26 in words beside its symbol; a chip is not on A28 (f)'s list (ui-reviewer, run 35444308817)
                     if let cue = model.cueLine(for: row.exerciseId) {
                         Text(cue).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).fixedSize(horizontal: false, vertical: true)
@@ -71,7 +73,8 @@ struct ExerciseSheet: View {
                 }
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
-            .padding(.vertical, EmberTokens.Spacing.space16)
+            .padding(.top, EmberTokens.Spacing.space32)
+            .padding(.bottom, EmberTokens.Spacing.space16)
         }
     }
 }

@@ -74,7 +74,9 @@ struct PlanScreen: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("Dismisses")
             }
-            Text("Workouts rotate Push → Pull → Legs, so each gets equal time. Changes apply from your next workout on.")
+            // A1's rotation, the plan's one fact line; "changes apply from your next workout on" lives once, in Change days (A27 (a) —
+            // the page repeated the sheet's line, ui-reviewer run 35447860873 · R-094)
+            Text("Workouts rotate Push → Pull → Legs, so each gets equal time.")
                 .typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).fixedSize(horizontal: false, vertical: true)
             FocusCard(padding: 0) {
                 VStack(spacing: 0) {
