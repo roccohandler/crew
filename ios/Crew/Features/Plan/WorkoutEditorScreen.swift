@@ -102,10 +102,11 @@ struct WorkoutEditorScreen: View {
 
     // An eyebrow over one card of rows (A28 (f): cards on the gutter, seams inset like the rows they separate)
     private func group<Rows: View>(_ title: String, numerals: Bool, @ViewBuilder rows: () -> Rows) -> some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+        let built = rows() // built here: FocusCard's content closure escapes, and a non-escaping builder cannot go with it
+        return VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
             (numerals ? Text(numerals: title) : Text(title)).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
                 .accessibilityAddTraits(.isHeader)
-            FocusCard(padding: 0) { VStack(spacing: 0) { rows() } }
+            FocusCard(padding: 0) { VStack(spacing: 0) { built } }
         }
     }
 

@@ -1932,3 +1932,8 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (8) **Change days keeps its filled ink day discs.** The reviewer read them as the wrong component. The kit has no day-picker,
       and the selected state is carried by fill and by VoiceOver's "selected" trait; the system's day marks are ink fills
       (focus-card-system.md: "day-mark fills are ink"). Open to the owner.
+  (9) **No destination is the platform's List any more** (run 35445082374's shots). The Settings destinations (Units,
+      Notifications, Account, Nutrition, Privacy & safety, Blocked people), the chain picker and the held-sends sheet use the
+      system's cards or its sheet: the gutter, the 28 pt radius, the title in the content. The seam between rows is one plain
+      function, `cardSeam()` (C5, extracted at its nineteenth copy). The held-sends sheet's Delete was a bordered red button on
+      the row. It is now an ink text button behind a confirm, so the red lives only in the confirm (A28 (a)).

@@ -1,8 +1,8 @@
-// SPEC: S17 · A7 · A9 · E9 as grouped by A27's hand-off (R6) — the destinations Settings' rows open. A group of rows is a List on the
-// canvas with its rows on `card` (A28 (a): no platform gray, no white — the R0 review's "white list rows"); its section headers are
-// eyebrows; an on/off setting is the system's check (CheckToggleStyle). Units: lb/kg lives here only (A28 (d)), each choice a row
-// with a check — the kit's radio, not a segmented picker (§11). Privacy & safety: Blocked people and the two legal pages.
-// WRITTEN — UNVERIFIED (needs Mac). R6
+// SPEC: S17 · A7 · A9 · E9 as grouped by A27's hand-off (R6) — the destinations Settings' rows open. Each is a page of the system's
+// cards on the canvas, the gutter and the 28 pt radius (the platform's inset-grouped List drew a 16 pt gutter and a ~10 pt radius —
+// ui-reviewer, run 35445082374 · R-091); a group's header is an eyebrow; an on/off setting is the system's check (CheckToggleStyle).
+// Units: lb/kg lives here only (A28 (d)), each choice a row with a check — the kit's radio, not a segmented picker (§11). Privacy &
+// safety: Blocked people and the two legal pages. WRITTEN — UNVERIFIED (needs Mac). R6
 
 import SwiftUI
 
@@ -11,12 +11,15 @@ struct SettingsGroupScreen<Rows: View>: View {
     @ViewBuilder let rows: () -> Rows
 
     var body: some View {
-        List { rows().listRowBackground(EmberColors.card) }
-            .scrollContentBackground(.hidden)
-            .background(EmberColors.canvas.ignoresSafeArea())
-            .toggleStyle(CheckToggleStyle())
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
+        ScrollView {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) { rows() }
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .padding(.vertical, EmberTokens.Spacing.space16)
+        }
+        .background(EmberColors.canvas.ignoresSafeArea())
+        .toggleStyle(CheckToggleStyle())
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -27,32 +30,33 @@ struct UnitsScreen: View {
     @State private var distanceUnit = AuthStore.shared.distanceUnit
 
     var body: some View {
-        List {
-            Section {
+        SettingsGroupScreen(title: "Units") {
+            group("Weight") {
                 choice("Pounds (lb)", selected: weightUnit == "lb") { weightUnit = "lb" }
+                cardSeam()
                 choice("Kilograms (kg)", selected: weightUnit == "kg") { weightUnit = "kg" }
-            } header: { header("Weight") }
-            Section {
+            }
+            group("Distance") {
                 choice("Miles (mi)", selected: distanceUnit == "mi") { distanceUnit = "mi" }
+                cardSeam()
                 choice("Kilometres (km)", selected: distanceUnit == "km") { distanceUnit = "km" }
-            } header: { header("Distance") }
+            }
         }
-        .scrollContentBackground(.hidden)
-        .background(EmberColors.canvas.ignoresSafeArea())
-        .navigationTitle("Units")
-        .navigationBarTitleDisplayMode(.inline)
         .onChange(of: weightUnit) { _, value in Task { await model.setWeightUnit(value) } }
         .onChange(of: distanceUnit) { _, value in Task { await model.setDistanceUnit(value) } }
     }
 
-    private func header(_ text: String) -> some View {
-        Text(text).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
+    private func group<Rows: View>(_ title: String, @ViewBuilder rows: () -> Rows) -> some View {
+        let built = rows() // built here: FocusCard's content closure escapes, and a non-escaping builder cannot go with it
+        return VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+            Text(title).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary).accessibilityAddTraits(.isHeader)
+            FocusCard(padding: 0) { VStack(spacing: 0) { built } }
+        }
     }
 
     private func choice(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Toggle(title, isOn: Binding(get: { selected }, set: { if $0 { action() } }))
-            .toggleStyle(CheckToggleStyle())
-            .listRowBackground(EmberColors.card)
+            .padding(.horizontal, EmberTokens.Focus.setCardInset)
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -61,24 +65,21 @@ struct UnitsScreen: View {
 struct PrivacyScreen: View {
     let model: SettingsModel
     @State private var legalPage: LegalPage?
+    @State private var showsBlocked = false
 
     var body: some View {
-        List {
-            NavigationLink { BlockedPeopleScreen() } label: { row("Blocked people") }
-            Button { legalPage = .privacy } label: { row("Privacy policy") }
-            Button { legalPage = .terms } label: { row("Terms") }
+        SettingsGroupScreen(title: "Privacy & safety") {
+            FocusCard(padding: 0) {
+                VStack(spacing: 0) {
+                    RowButton(title: "Blocked people") { showsBlocked = true }
+                    cardSeam()
+                    RowButton(title: "Privacy policy") { legalPage = .privacy }
+                    cardSeam()
+                    RowButton(title: "Terms") { legalPage = .terms }
+                }
+            }
         }
-        .listRowBackground(EmberColors.card)
-        .scrollContentBackground(.hidden)
-        .background(EmberColors.canvas.ignoresSafeArea())
-        .navigationTitle("Privacy & safety")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $showsBlocked) { BlockedPeopleScreen() }
         .sheet(item: $legalPage) { page in SafariView(url: model.legalURL(page)).ignoresSafeArea() }
-    }
-
-    private func row(_ title: String) -> some View {
-        Text(title).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
-            .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton, alignment: .leading)
-            .contentShape(Rectangle())
     }
 }

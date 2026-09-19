@@ -56,7 +56,9 @@ final class Journey2_FastLogTests: XCTestCase {
         try await seed.reactToTheWorkoutPost(crewId: crewId, emoji: "💪", as: mate)
         // Tap 3: Crew tab — the card is in the stream and the reaction shows within a poll (Part IV: 5–10 s)
         app.tabBars.buttons["Crew"].tap()
-        XCTAssertTrue(labelled("Workout ✓").waitForExistence(timeout: 10))
+        // A28 · R5 (R-088): the card says what was done in its summary line ("Push day · 0 of 15 sets"), not "Workout ✓"; only a
+        // strength post's line counts sets, so this finds the quick-completed workout and not the seeded walk
+        XCTAssertTrue(labelled(" sets").waitForExistence(timeout: 10), "the workout card never reached the stream — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(6).map(\.label).joined(separator: " | "))")
         XCTAssertTrue(labelled("💪 1").waitForExistence(timeout: 15))
         shoot(app, "S12 crew — the reaction received")
     }

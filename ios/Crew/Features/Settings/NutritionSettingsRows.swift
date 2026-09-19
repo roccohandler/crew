@@ -12,24 +12,50 @@ struct NutritionSettingsRows: View {
     let availability: NutritionAvailability
     @State private var confirming = false
     @State private var line: String?
+    @State private var showsTargets = false
+    @State private var showsMethod = false
 
+    // A28 (f) · R-091: two cards on the gutter — the two pages as row buttons, then the two-step delete — not the platform's List
     var body: some View {
-        Section {
-            if availability == .askBirthYear {
-                NavigationLink("Nutrition targets") { NutritionTodayScreen() }.listRowBackground(EmberColors.card) // §6: the birth year is asked where Nutrition opens
-            } else {
-                NavigationLink("Nutrition targets") { NutritionTargetsScreen() }.listRowBackground(EmberColors.card)
+        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+            FocusCard(padding: 0) {
+                VStack(spacing: 0) {
+                    RowButton(title: "Nutrition targets") { showsTargets = true }
+                    cardSeam()
+                    RowButton(title: "How targets are estimated") { showsMethod = true }
+                }
             }
-            NavigationLink("How targets are estimated") { NutritionMethodScreen() }.listRowBackground(EmberColors.card)
-            if confirming {
-                Text("This deletes your targets, your bodyweight, your saved meals, your template and every logged meal. It can't be undone.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
-                Button("Delete my nutrition data") { Task { await erase() } }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
-                Button("Keep it") { confirming = false }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
-            } else {
-                Button("Delete my nutrition data") { confirming = true; line = nil }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
+            FocusCard(padding: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if confirming {
+                        Text("This deletes your targets, your bodyweight, your saved meals, your template and every logged meal. It can't be undone.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                            .padding(.vertical, EmberTokens.Spacing.space12)
+                        cardSeam()
+                        row("Delete my nutrition data") { Task { await erase() } }
+                        cardSeam()
+                        row("Keep it") { confirming = false }
+                    } else {
+                        row("Delete my nutrition data") { confirming = true; line = nil }
+                    }
+                }
             }
-            if let line { Text(line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.card) }
+            if let line { Text(line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary) }
         }
+        // §6: an account with no birth year is asked for it where Nutrition opens, so its targets row leads there
+        .navigationDestination(isPresented: $showsTargets) { if availability == .askBirthYear { NutritionTodayScreen() } else { NutritionTargetsScreen() } }
+        .navigationDestination(isPresented: $showsMethod) { NutritionMethodScreen() }
+    }
+
+    private func row(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton, alignment: .leading)
+                .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     @MainActor
