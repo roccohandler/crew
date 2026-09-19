@@ -46,8 +46,8 @@ final class ShellStatesTests: XCTestCase {
     func testSharedComponentsConstruct() {
         _ = EmptyState(title: "Start a crew", line: "One link.", ctaTitle: "Start a crew") {}
         _ = ErrorState(line: "Couldn't load that. Try again.") {}
-        _ = WeeklyRing(done: 2, planned: 4)
-        _ = StreakFlame(streak: 0, paused: false)
+        _ = FocusRing(done: 2, planned: 4) // A28 (d): the system's ring and the reward block replace WeeklyRing and StreakFlame
+        _ = HomeRewardBlock(streak: 0, shields: 0, ringDone: 0, ringPlanned: 0, isPaused: false)
         _ = AvatarView(displayName: "Sam Rivera", image: nil)
         _ = LoadingLine(line: "Syncing your week from your account…") // 2026-09-18: the skeletons are gone; this is the one loading affordance
         XCTAssertEqual(EmberTokens.Haptic.allCases.count, 4)
