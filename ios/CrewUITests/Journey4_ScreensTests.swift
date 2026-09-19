@@ -30,7 +30,7 @@ final class Journey4_ScreensTests: XCTestCase {
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home — the screen says: \(screenSays())")
         shoot(app, "S07 Home")
         app.tabBars.buttons["Plan"].tap()
-        XCTAssertTrue(app.navigationBars["Plan"].waitForExistence(timeout: 10), "Plan did not open")
+        XCTAssertTrue(app.buttons["Change days"].waitForExistence(timeout: 10), "Plan did not open, or lost its Change days row") // R-087: the title is the page's own
         shoot(app, "S14 Plan")
         app.tabBars.buttons["Crew"].tap()
         XCTAssertTrue(app.navigationBars["Crew"].waitForExistence(timeout: 10), "Crew did not open")

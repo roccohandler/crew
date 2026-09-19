@@ -44,8 +44,6 @@ extension WorkoutDraft {
         row.type == "cardio" ? nil : "\(row.targetSets) × \(repsText(row))"
     }
 
-    // Flow 3: a hold is duration only — never sets, reps or weight
-    static func holdLine(_ hold: PlanDraftExercise) -> String {
-        "\(hold.name) · \(hold.holdSeconds ?? 0)s\((hold.perSide ?? false) ? " each" : "")"
-    }
+    // Flow 3 · A28 (c): a hold is its name — never sets, reps or weight, and no duration (holdSeconds stays in the seed as data)
+    static func holdLine(_ hold: PlanDraftExercise) -> String { hold.name }
 }

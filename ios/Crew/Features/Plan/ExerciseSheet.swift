@@ -1,9 +1,9 @@
-// SPEC: A4 (owner-directed 2026-09-08) · G3 — the exercise sheet (.medium detent): name + equipment chip + cue line;
-// `Sets` and `Reps` steppers with ≥ 44 pt segments (the app's Stepper: long-press repeats), bounds by construction
-// (1…planMaxSetsPerExercise, 1…planTargetRepsMax — the model refuses nothing because nothing invalid is reachable); a
-// cardio row shows a `Minutes` stepper instead (cardioMinutesStep, A2); `Swap exercise` (keeps the targets), `Move up` ·
-// `Move down` (the sheet follows the row), `Remove from {name}` (one tap; Undo lives in the editor's snackbar).
-// Screens hold zero logic (5.6.6). Ink on bone. WRITTEN — UNVERIFIED (needs Mac).
+// SPEC: A4 (owner-directed 2026-09-08) · G3 as amended by A28 (f) — the exercise sheet (system §7's sheet on `card`, 28 pt top
+// corners): the name at sheet-title weight, the equipment chip and the cue line; `Sets` and `Reps` rows with the system's 52 pt
+// steppers (long-press repeats), bounds by construction (1…planMaxSetsPerExercise, 1…planTargetRepsMax — nothing invalid is
+// reachable); a cardio row shows `Minutes` instead (cardioMinutesStep, A2 — the minutes the user sets, GAP 4). Then text buttons:
+// `Swap exercise` (keeps the targets), `Move up` · `Move down` — THE reorder idiom (R-087; the sheet follows the row) — and
+// `Remove from {name}` (one tap; Undo lives at the top of the editor). Screens hold zero logic (5.6.6). WRITTEN — UNVERIFIED. R4
 
 import SwiftUI
 
@@ -18,13 +18,14 @@ struct ExerciseSheet: View {
             Group {
                 if let order, let row = model.drafts[kind]?.row(order: order) { content(order: order, row: row) } else { EmptyView() }
             }
-            .background(EmberColors.canvas.ignoresSafeArea())
+            .background(EmberColors.card.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { order = nil } } }
         }
-        .tint(EmberColors.inkText)
+        .tint(EmberColors.ink)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationCornerRadius(EmberTokens.Focus.cardRadius)
         .sheet(isPresented: $swapping) {
             SwapSheet(candidates: order.map { model.swapCandidates(kind: kind, order: $0) } ?? []) { pick in
                 if let order { model.swap(kind: kind, order: order, with: pick) }
@@ -36,56 +37,74 @@ struct ExerciseSheet: View {
     private func content(order: Int, row: PlanDraftExercise) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                Text(row.name).font(.title2.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                EquipmentChip(equipment: row.equipment)
-                if let cue = model.cueLine(for: row.exerciseId) { Text(cue).font(.subheadline).foregroundStyle(EmberColors.secondaryText) }
-                if row.type == "cardio" {
-                    StepperRow(label: "Minutes", value: "\(WorkoutDraft.minutes(of: row)) min") { model.adjust(kind: kind, order: order, minutesBy: $0 * SpecConstants.cardioMinutesStep) }
-                } else {
-                    StepperRow(label: "Sets", value: "\(row.targetSets)") { model.adjust(kind: kind, order: order, setsBy: $0) }
-                    StepperRow(label: "Reps", value: WorkoutDraft.repsText(row)) { model.adjust(kind: kind, order: order, repsBy: $0) }
+                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+                    Text(row.name).typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    EquipmentChip(equipment: row.equipment)
+                    if let cue = model.cueLine(for: row.exerciseId) {
+                        Text(cue).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                SecondaryButton(title: "Swap exercise") { swapping = true }
-                HStack(spacing: EmberTokens.Spacing.space12) {
-                    SecondaryButton(title: "Move up") { self.order = model.reorder(kind: kind, order: order, direction: -1) ?? order }
-                        .disabled(!model.canReorder(kind: kind, order: order, direction: -1))
-                        .opacity(model.canReorder(kind: kind, order: order, direction: -1) ? 1 : EmberTokens.Opacity.disabled)
-                    SecondaryButton(title: "Move down") { self.order = model.reorder(kind: kind, order: order, direction: 1) ?? order }
-                        .disabled(!model.canReorder(kind: kind, order: order, direction: 1))
-                        .opacity(model.canReorder(kind: kind, order: order, direction: 1) ? 1 : EmberTokens.Opacity.disabled)
+                VStack(spacing: 0) {
+                    if row.type == "cardio" {
+                        StepperRow(label: "Minutes", value: "\(WorkoutDraft.minutes(of: row)) min") { model.adjust(kind: kind, order: order, minutesBy: $0 * SpecConstants.cardioMinutesStep) }
+                    } else {
+                        StepperRow(label: "Sets", value: "\(row.targetSets)") { model.adjust(kind: kind, order: order, setsBy: $0) }
+                        Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline)
+                        StepperRow(label: "Reps", value: WorkoutDraft.repsText(row)) { model.adjust(kind: kind, order: order, repsBy: $0) }
+                    }
                 }
-                Button(model.drafts[kind]?.removeTitle ?? "Remove") {
-                    model.remove(kind: kind, order: order)
-                    self.order = nil
+                VStack(alignment: .leading, spacing: 0) {
+                    TextActionButton(title: "Swap exercise", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { swapping = true }
+                    HStack(spacing: EmberTokens.Spacing.space24) {
+                        if model.canReorder(kind: kind, order: order, direction: -1) {
+                            TextActionButton(title: "Move up", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { self.order = model.reorder(kind: kind, order: order, direction: -1) ?? order }
+                        }
+                        if model.canReorder(kind: kind, order: order, direction: 1) {
+                            TextActionButton(title: "Move down", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { self.order = model.reorder(kind: kind, order: order, direction: 1) ?? order }
+                        }
+                    }
+                    TextActionButton(title: model.drafts[kind]?.removeTitle ?? "Remove", horizontalPadding: 0, role: EmberTokens.Typography.textButton) {
+                        model.remove(kind: kind, order: order)
+                        self.order = nil
+                    }
                 }
-                .font(.headline)
-                .foregroundStyle(EmberColors.inkText)
-                .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                .padding(.top, EmberTokens.Spacing.space8)
             }
-            .padding(EmberTokens.Spacing.space24)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
     }
 }
 
-// Label left, value centre, ± segments right — which value is changing is never in doubt; each step ticks (6.4)
+// SPEC: A28 (f) — label left, the value as a Rounded Bold numeral, the system's steppers right: which value is changing is never in
+// doubt; each step ticks (6.4). At accessibility sizes the steppers drop under the label (§10)
 struct StepperRow: View {
     let label: String
     let value: String
     let onStep: (Int) -> Void
 
     var body: some View {
-        HStack {
-            Text(label).font(.body).foregroundStyle(EmberColors.inkText)
-            Spacer()
-            Stepper(label: value, noun: label.lowercased()) { delta in // "Decrease sets" / "Increase reps" to VoiceOver
-                Haptics.selection()
-                onStep(delta)
-            }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: EmberTokens.Spacing.space12) { words; Spacer(minLength: EmberTokens.Spacing.space8); steppers }
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) { words; steppers }
         }
-        .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        .padding(.vertical, EmberTokens.Spacing.space12)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(label) \(value)")
     }
+
+    private var words: some View {
+        HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space8) {
+            Text(label).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+            Text(numerals: value).typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink)
+        }
+    }
+
+    private var steppers: some View {
+        HStack(spacing: EmberTokens.Spacing.space12) {
+            StepButton(symbol: "minus", noun: label.lowercased(), focus: true) { Haptics.selection(); onStep(-1) } // "Decrease sets"
+            StepButton(symbol: "plus", noun: label.lowercased(), focus: true) { Haptics.selection(); onStep(1) }
+        }
+    }
 }
-// A26: EquipmentChip lives in Shared/EquipmentChip.swift now — the reveal, this sheet, the session and the swap lists share it
+// A26: EquipmentChip lives in Shared/EquipmentChip.swift — the reveal, this sheet, the session and the swap lists share it

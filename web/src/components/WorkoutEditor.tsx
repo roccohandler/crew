@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cardioMinutes, ExercisePicker, ExerciseSheet, repsLabel } from "@/components/ExerciseSheet";
 import { putPlan } from "@/lib/api-client";
-import { addCandidates, addCardio, addStrengthRow, adjustMinutes, adjustReps, adjustSets, cardioActivities, editableRows, estimatedMinutes, hasCardio, isFull, mobilityMinutes, mobilityRows, moveRow, removeRow, restoreRow, strengthCount, swapRow, type DraftRow, type DraftWorkout } from "@/lib/plan-draft";
+import { addCandidates, addCardio, addStrengthRow, adjustMinutes, adjustReps, adjustSets, cardioActivities, editableRows, hasCardio, isFull, mobilityRows, moveRow, removeRow, restoreRow, strengthCount, swapRow, type DraftRow, type DraftWorkout } from "@/lib/plan-draft";
 import { SpecConstants } from "@/generated/spec-constants";
 
 interface Props { trainingWeekdays: number[]; workouts: DraftWorkout[]; workout: DraftWorkout }
@@ -44,8 +44,8 @@ function MobilityFooter({ workout }: { workout: DraftWorkout }) {
   const holds = mobilityRows(workout);
   return (
     <footer className="stack stack--tight">
-      <p className="muted">Mobility · {holds.length} holds · ~{mobilityMinutes(workout)} min · closes the workout</p>
-      {holds.map((hold) => <p key={hold.order} className="whisper">{hold.name} · {hold.holdSeconds}s{hold.perSide ? " each side" : ""}</p>)}
+      <p className="muted">Mobility · {holds.length} {holds.length === 1 ? "hold" : "holds"} · closes the workout</p>
+      {holds.map((hold) => <p key={hold.order} className="whisper">{hold.name}</p>)}
     </footer>
   );
 }
@@ -82,7 +82,7 @@ export function WorkoutEditor({ trainingWeekdays, workouts, workout }: Props) {
         <h1>{draft.name}</h1>
         <button type="button" className="button button--text" disabled={!dirty} onClick={save}>Save</button>
       </div>
-      <p className="muted">{strengthCount(draft)} exercises + mobility · ~{estimatedMinutes(draft)} min</p>
+      <p className="muted">{strengthCount(draft)} exercises + mobility{hasCardio(draft) ? " + cardio" : ""}</p>
       <div className="row row--between"><h2>Exercises</h2><button type="button" className="button button--text" onClick={() => setUi({ ...QUIET, reorder: !ui.reorder })}>{ui.reorder ? "Done" : "Reorder"}</button></div>
       {rows.length === 0 ? <p className="muted">No exercises yet — add one to build {draft.name}</p> : null}
       <ul className="stack stack--tight" style={{ listStyle: "none", padding: 0, margin: 0 }}>

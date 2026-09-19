@@ -112,8 +112,6 @@ export const SpecConstants = {
   defaultTrainingWeekdays: [1, 3, 5],
   /** SPEC: 1B — Continue requires ≥ 1 day */
   minTrainingDaysToContinue: 1,
-  /** SPEC: A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5 */
-  planEstimateRoundingMinutes: 5,
   /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Push is the owner's five rows at every experience; supersedes Flow 1 step 3's 4 / G7's 5 / 6 */
   templatePushExerciseCount: 5,
   /** SPEC: A26 (owner-approved 2026-09-18, canonical templates) — Pull is the owner's six rows at every experience */
@@ -156,8 +154,6 @@ export const SpecConstants = {
   weightDisplayScaleLb: 2,
   /** SPEC: A9, owner-directed 2026-09-09 — a converted weight snaps to the nearest quarter kilogram (scale 4 = quarters), matching the 1.25 kg smallest plate per side */
   weightDisplayScaleKg: 4,
-  /** SPEC: Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able */
-  restTimerDefaultSeconds: 90,
   /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math ('45 + 25 + 2.5 per side') — a standard bar */
   barbellBarWeightLb: 45,
   /** SPEC: GAP (agent, 2026-09-04): Flow 3 plate math — a standard bar */
@@ -174,8 +170,6 @@ export const SpecConstants = {
   setWeightMax: 1000,
   /** SPEC: GAP (agent, 2026-09-05): Flow 3 plate math 'per side' — plates load on both ends of the bar */
   barbellPlateSides: 2,
-  /** SPEC: GAP (agent, 2026-09-05): Flow 3 mobility '90s each' — a per-side hold runs once per side */
-  perSideHoldRepeats: 2,
   /** SPEC: GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min */
   holdSecondsMax: 600,
 

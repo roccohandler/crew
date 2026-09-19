@@ -72,6 +72,8 @@ export function WeekOverview(props: Props) {
       {editingDays ? (
         <section className="card stack" aria-label="Change days">
           <DayToggles days={days} onToggle={(weekday) => setDays(days.includes(weekday) ? days.filter((day) => day !== weekday) : [...days, weekday])} />
+          {/* SPEC: A27 (a) — the forward-only rule, in one line (twin: DaysSheet.swift) */}
+          <p className="muted">Changes apply from your next workout on. Days already past keep the plan they had.</p>
           <div className="row">
             <button type="button" className="button button--primary" disabled={days.length === 0} onClick={saveDays}>Save days</button>
             <button type="button" className="button button--text" onClick={() => { setDays(props.trainingWeekdays); setEditingDays(false); }}>Cancel</button>

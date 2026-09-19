@@ -1,5 +1,6 @@
 // SPEC: 6.3 (≥ 44 pt) · Flow 3 ("Reps ±1 · weight ±5 lb/±2.5 kg · long-press fast-scroll") · nutrition addendum §4 (the gram
-// steppers) — the one ± button: the set row, the rest timer and the gram fields all use it (its third user moved it here, C5).
+// steppers) — the one ± button: the Logger's set card, the plan's exercise sheet (both in A28 (f)'s 52 pt `focus` form) and the
+// gram fields use it (its third user moved it here, C5).
 // ONE TAP IS ONE STEP. It was two: CI run 35340692297 (journey ⑤, the first test ever to tap one and read the number back) showed
 // two taps on "Increase Protein" adding 20 g, not 10 — `pressing(true)` fired `action()` at touch-down and `.onTapGesture` fired it
 // again on lift, which is F07 of the 2026-09-09 review, never actually fixed by W019. Now:
@@ -56,26 +57,3 @@ struct StepButton: View {
     }
 }
 
-// A stepper with ± buttons ≥ 44 pt (Shared/StepButton.swift); a hold repeats (Flow 3 fast-scroll). `noun` names what the buttons change to
-// VoiceOver ("Decrease reps", "Increase weight") — a row holds two steppers, so a bare "Decrease" says nothing (E20)
-struct Stepper: View {
-    let label: String
-    let noun: String
-    let onStep: (Int) -> Void
-    @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt)
-
-    var body: some View {
-        HStack(spacing: EmberTokens.Spacing.space4) {
-            StepButton(symbol: "minus", noun: noun) { onStep(-1) }
-            // SPEC: 6.3 — the readout swallows its own taps, so a tap aimed at the value never reaches a row gesture beneath it
-            Text(label)
-                .font(.body.monospacedDigit())
-                .foregroundStyle(EmberColors.inkText)
-                .frame(minWidth: minTarget) // a touch target's width, not the ring's: two steppers must share a 375-pt row (6.7)
-                .contentShape(Rectangle())
-                .onTapGesture {}
-                .accessibilityHidden(true) // the value is spoken by the row that holds it (E20)
-            StepButton(symbol: "plus", noun: noun) { onStep(1) }
-        }
-    }
-}

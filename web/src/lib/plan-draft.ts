@@ -110,19 +110,8 @@ export function addCandidates(workout: DraftWorkout): SeedExercise[] {
 // SPEC: A2 — the nine seeded activities
 export const cardioActivities = (): SeedExercise[] => seedExercises.filter((exercise) => exercise.type === "cardio");
 
-const holdSeconds = (row: DraftRow): number => (row.holdSeconds ?? 0) * (row.perSide ? SpecConstants.perSideHoldRepeats : 1);
-
-// SPEC: A4 header "~{min} min" — strength sets × the default rest + hold seconds + cardio seconds, in whole minutes
-export function estimatedMinutes(workout: DraftWorkout): number {
-  const seconds = workout.exercises.reduce((total, row) => total + (row.type === "strength" ? row.targetSets * SpecConstants.restTimerDefaultSeconds : holdSeconds(row)), 0);
-  // SPEC: A4 — the estimate rounds to planEstimateRoundingMinutes (twin: WorkoutDraft.estimatedMinutes)
-  const step = SpecConstants.planEstimateRoundingMinutes;
-  return Math.round(seconds / (TimeUnits.secondsPerMinute * step)) * step;
-}
-
-export function mobilityMinutes(workout: DraftWorkout): number {
-  return Math.round(mobilityRows(workout).reduce((total, row) => total + holdSeconds(row), 0) / TimeUnits.secondsPerMinute);
-}
+// A28 (c) · R-087: the editor's time estimate and the mobility minutes are gone (nothing shows the time a workout takes), and
+// restTimerDefaultSeconds, perSideHoldRepeats and planEstimateRoundingMinutes with them (twin: WorkoutDraft.headerLine)
 
 // SPEC: A1 · A4 — training days are editable without a rebuild; the rotation is untouched (sorted, unique)
 export function setTrainingWeekdays(plan: DraftPlan, weekdays: number[]): DraftPlan {

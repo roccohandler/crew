@@ -13,14 +13,15 @@ final class Tour_PlanTests: XCTestCase {
     override func setUp() async throws { continueAfterFailure = true }
 
     func testFilled() async throws {
-        tourLaunch(app, as: try await tourFilledMember(seed))
+        let member = try await tourFilledMember(seed)
+        tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Plan"])
         _ = app.buttons["Change days"].waitForExistence(timeout: 15)
         tourShot(app, "plan_week_filled", "tapped the Plan tab")
         if tourTap(app.buttons["Change days"]) {
             tourShot(app, "plan_days_sheet", "tapped Change days")
-            tourDismissSheet(app)
+            tourDismissSheet(app, button: "Cancel")
         }
         guard tourTap(tourButton(app, containing: "Push day")) else { return }
         _ = app.buttons["Add exercise"].waitForExistence(timeout: 10)
@@ -40,6 +41,15 @@ final class Tour_PlanTests: XCTestCase {
         if tourTap(app.buttons["Cancel"], timeout: 5), app.buttons["Discard changes"].waitForExistence(timeout: 3) {
             tourShot(app, "plan_discard_dialog", "tapped Cancel with unsaved changes")
             tourTap(app.buttons["Discard changes"])
+        }
+        tourLaunch(app, as: member, dark: true) // A28 (a): Plan in Midnight (no mockup: DESIGN.md alone)
+        tourWaitForHome(app)
+        tourTap(app.tabBars.buttons["Plan"])
+        _ = app.buttons["Change days"].waitForExistence(timeout: 15)
+        tourShot(app, "plan_week_filled_dark", "the same week in dark mode")
+        if tourTap(tourButton(app, containing: "Push day")) {
+            _ = app.buttons["Add exercise"].waitForExistence(timeout: 10)
+            tourShot(app, "plan_editor_filled_dark", "the editor in dark mode")
         }
     }
 

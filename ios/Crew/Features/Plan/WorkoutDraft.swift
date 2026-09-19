@@ -36,27 +36,12 @@ struct WorkoutDraft: Equatable {
 
     func row(order: Int) -> PlanDraftExercise? { exercises.first { $0.order == order } }
 
-    // SPEC: A4 — header `{n} exercises + mobility · ~{minutes} min`; ~ = strength sets × restTimerDefaultSeconds + hold
-    // seconds (per-side holds run twice) + cardio seconds, rounded to the app's minute step
-    var estimatedMinutes: Int {
-        let seconds = exercises.reduce(0) { total, row in
-            switch row.type {
-            case "strength": return total + row.targetSets * SpecConstants.restTimerDefaultSeconds
-            case "mobility": return total + (row.holdSeconds ?? 0) * ((row.perSide ?? false) ? SpecConstants.perSideHoldRepeats : 1)
-            default: return total + (row.holdSeconds ?? 0)
-            }
-        }
-        // SPEC: A4 — the estimate rounds to planEstimateRoundingMinutes
-        let step = SpecConstants.planEstimateRoundingMinutes
-        return Int((Double(seconds) / Double(TimeUnits.secondsPerMinute * step)).rounded()) * step
-    }
+    // SPEC: A4 as amended by A28 (c) — header `{n} exercises + mobility`: the time estimate is gone (nothing shows the time a workout
+    // takes), and restTimerDefaultSeconds, perSideHoldRepeats and planEstimateRoundingMinutes went with it
+    var headerLine: String { "\(strengthCount) exercises + mobility\(hasCardio ? " + cardio" : "")" }
 
-    var headerLine: String { "\(strengthCount) exercises + mobility\(hasCardio ? " + cardio" : "") · ~\(estimatedMinutes) min" }
-
-    var mobilityLine: String {
-        let seconds = holds.reduce(0) { $0 + ($1.holdSeconds ?? 0) * (($1.perSide ?? false) ? SpecConstants.perSideHoldRepeats : 1) }
-        return "Mobility · \(holds.count) holds · ~\(Int((Double(seconds) / Double(TimeUnits.secondsPerMinute)).rounded())) min · closes the workout"
-    }
+    // A28 (c): "Mobility · 3 holds" — a count, never a duration ("a row reads 4 holds, never 6 min", system §11)
+    var mobilityLine: String { "Mobility · \(holds.count) \(holds.count == 1 ? "hold" : "holds") · closes the workout" }
 
     // MARK: Mutations (each renumbers so `order` stays 0..<count with mobility last)
 
@@ -93,14 +78,6 @@ struct WorkoutDraft: Equatable {
         removed = nil
         exercises = Self.renumbered(list + holds)
         return from + direction
-    }
-
-    // Reorder mode (EditButton + onMove) over the editable rows; mobility never moves
-    mutating func move(from source: IndexSet, to destination: Int) {
-        var list = rows
-        list.move(fromOffsets: source, toOffset: destination)
-        removed = nil
-        exercises = Self.renumbered(list + holds)
     }
 
     // SPEC: A4 — Remove is one tap plus Undo, never a confirmation; the last row stays (the server requires ≥ 1)

@@ -94,7 +94,6 @@ final class PlanModel {
 
     func swap(kind: String, order: Int, with replacement: SeedExercise) { mutate(kind: kind) { $0.swap(order: order, with: replacement) } }
     func adjust(kind: String, order: Int, setsBy: Int = 0, repsBy: Int = 0, minutesBy: Int = 0) { mutate(kind: kind) { $0.adjust(order: order, setsBy: setsBy, repsBy: repsBy, minutesBy: minutesBy) } }
-    func move(kind: String, from source: IndexSet, to destination: Int) { mutate(kind: kind) { $0.move(from: source, to: destination) } }
     func remove(kind: String, order: Int) { mutate(kind: kind) { $0.remove(order: order) } }
     func undoRemove(kind: String) { mutate(kind: kind) { $0.undoRemove() } }
     func add(kind: String, _ exercise: SeedExercise) { mutate(kind: kind) { $0.add(exercise, seed: seed) } }

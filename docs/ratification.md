@@ -1777,3 +1777,35 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (9) **Empty Progress** is one card with S15's invitation and one filled "Go to today", and no rows: there is nothing to chart,
       and nothing in the Journal.
 - Look at: the Progress shots against `design/targets/12` (light and dark), and (3), (5) and (6) above.
+
+### R-087 · 2026-09-19 · A28 R4 — Plan redesigned (the week map, Change days, the editor, the exercise and swap sheets); the plan's time estimates removed · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. R4 had no GAP precondition and no mockup, so its screens are judged against
+  DESIGN.md alone.
+- What changed:
+  - `PlanScreen` has the page's own title, A4's rotation line, and one card of the week (`PlanDayRow`: a workout day is a row
+    button, a rest or open day a quiet row). Below it sit "Next week starts with…" and a card of row buttons, Change days and
+    Rebuild my week (`RowButton`, extracted at its third use).
+  - `DaysSheet` is the system's sheet, with A27 (a)'s line and a Cancel.
+  - The editor lists rows as row buttons. Its Undo is a quiet row at the top, and it has no Reorder mode.
+  - `ExerciseSheet` has the 52 pt steppers, and Swap / Move up / Move down / Remove as text buttons.
+  - `SwapSheet` sits on the sheet surface.
+  - On both clients the time estimates and hold durations are gone, and `restTimerDefaultSeconds`, `perSideHoldRepeats` and
+    `planEstimateRoundingMinutes` are retired. The web's Change days states A27 (a)'s line.
+- The builder's readings:
+  (1) **Plan draws its title in the page**, as Home and Progress do, and hides its bar. The editor keeps its bar (Cancel / Save).
+  (2) **The outline secondary button is not on A28 (f)'s list.** Change days and Rebuild my week are row buttons in a card.
+  (3) **"Saved · applies from your next {name}"** is a quiet line at the top of the week, tapped away. There is no toast (A28 (f)
+      bans snackbars and banners) and no timer (A28 (c)).
+  (4) **A27 (a)'s one line**, on both clients: "Changes apply from your next workout on. Days already past keep the plan they had."
+      It states the rule — forward only, nothing retroactive — in the tone's plain words.
+  (5) **One reorder idiom** (A27's hand-off). It is Move up / Move down in the exercise sheet: visible buttons (6.3, 6.5) that the
+      web already uses. The drag handle and its Reorder mode are gone from iOS.
+  (6) **The editor's Undo** is a quiet row at the top of the list ("Removed {name}" + Undo), not a snackbar. It stays until Undo or
+      the next edit, as A4 had it.
+  (7) **No durations in the plan** (A28 (c)). The header reads "{n} exercises + mobility", the mobility line "Mobility · 3 holds ·
+      closes the workout", and each hold its name — in the editor and on the onboarding reveal (`WorkoutDraft.holdLine`). The
+      three constants have no reader left and are retired. `holdSeconds` stays in the seed as data.
+  (8) **The exercise sheet** has no filled button, because its edits apply as they are made; Done sits in the toolbar. Remove is ink
+      text, because a removal is undone, not confirmed (A4).
+  (9) **The days sheet** gains Cancel as the visible twin of the pull (6.3).
+- Look at: the Plan shots (light and dark) against DESIGN.md, and whether (4)'s wording is the owner's.

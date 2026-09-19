@@ -63,7 +63,6 @@
     "fullBodyMaxTrainingDays": { "value": 2, "spec": "Flow 1 step 3; S04 — Full-Body A/B at ≤2 days" },
     "defaultTrainingWeekdays": { "value": [1, 3, 5], "spec": "1B; S03 — Mon/Wed/Fri pre-selected (ISO weekdays)" },
     "minTrainingDaysToContinue": { "value": 1, "spec": "1B — Continue requires ≥ 1 day" },
-    "planEstimateRoundingMinutes": { "value": 5, "spec": "A4 (owner-directed 2026-09-08) — the editor's ~minutes estimate rounds to 5" },
     "templatePushExerciseCount": { "value": 5, "spec": "A26 (owner-approved 2026-09-18, canonical templates) — Push is the owner's five rows at every experience; supersedes Flow 1 step 3's 4 / G7's 5 / 6" },
     "templatePullExerciseCount": { "value": 6, "spec": "A26 (owner-approved 2026-09-18, canonical templates) — Pull is the owner's six rows at every experience" },
     "templateLegsExerciseCount": { "value": 5, "spec": "A26 (owner-approved 2026-09-18, canonical templates) — Legs is the owner's five rows at every experience" },
@@ -86,7 +85,6 @@
     "weightConversionScale": { "value": 100000000, "spec": "A9, owner-directed 2026-09-09 — the divisor for kilogramsPerPoundScaled (1e8)" },
     "weightDisplayScaleLb": { "value": 2, "spec": "A9, owner-directed 2026-09-09 — a converted weight snaps to the nearest half pound (scale 2 = halves), the smallest increment a lb gym can load" },
     "weightDisplayScaleKg": { "value": 4, "spec": "A9, owner-directed 2026-09-09 — a converted weight snaps to the nearest quarter kilogram (scale 4 = quarters), matching the 1.25 kg smallest plate per side" },
-    "restTimerDefaultSeconds": { "value": 90, "spec": "Flow 3 rest timer; Decision Registry G9 (2026-09-04) — default 90 s, per-workout adjustable, off-able" },
     "barbellBarWeightLb": { "value": 45, "spec": "GAP (agent, 2026-09-04): Flow 3 plate math ('45 + 25 + 2.5 per side') — a standard bar" },
     "barbellBarWeightKg": { "value": 20, "spec": "GAP (agent, 2026-09-04): Flow 3 plate math — a standard bar" },
     "plateSetLb": { "value": [45, 35, 25, 10, 5, 2.5], "spec": "GAP (agent, 2026-09-04): Flow 3 plate math — the common gym plate set" },
@@ -95,7 +93,6 @@
     "staleInProgressSessionAfterHours": { "value": 24, "spec": "S01 — stale (>day) in-progress session triggers the stale-session prompt" },
     "setWeightMax": { "value": 1000, "spec": "GAP (agent, 2026-09-05): Flow 3 names no weight ceiling — 1000 lb/kg keeps a typo out of the plate math" },
     "barbellPlateSides": { "value": 2, "spec": "GAP (agent, 2026-09-05): Flow 3 plate math 'per side' — plates load on both ends of the bar" },
-    "perSideHoldRepeats": { "value": 2, "spec": "GAP (agent, 2026-09-05): Flow 3 mobility '90s each' — a per-side hold runs once per side" },
     "holdSecondsMax": { "value": 600, "spec": "GAP (agent, 2026-09-05): Flow 1 mobility block 5–10 min — one hold never runs past 10 min" }
   },
   "cardio": {
