@@ -5,8 +5,9 @@
 import type { SessionDoc } from "@/lib/documents";
 import type { PostDoc } from "@/lib/documents-social";
 import { completionFacts } from "@/lib/engine/completion";
-import { isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
+import { weekKeyFor } from "@/lib/engine/day-key";
 import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
+import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
 
 // SPEC: A6 — a workout post without a server summary (pre-A6) reads the same line computed from its session: sets from the
@@ -29,8 +30,9 @@ export function postLine(post: PostDoc, sessionLine: string | null): string {
 // SPEC: A6 — "Rest day" tags a day that was not a training day and holds no workout (A1: rest = weekday ∉ trainingWeekdays)
 // A14: cardio counts here exactly as it did when it WAS a "workout" post — a day you walked is not tagged "Rest day".
 // The tag describes what you did, not what the plan scheduled, and this keeps the pre-A14 reading byte-identical.
-export function isRestDay(dayKey: string, dayPosts: PostDoc[], trainingWeekdays: number[]): boolean {
-  return !trainingWeekdays.includes(isoWeekday(dayKey)) && !dayPosts.some((post) => post.type === "workout" || post.type === "cardio");
+// A27 (a): "a training day" is asked of the training days in effect ON that day, never of today's.
+export function isRestDay(dayKey: string, dayPosts: PostDoc[], trainingDays: TrainingDaysEntry[]): boolean {
+  return !isPlannedOn(trainingDays, dayKey) && !dayPosts.some((post) => post.type === "workout" || post.type === "cardio");
 }
 
 // The days that hold posts, newest first (a backfilled post sorts by its dayKey, not by when it was written)

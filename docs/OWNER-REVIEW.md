@@ -78,7 +78,7 @@ holds every reading made without you, `docs/debt.md` every compromise.
 | Reading | Where | What was chosen |
 |---|---|---|
 | A one-day plan whose one workout is done is a perfect week (+150 and a shield) | R-068 (3), A22 G1 (a) | The rule as written; the alternative is a minimum of two planned days for a perfect week |
-| Plan history is not kept, so a plan edit re-judges unposted past days | R-068 (1), debt | The current plan judges the past |
+| ~~Plan history is not kept, so a plan edit re-judges unposted past days~~ — **CLOSED: answered by your ruling of 2026-09-18 (A27 (a))** | R-068 (1) → R-082 | A day is judged by the training days in effect on it; the history is kept, and built on both engines (vectors V85–V90) |
 | The comeback, the rest-day bridge and the streak nudge after A22 | R-069 · R-070 · R-071 | The smallest copy and rule that survive the removal of meal posts |
 | Nutrition: ten readings (rounded energy, the typo bounds, the calorie line, idempotent saves, the one-route delete, the gate, six chains) | R-074 | Each the narrowest in-contract answer |
 | Nutrition screens: what Today prints, the markers, optimistic logging | R-075 | Same |

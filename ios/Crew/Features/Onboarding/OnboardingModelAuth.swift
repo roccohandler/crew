@@ -16,7 +16,7 @@ extension OnboardingModel {
         defer { isSaving = false }
         do {
             let plan = try await Api.shared.putPlan(draft)
-            try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: store)
+            try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), history: plan.trainingDaysHistory, store: store)
             rebuildSaved = true
         } catch let error as AppError {
             authError = error.userLine
@@ -89,7 +89,7 @@ extension OnboardingModel {
             let userId = AuthStore.shared.currentUser?.id ?? "local"
             if let draft {
                 let plan = try await Api.shared.putPlan(draft)
-                try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: .shared)
+                try PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), history: plan.trainingDaysHistory, store: .shared)
                 // RootView showed the tabs the moment the session existed, so Home has ALREADY read a Store with no plan in it and the
                 // reinstall pull is running behind it (CI run 35324701048: journey ① sat on "Syncing your week…" for 20 s). The plan
                 // just landed locally — say so, and Home re-reads the Store now instead of waiting for a pull that has nothing to bring.

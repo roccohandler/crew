@@ -14,6 +14,10 @@ interface Props { trainingWeekdays: number[]; workouts: DraftWorkout[]; week: Da
 
 const dayName = (day: DayProjection): string => WEEKDAY_NAMES[day.weekday - 1] ?? "";
 
+// SPEC: A27 (a) as ruled 2026-09-18 — the forward-only rule in ONE sentence, said in the same words by the page and by the save
+// that changes the days (it used to answer "your days apply from today" under a page that said otherwise)
+const FORWARD_RULE = "Changes apply from your next workout on.";
+
 function WeekRow({ day, workouts }: { day: DayProjection; workouts: DraftWorkout[] }) {
   const workout = workouts.find((candidate) => candidate.kind === day.kind);
   if (day.state === "rest") return <li className="card muted">{dayName(day)} · Rest</li>;
@@ -49,7 +53,7 @@ export function WeekOverview(props: Props) {
     try {
       await putPlan(setTrainingWeekdays(props, days));
       setEditingDays(false);
-      setStatus("Saved · your days apply from today");
+      setStatus(`Saved · ${FORWARD_RULE}`);
       router.refresh();
     } catch {
       setStatus("Couldn't save. Your days are still here — try again.");
@@ -59,7 +63,7 @@ export function WeekOverview(props: Props) {
   return (
     <div className="stack">
       <h1>Your week</h1>
-      <p className="muted">Workouts rotate Push → Pull → Legs, so each gets equal time. Changes apply from your next workout on.</p>
+      <p className="muted">Workouts rotate Push → Pull → Legs, so each gets equal time. {FORWARD_RULE}</p>
       {status ? <p className="muted" role="status">{status}</p> : null}
       <ul className="stack stack--tight" style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {props.week.map((day) => <WeekRow key={day.dayKey} day={day} workouts={props.workouts} />)}

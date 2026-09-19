@@ -125,7 +125,7 @@ final class OnboardingModel {
         }
         let todayKey = DayKey.dayKey(for: now, tz: timeZone)
         let next = PlanRotation.nextWorkoutKind(lastCompletedKind: last, cycle: cycle)
-        let week = PlanRotation.projectWeek(weekKey: DayKey.weekKey(for: todayKey), todayKey: todayKey, trainingWeekdays: draft.trainingWeekdays, cycle: cycle, nextKind: next, completedKindByDay: [:])
+        let week = PlanRotation.projectWeek(weekKey: DayKey.weekKey(for: todayKey), todayKey: todayKey, trainingDays: [TrainingDaysEntry(from: todayKey, weekdays: draft.trainingWeekdays)], cycle: cycle, nextKind: next, completedKindByDay: [:]) // a draft: its days, from today
         weekRows = week.map { WeekMapRow.make($0, workouts: draft.workouts) }
     }
 

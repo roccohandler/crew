@@ -6,7 +6,8 @@
 // from HomeModel.swift: the state machine answers "what day is this", these answer "what is there to report".
 import type { ObjectId } from "mongodb";
 import { mealLogs, posts, sessions } from "@/lib/db";
-import { addDays, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
+import { addDays, weekKeyFor } from "@/lib/engine/day-key";
+import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
 
 // SPEC: A14 — today's state for each logging vector. A measurement or nothing: `null`/false renders as an invitation to log,
@@ -67,7 +68,9 @@ export async function vectorSlots(userId: ObjectId, todayKey: string): Promise<V
 // A18.6a — PAUSE-AWARE. A planned day inside an active pause window is never `missed` and never counts toward
 // `planned`: Flow 7 and spec:460 promise "pauses without penalty", and A17.1 turned these marks into the English
 // sentence "This week: Mon missed", printed directly above a card saying the streak is frozen.
-export async function weekMarks(userId: ObjectId, plannedWeekdays: number[], todayKey: string, pause: { startDay: string; endDay: string } | null): Promise<{ marks: string[]; done: number; planned: number }> {
+//
+// A27 (a) — each day asks the training days in effect ON it, so a change this week leaves the days before it as they were.
+export async function weekMarks(userId: ObjectId, trainingDays: TrainingDaysEntry[], todayKey: string, pause: { startDay: string; endDay: string } | null): Promise<{ marks: string[]; done: number; planned: number }> {
   const weekKey = weekKeyFor(todayKey);
   const days = Array.from({ length: TimeUnits.daysPerWeek }, (_, offset) => addDays(weekKey, offset));
   const completed = await (await sessions()).find({ userId, status: "completed", dayKey: { $in: days }, workoutKind: { $ne: "cardio" } }, { projection: { dayKey: 1 } }).toArray();
@@ -77,7 +80,7 @@ export async function weekMarks(userId: ObjectId, plannedWeekdays: number[], tod
   const marks: string[] = days.map((day) => {
     const isToday = day === todayKey;
     const frozen = pause !== null && day >= pause.startDay && day < pause.endDay;
-    if (!plannedWeekdays.includes(isoWeekday(day)) || frozen) return isToday ? "today" : "rest";
+    if (!isPlannedOn(trainingDays, day) || frozen) return isToday ? "today" : "rest";
     planned += 1;
     if (doneDays.has(day)) { done += 1; return "done"; }
     if (isToday) return "today";

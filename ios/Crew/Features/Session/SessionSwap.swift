@@ -53,6 +53,6 @@ enum SessionSwap {
         }
         let next = PlanDraft(trainingWeekdays: draft.trainingWeekdays, workouts: workouts)
         try PlanLocal.replace(next, userId: userId, updatedAt: now, store: store)
-        try SyncQueue.shared.enqueue(.putPlan, payload: PutPlanRequestDTO(trainingWeekdays: next.trainingWeekdays, workouts: next.workouts), now: now)
+        try SyncQueue.shared.enqueue(.putPlan, payload: PutPlanRequestDTO(trainingWeekdays: next.trainingWeekdays, workouts: next.workouts, savedAt: now), now: now)
     }
 }

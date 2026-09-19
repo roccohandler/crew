@@ -13,7 +13,8 @@
 // V1's LocalPost is a NESTED class with the same name — SwiftData names an entity after its class, so the nested copy IS the old
 // entity, property for property. It exists only so the plan can recognise an old store; nothing in the app constructs it.
 // A future change to any model: copy the changed class into a new CrewSchemaV3 the same way and add one stage. Never edit V1 or V2.
-// WRITTEN — UNVERIFIED (needs Mac).
+// A27 (a) (2026-09-18): V3 = V2 plus LocalTrainingDays, the training-days history — an entity ADDED and no existing model touched,
+// so V2 → V3 is lightweight too and V1 and V2 stay exactly as they were. WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 import SwiftData
@@ -81,9 +82,18 @@ enum CrewSchemaV2: VersionedSchema {
     }
 }
 
-enum CrewMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [CrewSchemaV1.self, CrewSchemaV2.self] }
+// SPEC: A27 (a) — V2 plus the training-days history (Models.swift LocalTrainingDays); every other model as V2 has it
+enum CrewSchemaV3: VersionedSchema {
+    static let versionIdentifier = Schema.Version(SpecConstants.trainingDaysStoreSchemaVersion, 0, 0)
 
-    // Entities added and attributes removed: SwiftData can do this without a custom step
-    static var stages: [MigrationStage] { [.lightweight(fromVersion: CrewSchemaV1.self, toVersion: CrewSchemaV2.self)] }
+    static var models: [any PersistentModel.Type] { CrewSchemaV2.models + [LocalTrainingDays.self] }
+}
+
+enum CrewMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] { [CrewSchemaV1.self, CrewSchemaV2.self, CrewSchemaV3.self] }
+
+    // Entities added and attributes removed: SwiftData can do this without a custom step (V1 → V2 → V3)
+    static var stages: [MigrationStage] {
+        [.lightweight(fromVersion: CrewSchemaV1.self, toVersion: CrewSchemaV2.self), .lightweight(fromVersion: CrewSchemaV2.self, toVersion: CrewSchemaV3.self)]
+    }
 }

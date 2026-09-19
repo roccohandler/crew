@@ -42,7 +42,7 @@ export default async function JournalPage() {
         <section key={week.weekKey} className="stack" aria-label={weekHeader(week.weekKey, thisWeek)}>
           <h2 className="whisper">{weekHeader(week.weekKey, thisWeek)}</h2>
           {week.dayKeys.map((dayKey) => (
-            <JournalDay key={dayKey} dayKey={dayKey} todayKey={todayKey} dayPosts={docs.filter((post) => post.dayKey === dayKey)} trainingWeekdays={plan?.trainingWeekdays ?? []} sessionLines={sessionLines} />
+            <JournalDay key={dayKey} dayKey={dayKey} todayKey={todayKey} dayPosts={docs.filter((post) => post.dayKey === dayKey)} trainingDays={plan?.trainingDaysHistory ?? []} sessionLines={sessionLines} />
           ))}
         </section>
       ))}

@@ -28,6 +28,7 @@ struct CrewApp: App {
         DraftStore().clear()
         let context = Store.shared.context
         try? context.delete(model: LocalPlan.self)
+        try? context.delete(model: LocalTrainingDays.self) // A27 (a): the plan's history goes with it
         try? context.delete(model: LocalSession.self)
         try? context.delete(model: LocalPost.self)
         try? context.delete(model: LocalGamificationState.self)

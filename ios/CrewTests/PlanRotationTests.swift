@@ -73,35 +73,35 @@ final class PlanRotationTests: XCTestCase {
     }
 
     func testOneDayPushThenPullThreeWeeksLater() {
-        let week1 = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-07", trainingWeekdays: [1], cycle: ppl, nextKind: "push", completedKindByDay: [:])
+        let week1 = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-07", trainingDays: days([1]), cycle: ppl, nextKind: "push", completedKindByDay: [:])
         XCTAssertEqual(week1.map(\.state), [.planned, .rest, .rest, .rest, .rest, .rest, .rest])
         XCTAssertEqual(week1[0].kind, "push")
         let after = PlanRotation.nextWorkoutKind(lastCompletedKind: PlanRotation.lastRotationKind(sessions: [completed("push", at: 1)], cycle: ppl), cycle: ppl)
-        let week4 = PlanRotation.projectWeek(weekKey: "2026-09-28", todayKey: "2026-09-28", trainingWeekdays: [1], cycle: ppl, nextKind: after, completedKindByDay: [:])
+        let week4 = PlanRotation.projectWeek(weekKey: "2026-09-28", todayKey: "2026-09-28", trainingDays: days([1]), cycle: ppl, nextKind: after, completedKindByDay: [:])
         XCTAssertEqual(week4[0].kind, "pull")
-        let week2 = PlanRotation.projectWeek(weekKey: "2026-09-14", todayKey: "2026-09-28", trainingWeekdays: [1], cycle: ppl, nextKind: after, completedKindByDay: [:])
+        let week2 = PlanRotation.projectWeek(weekKey: "2026-09-14", todayKey: "2026-09-28", trainingDays: days([1]), cycle: ppl, nextKind: after, completedKindByDay: [:])
         XCTAssertEqual(week2[0].state, .open) // a missed Monday: no word, no kind, no red
         XCTAssertNil(week2[0].kind)
     }
 
     func testSevenDaysProjectPPLPPLPThenPLPPLPP() {
         let all = Array(1...TimeUnits.daysPerWeek)
-        let week1 = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-07", trainingWeekdays: all, cycle: ppl, nextKind: "push", completedKindByDay: [:])
+        let week1 = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-07", trainingDays: days(all), cycle: ppl, nextKind: "push", completedKindByDay: [:])
         XCTAssertEqual(week1.map { $0.kind ?? "" }, ["push", "pull", "legs", "push", "pull", "legs", "push"])
         var sessions: [RotationSession] = []
         for _ in 0..<TimeUnits.daysPerWeek { _ = completeNext(&sessions, cycle: ppl) }
         let next = PlanRotation.nextWorkoutKind(lastCompletedKind: PlanRotation.lastRotationKind(sessions: sessions, cycle: ppl), cycle: ppl)
-        let week2 = PlanRotation.projectWeek(weekKey: "2026-09-14", todayKey: "2026-09-14", trainingWeekdays: all, cycle: ppl, nextKind: next, completedKindByDay: [:])
+        let week2 = PlanRotation.projectWeek(weekKey: "2026-09-14", todayKey: "2026-09-14", trainingDays: days(all), cycle: ppl, nextKind: next, completedKindByDay: [:])
         XCTAssertEqual(week2.map { $0.kind ?? "" }, ["pull", "legs", "push", "pull", "legs", "push", "pull"])
     }
 
     func testProjectWeekStatesAndNextTrainingDay() {
-        let week = PlanRotation.projectWeek(weekKey: "2026-09-09", todayKey: "2026-09-09", trainingWeekdays: [1, 3, 5], cycle: ppl, nextKind: "pull", completedKindByDay: ["2026-09-07": "push"])
+        let week = PlanRotation.projectWeek(weekKey: "2026-09-09", todayKey: "2026-09-09", trainingDays: days([1, 3, 5]), cycle: ppl, nextKind: "pull", completedKindByDay: ["2026-09-07": "push"])
         XCTAssertEqual(week.map(\.dayKey), ["2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12", "2026-09-13"])
         XCTAssertEqual(week.map(\.weekday), Array(1...TimeUnits.daysPerWeek))
         XCTAssertEqual(week.map(\.state), [.done, .rest, .planned, .rest, .planned, .rest, .rest])
         XCTAssertEqual(week.map(\.kind), ["push", nil, "pull", nil, "legs", nil, nil])
-        let missed = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-10", trainingWeekdays: [1, 3, 5], cycle: ppl, nextKind: "push", completedKindByDay: [:])
+        let missed = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-10", trainingDays: days([1, 3, 5]), cycle: ppl, nextKind: "push", completedKindByDay: [:])
         XCTAssertEqual(missed.map(\.state), [.open, .rest, .open, .rest, .planned, .rest, .rest])
         XCTAssertEqual(missed[4].kind, "push")
         XCTAssertEqual(PlanRotation.nextTrainingDayKey(afterDayKey: "2026-09-09", trainingWeekdays: [1, 3, 5]), "2026-09-11")
@@ -109,4 +109,16 @@ final class PlanRotationTests: XCTestCase {
         XCTAssertEqual(PlanRotation.nextTrainingDayKey(afterDayKey: "2026-09-11", trainingWeekdays: [5]), "2026-09-18")
         XCTAssertNil(PlanRotation.nextTrainingDayKey(afterDayKey: "2026-09-11", trainingWeekdays: []))
     }
+
+    // SPEC: A27 (a) — Mon/Wed/Fri until Thursday, Tue/Thu/Sat from Thursday: the days before the change keep the old days (Monday
+    // and Wednesday open, Tuesday rest), the change day and after read the new ones (Thursday planned, Friday rest, Saturday planned)
+    func testAChangeMidWeekProjectsTheDaysBeforeItByTheOldDays() {
+        let history = [TrainingDaysEntry(from: "2026-09-01", weekdays: [1, 3, 5]), TrainingDaysEntry(from: "2026-09-10", weekdays: [2, 4, 6])]
+        let week = PlanRotation.projectWeek(weekKey: "2026-09-07", todayKey: "2026-09-10", trainingDays: history, cycle: ppl, nextKind: "push", completedKindByDay: [:])
+        XCTAssertEqual(week.map(\.state), [.open, .rest, .open, .planned, .rest, .planned, .rest])
+        XCTAssertEqual(week.map(\.kind), [nil, nil, nil, "push", nil, "pull", nil])
+    }
+
+    // One entry, from before every day these tests read: the plan has only ever had these days
+    private func days(_ weekdays: [Int]) -> [TrainingDaysEntry] { [TrainingDaysEntry(from: "2026-09-01", weekdays: weekdays)] }
 }

@@ -14,7 +14,7 @@ struct JournalDay: Identifiable {
 
 struct JournalScreen: View {
     let posts: [LocalPost]
-    let trainingWeekdays: [Int]
+    let trainingDays: [TrainingDaysEntry] // A27 (a): the plan's training-days history
     let distanceUnit: String // A9: journal lines carry distances, never weights
     let onDelete: (LocalPost) -> Void
     let onGoHome: () -> Void // W6: the empty state's one CTA
@@ -26,9 +26,11 @@ struct JournalScreen: View {
         return grouped.keys.sorted(by: >).map { JournalDay(dayKey: $0, posts: grouped[$0, default: []].sorted { $0.createdAt < $1.createdAt }) }
     }
 
-    // SPEC: A6 — "Rest day" when the day was not a training day (A1) and holds no workout; a plan without days labels nothing
+    // SPEC: A6 — "Rest day" when the day was not a training day (A1) and holds no workout; a plan without days labels nothing.
+    // A27 (a): "a training day" is asked of the training days in effect ON that day, never of today's
     private func isRestDay(_ day: JournalDay) -> Bool {
-        !trainingWeekdays.isEmpty && !trainingWeekdays.contains(DayKey.isoWeekday(day.dayKey)) && !day.posts.contains { $0.type == "workout" }
+        let weekdays = TrainingDays.weekdaysOn(trainingDays, day.dayKey)
+        return !weekdays.isEmpty && !weekdays.contains(DayKey.isoWeekday(day.dayKey)) && !day.posts.contains { $0.type == "workout" }
     }
 
     var body: some View {

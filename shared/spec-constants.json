@@ -126,7 +126,8 @@
     "dayLabelWeekdayWithinDays": { "value": 6, "spec": "A6, owner-directed 2026-09-08 — Today · Yesterday · a weekday name up to six days back · then Mon Sep 8" }
   },
   "storage": {
-    "storeSchemaVersion": { "value": 2, "spec": "W9 — the SwiftData store's current schema version (ios/Crew/Storage/StoreSchema.swift: CrewSchemaV2; V1 is TestFlight build 150's schema)" }
+    "storeSchemaVersion": { "value": 2, "spec": "W9 — CrewSchemaV2's version, the SwiftData schema of builds up to 202 (ios/Crew/Storage/StoreSchema.swift; V1 is TestFlight build 150's schema)" },
+    "trainingDaysStoreSchemaVersion": { "value": 3, "spec": "A27 (a), owner-ruled 2026-09-18 — CrewSchemaV3's version, the current one: V2 plus LocalTrainingDays, the training-days history (StoreSchema.swift)" }
   },
   "copy": {
     "whisperMaxWords": { "value": 12, "spec": "A23 · docs/education-copy-draft.md §A rule 5 — a whisper is at most twelve words; check-copy.mjs counts them" }

@@ -4,7 +4,8 @@
 // +xpFirstPostOfDay whatever it is (V25, V70). Comeback: the first COUNTED day after ≥ comebackMissedDaysThreshold missed planned
 // days (V82, R-069). Perfect week: every planned weekday of the Mon–Sun week carries a completed workout (V73–V76) — the "every day
 // posted" clause is gone with the plate journal. Levels G2. Meals/text: fixture-only branches (their vectors are retired).
-// Twin of gamification-post.ts. WRITTEN — UNVERIFIED (needs Mac).
+// A27 (a) (owner-approved 2026-09-18): with the training-days history on the event, each of those tests reads the days in effect
+// on the day it judges (V85–V90). Twin of gamification-post.ts. WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
@@ -14,6 +15,26 @@ enum GamificationPost {
         var perfect = false
         var shieldEarned = false
         var shieldConsumed = false
+    }
+
+    // What a post knows of the plan: its own day, the A22 weekdays and the A27 history (the TS twin reads them off the event)
+    struct PostPlan {
+        let dayKey: String
+        let plannedWeekdays: [Int]?
+        let trainingDays: [TrainingDaysEntry]?
+    }
+
+    // SPEC: A27 (a) — the weekdays the plan asked for on `dayKey`, as this post knew them: from the history when the event carries it
+    // (a day the post has not reached yet reads the entry in effect on the post's own day — a later change had not been made), else
+    // the plan on the event (A22), else nil (a pre-A22 fixture)
+    static func plannedWeekdaysOn(_ plan: PostPlan, _ dayKey: String) -> [Int]? {
+        if let trainingDays = plan.trainingDays { return TrainingDays.weekdaysOn(trainingDays, dayKey < plan.dayKey ? dayKey : plan.dayKey) }
+        return plan.plannedWeekdays
+    }
+
+    // nil = no plan on the event (pre-A22): every day is planned for the comeback, and no week can be perfect
+    private static func plannedOn(_ plan: PostPlan, _ dayKey: String) -> Bool? {
+        plannedWeekdaysOn(plan, dayKey)?.contains(DayKey.isoWeekday(dayKey))
     }
 
     static func quietDaysBetween(_ fromDayKey: String, _ toDayKey: String, pauses: [Pause]) -> Int {
@@ -29,12 +50,12 @@ enum GamificationPost {
     // GAP: A22 G1 (a) names no comeback rule — the most conservative reading (R-069): a "missed day" is a non-paused PLANNED day between
     // two counted days (a rest day is never missed; an all-rest plan misses nothing). A fixture without plannedWeekdays (pre-A22) counts
     // every non-paused day, as it always did. The crew's comeback BANNER keeps quietDaysBetween — silence in the stream (V37–V39).
-    static func missedDaysBetween(_ fromDayKey: String, _ toDayKey: String, pauses: [Pause], plannedWeekdays: [Int]?) -> Int {
+    // A27 (a): each day between is judged by the days in effect on it.
+    static func missedDaysBetween(_ fromDayKey: String, _ toDayKey: String, pauses: [Pause], plan: PostPlan) -> Int {
         var missed = 0
         var day = DayKey.addDays(fromDayKey, 1)
         while day < toDayKey {
-            let planned = plannedWeekdays?.contains(DayKey.isoWeekday(day)) ?? true
-            if planned && !GamificationEngine.isPaused(day, pauses: pauses) { missed += 1 }
+            if plannedOn(plan, day) != false && !GamificationEngine.isPaused(day, pauses: pauses) { missed += 1 }
             day = DayKey.addDays(day, 1)
         }
         return missed
@@ -57,18 +78,20 @@ enum GamificationPost {
     }
 
     // SPEC: A22 G1 (a) — what counts a day: a completed workout on a planned day; under an all-rest plan, any completed workout;
-    // a fixture without plannedWeekdays (pre-A22) counts a planned completed workout and nothing else
-    static func countsTheDay(kind: PostKind, isPlannedDay: Bool, workoutCompleted: Bool, plannedWeekdays: [Int]?) -> Bool {
+    // a fixture without plannedWeekdays (pre-A22) counts a planned completed workout and nothing else. A27 (a): "all-rest" is the
+    // days in effect on the post's own day; the stamped isPlannedDay is a fact and is never re-judged.
+    static func countsTheDay(kind: PostKind, isPlannedDay: Bool, workoutCompleted: Bool, plan: PostPlan) -> Bool {
         guard kind == .workout, workoutCompleted else { return false }
-        guard let plannedWeekdays else { return isPlannedDay }
-        return isPlannedDay || plannedWeekdays.isEmpty
+        guard let weekdays = plannedWeekdaysOn(plan, plan.dayKey) else { return isPlannedDay }
+        return isPlannedDay || weekdays.isEmpty
     }
 
-    // SPEC: G6 as amended by A22 G1 (a) — every planned weekday of this Mon–Sun week carries a completed workout; ≥ 1 planned day;
-    // once per week. Without a plan on the event there is nothing to judge, so no week is perfect.
-    static func weekIsPerfect(_ state: GamificationState, plannedWeekdays: [Int]?) -> Bool {
-        guard let weekKey = state.week.key, !state.week.awarded, let plannedWeekdays, !plannedWeekdays.isEmpty else { return false }
-        return plannedWeekdays.allSatisfy { weekday in state.week.plannedDone.contains(DayKey.addDays(weekKey, weekday - 1)) }
+    // SPEC: G6 as amended by A22 G1 (a) and A27 (a) — every day of this Mon–Sun week that was planned AT THE TIME carries a completed
+    // workout; ≥ 1 planned day; once per week. Without a plan on the event there is nothing to judge, so no week is perfect.
+    static func weekIsPerfect(_ state: GamificationState, plan: PostPlan) -> Bool {
+        guard let weekKey = state.week.key, !state.week.awarded else { return false }
+        let planned = (0..<TimeUnits.daysPerWeek).map { DayKey.addDays(weekKey, $0) }.filter { plannedOn(plan, $0) == true }
+        return !planned.isEmpty && planned.allSatisfy { state.week.plannedDone.contains($0) }
     }
 
     // Builds the canonical award list (README order) after XP and state changes
@@ -86,7 +109,7 @@ enum GamificationPost {
         return awards
     }
 
-    static func applyPostCreated(_ state: inout GamificationState, kind: PostKind, dayKey day: String, isPlannedDay: Bool, workoutCompleted: Bool, plannedWeekdays: [Int]?, pauses: [Pause]) -> [Award] {
+    static func applyPostCreated(_ state: inout GamificationState, kind: PostKind, dayKey day: String, isPlannedDay: Bool, workoutCompleted: Bool, plan: PostPlan, pauses: [Pause]) -> [Award] {
         if GamificationEngine.isPaused(day, pauses: pauses) { return [] } // SPEC: V20 → V79
         ensureDay(&state, day)
         ensureWeek(&state, day)
@@ -96,9 +119,9 @@ enum GamificationPost {
         var flags = Flags()
         if state.day.posts == 0 { xp.append(.xp(SpecConstants.xpFirstPostOfDay, reason: .firstPostOfDay)) } // SPEC: V25, V70
         state.day.posts += 1
-        if countsTheDay(kind: kind, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, plannedWeekdays: plannedWeekdays) && state.lastCountedDayKey != day {
+        if countsTheDay(kind: kind, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, plan: plan) && state.lastCountedDayKey != day {
             // SPEC: V82 — the first counted day after ≥ comebackMissedDaysThreshold missed planned days (R-069); never the first-ever
-            if let last = state.lastCountedDayKey { flags.comeback = missedDaysBetween(last, day, pauses: pauses, plannedWeekdays: plannedWeekdays) >= SpecConstants.comebackMissedDaysThreshold }
+            if let last = state.lastCountedDayKey { flags.comeback = missedDaysBetween(last, day, pauses: pauses, plan: plan) >= SpecConstants.comebackMissedDaysThreshold }
             state.currentStreak += SpecConstants.streakIncrementPerCountedDay   // SPEC: V02, V67, V72
             state.longestStreak = max(state.longestStreak, state.currentStreak)
             state.lastCountedDayKey = day
@@ -117,7 +140,7 @@ enum GamificationPost {
         if !state.week.posted.contains(day) { state.week.posted.append(day) }
         if isPlannedDay && !state.week.planned.contains(day) { state.week.planned.append(day) }
         if isPlannedDay && kind == .workout && workoutCompleted && !state.week.plannedDone.contains(day) { state.week.plannedDone.append(day) }
-        if weekIsPerfect(state, plannedWeekdays: plannedWeekdays) {
+        if weekIsPerfect(state, plan: plan) {
             // SPEC: V73, V74 — +150 always; the shield only below the cap
             state.week.awarded = true
             flags.perfect = true

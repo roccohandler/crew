@@ -54,7 +54,7 @@ export const requestPasswordReset = async (email: string) => (await postJson("/a
 export const confirmPasswordReset = async (token: string, newPassword: string) => (await postJson("/auth/reset/confirm", { token, newPassword })) as { ok: true };
 
 // A1: the plan is training days + the ordered rotation (mirrors PlanDTO / PutPlanRequestDTO)
-export interface PlanReply { trainingWeekdays: number[]; workouts: PlanDraft["workouts"]; updatedAt: string }
+export interface PlanReply { trainingWeekdays: number[]; trainingDaysHistory: { from: string; weekdays: number[] }[]; workouts: PlanDraft["workouts"]; updatedAt: string } // A27 (a): the history rides along
 export const getPlan = async () => (await apiFetch("/plans")) as PlanReply;
 export const putPlan = async (draft: { trainingWeekdays: number[]; workouts: object[] }) => (await putJson("/plans", draft)) as PlanReply;
 

@@ -4,6 +4,7 @@
 // whose kind is outside the cycle (a standalone cardio log, A2) never advances it. Balance is automatic: over any 3k
 // completed workouts each kind occurs k times. Twin: ios/Crew/Engine/PlanRotation.swift — identical names. Pure.
 import { addDays, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
+import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
 
 export interface RotationSession {
@@ -23,7 +24,7 @@ export interface DayProjection {
 export interface WeekProjectionInput {
   weekKey: string;
   todayKey: string;
-  trainingWeekdays: number[];
+  trainingDays: TrainingDaysEntry[]; // A27 (a): the plan's training-days history — each day reads the days in effect on it
   cycle: string[];
   nextKind: string;
   completedKindByDay: Record<string, string>;
@@ -67,8 +68,9 @@ export function lastRotationKind(sessions: RotationSession[], cycle: string[]): 
 }
 
 // SPEC: A1 — 7 entries Mon..Sun: done (a completed rotation session that day, kind from completedKindByDay) · rest
-// (weekday ∉ trainingWeekdays) · open (a past training day with nothing completed — no word, no red) · planned
-// (today and future training days; kinds run on from nextKind, one step per planned day)
+// (not a training day) · open (a past training day with nothing completed — no word, no red) · planned
+// (today and future training days; kinds run on from nextKind, one step per planned day). A27 (a): "a training day" is
+// asked of the days in effect on that day, so a change this week leaves the days before it as they were.
 export function projectWeek(input: WeekProjectionInput): DayProjection[] {
   const monday = weekKeyFor(input.weekKey);
   let pointer = input.nextKind;
@@ -78,7 +80,7 @@ export function projectWeek(input: WeekProjectionInput): DayProjection[] {
     const weekday = isoWeekday(dayKey);
     const done = input.completedKindByDay[dayKey];
     if (done !== undefined) week.push({ dayKey, weekday, state: "done", kind: done });
-    else if (!input.trainingWeekdays.includes(weekday)) week.push({ dayKey, weekday, state: "rest", kind: null });
+    else if (!isPlannedOn(input.trainingDays, dayKey)) week.push({ dayKey, weekday, state: "rest", kind: null });
     else if (dayKey < input.todayKey) week.push({ dayKey, weekday, state: "open", kind: null });
     else {
       week.push({ dayKey, weekday, state: "planned", kind: pointer });

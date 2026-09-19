@@ -47,7 +47,7 @@ interface Props { draft: PlanDraft; todayKey: string; swapCandidates: (exerciseI
 export function GeneratedPlan({ draft, todayKey, swapCandidates, onSwap, onAccept }: Props) {
   const [swapping, setSwapping] = useState<{ kind: PlanDraftWorkout["kind"]; order: number; exerciseId: string } | null>(null);
   const cycle = draft.workouts.map((workout) => workout.kind);
-  const week = projectWeek({ weekKey: weekKeyFor(todayKey), todayKey, trainingWeekdays: draft.trainingWeekdays, cycle, nextKind: cycle[0] ?? "", completedKindByDay: {} });
+  const week = projectWeek({ weekKey: weekKeyFor(todayKey), todayKey, trainingDays: [{ from: todayKey, weekdays: draft.trainingWeekdays }], cycle, nextKind: cycle[0] ?? "", completedKindByDay: {} }); // a draft: its days, from today
   return (
     <div className="stack">
       <h1>Your week, built.</h1>

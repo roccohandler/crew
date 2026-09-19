@@ -1,12 +1,14 @@
 // SPEC: docs/api.md plans (GET · PUT replace, forward-only) + crews/join preview (the invite-aware hero, 1A).
 // DTOs mirror lib/validate-plans.ts. A1 (owner-directed 2026-09-08): a plan is trainingWeekdays plus an ORDERED list of
 // workouts without a weekday; a PUT without trainingWeekdays is a 400 (poison op), so the phone never sends the old shape.
-// WRITTEN — UNVERIFIED (needs Mac).
+// A27 (a) (owner-ruled 2026-09-18): the plan comes back with its training-days history; a queued edit carries the moment it was
+// saved, so its days take effect from that day (E15's window). WRITTEN — UNVERIFIED (needs Mac).
 
 import Foundation
 
 struct PlanDTO: Codable, Equatable {
     let trainingWeekdays: [Int]
+    let trainingDaysHistory: [TrainingDaysEntry]? // A27 (a); absent from a server that predates it
     let workouts: [PlanDraftWorkout]
     let updatedAt: Date?
 
@@ -17,6 +19,7 @@ struct PlanDTO: Codable, Equatable {
 struct PutPlanRequestDTO: Codable {
     let trainingWeekdays: [Int]
     let workouts: [PlanDraftWorkout]
+    var savedAt: Date? = nil // A27 (a): when the edit was made on the phone; nil on a direct PUT (the server's now)
 }
 
 struct CrewPreviewDTO: Codable, Equatable {

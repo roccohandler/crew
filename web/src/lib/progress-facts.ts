@@ -1,11 +1,13 @@
 // SPEC: Flow 9 — LAYER 1 did I show up (heat map, rings history, streaks, totals; A22: meals/week left with the plate journal) · LAYER 2 how much work (sets/week,
 // Push/Pull/Legs balance) · LAYER 3 am I stronger (only where weights were logged). Server-side facts for the web Progress page.
-// A2/A6: sets = strength work sets; mobility and cardio are minutes per week (facts, never targets). A1: planned = trainingWeekdays.
+// A2/A6: sets = strength work sets; mobility and cardio are minutes per week (facts, never targets). A1 · A27 (a): planned = the
+// days the training days in effect on each of them plan.
 import type { ObjectId } from "mongodb";
 import { gamificationStates, posts, sessions } from "@/lib/db";
 import type { ExerciseType, SessionDoc } from "@/lib/documents";
 import { addDays, dayKeyFor, weekKeyFor } from "@/lib/engine/day-key";
 import { workoutKindFromName } from "@/lib/engine/plan-rotation";
+import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
 import { SpecConstants } from "@/generated/spec-constants";
 
@@ -26,11 +28,13 @@ function doneSetsOf(weekSessions: SessionDoc[], type: ExerciseType) {
 // SPEC: A2 — minutes are the sum of done hold/cardio seconds, rounded; a fact, never a target
 const minutesOf = (sets: { holdSeconds: number | null }[]) => Math.round(sets.reduce((sum, set) => sum + (set.holdSeconds ?? 0), 0) / TimeUnits.secondsPerMinute);
 
-function weekRecord(weekKey: string, completed: SessionDoc[], plannedWeekdays: number[]): WeekRecord {
+// SPEC: A1 · A27 (a) — a week's planned count is its days that the training days in effect ON each of them plan
+function weekRecord(weekKey: string, completed: SessionDoc[], trainingDays: TrainingDaysEntry[]): WeekRecord {
   const inWeek = (dayKey: string) => dayKey >= weekKey && dayKey < addDays(weekKey, TimeUnits.daysPerWeek);
   const weekSessions = completed.filter((session) => inWeek(session.dayKey));
+  const planned = Array.from({ length: TimeUnits.daysPerWeek }, (_, offset) => addDays(weekKey, offset)).filter((day) => isPlannedOn(trainingDays, day)).length;
   return {
-    weekKey, done: new Set(weekSessions.map((session) => session.dayKey)).size, planned: plannedWeekdays.length,
+    weekKey, done: new Set(weekSessions.map((session) => session.dayKey)).size, planned,
     sets: doneSetsOf(weekSessions, "strength").length,
     cardioMinutes: minutesOf(doneSetsOf(weekSessions, "cardio")), mobilityMinutes: minutesOf(doneSetsOf(weekSessions, "mobility")),
   };
@@ -48,7 +52,7 @@ function balanceOf(completed: SessionDoc[]) {
   return balance;
 }
 
-export async function progressFacts(userId: ObjectId, timezone: string, plannedWeekdays: number[], now: Date = new Date()) {
+export async function progressFacts(userId: ObjectId, timezone: string, trainingDays: TrainingDaysEntry[], now: Date = new Date()) {
   const todayKey = dayKeyFor(now, timezone);
   const from = addDays(weekKeyFor(todayKey), -(HEATMAP_WEEKS - 1) * TimeUnits.daysPerWeek);
   const [completed, ownPosts, state] = await Promise.all([
@@ -62,7 +66,7 @@ export async function progressFacts(userId: ObjectId, timezone: string, plannedW
   const days: DayCell[] = [];
   for (let day = from; day <= todayKey; day = addDays(day, 1)) days.push({ dayKey: day, workout: workoutDays.has(day), cardio: cardioDays.has(day), posted: postDays.has(day) });
   const weeks: WeekRecord[] = [];
-  for (let offset = RING_WEEKS - 1; offset >= 0; offset -= 1) weeks.push(weekRecord(addDays(weekKeyFor(todayKey), -offset * TimeUnits.daysPerWeek), completed, plannedWeekdays));
+  for (let offset = RING_WEEKS - 1; offset >= 0; offset -= 1) weeks.push(weekRecord(addDays(weekKeyFor(todayKey), -offset * TimeUnits.daysPerWeek), completed, trainingDays));
   // A14: `workouts` counts workouts — a standalone cardio session is not one. It used to be, because a cardio log wrote a
   // post of type "workout"; the totals line on Progress therefore reported walks as workouts.
   const workoutTotal = completed.filter((session) => session.workoutKind !== "cardio").length;

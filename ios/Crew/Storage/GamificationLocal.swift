@@ -73,23 +73,18 @@ enum GamificationLocal {
         awards.append(contentsOf: unlocked)
         return awards
     }
-    // SPEC: A22 G1 (a) — the plan's weekdays at this moment; [] when the account has no plan yet or trains on no fixed day (all-rest)
-    static func trainingWeekdays(for userId: String, store: Store) throws -> [Int] {
-        try store.context.fetch(FetchDescriptor<LocalPlan>(predicate: #Predicate { $0.userId == userId })).first?.trainingWeekdays ?? []
-    }
-
     // SPEC: E8 / V66–V69 — every day since the last judged one (up to yesterday) is rolled over on foreground; A22 G1 (a): only a
-    // planned training weekday of the current plan is REQUIRED (a rest day asks nothing)
+    // planned training day is REQUIRED (a rest day asks nothing); A27 (a): planned by the training days in effect ON that day
     static func judgeElapsedDays(for userId: String, store: Store, now: Date = Date(), timeZone: TimeZone = .current) throws -> [Award] {
         var state = try engineState(for: userId, store: store)
         let pauses = try pauses(for: userId, store: store)
-        let weekdays = try trainingWeekdays(for: userId, store: store)
+        let history = try PlanLocal.trainingDays(for: userId, store: store)
         let today = DayKey.dayKey(for: now, tz: timeZone)
         guard let firstDay = state.judgedThroughDayKey.map({ DayKey.addDays($0, 1) }) ?? state.lastCountedDayKey else { return [] }
         var awards: [Award] = []
         var day = firstDay
         while day < today {
-            let hadRequirement = state.lastCountedDayKey != nil && !GamificationEngine.isPaused(day, pauses: pauses) && weekdays.contains(DayKey.isoWeekday(day))
+            let hadRequirement = state.lastCountedDayKey != nil && !GamificationEngine.isPaused(day, pauses: pauses) && TrainingDays.isPlannedOn(history, day)
             let result = GamificationEngine.apply(.dayRolledOver(dayKey: day, hadRequirement: hadRequirement), to: state, pauses: pauses)
             state = result.0
             awards += result.1

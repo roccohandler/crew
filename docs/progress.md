@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-19 04:08Z (**A27 SCREEN JOBS RECORDED** — docs only, not built; its own section · **LATEST TESTFLIGHT BUILD: 201** — W7 ACTIVATED, from 0420cc9: CI run 35412369342 green on five jobs, TestFlight run 35413652316 "Upload succeeded" 01:48Z — the first build that carries `applinks:trycrew.fit`; its `aps-environment` after the export is UNCONFIRMED, see the W7 section) — earlier: 2026-09-19 00:45Z (**TESTFLIGHT BUILD 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-19 05:15Z (**A27 (a) BUILT — the training-days history, V85–V90** — its section; A27 screen jobs recorded before it · **LATEST TESTFLIGHT BUILD: 202** — A23 EDUCATION COPY RATIFIED, from 3953313: CI run 35415601598 green on five jobs, TestFlight run 35416946917 "Upload succeeded" 02:56Z; ui-reviewer 2 PASS · 3 FAIL, every FAIL pre-existing — the A23 ratification section) — earlier: 2026-09-19 01:50Z (**TESTFLIGHT BUILD 201** — W7 ACTIVATED, from 0420cc9: CI run 35412369342 green on five jobs, TestFlight run 35413652316 "Upload succeeded" 01:48Z — the first build that carries `applinks:trycrew.fit`; its `aps-environment` after the export is UNCONFIRMED, see the W7 section) — earlier: 2026-09-19 00:45Z (**TESTFLIGHT BUILD 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -928,6 +928,30 @@ OWNER-REVIEW §2.6 and the §5 submission gate are done; `docs/mvp-definition.md
 Left alone, and why: the Crew tab's empty state still says "Two to ten friends" (`CrewSoloView.swift`, `CrewView.tsx`); amendment 5
 names the page's crews section only (R-081).
 
+### CI run 35415601598 (3953313) — GREEN on five jobs, first attempt · TestFlight run 35416946917 → **BUILD 202, the A23 ratification**
+
+contracts ✓ · web ✓ · web e2e ✓ (the ratified-page assertions) · ios engine ✓ · **ios ✓** (journey ④ asserts the ratified note and no "Draft").
+Build 202 uploaded 2026-09-19 02:56Z. Tour: 25 new (the three S19 shots among them) · 9 changed · 12 drift · 3 removed — every entry
+except the S19 shots is baseline drift from earlier commits (A26 and before); baselines untouched, `/approve-screens` is the owner's.
+
+**ui-reviewer, the five screens this change touches — 2 PASS · 3 FAIL, every FAIL pre-existing:**
+
+| Screen | Verdict | What it said |
+|---|---|---|
+| S19 top (`01_settings_howcrewworks_top`) | **PASS** | the note in full, no "Draft"; card hairline correct; no ember |
+| S19 middle (`02_…_middle`) | **PASS** | the streak and crews amendments in full, nothing cut |
+| S19 whispers (`03_…_whispers`) | FAIL — pre-existing | the moment captions are lowercase fragments on their own line (§8 sentence case); both amended lines render and fit in two lines |
+| Crew tab (`01_crew_stream_filled`) | FAIL — pre-existing | ~175 pt dead band above the bottom-pinned stream (§4.1); React a bare grey word (§1, 1.6); why.crews sits correctly and causes neither |
+| Template (`10_nutrition_template_filled`) | FAIL — pre-existing | the whisper floats between row and card instead of `rowGap` under the list (§4.1); "Up" / "Down" are not verbs (§8) |
+
+All three are in `docs/debt.md`. Reviewer notes on the OWNER's wording, no rule broken: amendment 4 puts three em dashes in one
+sentence ("balanced — every major muscle gets its day — and efficient — three sessions…"), so the pairs can be misread; the page now
+says "the whole point / game / system" (and the whisper "the whole system" again), and the streak paragraph says "The flame counts
+days" and "the flame counts your training days" in consecutive sentences.
+
+NEXT (owner): install **202** — Settings → About → How Crew works; the design direction for the pre-existing findings. NEXT (builder):
+nothing queued. This run's record and the three debt lines are held UNCOMMITTED (no docs-only commits) for the next real change.
+
 ## 2026-09-19 — A27, THE SCREEN JOBS (owner-approved 2026-09-18): RECORDED, NOT BUILT (owner: "write them in; change no UI … docs only … report the file paths changed and stop")
 
 - Recorded as Appendix A **A27**: the 48 screen jobs ratified as the test ui-reviewer applies, with the rule "A control that does not
@@ -946,6 +970,36 @@ names the page's crews section only (R-081).
 
 NEXT (owner): order A27's builds — Manage crew, the Change days line, and (a)'s engine half once its gap is ruled. NEXT (builder):
 nothing queued. The build-202 record and its three debt lines are still held UNCOMMITTED, as before.
+
+## 2026-09-19 — A27 (a) BUILT: THE TRAINING-DAYS HISTORY (owner ruling of the gap, 2026-09-18: "record as an amendment to A27, then build the engine half only")
+
+- **The rule** (Appendix A, the line under A27): a day is judged by the training days in effect on that day; a change takes effect
+  from the dayKey it is saved, forward, never backward; a completed session is never re-judged. Skip, "just today" swap, bonus and
+  pause confirmed as not per-week overrides. The builder's readings where it was silent: **R-082** (chiefly: a day before the first
+  entry is judged by the first entry, so every one-entry history judges exactly as before).
+- **Built** (engine + server + storage; no UI): `training-days.ts` / `TrainingDays.swift` (the twins: weekdaysOn · isPlannedOn ·
+  appendTrainingDays); postCreated carries `trainingDays` on both engines (all-rest, comeback and perfect week read the day they
+  judge; a day the post has not reached reads the post's own day, so a later change never takes a reward back); the recompute
+  folds take the history; `projectWeek` takes it. Server: `plans.ts` keeps an append-only `trainingDaysHistory` ($push, never an
+  edit), migrates a pre-A27 plan to one entry from its creation dayKey on its first read, and takes a queued edit's `savedAt` inside
+  E15's window. Readers: the fold (`gamification-store.ts`), the week marks and ring (`home-facts.ts`, `today-state.ts`), Progress
+  rings, the journal Rest-day tag, `notification-facts.ts` (the cron). iOS: `LocalTrainingDays` in SwiftData **CrewSchemaV3**
+  (lightweight from V2; `trainingDaysStoreSchemaVersion` = 3), `PlanLocal` its one writer (a local change of days appends; the
+  server's history replaces), `GamificationLocal.judgeElapsedDays`, SessionActions, Home marks, NextUp, Plan week map, Progress rings,
+  the journal tag. Web: the save status now reads "Saved · Changes apply from your next workout on." — the page's sentence.
+- **Vectors V85–V90** (`shared/vectors/training-days.vectors.json`): mid-week change keeps the earlier days · a day after the change
+  is judged by the new days · a perfect week spanning a change · a past miss and a consumed shield survive · a completed session on
+  a no-longer-planned day still counts and still advances the rotation · an earned perfect week stands when a later change plans a
+  remaining day. Each FAILS under the old reading (checked); none existing was edited.
+- **Local gates, all green:** generate + drift · check-vectors (90 vectors, 12 files) · check-seeds · check-copy · launch-audit ·
+  doctrine-lint · swift-xref · web lint · typecheck · `npm test` 53 files, 550 passed · `npm run vectors` 67 passed · build · e2e 50
+  passed, 1 skipped · `swift test` 105 tests, 0 failures. Tests added: web `tests/engine/training-days.test.ts`,
+  `tests/api/training-days.test.ts`; iOS `TrainingDaysTests` (Linux) and `TrainingDaysLocalTests` + a V2 → V3 store test (Mac only).
+- **Owed, sequenced after the redesign** (`docs/debt.md`): the Manage crew screen (A27 (b)), the iOS Change days sheet's rule line,
+  the `docs/mvp-definition.md` and `docs/OWNER-REVIEW.md` updates for A27 (b) and (c). OWNER-REVIEW's plan-history row is closed.
+- Also committed here: the build-202 record and its three debt lines, held uncommitted until a real change.
+
+NEXT (owner): the redesign. NEXT (builder): read this commit's CI verdict; nothing else queued.
 
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 

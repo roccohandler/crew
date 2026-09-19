@@ -46,6 +46,25 @@ final class StoreMigrationTests: XCTestCase {
         XCTAssertTrue(try NutritionLocal.meals(for: "u1", store: store).isEmpty)
     }
 
+    // Build 202's store, written the way it wrote it: CrewSchemaV2, the versioned schema of builds up to 202
+    private func writeBuild202Store() throws {
+        let container = try ModelContainer(for: Schema(versionedSchema: CrewSchemaV2.self), configurations: [ModelConfiguration(url: url)])
+        let context = ModelContext(container)
+        context.insert(LocalPlan(userId: "u1", trainingWeekdays: [1, 3, 5], updatedAt: Date(), workouts: []))
+        context.insert(OpRecord(id: "queued-op", kind: .putPlan, payload: Data("{}".utf8), createdAt: Date()))
+        try context.save()
+    }
+
+    // SPEC: A27 (a) — V2 → V3 adds the training-days history and touches nothing else: the plan and the queued op survive, and the
+    // history starts empty, so the plan's own days stand in for it until they next change
+    func testABuild202StoreOpensAtV3AndKeepsItsRows() throws {
+        try writeBuild202Store()
+        let store = Store(inMemory: false, url: url)
+        XCTAssertEqual(try store.plan(for: "u1")?.trainingWeekdays, [1, 3, 5], "the plan did not survive the update — F31 started the store over, so the V2 → V3 stage is not lightweight any more")
+        XCTAssertEqual(try store.pendingOps().map(\.id), ["queued-op"], "a queued op must outlive an update (8.6: nothing lost)")
+        XCTAssertEqual(try PlanLocal.trainingDays(for: "u1", store: store).map(\.weekdays), [[1, 3, 5]])
+    }
+
     // A fresh install has no file at all: the plan has nothing to migrate and the store opens at the current version
     func testAFreshStoreOpensAtTheCurrentVersion() throws {
         let store = Store(inMemory: false, url: url)

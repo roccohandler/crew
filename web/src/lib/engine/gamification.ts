@@ -4,6 +4,7 @@
 // The event handlers live in gamification-post.ts / gamification-day.ts (C9 cap); recompute in gamification-recompute.ts.
 import { applyPostCreated } from "@/lib/engine/gamification-post";
 import { applyDayRolledOver, applyPostUndone, applyReactionGiven } from "@/lib/engine/gamification-day";
+import type { TrainingDaysEntry } from "@/lib/engine/training-days";
 import { SpecConstants } from "@/generated/spec-constants";
 
 export interface Pause {
@@ -53,7 +54,7 @@ export interface GamificationState {
 export type PostKind = "workout" | "meal" | "text";
 
 export type GameEvent =
-  | { type: "postCreated"; kind: PostKind; dayKey: string; isPlannedDay: boolean; workoutCompleted?: boolean; plannedWeekdays?: number[] } // A22 G1 (a): the plan's ISO weekdays; [] = all-rest; absent = pre-A22 fixture
+  | { type: "postCreated"; kind: PostKind; dayKey: string; isPlannedDay: boolean; workoutCompleted?: boolean; plannedWeekdays?: number[]; trainingDays?: TrainingDaysEntry[] } // A22 G1 (a): the plan's ISO weekdays; [] = all-rest; absent = pre-A22 fixture. A27 (a): the training-days history supersedes them
   | { type: "postUndone"; dayKey: string }
   | { type: "dayRolledOver"; dayKey: string; hadRequirement: boolean }
   | { type: "reactionGiven"; dayKey: string };

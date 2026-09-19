@@ -57,7 +57,7 @@ export async function rotationFor(userId: ObjectId, plan: PlanDoc, todayKey: str
     const kind = session.workoutKind ?? workoutKindFromName(session.workoutName);
     if (kind !== null && cycle.includes(kind) && session.dayKey >= weekKey && completedKindByDay[session.dayKey] === undefined) completedKindByDay[session.dayKey] = kind;
   }
-  const week = nextKind === null ? [] : projectWeek({ weekKey, todayKey, trainingWeekdays: plan.trainingWeekdays, cycle, nextKind, completedKindByDay });
+  const week = nextKind === null ? [] : projectWeek({ weekKey, todayKey, trainingDays: plan.trainingDaysHistory, cycle, nextKind, completedKindByDay }); // A27 (a)
   return { cycle, nextKind, week };
 }
 
@@ -121,7 +121,7 @@ export async function homeFacts(userId: ObjectId, timezone: string, now: Date = 
     const rows: HomeExercise[] = workout.exercises.map((row) => ({ name: row.name, type: row.type, targetSets: row.targetSets, targetReps: row.targetReps, targetRepsMax: row.targetRepsMax ?? null, holdSeconds: row.holdSeconds ?? null, order: row.order }));
     today = { kind: "workout", name: workout.name, workoutKind: workout.kind, exerciseCount: strengthCount(workout), hasCardio: workout.exercises.some((row) => row.type === "cardio"), lines: strengthLines(rows), tail: tailLine(rows) };
   }
-  const week = await weekMarks(userId, plan?.trainingWeekdays ?? [], todayKey, pause);
+  const week = await weekMarks(userId, plan?.trainingDaysHistory ?? [], todayKey, pause);
   const showsNext = plan !== null && today.kind !== "workout" && today.kind !== "paused" && !(today.kind === "bridge" && today.workoutDay);
   return {
     todayKey, today, ringDone: week.done, ringPlanned: week.planned, weekMarks: week.marks,

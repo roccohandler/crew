@@ -1,8 +1,9 @@
 // SPEC: Part IX — the data model, final shape and invariants, as MongoDB documents: User, Plan, Session and their
 // nested shapes. The social documents (Post, Crew, …) are in documents-social.ts; operational ones in
 // documents-auth.ts. One concrete shape per collection; no hierarchies (C1). T009. Amended A1 (rotation plan), A2 (cardio),
-// A7 (notification preferences) — owner-directed 2026-09-08.
+// A7 (notification preferences) — owner-directed 2026-09-08. A27 (a) (2026-09-18): a plan keeps its training-days history.
 import type { ObjectId } from "mongodb";
+import type { TrainingDaysEntry } from "@/lib/engine/training-days";
 
 export type DayKey = string; // "YYYY-MM-DD", 3 AM-adjusted (E8)
 
@@ -64,7 +65,8 @@ export interface WorkoutTemplateDoc {
 export interface PlanDoc {
   _id: ObjectId;
   userId: ObjectId; // UNIQUE — one plan per user
-  trainingWeekdays: number[]; // ISO 1 = Monday … 7 = Sunday, sorted, unique, ≥ 1 (A1)
+  trainingWeekdays: number[]; // ISO 1 = Monday … 7 = Sunday, sorted, unique, ≥ 1 (A1) — always the history's last entry
+  trainingDaysHistory: TrainingDaysEntry[]; // A27 (a): each entry in effect from its dayKey; append-only, never edited or deleted
   workouts: WorkoutTemplateDoc[]; // ordered cycle; kinds unique (A1)
   updatedAt: Date;
 }

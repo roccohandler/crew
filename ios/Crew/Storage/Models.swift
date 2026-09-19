@@ -22,6 +22,24 @@ final class LocalPlan {
     }
 }
 
+// SPEC: A27 (a) as ruled 2026-09-18 — the plan's training-days history, one row per entry: `weekdays` in effect from
+// `effectiveFrom` (a dayKey) until a later row's. Append-only; PlanLocal is its one writer, and the server's history replaces the
+// rows whenever the plan arrives from it. Its own entity (CrewSchemaV3), so LocalPlan — and every older schema — is unchanged.
+@Model
+final class LocalTrainingDays {
+    var userId: String
+    var effectiveFrom: String
+    var weekdays: [Int]
+    var position: Int         // append order: the history is read back in it
+
+    init(userId: String, effectiveFrom: String, weekdays: [Int], position: Int) {
+        self.userId = userId
+        self.effectiveFrom = effectiveFrom
+        self.weekdays = weekdays
+        self.position = position
+    }
+}
+
 // SPEC: A1 — the rotation order is the stored order; a SwiftData to-many relationship keeps no order of its own, so
 // each workout carries its position (PlanLocal writes it, PlanLocal.draft reads the list back sorted by it)
 @Model

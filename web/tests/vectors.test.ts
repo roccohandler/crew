@@ -9,6 +9,8 @@ import { comebackBanner, crewPulse, crewWeeklyRing, type MemberFacts } from "@/l
 import { dayKeyFor, weekKeyFor } from "@/lib/engine/day-key";
 import { apply, initialState, publicState, type Award, type GameEvent, type Pause, type PublicState } from "@/lib/engine/gamification";
 import { recompute, type PostFacts, type ReactionFacts, type SessionFacts } from "@/lib/engine/gamification-recompute";
+import { lastRotationKind, nextWorkoutKind } from "@/lib/engine/plan-rotation";
+import type { TrainingDaysEntry } from "@/lib/engine/training-days";
 import { validatePauseRequest } from "@/lib/engine/pause-validation";
 import { normalizedForCompare, weightIn, type WeightUnit } from "@/lib/engine/weight-units";
 import { gameEvents, logging, remaining, type MealLogFacts } from "@/lib/engine/macro-day";
@@ -74,10 +76,18 @@ function runNutrition(vector: Vector) {
   (vector.cases as NutritionCase[]).forEach((item, index) => expect(nutritionAnswer(item), `${vector.id} cases[${index}] ${item.op}`).toEqual(item.expect));
 }
 
+// README kind recompute — A27 (a): the plan is a training-days history; a vector written before it names `trainingWeekdays`, which
+// is a history of one entry (a day before the first entry is judged by it — R-082). With `cycle`, the rotation pointer is asserted
+// from the same completed sessions (V89).
 function runRecompute(vector: Vector) {
-  const expected = (vector.expect as { state: PublicState }).state;
-  for (const variant of vector.variants as { label: string; sessions: SessionFacts[]; posts: PostFacts[]; reactions: ReactionFacts[] }[]) {
-    expect(recompute(variant.sessions, variant.posts, variant.reactions, vector.pauses as Pause[], vector.asOfDayKey as string, (vector.trainingWeekdays as number[] | undefined) ?? []), `${vector.id} ${variant.label}`).toEqual(expected);
+  const expected = vector.expect as { state: PublicState; nextWorkoutKind?: string };
+  const history = (vector.trainingDays as TrainingDaysEntry[] | undefined) ?? [{ from: vector.asOfDayKey as string, weekdays: (vector.trainingWeekdays as number[] | undefined) ?? [] }];
+  for (const variant of vector.variants as { label: string; sessions: (SessionFacts & { workoutKind?: string })[]; posts: PostFacts[]; reactions: ReactionFacts[] }[]) {
+    expect(recompute(variant.sessions, variant.posts, variant.reactions, vector.pauses as Pause[], vector.asOfDayKey as string, history), `${vector.id} ${variant.label}`).toEqual(expected.state);
+    if (expected.nextWorkoutKind === undefined) continue;
+    const cycle = vector.cycle as string[];
+    const rotation = variant.sessions.map((session) => ({ kind: session.workoutKind ?? null, name: "", completedAt: session.completed ? Date.parse(`${session.dayKey}T12:00:00Z`) : null, status: session.completed ? "completed" : "inProgress" }));
+    expect(nextWorkoutKind(lastRotationKind(rotation, cycle), cycle), `${vector.id} ${variant.label} next workout`).toBe(expected.nextWorkoutKind);
   }
 }
 

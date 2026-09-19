@@ -40,7 +40,7 @@ touch. Fields asserted by `expect.state`: `currentStreak`, `longestStreak`, `tot
 
 Events, applied in the listed (chronological) order:
 
-- `postCreated { kind: workout|meal|text, dayKey|at+tz, isPlannedDay, workoutCompleted?, plannedWeekdays? }`
+- `postCreated { kind: workout|meal|text, dayKey|at+tz, isPlannedDay, workoutCompleted?, plannedWeekdays?, trainingDays? }`
   - Not paused: the FIRST post of the day pays `+xpFirstPostOfDay`, whatever its kind. The day COUNTS
     (`streak + 1`, or `1` when starting; `lastCountedDayKey = dayKey`) only when the post is a completed
     workout on a planned day — or, under an all-rest plan (`plannedWeekdays: []`), any completed workout
@@ -58,6 +58,13 @@ Events, applied in the listed (chronological) order:
     `plannedWeekdays` of the Mon–Sun week of this dayKey carries a completed workout (≥1 planned day),
     award `perfectWeek`, `+xpPerfectWeek`, and `shieldEarned` if `shields < maxShields`. Fires once per
     week, on the event that completes it. An event without `plannedWeekdays` completes no week.
+  - Training-days history (A27 (a), owner-ruled 2026-09-18): an event may carry `trainingDays`, the plan's history —
+    entries `{ from, weekdays }`, each in effect from its dayKey, append-only, `from` never going backwards — and when it
+    does it supersedes `plannedWeekdays`. A day is judged by the entry in effect ON it (the last entry whose `from` ≤ that
+    day; a day before every entry takes the first — R-082); a day the post has not reached yet is judged by the entry in
+    effect on the post's own day (a later change had not been made). So "all-rest" reads the post's day, the comeback
+    counts each day between by its own entry, and the perfect week asks whether every day of the week planned AT THE TIME
+    carries a completed workout. The post's `isPlannedDay` is a fact stamped at creation and is never re-judged (V89).
   - Paused day: nothing happens — no XP, no counting, no awards (V20).
   - Level (G2): `level = max N ≥ 1 with totalXP ≥ levelBaseXp × (N−1) × N / 2`; when an event
     raises the level, one `levelUp(newLevel)` award is emitted last.
@@ -113,6 +120,13 @@ facts chronologically through the same rules as `apply` (a workout post's `worko
 session's `completed`), judging every day up to `asOfDayKey`. The vector's `trainingWeekdays` (ISO 1–7; `[]`
 when absent) is the plan: every synthesized post carries it as `plannedWeekdays`, and a day before
 `asOfDayKey` is required only when its weekday is in it (V77, V78; A22 G1 (a)).
+
+A27 (a) (2026-09-18): a vector may instead give `trainingDays`, the plan's history (never both). Every synthesized post
+carries it (see "Training-days history" above) and a day before `asOfDayKey` is required only when the entry in effect ON
+that day plans it (V85–V90). The runners read a `trainingWeekdays` vector as a history of one entry — the same answer, since a
+day before the first entry is judged by it. With `cycle` and `expect.nextWorkoutKind` the vector also pins the rotation pointer
+(A1): sessions carry `workoutKind`, completed ones in the order of their dayKeys, and
+`nextWorkoutKind(lastRotationKind(sessions, cycle), cycle)` must equal it on both engines (V89).
 
 ## kind: `nutrition` — the nutrition twins (V57–V65; nutrition addendum §3, §4, §6, §7)
 

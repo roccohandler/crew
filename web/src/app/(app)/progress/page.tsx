@@ -39,7 +39,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
   if (session.kind !== "signedIn") redirect("/");
   const userId = new ObjectId(session.user.id);
   const plan = await findPlan(userId);
-  const facts = await progressFacts(userId, session.user.timezone, plan?.trainingWeekdays ?? []);
+  const facts = await progressFacts(userId, session.user.timezone, plan?.trainingDaysHistory ?? []); // A27 (a): each week judged by the days in effect on it
   const { day } = await searchParams;
   if (facts.totals.posts === 0) {
     return (

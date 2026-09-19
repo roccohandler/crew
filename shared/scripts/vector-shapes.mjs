@@ -22,6 +22,15 @@ const isDay = (value) => typeof value === "string" && DAY.test(value);
 // A22 G1 (a): a plan's weekdays — ISO 1–7, unique, ascending; [] is an all-rest plan
 const isWeekdayList = (list) => Array.isArray(list) && list.every((day, index) => Number.isInteger(day) && day >= 1 && day <= 7 && (index === 0 || list[index - 1] < day));
 
+// A27 (a): a training-days history — ≥ 1 entry, each { from: dayKey, weekdays }, `from` never going backwards (append-only)
+function checkTrainingDays(id, where, history, fail) {
+  if (!Array.isArray(history) || history.length === 0) return fail(id, `${where}: trainingDays must be a non-empty array`);
+  history.forEach((entry, index) => {
+    if (!isDay(entry?.from) || !isWeekdayList(entry?.weekdays)) fail(id, `${where}[${index}]: needs from (a dayKey) + weekdays (ISO 1–7, unique, ascending)`);
+    if (index > 0 && entry?.from < history[index - 1]?.from) fail(id, `${where}[${index}]: from goes backwards — the history is append-only`);
+  });
+}
+
 function checkDayRef(id, where, thing, fail) {
   if (typeof thing.dayKey === "string") { if (!isDay(thing.dayKey)) fail(id, `${where}: bad dayKey ${thing.dayKey}`); return; }
   if (!INSTANT.test(thing.at ?? "") || typeof thing.tz !== "string") fail(id, `${where}: needs dayKey or at + tz`);
@@ -45,6 +54,7 @@ function checkEvent(id, index, event, fail) {
     if (typeof event.isPlannedDay !== "boolean") fail(id, `${where}: isPlannedDay must be a boolean`);
     if (event.kind === "workout" && typeof event.workoutCompleted !== "boolean") fail(id, `${where}: workout posts need workoutCompleted`);
     if (event.plannedWeekdays !== undefined && !isWeekdayList(event.plannedWeekdays)) fail(id, `${where}: plannedWeekdays must be ISO weekdays 1–7, unique and ascending`);
+    if (event.trainingDays !== undefined) checkTrainingDays(id, `${where}.trainingDays`, event.trainingDays, fail);
     return checkDayRef(id, where, event, fail);
   }
   if (event.type === "postUndone" || event.type === "reactionGiven") { if (!isDay(event.dayKey)) fail(id, `${where}: needs dayKey`); return; }
@@ -95,9 +105,15 @@ function checkRecompute(vector, fail) {
   if (typeof vector.tz !== "string" || !isDay(vector.asOfDayKey)) fail(vector.id, "recompute needs tz + asOfDayKey");
   checkPauses(vector.id, vector.pauses, fail);
   if (vector.trainingWeekdays !== undefined && !isWeekdayList(vector.trainingWeekdays)) fail(vector.id, "trainingWeekdays must be ISO weekdays 1–7, unique and ascending");
+  if (vector.trainingDays !== undefined) checkTrainingDays(vector.id, "trainingDays", vector.trainingDays, fail); // A27 (a)
+  if (vector.trainingDays !== undefined && vector.trainingWeekdays !== undefined) fail(vector.id, "name the plan once: trainingDays (A27) or trainingWeekdays (A22), not both");
+  // V89: the rotation pointer from the same completed sessions — a cycle, a kind per session, and the expected next kind
+  const rotation = vector.expect?.nextWorkoutKind !== undefined;
+  if (rotation && (!Array.isArray(vector.cycle) || vector.cycle.length === 0 || !vector.cycle.includes(vector.expect.nextWorkoutKind))) fail(vector.id, "expect.nextWorkoutKind needs a cycle that holds it");
   if (!Array.isArray(vector.variants) || vector.variants.length === 0) return fail(vector.id, "variants must be non-empty");
   for (const variant of vector.variants) {
     for (const session of variant.sessions ?? []) if (typeof session.id !== "string" || !isDay(session.dayKey) || typeof session.completed !== "boolean" || !Array.isArray(session.sets)) fail(vector.id, `bad session ${JSON.stringify(session)}`);
+    for (const session of variant.sessions ?? []) if (session.workoutKind !== undefined && typeof session.workoutKind !== "string") fail(vector.id, `bad session workoutKind ${JSON.stringify(session)}`);
     for (const post of variant.posts ?? []) if (!isDay(post.dayKey) || !POST_KINDS.includes(post.kind) || typeof post.isPlannedDay !== "boolean") fail(vector.id, `bad post ${JSON.stringify(post)}`);
     if (!Array.isArray(variant.reactions)) fail(vector.id, "variant.reactions must be an array");
   }

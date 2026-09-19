@@ -4,13 +4,29 @@
 // pays +xpFirstPostOfDay whatever it is (V25, V70). Comeback: the first COUNTED day after ≥ comebackMissedDaysThreshold missed
 // planned days (V82, R-069). Perfect week: every planned weekday of the Mon–Sun week carries a completed workout (V73–V76) — the
 // "every day posted" clause is gone with the plate journal. Levels G2. Meals/text: fixture-only branches (their vectors are retired).
-// Twin: ios/Crew/Engine/GamificationPost.swift.
+// A27 (a) (owner-approved 2026-09-18): with the training-days history on the event, each of those tests reads the days in effect
+// on the day it judges (V85–V90). Twin: ios/Crew/Engine/GamificationPost.swift.
 import type { Award, GameEvent, GamificationState, Pause } from "@/lib/engine/gamification";
 import { isPaused, levelFor } from "@/lib/engine/gamification";
 import { addDays, isoWeekday, weekKeyFor } from "@/lib/engine/day-key";
+import { weekdaysOn } from "@/lib/engine/training-days";
+import { TimeUnits } from "@/lib/time-units";
 import { SpecConstants } from "@/generated/spec-constants";
 
 type PostEvent = Extract<GameEvent, { type: "postCreated" }>;
+
+// SPEC: A27 (a) — the weekdays the plan asked for on `dayKey`, as this post knew them: from the history when the event carries it
+// (a day the post has not reached yet reads the entry in effect on the post's own day — a later change had not been made), else the
+// plan on the event (A22), else undefined (a pre-A22 fixture)
+export function plannedWeekdaysOn(event: PostEvent, dayKey: string): number[] | undefined {
+  if (event.trainingDays !== undefined) return weekdaysOn(event.trainingDays, dayKey < event.dayKey ? dayKey : event.dayKey);
+  return event.plannedWeekdays;
+}
+
+// undefined = no plan on the event (pre-A22): every day is planned for the comeback, and no week can be perfect
+function plannedOn(event: PostEvent, dayKey: string): boolean | undefined {
+  return plannedWeekdaysOn(event, dayKey)?.includes(isoWeekday(dayKey));
+}
 
 export function quietDaysBetween(fromDayKey: string, toDayKey: string, pauses: Pause[]): number {
   let quiet = 0;
@@ -21,10 +37,11 @@ export function quietDaysBetween(fromDayKey: string, toDayKey: string, pauses: P
 // GAP: A22 G1 (a) names no comeback rule — the most conservative reading (R-069): a "missed day" is a non-paused PLANNED day between
 // two counted days (a rest day is never missed; an all-rest plan misses nothing). A fixture without plannedWeekdays (pre-A22) counts
 // every non-paused day, as it always did. The crew's comeback BANNER keeps quietDaysBetween — silence in the stream (V37–V39).
-export function missedDaysBetween(fromDayKey: string, toDayKey: string, pauses: Pause[], plannedWeekdays: number[] | undefined): number {
+// A27 (a): each day between is judged by the days in effect on it.
+export function missedDaysBetween(fromDayKey: string, toDayKey: string, pauses: Pause[], event: PostEvent): number {
   let missed = 0;
   for (let day = addDays(fromDayKey, 1); day < toDayKey; day = addDays(day, 1)) {
-    if ((plannedWeekdays === undefined || plannedWeekdays.includes(isoWeekday(day))) && !isPaused(day, pauses)) missed += 1;
+    if (plannedOn(event, day) !== false && !isPaused(day, pauses)) missed += 1;
   }
   return missed;
 }
@@ -44,24 +61,27 @@ function snapshotOf(state: GamificationState): string {
 }
 
 // SPEC: A22 G1 (a) — what counts a day: a completed workout on a planned day; under an all-rest plan, any completed workout;
-// a fixture without plannedWeekdays (pre-A22) counts a planned completed workout and nothing else
+// a fixture without plannedWeekdays (pre-A22) counts a planned completed workout and nothing else. A27 (a): "all-rest" is the days
+// in effect on the post's own day; the stamped isPlannedDay is a fact and is never re-judged.
 export function countsTheDay(event: PostEvent): boolean {
   if (event.kind !== "workout" || event.workoutCompleted !== true) return false;
-  if (event.plannedWeekdays === undefined) return event.isPlannedDay;
-  return event.isPlannedDay || event.plannedWeekdays.length === 0;
+  const weekdays = plannedWeekdaysOn(event, event.dayKey);
+  if (weekdays === undefined) return event.isPlannedDay;
+  return event.isPlannedDay || weekdays.length === 0;
 }
 
-// SPEC: G6 as amended by A22 G1 (a) — every planned weekday of this Mon–Sun week carries a completed workout; ≥ 1 planned day;
-// once per week. Without a plan on the event there is nothing to judge, so no week is perfect.
-function weekIsPerfect(state: GamificationState, plannedWeekdays: number[] | undefined): boolean {
-  if (state.week.key === null || state.week.awarded || plannedWeekdays === undefined || plannedWeekdays.length === 0) return false;
+// SPEC: G6 as amended by A22 G1 (a) and A27 (a) — every day of this Mon–Sun week that was planned AT THE TIME carries a completed
+// workout; ≥ 1 planned day; once per week. Without a plan on the event there is nothing to judge, so no week is perfect.
+function weekIsPerfect(state: GamificationState, event: PostEvent): boolean {
+  if (state.week.key === null || state.week.awarded) return false;
   const weekKey = state.week.key;
-  return plannedWeekdays.every((weekday) => state.week.plannedDone.includes(addDays(weekKey, weekday - 1)));
+  const planned = Array.from({ length: TimeUnits.daysPerWeek }, (_, offset) => addDays(weekKey, offset)).filter((day) => plannedOn(event, day) === true);
+  return planned.length > 0 && planned.every((day) => state.week.plannedDone.includes(day));
 }
 
 // SPEC: V73, V74 — +150 always; the shield only below the cap; once per week
-function awardPerfectWeekIfEarned(state: GamificationState, plannedWeekdays: number[] | undefined, xp: Award[], flags: { perfect?: boolean; shieldEarned?: boolean }): void {
-  if (!weekIsPerfect(state, plannedWeekdays)) return;
+function awardPerfectWeekIfEarned(state: GamificationState, event: PostEvent, xp: Award[], flags: { perfect?: boolean; shieldEarned?: boolean }): void {
+  if (!weekIsPerfect(state, event)) return;
   state.week.awarded = true;
   flags.perfect = true;
   xp.push({ award: "xp", amount: SpecConstants.xpPerfectWeek, reason: "perfectWeek" });
@@ -103,7 +123,7 @@ export function applyPostCreated(state: GamificationState, event: PostEvent, pau
   state.day.posts += 1;
   if (countsTheDay(event) && state.lastCountedDayKey !== day) {
     // SPEC: V82 — the first counted day after ≥ comebackMissedDaysThreshold missed planned days (R-069); never the first-ever
-    flags.comeback = state.lastCountedDayKey !== null && missedDaysBetween(state.lastCountedDayKey, day, pauses, event.plannedWeekdays) >= SpecConstants.comebackMissedDaysThreshold;
+    flags.comeback = state.lastCountedDayKey !== null && missedDaysBetween(state.lastCountedDayKey, day, pauses, event) >= SpecConstants.comebackMissedDaysThreshold;
     state.currentStreak += SpecConstants.streakIncrementPerCountedDay; // SPEC: V02, V67, V72
     state.longestStreak = Math.max(state.longestStreak, state.currentStreak);
     state.lastCountedDayKey = day;
@@ -122,7 +142,7 @@ export function applyPostCreated(state: GamificationState, event: PostEvent, pau
   addUnique(state.week.posted, day);
   if (event.isPlannedDay) addUnique(state.week.planned, day);
   if (event.isPlannedDay && event.kind === "workout" && event.workoutCompleted === true) addUnique(state.week.plannedDone, day);
-  awardPerfectWeekIfEarned(state, event.plannedWeekdays, xp, flags);
+  awardPerfectWeekIfEarned(state, event, xp, flags);
   (state.undo[day] ??= []).push(snapshot);
   return finishAwards(state, xp, streakBefore, flags);
 }

@@ -3,9 +3,12 @@
 // plan without the last kind cycles its own kinds. Twin of ios/CrewTests/PlanRotationTests.swift: identical cases.
 import { describe, expect, it } from "vitest";
 import { lastRotationKind, nextTrainingDayKey, nextWorkoutKind, projectWeek, workoutKindFromName, type RotationSession } from "@/lib/engine/plan-rotation";
+import type { TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
 
 const ppl = ["push", "pull", "legs"];
+// One entry, from before every day these tests read: the plan has only ever had these days
+const days = (weekdays: number[]): TrainingDaysEntry[] => [{ from: "2026-09-01", weekdays }];
 const completed = (kind: string | null, order: number, name = ""): RotationSession => ({ kind, name, completedAt: order, status: "completed" });
 
 function completeNext(sessions: RotationSession[], cycle: string[]): string {
@@ -66,35 +69,35 @@ describe("nextWorkoutKind / lastRotationKind — the pointer follows the last CO
 
 describe("projectWeek — done · rest · open · planned, kinds running on from nextKind", () => {
   it("1 day a week: Push this Monday, Pull three weeks later even after two missed Mondays", () => {
-    const week1 = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-07", trainingWeekdays: [1], cycle: ppl, nextKind: "push", completedKindByDay: {} });
+    const week1 = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-07", trainingDays: days([1]), cycle: ppl, nextKind: "push", completedKindByDay: {} });
     expect(week1.map((day) => day.state)).toEqual(["planned", "rest", "rest", "rest", "rest", "rest", "rest"]);
     expect(week1[0]?.kind).toBe("push");
     const after = nextWorkoutKind(lastRotationKind([completed("push", 1)], ppl), ppl);
-    const week4 = projectWeek({ weekKey: "2026-09-28", todayKey: "2026-09-28", trainingWeekdays: [1], cycle: ppl, nextKind: after, completedKindByDay: {} });
+    const week4 = projectWeek({ weekKey: "2026-09-28", todayKey: "2026-09-28", trainingDays: days([1]), cycle: ppl, nextKind: after, completedKindByDay: {} });
     expect(week4[0]?.kind).toBe("pull");
-    const week2 = projectWeek({ weekKey: "2026-09-14", todayKey: "2026-09-28", trainingWeekdays: [1], cycle: ppl, nextKind: after, completedKindByDay: {} });
+    const week2 = projectWeek({ weekKey: "2026-09-14", todayKey: "2026-09-28", trainingDays: days([1]), cycle: ppl, nextKind: after, completedKindByDay: {} });
     expect(week2[0]?.state).toBe("open"); // a missed Monday: no word, no kind, no red
     expect(week2[0]?.kind).toBeNull();
   });
 
   it("7 days a week: PPLPPLP, then PLPPLPP once all seven are completed", () => {
     const all = [1, 2, 3, 4, 5, 6, 7];
-    const week1 = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-07", trainingWeekdays: all, cycle: ppl, nextKind: "push", completedKindByDay: {} });
+    const week1 = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-07", trainingDays: days(all), cycle: ppl, nextKind: "push", completedKindByDay: {} });
     expect(week1.map((day) => day.kind)).toEqual(["push", "pull", "legs", "push", "pull", "legs", "push"]);
     const sessions: RotationSession[] = [];
     for (let index = 0; index < TimeUnits.daysPerWeek; index += 1) completeNext(sessions, ppl);
     const next = nextWorkoutKind(lastRotationKind(sessions, ppl), ppl);
-    const week2 = projectWeek({ weekKey: "2026-09-14", todayKey: "2026-09-14", trainingWeekdays: all, cycle: ppl, nextKind: next, completedKindByDay: {} });
+    const week2 = projectWeek({ weekKey: "2026-09-14", todayKey: "2026-09-14", trainingDays: days(all), cycle: ppl, nextKind: next, completedKindByDay: {} });
     expect(week2.map((day) => day.kind)).toEqual(["pull", "legs", "push", "pull", "legs", "push", "pull"]);
   });
 
   it("states: a done Monday, rest days, today and Friday planned; past training days without a session are open", () => {
-    const week = projectWeek({ weekKey: "2026-09-09", todayKey: "2026-09-09", trainingWeekdays: [1, 3, 5], cycle: ppl, nextKind: "pull", completedKindByDay: { "2026-09-07": "push" } });
+    const week = projectWeek({ weekKey: "2026-09-09", todayKey: "2026-09-09", trainingDays: days([1, 3, 5]), cycle: ppl, nextKind: "pull", completedKindByDay: { "2026-09-07": "push" } });
     expect(week.map((day) => day.dayKey)).toEqual(["2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12", "2026-09-13"]);
     expect(week.map((day) => day.weekday)).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(week.map((day) => day.state)).toEqual(["done", "rest", "planned", "rest", "planned", "rest", "rest"]);
     expect(week.map((day) => day.kind)).toEqual(["push", null, "pull", null, "legs", null, null]);
-    const missed = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-10", trainingWeekdays: [1, 3, 5], cycle: ppl, nextKind: "push", completedKindByDay: {} });
+    const missed = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-10", trainingDays: days([1, 3, 5]), cycle: ppl, nextKind: "push", completedKindByDay: {} });
     expect(missed.map((day) => day.state)).toEqual(["open", "rest", "open", "rest", "planned", "rest", "rest"]);
     expect(missed[4]?.kind).toBe("push");
   });
@@ -104,5 +107,14 @@ describe("projectWeek — done · rest · open · planned, kinds running on from
     expect(nextTrainingDayKey("2026-09-11", [1, 3, 5])).toBe("2026-09-14");
     expect(nextTrainingDayKey("2026-09-11", [5])).toBe("2026-09-18");
     expect(nextTrainingDayKey("2026-09-11", [])).toBeNull();
+  });
+
+  // SPEC: A27 (a) — Mon/Wed/Fri until Thursday, Tue/Thu/Sat from Thursday: the days before the change keep the old days (Monday and
+  // Wednesday open, Tuesday rest), the change day and after read the new ones (Thursday planned, Friday rest, Saturday planned)
+  it("a change mid-week projects the days before it by the old days", () => {
+    const history = [{ from: "2026-09-01", weekdays: [1, 3, 5] }, { from: "2026-09-10", weekdays: [2, 4, 6] }];
+    const week = projectWeek({ weekKey: "2026-09-07", todayKey: "2026-09-10", trainingDays: history, cycle: ppl, nextKind: "push", completedKindByDay: {} });
+    expect(week.map((day) => day.state)).toEqual(["open", "rest", "open", "planned", "rest", "planned", "rest"]);
+    expect(week.map((day) => day.kind)).toEqual([null, null, null, "push", null, "pull", null]);
   });
 });

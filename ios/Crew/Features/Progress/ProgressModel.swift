@@ -1,7 +1,8 @@
 // SPEC: 5.6.2 ProgressModel — state: heatMap [DayCell], weeks [RingRecord], totals, strength [ExerciseTrend] (only where weight
 // logged); actions: select(dayKey) → DayDetail (the day's workouts; A22: the plates left with the plate journal). Flow 9 layers 1–3, all from the local Store (offline-first).
 // A2/A6 (owner-directed 2026-09-08): sets = strength work sets; cardio and mobility are minutes per week (facts, never targets);
-// A1: planned = trainingWeekdays. Twin of web/src/lib/progress-facts.ts. WRITTEN — UNVERIFIED (needs Mac). T040
+// A1 · A27 (a): planned = the days the training days in effect on each of them plan. Twin of web/src/lib/progress-facts.ts.
+// WRITTEN — UNVERIFIED (needs Mac). T040
 
 import Foundation
 import Observation
@@ -76,9 +77,12 @@ final class ProgressModel {
         isEmpty = posts.isEmpty
         todayKey = DayKey.dayKey(for: now, tz: timeZone)
         heatMap = heatMapCells(completed: completed, posts: posts)
-        let plannedCount = plan?.trainingWeekdays.count ?? 0 // SPEC: A1 — planned = the plan's training days
+        // SPEC: A1 · A27 (a) — a week's planned count is its days that the training days in effect ON each of them plan
+        let history = try plan == nil ? [] : PlanLocal.trainingDays(for: userId, store: store)
         weeks = (0..<ringWeeks).reversed().map { offset in
-            weekRecord(DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek), completed: completed, planned: plannedCount)
+            let weekKey = DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek)
+            let planned = (0..<TimeUnits.daysPerWeek).filter { TrainingDays.isPlannedOn(history, DayKey.addDays(weekKey, $0)) }.count
+            return weekRecord(weekKey, completed: completed, planned: planned)
         }
         totals = (completed.count, posts.count, state.longestStreak, state.currentStreak)
         balance = balanceOf(completed)

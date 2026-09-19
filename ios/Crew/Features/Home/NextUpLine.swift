@@ -37,7 +37,8 @@ enum NextUp {
             guard let kind = session.workoutKind ?? PlanRotation.workoutKindFromName(session.workoutName), cycle.contains(kind) else { continue }
             completedKindByDay[session.dayKey] = kind
         }
-        let week = PlanRotation.projectWeek(weekKey: weekKey, todayKey: todayKey, trainingWeekdays: plan.trainingWeekdays, cycle: cycle, nextKind: nextKind, completedKindByDay: completedKindByDay)
+        let history = try PlanLocal.trainingDays(for: userId, store: store) // A27 (a): each day by the training days in effect on it
+        let week = PlanRotation.projectWeek(weekKey: weekKey, todayKey: todayKey, trainingDays: history, cycle: cycle, nextKind: nextKind, completedKindByDay: completedKindByDay)
         return Rotation(cycle: cycle, nextKind: nextKind, week: week)
     }
 

@@ -61,15 +61,18 @@ extension HomeModel {
     // non-training day is not a planned-day completion, the ring does not count it, and a strip that marked it could
     // not be read against the ring. The web twin tested the completion first and emitted "done" — one user, two
     // answers, two different summary sentences. This is the rule both engines now follow.
+    //
+    // A27 (a) — each day asks the training days in effect ON it, so a change this week leaves the days before it as they were.
     static func weekMarks(userId: String, plan: LocalPlan?, todayKey: String, pause: LocalPause?, store: Store) throws -> WeekMarks {
         let weekKey = DayKey.weekKey(for: todayKey)
+        let history = try plan == nil ? [] : PlanLocal.trainingDays(for: userId, store: store)
         var done = 0
         var planned = 0
         var days: [DayRingState] = try (0..<TimeUnits.daysPerWeek).map { offset in
             let dayKey = DayKey.addDays(weekKey, offset)
             let isToday = dayKey == todayKey
             let frozen = pause.map { dayKey >= $0.startDay && dayKey < $0.endDay } ?? false
-            guard plan?.trainingWeekdays.contains(offset + 1) ?? false, !frozen else { return isToday ? .today : .rest }
+            guard TrainingDays.isPlannedOn(history, dayKey), !frozen else { return isToday ? .today : .rest }
             planned += 1
             let completed = try store.sessions(for: userId, dayKey: dayKey).contains { $0.status == "completed" && $0.workoutKind != "cardio" }
             if completed { done += 1; return .done }

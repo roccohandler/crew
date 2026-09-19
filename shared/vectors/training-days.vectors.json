@@ -1,0 +1,208 @@
+{
+  "file": "training-days.vectors.json",
+  "spec": "Part VIII 8.1 · A27 (a) as ruled 2026-09-18 (owner-approved) — a day is judged by the training days in effect on that day; a change takes effect from the dayKey it is saved, forward, never backward",
+  "vectors": [
+    {
+      "id": "V85",
+      "title": "a change mid-week leaves the earlier days judged by the old days",
+      "spec": "8.1 V85; 5.6.1 recompute; A27 (a) as ruled 2026-09-18",
+      "kind": "recompute",
+      "rule": "Mon/Wed/Fri until a change saved on Thursday to Tue/Thu/Sat: Monday and Wednesday count; Tuesday, before the change, was a rest day under the days then in effect, so it is never a miss; Thursday counts under the new days — the streak is 3. Judged by the new days alone, Tuesday would have broken it.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-17",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-17", "weekdays": [2, 4, 6] }
+      ],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "Monday, Wednesday, Thursday",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-14", "completed": true, "sets": [] },
+            { "id": "s2", "dayKey": "2026-09-16", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-17", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-14", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-16", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" },
+            { "dayKey": "2026-09-17", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 375, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-17", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V86",
+      "title": "a day after the change is judged by the new days",
+      "spec": "8.1 V86; 5.6.1 recompute; A27 (a) as ruled 2026-09-18",
+      "kind": "recompute",
+      "rule": "Mon/Wed/Fri until a change saved on Monday to Tue/Thu/Sat: from that Monday on only the new days are required — Monday and Wednesday, planned under the old days, ask nothing; Tuesday and Thursday count, 2 → 4; Saturday is planned under the new days, holds no workout and breaks the streak to 0. Longest stays 4.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-20",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-14", "weekdays": [2, 4, 6] }
+      ],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "Wed, Fri under the old days; Tue, Thu under the new",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-09", "completed": true, "sets": [] },
+            { "id": "s2", "dayKey": "2026-09-11", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-15", "completed": true, "sets": [] },
+            { "id": "s4", "dayKey": "2026-09-17", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-09", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-11", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" },
+            { "dayKey": "2026-09-15", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" },
+            { "dayKey": "2026-09-17", "kind": "workout", "isPlannedDay": true, "sessionId": "s4" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 0, "longestStreak": 4, "totalXP": 500, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-17", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V87",
+      "title": "a perfect week that spans a change",
+      "spec": "8.1 V87; 5.6.1 recompute; G6 as amended by A22 G1 (a) and A27 (a)",
+      "kind": "recompute",
+      "rule": "Mon/Wed/Fri until a change saved on Wednesday to Tue/Thu/Sat: the days planned AT THE TIME are Monday (old days) and Thursday and Saturday (new days — Wednesday, the day of the change, is judged by them and is rest). All three carry a completed workout, so Saturday completes a perfect week: +150 and a shield.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-20",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-16", "weekdays": [2, 4, 6] }
+      ],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "Monday, Thursday, Saturday",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-14", "completed": true, "sets": [] },
+            { "id": "s2", "dayKey": "2026-09-17", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-19", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-14", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-17", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" },
+            { "dayKey": "2026-09-19", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 525, "level": 2, "shields": 1, "lastCountedDayKey": "2026-09-19", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V88",
+      "title": "a past miss and a consumed shield both survive a change",
+      "spec": "8.1 V88; 5.6.1 recompute; Flow 7 (shields); A27 (a) as ruled 2026-09-18",
+      "kind": "recompute",
+      "rule": "A perfect Mon/Wed/Fri week earns a shield (streak 3). The next Monday is missed and the shield absorbs it; Wednesday is missed with no shield and the streak breaks to 0. On Thursday the days change to Tue/Thu/Sat — under which Monday and Wednesday are rest days — and neither the consumed shield nor the miss comes back: Thursday counts 0 → 1, shields 0, longest 3.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-18",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-17", "weekdays": [2, 4, 6] }
+      ],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "a perfect week, two misses, then the change",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-07", "completed": true, "sets": [] },
+            { "id": "s2", "dayKey": "2026-09-09", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-11", "completed": true, "sets": [] },
+            { "id": "s4", "dayKey": "2026-09-17", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-07", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-09", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" },
+            { "dayKey": "2026-09-11", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" },
+            { "dayKey": "2026-09-17", "kind": "workout", "isPlannedDay": true, "sessionId": "s4" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 1, "longestStreak": 3, "totalXP": 650, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-17", "earnedAchievementIds": [] }
+      }
+    },
+    {
+      "id": "V89",
+      "title": "a completed session on a day that is no longer planned still counts and still advances the rotation",
+      "spec": "8.1 V89; 5.6.1 recompute; A1 (the pointer is derived from completed sessions); A27 (a) as ruled 2026-09-18",
+      "kind": "recompute",
+      "rule": "Monday's push workout is completed on a Mon/Wed/Fri plan (stamped isPlannedDay) and the days change that same Monday to Tue/Thu/Sat, so Monday is no longer planned. The session is a fact and is never re-judged: it still pays the planned +100, still counts the day (streak 1 → 2), and still moves the rotation — after legs then push, the next workout is pull.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-15",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-14", "weekdays": [2, 4, 6] }
+      ],
+      "cycle": ["push", "pull", "legs"],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "legs on Friday, push on the Monday of the change",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-11", "completed": true, "sets": [], "workoutKind": "legs" },
+            { "id": "s2", "dayKey": "2026-09-14", "completed": true, "sets": [], "workoutKind": "push" }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-11", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-14", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 2, "longestStreak": 2, "totalXP": 250, "level": 1, "shields": 0, "lastCountedDayKey": "2026-09-14", "earnedAchievementIds": [] },
+        "nextWorkoutKind": "pull"
+      }
+    },
+    {
+      "id": "V90",
+      "title": "an earned perfect week stands when a change later in the week plans a remaining day",
+      "spec": "8.1 V90; 5.6.1 recompute; G6 as amended by A27 (a) (an earned reward stands)",
+      "kind": "recompute",
+      "rule": "Mon/Wed/Fri all done: Friday completes a perfect week under the days then in effect (+150, a shield). On Saturday the days change to Mon/Wed/Fri/Sat — Saturday is now planned, holds no workout, and the shield just earned absorbs the miss (streak 3 holds). The perfect week earned on Friday stands: a change never reaches back into what was already awarded.",
+      "tz": "UTC",
+      "asOfDayKey": "2026-09-20",
+      "trainingDays": [
+        { "from": "2026-09-01", "weekdays": [1, 3, 5] },
+        { "from": "2026-09-19", "weekdays": [1, 3, 5, 6] }
+      ],
+      "pauses": [],
+      "variants": [
+        {
+          "label": "Monday, Wednesday, Friday, then Saturday is added",
+          "sessions": [
+            { "id": "s1", "dayKey": "2026-09-14", "completed": true, "sets": [] },
+            { "id": "s2", "dayKey": "2026-09-16", "completed": true, "sets": [] },
+            { "id": "s3", "dayKey": "2026-09-18", "completed": true, "sets": [] }
+          ],
+          "posts": [
+            { "dayKey": "2026-09-14", "kind": "workout", "isPlannedDay": true, "sessionId": "s1" },
+            { "dayKey": "2026-09-16", "kind": "workout", "isPlannedDay": true, "sessionId": "s2" },
+            { "dayKey": "2026-09-18", "kind": "workout", "isPlannedDay": true, "sessionId": "s3" }
+          ],
+          "reactions": []
+        }
+      ],
+      "expect": {
+        "state": { "currentStreak": 3, "longestStreak": 3, "totalXP": 525, "level": 2, "shields": 0, "lastCountedDayKey": "2026-09-18", "earnedAchievementIds": [] }
+      }
+    }
+  ]
+}

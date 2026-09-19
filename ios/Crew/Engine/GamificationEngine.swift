@@ -72,9 +72,10 @@ enum PostKind: String, Codable {
 }
 
 // plannedWeekdays (A22 G1 (a)): the plan's ISO weekdays at the moment of the post — [] is an all-rest plan (any completed
-// workout day counts); nil is a fixture written before the field existed (a planned completed workout counts, nothing else)
+// workout day counts); nil is a fixture written before the field existed (a planned completed workout counts, nothing else).
+// trainingDays (A27 (a)): the plan's training-days history, each entry in effect from its dayKey — it supersedes plannedWeekdays.
 enum GameEvent: Equatable {
-    case postCreated(kind: PostKind, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool, plannedWeekdays: [Int]? = nil)
+    case postCreated(kind: PostKind, dayKey: String, isPlannedDay: Bool, workoutCompleted: Bool, plannedWeekdays: [Int]? = nil, trainingDays: [TrainingDaysEntry]? = nil)
     case postUndone(dayKey: String)
     case dayRolledOver(dayKey: String, hadRequirement: Bool)
     case reactionGiven(dayKey: String)
@@ -113,8 +114,9 @@ enum GamificationEngine {
         var next = state
         let awards: [Award]
         switch event {
-        case .postCreated(let kind, let dayKey, let isPlannedDay, let workoutCompleted, let plannedWeekdays):
-            awards = GamificationPost.applyPostCreated(&next, kind: kind, dayKey: dayKey, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, plannedWeekdays: plannedWeekdays, pauses: pauses)
+        case .postCreated(let kind, let dayKey, let isPlannedDay, let workoutCompleted, let plannedWeekdays, let trainingDays):
+            let plan = GamificationPost.PostPlan(dayKey: dayKey, plannedWeekdays: plannedWeekdays, trainingDays: trainingDays)
+            awards = GamificationPost.applyPostCreated(&next, kind: kind, dayKey: dayKey, isPlannedDay: isPlannedDay, workoutCompleted: workoutCompleted, plan: plan, pauses: pauses)
         case .postUndone(let dayKey):
             awards = GamificationDay.applyPostUndone(&next, dayKey: dayKey)
         case .dayRolledOver(let dayKey, let hadRequirement):

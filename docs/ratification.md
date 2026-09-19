@@ -1472,3 +1472,31 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   `CrewView.tsx`) still says "friends". Amendment 5 names the page's crews section, and the empty state is a different line on a
   different screen, so it was left for the owner rather than widened into.
 - Look at: the crews sentence above, and the three new tour shots of S19 (`tour_settingstests/0N_settings_howcrewworks_*`).
+
+### R-082 · 2026-09-19 · A27 (a) — the training-days history, built on both engines, the server and the phone · checkpoint — the builder's readings, each open to the owner
+- What was checked: the owner's ruling of the A27 (a) gap (Appendix A, the line under A27): a day is judged by the training days in
+  effect on that day; a change takes effect from the dayKey it is saved, forward, never backward; a completed session is never
+  re-judged. Vectors V85–V90 were computed by hand first, then run on both engines (`npm run vectors`; `swift test`, 105 tests), and
+  each was checked to FAIL under the old reading (the current plan judging every day) — all six do, so none is green by accident.
+- The builder's readings, where the ruling was silent:
+  (1) **A day before the history's first entry is judged by the first entry.** Before its first recorded change a plan has only ever
+      had its first days. Every one-entry history — every plan that never changed its days, every seed, every test that saves a plan
+      "now" and reads a past date — therefore judges exactly as before, and V77/V78 run unchanged as a one-entry history.
+  (2) **A queued edit's day is its `savedAt`, inside E15's window.** The phone sends when the change was made; the server keeps that
+      moment when it lies within [now − syncClientTimestampMaxAgeDays, now + clientClockSkewToleranceMinutes], and otherwise its own
+      now — the rule every other client timestamp already follows (`server-clock.ts`). A web PUT carries none: now.
+  (3) **The history never goes backwards.** An edit whose day falls before the last entry's (a phone that synced late after a web
+      change) takes effect from that entry's day, never behind it; the plan's `trainingWeekdays` is always the last entry.
+  (4) **A day the post has not reached yet is judged by the entry in effect on the post's own day.** That is what "planned AT THE
+      TIME" means for the rest of a week: a change made later in the week was not known when the perfect week was earned, so it can
+      never take the reward back (V90).
+  (5) **The migration is written once, on the plan's first read.** One entry, the plan's days, `from` = the document's creation dayKey
+      (its ObjectId timestamp, in the user's stored timezone), written only while the history is still missing — so it can never land
+      on top of an appended entry. No script to run.
+  (6) **The phone's history starts empty after the update.** An install from before A27 holds no LocalTrainingDays rows until its plan
+      next arrives from the server or its days next change on the phone; until then its current days stand as a one-entry history,
+      which (1) makes exact. SwiftData CrewSchemaV3 adds the entity; nothing in V1 or V2 changed.
+  (7) **The same days saved again append nothing; two changes saved the same day are two entries**, the later one in effect from it.
+- The web message: "Saved · Changes apply from your next workout on." — the page's own sentence, held in one constant so the two can
+  never disagree again.
+- Look at: `shared/vectors/training-days.vectors.json` (V85–V90) and `docs/api.md` plans.

@@ -62,16 +62,17 @@ enum PlanRotation {
     }
 
     // SPEC: A1 — 7 entries Mon..Sun: done (a completed rotation session that day, kind from completedKindByDay) · rest
-    // (weekday ∉ trainingWeekdays) · open (a past training day with nothing completed — no word, no red) · planned
-    // (today and future training days; kinds run on from nextKind, one step per planned day)
-    static func projectWeek(weekKey: String, todayKey: String, trainingWeekdays: [Int], cycle: [String], nextKind: String, completedKindByDay: [String: String]) -> [DayProjection] {
+    // (not a training day) · open (a past training day with nothing completed — no word, no red) · planned
+    // (today and future training days; kinds run on from nextKind, one step per planned day). A27 (a): "a training day" is
+    // asked of the days in effect on that day, so a change this week leaves the days before it as they were.
+    static func projectWeek(weekKey: String, todayKey: String, trainingDays: [TrainingDaysEntry], cycle: [String], nextKind: String, completedKindByDay: [String: String]) -> [DayProjection] {
         let monday = DayKey.weekKey(for: weekKey)
         var pointer = nextKind
         return (0..<TimeUnits.daysPerWeek).map { offset in
             let dayKey = DayKey.addDays(monday, offset)
             let weekday = DayKey.isoWeekday(dayKey)
             if let done = completedKindByDay[dayKey] { return DayProjection(dayKey: dayKey, weekday: weekday, state: .done, kind: done) }
-            if !trainingWeekdays.contains(weekday) { return DayProjection(dayKey: dayKey, weekday: weekday, state: .rest, kind: nil) }
+            if !TrainingDays.isPlannedOn(trainingDays, dayKey) { return DayProjection(dayKey: dayKey, weekday: weekday, state: .rest, kind: nil) }
             if dayKey < todayKey { return DayProjection(dayKey: dayKey, weekday: weekday, state: .open, kind: nil) }
             let planned = DayProjection(dayKey: dayKey, weekday: weekday, state: .planned, kind: pointer)
             pointer = nextWorkoutKind(lastCompletedKind: pointer, cycle: cycle)

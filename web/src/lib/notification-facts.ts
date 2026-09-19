@@ -1,12 +1,12 @@
 // SPEC: T033 — gathers the facts the eligibility functions decide on, per user, from the real collections; records each send
-// in `notificationLog` so "already sent today" is a fact, not a guess. Called by the cron route. A1: a planned day is one of the
-// plan's trainingWeekdays. A7: the user's toggles ride along as `prefs`.
+// in `notificationLog` so "already sent today" is a fact, not a guess. Called by the cron route. A1 · A27 (a): a planned day is one
+// the training days in effect on it plan. A7: the user's toggles ride along as `prefs`.
 import { ObjectId } from "mongodb";
 import { getDb, pauses, posts, pushTokens, sessions } from "@/lib/db";
 import type { NotificationPrefs } from "@/lib/documents";
-import { dayKeyFor, isoWeekday } from "@/lib/engine/day-key";
+import { dayKeyFor } from "@/lib/engine/day-key";
 import type { ReminderFacts, StreakRiskFacts } from "@/lib/notification-eligibility";
-import { findPlan, isPlannedWeekday } from "@/lib/plans";
+import { findPlan, isPlannedDayOf } from "@/lib/plans";
 import { TimeUnits } from "@/lib/time-units";
 import { notificationPrefsOf } from "@/lib/users";
 import { SpecConstants } from "@/generated/spec-constants";
@@ -49,8 +49,9 @@ export async function gatherFacts(user: NotifiableUser, streak: number, now: Dat
     (await pushTokens()).countDocuments({ userId: user._id }),
     (await notificationLog()).find({ userId: user._id, dayKey }).toArray(),
   ]);
-  // SPEC: A22 G1 (a) — the day's requirement is a PLANNED day with no completed workout; a rest day asks nothing, so neither nudge fires on one
-  const isPlannedDay = isPlannedWeekday(plan, isoWeekday(dayKey));
+  // SPEC: A22 G1 (a) — the day's requirement is a PLANNED day with no completed workout; a rest day asks nothing, so neither nudge fires on one.
+  // A27 (a): planned by the training days in effect on today's dayKey
+  const isPlannedDay = isPlannedDayOf(plan, dayKey);
   const workoutDoneToday = todaySessions.some((session) => session.workoutKind !== "cardio");
   const base = { paused: pause !== null, hasPushToken: tokens > 0, isPlannedDay, workoutDoneToday, prefs: notificationPrefsOf(user) };
   return {

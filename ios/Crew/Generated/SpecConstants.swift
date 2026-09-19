@@ -228,8 +228,10 @@ enum SpecConstants {
     static let dayLabelWeekdayWithinDays: Int = 6
 
     // MARK: storage
-    /// SPEC: W9 — the SwiftData store's current schema version (ios/Crew/Storage/StoreSchema.swift: CrewSchemaV2; V1 is TestFlight build 150's schema)
+    /// SPEC: W9 — CrewSchemaV2's version, the SwiftData schema of builds up to 202 (ios/Crew/Storage/StoreSchema.swift; V1 is TestFlight build 150's schema)
     static let storeSchemaVersion: Int = 2
+    /// SPEC: A27 (a), owner-ruled 2026-09-18 — CrewSchemaV3's version, the current one: V2 plus LocalTrainingDays, the training-days history (StoreSchema.swift)
+    static let trainingDaysStoreSchemaVersion: Int = 3
 
     // MARK: copy
     /// SPEC: A23 · docs/education-copy-draft.md §A rule 5 — a whisper is at most twelve words; check-copy.mjs counts them

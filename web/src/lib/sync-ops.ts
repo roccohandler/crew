@@ -43,7 +43,7 @@ async function runContentOp(userId: ObjectId, op: Op, timezone: string): Promise
   }
   if (op.kind === "createPost") throw postsRetired();
   if (op.kind === "deletePost") { await deletePostByClientId(userId, deletePostOpSchema.parse(op.payload).clientId); return true; }
-  if (op.kind === "putPlan") { await replacePlan(userId, putPlanSchema.parse(op.payload)); return true; }
+  if (op.kind === "putPlan") { await replacePlan(userId, putPlanSchema.parse(op.payload), timezone); return true; } // A27 (a): savedAt in the device's zone
   return false;
 }
 

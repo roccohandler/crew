@@ -55,7 +55,7 @@ enum ServerHydrate {
     private static func pullPlan(userId: String, store: Store) async {
         do {
             let plan = try await Api.shared.getPlan()
-            try? PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), store: store)
+            try? PlanLocal.replace(plan.draft, userId: userId, updatedAt: plan.updatedAt ?? Date(), history: plan.trainingDaysHistory, store: store)
         } catch AppError.offline {
             state.failedOffline = true
         } catch {}

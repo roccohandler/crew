@@ -103,7 +103,8 @@ final class VectorRunnerTests: XCTestCase {
         switch json["type"] as? String {
         case "postCreated":
             let kind = try XCTUnwrap(PostKind(rawValue: try XCTUnwrap(json["kind"] as? String)))
-            return .postCreated(kind: kind, dayKey: dayKey, isPlannedDay: json["isPlannedDay"] as? Bool ?? false, workoutCompleted: json["workoutCompleted"] as? Bool ?? false, plannedWeekdays: json["plannedWeekdays"] as? [Int])
+            let trainingDays = try json["trainingDays"].map { try VectorFiles.decode([TrainingDaysEntry].self, from: $0) } // A27 (a)
+            return .postCreated(kind: kind, dayKey: dayKey, isPlannedDay: json["isPlannedDay"] as? Bool ?? false, workoutCompleted: json["workoutCompleted"] as? Bool ?? false, plannedWeekdays: json["plannedWeekdays"] as? [Int], trainingDays: trainingDays)
         case "postUndone": return .postUndone(dayKey: dayKey)
         case "dayRolledOver": return .dayRolledOver(dayKey: dayKey, hadRequirement: json["hadRequirement"] as? Bool ?? false)
         case "reactionGiven": return .reactionGiven(dayKey: dayKey)
@@ -140,15 +141,28 @@ final class VectorRunnerTests: XCTestCase {
         }
     }
 
+    // README kind recompute — A27 (a): the plan is a training-days history; a vector written before it names `trainingWeekdays`,
+    // which is a history of one entry (a day before the first entry is judged by it — R-082). With `cycle`, the rotation pointer
+    // is asserted from the same completed sessions (V89).
     private func runRecompute(id: String, vector: [String: Any]) throws {
         let pauses = try VectorFiles.pauses(vector["pauses"])
         let asOf = try XCTUnwrap(vector["asOfDayKey"] as? String)
-        let expected = try VectorFiles.decode(PublicState.self, from: try XCTUnwrap((vector["expect"] as? [String: Any])?["state"]))
+        let expect = try XCTUnwrap(vector["expect"] as? [String: Any])
+        let expected = try VectorFiles.decode(PublicState.self, from: try XCTUnwrap(expect["state"]))
+        let history = try vector["trainingDays"].map { try VectorFiles.decode([TrainingDaysEntry].self, from: $0) } ?? [TrainingDaysEntry(from: asOf, weekdays: vector["trainingWeekdays"] as? [Int] ?? [])]
         for variant in vector["variants"] as? [[String: Any]] ?? [] {
             let sessions = try VectorFiles.decode([SessionFacts].self, from: variant["sessions"] ?? [])
             let posts = try VectorFiles.decode([PostFacts].self, from: variant["posts"] ?? [])
             let reactions = try VectorFiles.decode([ReactionFacts].self, from: variant["reactions"] ?? [])
-            XCTAssertEqual(GamificationRecompute.recompute(sessions: sessions, posts: posts, reactions: reactions, pauses: pauses, asOfDayKey: asOf, trainingWeekdays: vector["trainingWeekdays"] as? [Int] ?? []), expected, "\(id) \(variant["label"] ?? "")")
+            XCTAssertEqual(GamificationRecompute.recompute(sessions: sessions, posts: posts, reactions: reactions, pauses: pauses, asOfDayKey: asOf, trainingDays: history), expected, "\(id) \(variant["label"] ?? "")")
+            guard let nextKind = expect["nextWorkoutKind"] as? String else { continue }
+            let cycle = vector["cycle"] as? [String] ?? []
+            let rotation = (variant["sessions"] as? [[String: Any]] ?? []).map { session in
+                let completed = session["completed"] as? Bool ?? false
+                let completedAt = completed ? ISO8601DateFormatter().date(from: "\(session["dayKey"] as? String ?? "")T12:00:00Z") : nil
+                return RotationSession(kind: session["workoutKind"] as? String, name: "", completedAt: completedAt, status: completed ? "completed" : "inProgress")
+            }
+            XCTAssertEqual(PlanRotation.nextWorkoutKind(lastCompletedKind: PlanRotation.lastRotationKind(sessions: rotation, cycle: cycle), cycle: cycle), nextKind, "\(id) \(variant["label"] ?? "") next workout")
         }
     }
 

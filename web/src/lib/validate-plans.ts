@@ -40,6 +40,7 @@ export const putPlanSchema = z
   .object({
     trainingWeekdays: z.array(weekdaySchema).min(1).max(TimeUnits.daysPerWeek),
     workouts: z.array(workoutTemplateInputSchema).min(1).max(TimeUnits.daysPerWeek),
+    savedAt: z.iso.datetime().optional(), // A27 (a): when the edit was made (a queued phone edit); E15's window decides whether it stands
   })
   .refine((plan) => new Set(plan.trainingWeekdays).size === plan.trainingWeekdays.length, "trainingWeekdays: each weekday once")
   .refine((plan) => new Set(plan.workouts.map((workout) => workout.kind)).size === plan.workouts.length, "workouts: one workout per kind");

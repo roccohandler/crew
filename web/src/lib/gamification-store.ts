@@ -23,7 +23,7 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
   const userId = new ObjectId(userIdText);
   const user = await (await users()).findOne({ _id: userId });
   const timezone = user?.timezone ?? "UTC";
-  const plan = await findPlan(userId); // A22 G1 (a): the fold judges a day by the CURRENT plan's weekdays (R-068 reading 1)
+  const plan = await findPlan(userId); // A27 (a): the fold judges each day by the training days in effect ON it (the plan's history)
   const sessionDocs = await (await sessions()).find({ userId }, { projection: { _id: 1, dayKey: 1, status: 1 } }).toArray();
   const postDocs = await (await posts()).find({ userId, deletedAt: null }, { projection: { dayKey: 1, type: 1, isPlannedDay: 1, sessionId: 1, createdAt: 1 } }).sort({ createdAt: 1 }).toArray();
   const reactionDocs = await (await reactions()).find({ userId }, { projection: { dayKey: 1 } }).toArray();
@@ -37,7 +37,7 @@ export async function recomputeAndStore(userIdText: string, now: Date = new Date
     reactionDocs.map((doc) => ({ dayKey: doc.dayKey })),
     await pausesFor(userId),
     todayKey,
-    plan?.trainingWeekdays ?? [],
+    plan?.trainingDaysHistory ?? [],
   );
   const existing = await (await gamificationStates()).findOne({ userId }, { projection: { earnedAchievementIds: 1 } });
   const earnedBefore = existing?.earnedAchievementIds ?? []; // V35: achievements never recomputed away

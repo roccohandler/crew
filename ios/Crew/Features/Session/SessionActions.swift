@@ -101,8 +101,8 @@ enum SessionActions {
         try SyncQueue.shared.enqueue(.patchSession, payload: PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: exerciseDTOs(session), status: "completed", completedAt: now, post: nil), now: now)
         // A14: a standalone cardio log is its own post type — the server writes the same value from the session kind (sessions.ts).
         // The ENGINE event is .workout: a walk pays a workout's XP; the streak counts only a planned day (V70, A22 G1 (a)).
-        let weekdays = try GamificationLocal.trainingWeekdays(for: session.userId, store: store)
-        var awards = try GamificationLocal.preview(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, plannedWeekdays: weekdays), for: session.userId, store: store)
+        let history = try PlanLocal.trainingDays(for: session.userId, store: store) // A27 (a)
+        var awards = try GamificationLocal.preview(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, trainingDays: history), for: session.userId, store: store)
         awards.append(contentsOf: try AchievementFacts.newRecords(in: session, store: store).map { Award.prBadge(exercise: $0) }) // Flow 3 PR celebration, last in the canonical order
         let draft = PostDraft(clientId: UUID().uuidString.lowercased(), sessionClientId: session.clientId)
         rememberUnanswered(draft)
@@ -126,8 +126,8 @@ enum SessionActions {
         post.summary = JournalFacts.summaryLine(session, distanceUnit: AuthStore.shared.distanceUnit) // A6: the one line the celebration, the journal and the day card read — server rounding (JournalFacts)
         store.context.insert(post)
         try store.save()
-        let weekdays = try GamificationLocal.trainingWeekdays(for: session.userId, store: store)
-        let awards = try GamificationLocal.apply(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, plannedWeekdays: weekdays), for: session.userId, store: store)
+        let history = try PlanLocal.trainingDays(for: session.userId, store: store) // A27 (a)
+        let awards = try GamificationLocal.apply(.postCreated(kind: .workout, dayKey: session.dayKey, isPlannedDay: session.isPlannedDay, workoutCompleted: true, trainingDays: history), for: session.userId, store: store)
         let payload = PatchSessionPayload(sessionId: session.clientId, timezone: session.timezone, exercises: nil, status: "completed", completedAt: session.completedAt, post: CompletionPostDTO(clientId: clientId, shareToCrew: shareToCrew, caption: nil))
         try SyncQueue.shared.enqueue(.patchSession, payload: payload, now: now)
         return awards

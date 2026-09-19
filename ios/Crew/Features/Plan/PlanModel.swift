@@ -67,7 +67,8 @@ final class PlanModel {
             let one = RotationSession(kind: session.workoutKind, name: session.workoutName, completedAt: session.completedAt, status: session.status)
             if let kind = PlanRotation.lastRotationKind(sessions: [one], cycle: cycle) { doneByDay[session.dayKey] = kind }
         }
-        week = PlanRotation.projectWeek(weekKey: weekKey, todayKey: todayKey, trainingWeekdays: draft.trainingWeekdays, cycle: cycle, nextKind: next, completedKindByDay: doneByDay)
+        let history = try PlanLocal.trainingDays(for: userId, store: store) // A27 (a): a change this week leaves the days before it
+        week = PlanRotation.projectWeek(weekKey: weekKey, todayKey: todayKey, trainingDays: history, cycle: cycle, nextKind: next, completedKindByDay: doneByDay)
         rows = week.map { WeekMapRow.make($0, workouts: draft.workouts) }
         var after = next
         for _ in week.filter({ $0.state == .planned }) { after = PlanRotation.nextWorkoutKind(lastCompletedKind: after, cycle: cycle) }
@@ -137,8 +138,8 @@ final class PlanModel {
 
     private func persist(_ next: PlanDraft, now: Date) -> Bool {
         do {
-            try PlanLocal.replace(next, userId: userId, updatedAt: now, store: store)
-            try (syncQueue ?? SyncQueue.shared).enqueue(.putPlan, payload: PutPlanRequestDTO(trainingWeekdays: next.trainingWeekdays, workouts: next.workouts), now: now)
+            try PlanLocal.replace(next, userId: userId, updatedAt: now, timeZone: timeZone, store: store) // A27 (a): a change of days appends
+            try (syncQueue ?? SyncQueue.shared).enqueue(.putPlan, payload: PutPlanRequestDTO(trainingWeekdays: next.trainingWeekdays, workouts: next.workouts, savedAt: now), now: now)
             try project(now: now)
             errorLine = nil
             return true

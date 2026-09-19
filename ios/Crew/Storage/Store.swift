@@ -15,7 +15,7 @@ final class Store {
 
     // `url` is for the migration test alone (a store file written by an older schema); the app never passes one
     init(inMemory: Bool, url: URL? = nil) {
-        let schema = Schema(versionedSchema: CrewSchemaV2.self)
+        let schema = Schema(versionedSchema: CrewSchemaV3.self) // A27 (a): the current version
         let configuration = url.map { ModelConfiguration(url: $0) } ?? ModelConfiguration(isStoredInMemoryOnly: inMemory)
         do {
             container = try ModelContainer(for: schema, migrationPlan: CrewMigrationPlan.self, configurations: [configuration])

@@ -11,7 +11,7 @@ import { shapeChecks } from "./vector-shapes.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const vectorsDir = join(repoRoot, "shared", "vectors");
-const REQUIRED_IDS = [...Array.from({ length: 50 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b", ...Array.from({ length: 9 }, (_, index) => `V${57 + index}`), ...Array.from({ length: 19 }, (_, index) => `V${66 + index}`)]; // V41–V44 (S02) · V45–V50 achievements (2026-09-04) · V57–V65 nutrition (addendum §7, 2026-09-18) · V66–V84 rest days, A22 G1 (a) (2026-09-18)
+const REQUIRED_IDS = [...Array.from({ length: 50 }, (_, index) => `V${String(index + 1).padStart(2, "0")}`), "V18b", ...Array.from({ length: 9 }, (_, index) => `V${57 + index}`), ...Array.from({ length: 19 }, (_, index) => `V${66 + index}`), ...Array.from({ length: 6 }, (_, index) => `V${85 + index}`)]; // V41–V44 (S02) · V45–V50 achievements (2026-09-04) · V57–V65 nutrition (addendum §7, 2026-09-18) · V66–V84 rest days, A22 G1 (a) (2026-09-18) · V85–V90 training-days history, A27 (a) (2026-09-18)
 const problems = [];
 const fail = (id, message) => problems.push(`${id}: ${message}`);
 
