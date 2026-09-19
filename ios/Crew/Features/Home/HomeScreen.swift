@@ -50,7 +50,7 @@ struct HomeScreen: View {
                     .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showsReminder) { ReminderOptInSheet(userId: model.userId, storedReminderTime: AuthStore.shared.currentUser?.reminderTime) { showsReminder = false } }
-            .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() } }
+            .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() }.presentationDragIndicator(.visible) } // 6.3: the pull is seen
             .sheet(isPresented: $choosingBonus) { BonusWorkoutSheet(workouts: model.bonusWorkouts) { workout in choosingBonus = false; activeSession = model.startBonus(workout) } }
             // the choice is carried out once the "+" sheet is down, so a push or a second sheet never races the first one's dismissal
             .sheet(isPresented: $adding, onDismiss: runAddChoice) { HomeAddSheet(offersBonus: offersBonus) { choice in addChoice = choice; adding = false } }

@@ -38,6 +38,11 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true
+        # A28 (f) · system §11 ("no glass blur") · R-084 (10): on iOS 26 the platform draws its bars and toolbar buttons in Liquid
+        # Glass — a floating blurred tab bar over the content and a glass disc behind every toolbar glyph, which the approved mockups
+        # do not draw and §11 bans. Apple's compatibility key keeps the classic bars the Chrome appearance colours; earlier iOS
+        # ignores it.
+        UIDesignRequiresCompatibility: true
         # A28 (a) (2026-09-19): light is the default and dark is supported, so UIUserInterfaceStyle is ABSENT and the app follows the
         # phone (the key A21.10 as amended 2026-09-18 set to Light is lifted in R1, with the root view's preferredColorScheme).
         # A22 G2 (2026-09-18): the profile picture is the one photo left — the usage strings say exactly that

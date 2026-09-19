@@ -66,7 +66,8 @@ function readDesignTokens() {
     }
   }
   for (const [name, value] of Object.entries(tokens.focus.scale)) {
-    if (!Number.isInteger(value)) throw new Error(`design-tokens.json: focus.scale.${name} must be an integer`);
+    // the stepper's 1.5 pt ring is the system's one half-point size (§8); anything else is whole points
+    if (typeof value !== "number" || value <= 0 || !Number.isInteger(value * 2)) throw new Error(`design-tokens.json: focus.scale.${name} must be a positive whole or half point`);
   }
   for (const name of ["nearY", "nearBlur", "farY", "farBlur", "nearOpacity", "farOpacity"]) {
     if (typeof tokens.elevation[name] !== "number") throw new Error(`design-tokens.json: elevation.${name} must be a number`);

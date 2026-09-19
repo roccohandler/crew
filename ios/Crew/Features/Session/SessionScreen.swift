@@ -1,9 +1,10 @@
-// SPEC: S09 Session — one-tap set logging at pre-fill; ghost row after every set; warm-ups excluded from x/y; mobility holds
-// countdown + auto-check; survives kill (every tap saves); Complete always visible; skips gray; out-of-order works; VoiceOver-
-// complete; screen stays awake (Flow 3). 6.7: Complete visible without scrolling on the SE at XXL. A2 (owner-directed
-// 2026-09-08): a cardio block renders a CardioRow (minutes + optional distance, Done). A21.11 (owner-approved 2026-09-17; W6):
-// the TAB BAR IS HIDDEN during a session, and every non-active exercise is ONE COMPACT ROW — Flow 3's ▷ rows made literal:
-// name, its count, Open (or Unskip); the full card belongs to the active exercise alone. WRITTEN — UNVERIFIED. T025
+// SPEC: S09 Session as amended by A28 (c), (d), (f) (owner-approved 2026-09-19; design/targets 07–10) — THE LOGGER, ONE SET PER
+// SCREEN: a header (back, the workout's name, ⋯), the segmented workout bar, the count and "Whole workout", then either the SET
+// SCREEN (the exercise, one card of two metric rows, the fact line; "Swap exercise" and "Skip" as text; one filled "Log set N") or,
+// on the holds, the CHECKLIST (its one filled button is Finish). The whole-workout sheet carries Finish too (R-083 (21)); "+ set",
+// "+ warm-up", set removal and Discard live under ⋯, Discard behind its destructive confirm (the one place red appears). No timers
+// (A28 (c)): no rest countdown, no hold countdown, no session clock. Kept: the tab bar hidden (A21.11), every tap saves, the back
+// chevron leaves with the session open, the screen stays awake (Flow 3), E7's swap. WRITTEN — UNVERIFIED (needs Mac). T025 · R2
 
 import SwiftUI
 
@@ -12,8 +13,14 @@ struct SessionScreen: View {
     let onCompleted: (CelebrationOutcome) -> Void
     @State private var cue: String?
     @State private var showsDiscard = false
+    @State private var showsSheet = false
+    @State private var finishingFromSheet = false
     @State private var swapping: LocalSessionExercise?
     @State private var replacement: SeedExercise?
+    @State private var typing = TypedField.reps // what the keypad types: kept after the alert closes, so its Set button reads it
+    @State private var showsKeypad = false
+    @State private var typed = ""
+    @State private var plateLine: String?
     @Environment(\.dismiss) private var dismiss
 
     init(session: LocalSession, onCompleted: @escaping (CelebrationOutcome) -> Void) {
@@ -21,68 +28,59 @@ struct SessionScreen: View {
         self.onCompleted = onCompleted
     }
 
+    private var displayed: LocalSetLog? { model.focused.flatMap { model.displayedSet(of: $0) } }
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                // A9: the units question, asked once at the first moment it matters — never a modal, never blocking
-                if !model.unitsConfirmed {
-                    UnitConfirmLine(weightUnit: model.units, onKeep: { model.confirmUnits() }, onFlip: { Task { await model.flipUnits() } })
-                }
-                ForEach(Array(model.exercises.enumerated()), id: \.element.order) { index, exercise in
-                    exerciseCard(exercise, isFocused: index == model.focusIndex)
-                }
-                // SPEC: A11 — "Set removed · Undo", the same shape the plan editor's remove already uses (A4). It stays
-                // until the next removal or the workout ends; no timer, because a row that vanishes on a clock is a row
-                // you cannot get back (the editor's snackbar has the same deliberate omission, logged in debt.md).
-                if model.lastRemoved != nil {
-                    HStack {
-                        Text("Set removed").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                        Spacer()
-                        Button("Undo") { model.undoRemove(in: model.exercises) }
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(EmberColors.inkText)
-                            .frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                            .contentShape(Rectangle())
+            VStack(alignment: .leading, spacing: 0) {
+                WorkoutBar(model: model)
+                HStack(spacing: EmberTokens.Spacing.space12) {
+                    Text(numerals: model.countLine).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
+                    Spacer(minLength: EmberTokens.Spacing.space8)
+                    Button { showsSheet = true } label: {
+                        HStack(spacing: EmberTokens.Spacing.space4) {
+                            Text("Whole workout").typeRole(EmberTokens.Typography.textButton)
+                            Image(systemName: "chevron.down").font(.caption.weight(.bold))
+                        }
+                        .foregroundStyle(EmberColors.ink)
+                        .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                        .contentShape(Rectangle())
                     }
-                    .padding(.horizontal, EmberTokens.Spacing.space12)
-                    .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Whole workout")
                 }
-                // SPEC: A19.5 / R5 — "Discard workout" is GONE from here. It was the last row of the scroll,
-                // immediately above the Complete primary, which 6.3 forbids: a destructive control adjacent to a
-                // primary, at the exact moment the user reaches for Complete. It is a nav-bar item now, one
-                // confirmation dialog away, at the other end of the screen from the thumb that finishes a workout.
+                content.padding(.top, EmberTokens.Spacing.space32)
             }
-            .padding(EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.bottom, EmberTokens.Spacing.space24)
         }
-        // SPEC: A19.1 — the session's own bottom group becomes a real inset rather than a `VStack` sibling. The
-        // difference is the keyboard: the weight keypad used to cover "Complete workout", and a `VStack` sibling has
-        // no way to rise above it. It stays always-visible, which is what S09 asks for.
-        .crewBottomBar {
-            VStack(spacing: EmberTokens.Spacing.space8) {
-                Text(model.liveSummaryLine).font(.footnote.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) // S09 · A2: the live count, cardio appended
-                if let error = model.completeError { Text(error).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                PrimaryButton(title: "Complete workout") { model.complete() } // A21.9: the celebration's buttons decide the visibility
-            }
-        }
+        // A19.1 — the bottom group is a real inset: it rises above the keyboard and nothing scrolls under it (6.7: "Log set" and Finish
+        // visible without scrolling at the SE at accessibility-XXL)
+        .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle(model.session.workoutName)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar) // A21.11: a session owns the screen; the tabs return with Complete or Discard
-        // SPEC: A19.5 / R5 · 6.3 — the destructive action, as far from the primary as the screen allows. Still two
-        // steps (the dialog below asks), still reachable in one tap, and no longer the thing directly under Complete.
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Discard", role: .destructive) { showsDiscard = true }
-                    .font(.body)
-                    .foregroundStyle(EmberColors.inkText) // Part III law ①: ink, even destructive — the dialog carries the weight
-            }
-        }
+        .toolbar(.hidden, for: .tabBar) // A21.11: a session owns the screen; the tabs return with Finish or Discard
+        .toolbar { ToolbarItem(placement: .topBarTrailing) { menu } }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false; model.saveForLater() }
-        .onChange(of: model.celebration) { _, outcome in if let outcome { onCompleted(outcome) } }
+        .onChange(of: model.celebration) { _, outcome in if let outcome, !finishingFromSheet { onCompleted(outcome) } }
+        .onChange(of: model.focusIndex) { _, _ in plateLine = nil }
         .alert(cue ?? "", isPresented: Binding(get: { cue != nil }, set: { if !$0 { cue = nil } })) { Button("Got it") {} }
-        .confirmationDialog("Discard this workout?", isPresented: $showsDiscard) {
-            Button("Discard", role: .destructive) { model.discard(); dismiss() }
+        .alert(typing.title(units: model.units, distanceUnit: model.distanceUnit), isPresented: $showsKeypad) {
+            TextField(typing.title(units: model.units, distanceUnit: model.distanceUnit), text: $typed).keyboardType(typing.wholeNumber ? .numberPad : .decimalPad)
+            Button("Set") { commitTyped() }
+            Button("Cancel", role: .cancel) { typed = "" }
+        }
+        .confirmationDialog("Discard this workout?", isPresented: $showsDiscard, titleVisibility: .visible) {
+            Button("Discard", role: .destructive) { model.discard(); dismiss() } // A28 (a): red only here, inside the confirm
+        }
+        .sheet(isPresented: $showsSheet, onDismiss: { if finishingFromSheet, let outcome = model.celebration { onCompleted(outcome) } }) {
+            WholeWorkoutSheet(model: model, onJump: { model.jumpTo($0); showsSheet = false }) {
+                finishingFromSheet = true
+                model.complete()
+                if model.celebration != nil { showsSheet = false } else { finishingFromSheet = false }
+            }
         }
         .sheet(item: $swapping) { exercise in
             SwapSheet(candidates: model.swapCandidates(for: exercise)) { pick in replacement = pick } // E7: two taps, then one question
@@ -94,98 +92,89 @@ struct SessionScreen: View {
         }
     }
 
-    // SPEC: A21.11 — the active exercise gets the card; every other one is a compact row
     @ViewBuilder
-    private func exerciseCard(_ exercise: LocalSessionExercise, isFocused: Bool) -> some View {
-        if isFocused && !exercise.skipped { activeCard(exercise) } else { compactRow(exercise) }
-    }
-
-    // SPEC: A21.11 · Flow 3 ("▷ Incline Press · 3 × 10") — one row: the name, done/total work sets, and the one control it needs.
-    // 6.3: the row is ≥ 44 pt and the control is its own 44 pt target; a skipped exercise keeps its way back (Unskip).
-    private func compactRow(_ exercise: LocalSessionExercise) -> some View {
-        let sets = model.sets(of: exercise).filter { !$0.isWarmup }
-        let done = sets.filter(\.done).count
-        return HStack(spacing: EmberTokens.Spacing.space12) {
-            Text("▷ \(exercise.name)\(exercise.skipped ? " · skipped" : "")")
-                .font(.subheadline.weight(exercise.skipped ? .regular : .semibold))
-                .foregroundStyle(exercise.skipped ? EmberColors.secondaryText : EmberColors.inkText)
-                .lineLimit(1)
-            Spacer(minLength: EmberTokens.Spacing.space8)
-            if !exercise.skipped { Text("\(done)/\(sets.count)").font(.caption.monospacedDigit()).foregroundStyle(EmberColors.secondaryText) }
-            if exercise.skipped {
-                TextActionButton(title: "Unskip", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: "Unskip \(exercise.name)") { model.skip(exercise) }
-            } else {
-                TextActionButton(title: "Open", font: .caption, horizontalPadding: 0, accessibilityLabel: "Open \(exercise.name)") { model.jumpTo(exercise) }
-            }
+    private var content: some View {
+        if model.isOnChecklist {
+            MobilityChecklist(model: model)
+        } else if let exercise = model.focused, let set = displayed {
+            SetScreenBody(model: model, exercise: exercise, setLog: set, plateLine: plateLine,
+                          onCue: { cue = SeedCatalog.shared.exercise(exercise.exerciseId)?.cueLine },
+                          onTypeReps: { begin(.reps, "\(set.actualReps)") },
+                          onTypeWeight: { begin(.weight, set.weight.map { model.formatted($0).split(separator: " ").first.map(String.init) ?? "" } ?? "") },
+                          onTypeMinutes: { begin(.minutes, "\(model.cardioMinutes(of: set, in: exercise))") },
+                          onTypeDistance: { begin(.distance, "") })
         }
-        .padding(.horizontal, EmberTokens.Spacing.space12)
-        .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-        .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
-        .accessibilityElement(children: .contain)
     }
 
-    @ViewBuilder
-    private func activeCard(_ exercise: LocalSessionExercise) -> some View {
-        Card {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
-                HStack {
-                    Button { cue = SeedCatalog.shared.exercise(exercise.exerciseId)?.cueLine } label: {
-                        // SPEC: 6.5 (text ≥ 4.5:1) · Flow 3 ("skips gray") — a skipped name is quieter but still readable.
-                        // It used missedGray (#A8A29A), which measures 2.53:1 on a white card and fails the gate outright;
-                        // missedGray is a SHAPE colour (ring segments, heat-map cells), and secondaryText is the token the
-                        // system already designates for de-emphasised text. Still visibly gray, now legible.
-                        Text(exercise.name).font(.headline).foregroundStyle(exercise.skipped ? EmberColors.secondaryText : EmberColors.inkText)
-                            .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true) // 6.7: a long name wraps; it never pushes Swap and Skip past a 375-pt edge
-                    }.buttonStyle(.plain)
-                    Spacer(minLength: EmberTokens.Spacing.space8)
-                    EquipmentLabel(equipment: exercise.equipment) // A26: the tag with its SF Symbol, same ink, same size
-                    // SPEC: 6.3 — Swap and Skip were bare caption Buttons hit-tested at their own text box (~36×16 pt),
-                    // the exact shape TextActionButton was written to fix for "+ set" and never applied here. They share
-                    // this row with an exercise name that wraps, so they take the 44 pt minimum with NO extra slack.
+    // SPEC: A28 (d) — Swap exercise and Skip as text, then the ONE filled button: "Log set N" on the set screen, Finish on the checklist
+    private var bottomBar: some View {
+        VStack(spacing: EmberTokens.Spacing.space8) {
+            if !model.isOnChecklist, let exercise = model.focused {
+                Whisper(.howSwapSkip) // A23: the first time a session opens
+                HStack(spacing: EmberTokens.Spacing.space24) {
                     if exercise.type == "strength", !exercise.skipped {
-                        TextActionButton(title: "Swap", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: "Swap \(exercise.name)") { swapping = exercise }
+                        TextActionButton(title: "Swap exercise", role: EmberTokens.Typography.textButton) { swapping = exercise }
                     }
-                    TextActionButton(title: exercise.skipped ? "Unskip" : "Skip", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: exercise.skipped ? "Unskip \(exercise.name)" : "Skip \(exercise.name)") { model.skip(exercise) }
+                    TextActionButton(title: exercise.skipped ? "Unskip" : "Skip", accessibilityLabel: exercise.skipped ? "Unskip \(exercise.name)" : "Skip \(exercise.name)", role: EmberTokens.Typography.textButton) { model.skip(exercise) }
                 }
-                Whisper(.howSwapSkip) // A23: under Swap · Skip, the first time a session opens
-                if let last = model.lastTimeLine(for: exercise) { Text(last).font(.caption).foregroundStyle(EmberColors.secondaryText); Whisper(.howOverload) } // A23: under the first row that remembers last time (A12)
-                rows(exercise)
-                RestTimerView(timer: model.restTimer) // Flow 3: the countdown lives with the exercise that started it
+            }
+            if let error = model.completeError, !showsSheet { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) }
+            if model.isOnChecklist {
+                PrimaryButton(title: "Finish workout") { model.complete() }
+            } else if let exercise = model.focused, !exercise.skipped, let set = displayed {
+                PrimaryButton(title: set.isWarmup ? "Log warm-up" : "Log set \(model.setNumber(set, in: exercise))") { log(set, in: exercise) }
             }
         }
-        .accessibilityElement(children: .contain)
+        .padding(.horizontal, EmberTokens.Focus.gutter)
+        .padding(.vertical, EmberTokens.Spacing.space12)
+        .background(EmberColors.canvas)
     }
 
-    @ViewBuilder
-    private func rows(_ exercise: LocalSessionExercise) -> some View {
-        let sets = model.sets(of: exercise)
-        let firstOpen = sets.firstIndex { !$0.done && !$0.isWarmup }
-        ForEach(Array(sets.enumerated()), id: \.element.order) { index, set in
-            if exercise.type == "mobility" {
-                MobilityHoldRow(name: exercise.name, setLog: set, perSide: SeedCatalog.shared.exercise(exercise.exerciseId)?.perSide ?? false) { model.finishHold(set) }
-            } else if exercise.type == "cardio" { // A2: minutes + optional distance, Done
-                CardioRow(name: exercise.name, setLog: set, targetSeconds: exercise.holdSeconds ?? set.holdSeconds ?? 0, distanceUnit: model.distanceUnit) { model.finishCardio(set, minutes: $0, distanceMeters: $1) }
-            } else {
-                // A11: swipe reveals Remove; the engine refuses on the last work set (V55) so the gesture is disabled there
-                SwipeToRemove(isEnabled: model.canRemove(set, in: exercise), label: set.isWarmup ? "warm-up" : "set \(sets[...index].filter { !$0.isWarmup }.count)", onRemove: { model.removeSet(set, in: exercise) }) {
-                SetRow(exerciseName: exercise.name, equipment: exercise.equipment, set: set, index: sets[...index].filter { !$0.isWarmup }.count, count: sets.filter { !$0.isWarmup }.count, units: model.units,
-                       isGhost: firstOpen.map { index > $0 } ?? false,
-                       isOpen: firstOpen == index, // A10: the tape belongs to the set you are on
-                       canRemove: model.canRemove(set, in: exercise), // A11: absent on the last work set (V55)
-                       onSetWeight: { model.setWeight(set, to: $0) },
-                       onRemove: { model.removeSet(set, in: exercise) },
-                       onCheck: { model.checkSet(set, in: exercise) }, onReps: { model.adjustReps(set, by: $0) }, onWeight: { model.adjustWeight(set, by: $0) })
+    // SPEC: A28 (d) — "+ set", "+ warm-up", set removal (A11: absent on the last work set, V55) and its undo, plate math on demand, and
+    // Discard, under ⋯ so Swap and Skip stay visible (system §9)
+    private var menu: some View {
+        Menu {
+            if let exercise = model.focused, exercise.type == "strength", !exercise.skipped {
+                Button("+ set") { model.addSet(to: exercise) }.accessibilityLabel("Add a set")
+                Button("+ warm-up") { model.addWarmup(to: exercise) }.accessibilityLabel("Add a warm-up set")
+                if let set = displayed, model.canRemove(set, in: exercise) {
+                    Button(set.isWarmup ? "Remove this warm-up" : "Remove set \(model.setNumber(set, in: exercise))") { model.removeSet(set, in: exercise) }
+                }
+                if exercise.equipment == "barbell", let weight = displayed?.weight {
+                    Button("Show the plates") { plateLine = PlateMath.plateLine(totalWeight: weight, units: model.units) }
                 }
             }
+            if model.lastRemoved != nil { Button("Undo the removal") { model.undoRemove(in: model.exercises) } }
+            Button("Discard workout") { showsDiscard = true }
+        } label: {
+            Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(EmberColors.ink)
+                .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
         }
-        if exercise.type == "strength" {
-            // SPEC: 6.3 — each of these is its own ≥ 44 pt target. The minHeight used to sit on the enclosing HStack,
-            // which sizes the ROW but leaves each bare Button's hit rect at its text box (~40×18 pt and ~76×18 pt) —
-            // the owner's "the hit boxes feel too small". A frame plus contentShape on the LABEL is what moves the target.
-            HStack(spacing: EmberTokens.Spacing.space16) {
-                TextActionButton(title: "+ set", accessibilityLabel: "Add a set to \(exercise.name)") { if let last = sets.last { model.addSet(after: last, in: exercise) } }
-                TextActionButton(title: "+ warm-up", accessibilityLabel: "Add a warm-up set to \(exercise.name)") { model.addWarmup(to: exercise) }
-            }
+        .accessibilityLabel("More")
+    }
+
+    private func log(_ set: LocalSetLog, in exercise: LocalSessionExercise) {
+        plateLine = nil
+        if exercise.type == "cardio" { model.logCardio(set, in: exercise) } else { model.logSet(set, in: exercise) }
+        if model.nothingOpen { showsSheet = true } // every exercise done or skipped: what is left is Finish, and Finish lives there
+    }
+
+    private func begin(_ field: TypedField, _ current: String) {
+        typed = current
+        typing = field
+        showsKeypad = true
+    }
+
+    // SPEC: Flow 3 "invalid values impossible" — a typed number is clamped (and a weight snapped) by the model on commit
+    private func commitTyped() {
+        defer { typed = "" }
+        guard let exercise = model.focused, let set = displayed,
+              let value = Double(typed.replacingOccurrences(of: ",", with: ".")) else { return }
+        switch typing {
+        case .reps: model.setReps(set, to: Int(value))
+        case .weight: model.setWeight(set, to: value)
+        case .minutes: model.setCardioMinutes(set, to: Int(value), in: exercise)
+        case .distance: model.setDistance(set, to: value)
         }
     }
 }

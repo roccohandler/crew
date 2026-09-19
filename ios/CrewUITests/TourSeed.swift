@@ -25,6 +25,14 @@ extension SeedClient {
         }
     }
 
+    // A26 · A28 (d): every workout closes with its canonical mobility block (plan-templates.json mobilityBlocks), as a real install
+    // does — the Home card and the Logger's checklist have holds to show (ui-reviewer, run 35440565004: no "Mobility · 3 holds" row)
+    private func tourHolds(_ rows: [(id: String, name: String, seconds: Int, perSide: Bool)], after strength: Int) -> [[String: Any]] {
+        rows.enumerated().map { offset, row in
+            ["exerciseId": row.id, "name": row.name, "pattern": "mobility", "equipment": "bodyweight", "type": "mobility", "targetSets": 1, "targetReps": 0, "holdSeconds": row.seconds, "perSide": row.perSide, "order": strength + offset]
+        }
+    }
+
     private func tourWorkouts() -> [[String: Any]] {
         let ropeCurl = (id: "cable-rope-curl", name: "Cable Rope Biceps Curl", pattern: "biceps", equipment: "cable")
         return [
@@ -32,15 +40,15 @@ extension SeedClient {
                 ("barbell-bench-press", "Barbell Bench Press", "horizontalPush", "barbell"), ("cable-rope-triceps-extension", "Cable Rope Triceps Extension", "triceps", "cable"),
                 ("machine-incline-press", "Machine Incline Press", "horizontalPush", "machine"), ("cable-triceps-pushdown", "Cable Bar Triceps Extension", "triceps", "cable"),
                 ("machine-decline-press", "Machine Decline Press", "horizontalPush", "machine"),
-            ])],
+            ]) + tourHolds([("doorway-pec-stretch", "Rack Pec Stretch", 60, true), ("thoracic-opener", "Thoracic Opener", 90, false), ("childs-pose", "Child's Pose", 90, false)], after: 5)],
             ["name": "Pull day", "kind": "pull", "exercises": tourRows([
                 ("lat-pulldown", "Lat Pulldown", "verticalPull", "machine"), ropeCurl, ("machine-row", "Seated Machine Row", "horizontalPull", "machine"), ropeCurl,
                 ("cable-face-pull", "Cable Face Pull", "rearDelt", "cable"), ropeCurl,
-            ])],
+            ]) + tourHolds([("wall-lat-stretch", "Wall Lat Stretch", 90, false), ("cross-body-shoulder-stretch", "Cross-Body Shoulder Stretch", 60, true), ("cat-cow", "Cat-Cow", 90, false)], after: 6)],
             ["name": "Leg day", "kind": "legs", "exercises": tourRows([
                 ("machine-standing-calf-raise", "Standing Calf Raise", "calf", "machine"), ("leg-press", "Leg Press", "squat", "machine"), ("leg-extension", "Leg Extension", "squat", "machine"),
                 ("seated-leg-curl", "Seated Hamstring Curl", "hinge", "machine"), ("dumbbell-walking-lunge", "Dumbbell Lunge", "lunge", "dumbbell"),
-            ])],
+            ]) + tourHolds([("couch-stretch", "Wall Hip Flexor Stretch", 90, true), ("pigeon-stretch", "Pigeon Stretch", 60, true), ("wall-calf-stretch", "Wall Calf Stretch", 45, true)], after: 5)],
         ]
     }
 
@@ -59,7 +67,8 @@ extension SeedClient {
         let instant = stamp.string(from: Date().addingTimeInterval(-TimeInterval(daysAgo) * Self.secondsPerDay))
         let workout = tourWorkouts()[(Self.seededDays - daysAgo) % 3]
         let load = Double(135 + (Self.seededDays - daysAgo) * 5)
-        let rows = (workout["exercises"] as? [[String: Any]] ?? []).map { row -> [String: Any] in
+        let strengthRows = (workout["exercises"] as? [[String: Any]] ?? []).filter { ($0["type"] as? String) == "strength" } // the logged history is lifts
+        let rows = strengthRows.map { row -> [String: Any] in
             let set: [String: Any] = ["targetReps": 8, "actualReps": 8, "weight": load, "weightUnit": "lb", "holdSeconds": NSNull(), "distanceMeters": NSNull(), "isWarmup": false, "done": true]
             var exercise = row
             exercise.removeValue(forKey: "pattern")

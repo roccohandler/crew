@@ -16,19 +16,23 @@ import SwiftUI
 struct StepButton: View {
     let symbol: String
     let noun: String
+    var focus = false // A28 (f): the system's stepper — a 52 pt circle, a 1.5 pt controlBorder ring, a 22 pt ink glyph (redesigned screens)
     let action: () -> Void
     @State private var generation = 0
     @State private var steppedWhileHeld = false
     @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt) // 6.5: grows with Dynamic Type
+    @ScaledMetric private var focusDiameter: CGFloat = EmberTokens.Focus.stepper
+    @ScaledMetric private var focusGlyph: CGFloat = EmberTokens.Focus.stepperGlyph
 
     var body: some View {
         Image(systemName: symbol)
-            .font(.body.weight(.semibold))
-            .foregroundStyle(EmberColors.inkText)
-            .frame(width: minTarget, height: minTarget)
+            .font(focus ? .system(size: focusGlyph, weight: .medium) : .body.weight(.semibold))
+            .foregroundStyle(EmberColors.ink)
+            .frame(width: focus ? focusDiameter : minTarget, height: focus ? focusDiameter : minTarget)
             // A18.11 — the plus/minus on every set: a control boundary, so controlOutline (3.32:1 on a card, 3.13:1 on the canvas) and
-            // never the 1.26:1 hairline family, which is for the seam between two surfaces.
-            .overlay(Circle().stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
+            // never the 1.26:1 hairline family, which is for the seam between two surfaces. A28 (f) / R-083 (2): the system's stepper
+            // draws a ~1.6:1 controlBorder ring and is identified by its ink glyph, which clears 3:1.
+            .overlay(Circle().stroke(focus ? EmberColors.controlBorder : EmberColors.controlOutline, lineWidth: focus ? EmberTokens.Focus.stepperBorder : EmberTokens.Size.hairline))
             .contentShape(Circle()) // the whole 44 pt circle is the target, not the glyph inside it
             .onTapGesture { if !steppedWhileHeld { action() } }
             .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
@@ -48,6 +52,30 @@ struct StepButton: View {
             steppedWhileHeld = true
             action()
             stepWhileHeld(mine, afterMs: SpecConstants.longPressStepIntervalMs)
+        }
+    }
+}
+
+// A stepper with ± buttons ≥ 44 pt (Shared/StepButton.swift); a hold repeats (Flow 3 fast-scroll). `noun` names what the buttons change to
+// VoiceOver ("Decrease reps", "Increase weight") — a row holds two steppers, so a bare "Decrease" says nothing (E20)
+struct Stepper: View {
+    let label: String
+    let noun: String
+    let onStep: (Int) -> Void
+    @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt)
+
+    var body: some View {
+        HStack(spacing: EmberTokens.Spacing.space4) {
+            StepButton(symbol: "minus", noun: noun) { onStep(-1) }
+            // SPEC: 6.3 — the readout swallows its own taps, so a tap aimed at the value never reaches a row gesture beneath it
+            Text(label)
+                .font(.body.monospacedDigit())
+                .foregroundStyle(EmberColors.inkText)
+                .frame(minWidth: minTarget) // a touch target's width, not the ring's: two steppers must share a 375-pt row (6.7)
+                .contentShape(Rectangle())
+                .onTapGesture {}
+                .accessibilityHidden(true) // the value is spoken by the row that holds it (E20)
+            StepButton(symbol: "plus", noun: noun) { onStep(1) }
         }
     }
 }

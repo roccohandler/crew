@@ -21,12 +21,15 @@ today" is where mockup 01 draws it — R-084 reads GAP 5 as that card, and only 
 | `04-home-rest-day-{light,dark}.png` | Home — rest day: no filled button, the card carries tomorrow | `tour_hometests/NN_home_home_restday.png`, `…_restday_dark.png` |
 | `05-home-done-{light,dark}.png` | Home — done: no filled button, "Edit today's log" as text | `tour_sessiontests/NN_home_home_done.png`, `…_done_dark.png` |
 | `06-home-off-season-{light,dark}.png` | Home — off-season (paused): snowflake, the ring stays accent, "End the pause" | `tour_settingstests/NN_home_home_paused.png`, `…_paused_dark.png` |
-| `07-logger-start-{light,dark}.png` | Logger — set 1: last time below the card | `tour_sessiontests/NN_session_logger_start.png`, `tour_sessiontests/NN_session_logger_longname.png` (set 1 of the second exercise) |
-| `08-logger-mid-set-{light,dark}.png` | Logger — mid-set: the running ledger replaces the last-time line | `tour_sessiontests/NN_session_logger_midset.png` |
-| `09-logger-whole-workout-{light,dark}.png` | Logger — the whole-workout sheet: jump between exercises; **Finish lives here** | none yet — the Logger session adds the tour step |
-| `10-logger-mobility-{light,dark}.png` | Logger — the mobility checklist: tick the holds, Mark all done, Finish | none yet — the Logger session adds the tour step |
-| `11-logger-after-finish-{light,dark}.png` | Logger — after Finish: the celebration (flame, streak, XP, share or keep private) | `tour_sessiontests/NN_session_celebration_complete.png` |
+| `07-logger-start-{light,dark}.png` | Logger — set 1: last time below the card | `tour_sessiontests/NN_session_logger_start.png`, `…_logger_longname.png` (set 1 of the second exercise); no dark shot yet (debt) |
+| `08-logger-mid-set-{light,dark}.png` | Logger — mid-set: the running ledger replaces the last-time line | `tour_sessiontests/NN_session_logger_midset.png`, `…_midset_dark.png` |
+| `09-logger-whole-workout-{light,dark}.png` | Logger — the whole-workout sheet: jump between exercises; **Finish lives here** | `tour_sessiontests/NN_session_whole_workout_sheet.png`, `…_sheet_dark.png` |
+| `10-logger-mobility-{light,dark}.png` | Logger — the mobility checklist: tick the holds, Mark all done, Finish | `tour_sessiontests/NN_session_logger_mobility.png`, `…_mobility_dark.png` |
+| `11-logger-after-finish-{light,dark}.png` | Logger — after Finish: the celebration (flame, streak, XP, share or keep private) | `tour_sessiontests/NN_session_celebration_complete.png`, `tour_hometests/NN_session_celebration_complete_dark.png` |
 | `12-progress-{light,dark}.png` | Progress — top: title, the season line, the heat map; no accent | `tour_progresstests/NN_progress_charts_filled.png` |
+
+The Logger's other shots — the weight keypad (`session_weight_alert`), ⋯ (`session_more_menu`), the discard confirm and the swap sheet —
+have no mockup and are judged against DESIGN.md alone.
 
 The "+" sheet (`tour_hometests/NN_home_add_sheet.png`, `…_add_sheet_rest.png`) has no mockup: A28 (d) names the "+" and the
 system draws its sheet surface (§6, the card on a scrim), so it is judged against DESIGN.md alone.

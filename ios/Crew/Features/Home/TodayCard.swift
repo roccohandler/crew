@@ -43,7 +43,7 @@ struct TodayCard: View {
             Text(title).typeRole(EmberTokens.Typography.screenTitle).foregroundStyle(EmberColors.ink)
                 .fixedSize(horizontal: false, vertical: true) // 6.7: a long workout name wraps
             ForEach(Array(sublines.enumerated()), id: \.offset) { _, line in
-                Text(line).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
+                Text(numerals: line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary) // mockups 03–06: a step under the rows
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -101,7 +101,7 @@ struct TodayCard: View {
             Text(name).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
                 .fixedSize(horizontal: false, vertical: true) // 6.7: a long name wraps, it never pushes the target past the edge
             Spacer(minLength: EmberTokens.Spacing.space8)
-            Text(detail).typeRole(EmberTokens.Typography.bodySemibold, numeral: true).foregroundStyle(EmberColors.inkSecondary)
+            Text(numerals: detail).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.inkSecondary)
         }
     }
 
@@ -113,7 +113,7 @@ struct TodayCard: View {
                 Text(facts.name ?? facts.detail).typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: EmberTokens.Spacing.space8)
-                if let size = facts.size { Text(size).typeRole(EmberTokens.Typography.secondary, numeral: true).foregroundStyle(EmberColors.inkSecondary) }
+                if let size = facts.size { Text(numerals: size).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary) }
             }
         }
         .accessibilityElement(children: .ignore)

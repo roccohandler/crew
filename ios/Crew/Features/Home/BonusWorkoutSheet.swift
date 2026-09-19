@@ -19,7 +19,7 @@ struct BonusWorkoutSheet: View {
                             .listRowBackground(EmberColors.card)
                     }
                 } footer: {
-                    Text("Never expected. Pick whatever you feel like.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                    Text("A bonus workout is never expected.").font(.footnote).foregroundStyle(EmberColors.secondaryText) // Flow 5's words; A28 (e): no imperative outside a button label
                 }
             }
             .scrollContentBackground(.hidden)

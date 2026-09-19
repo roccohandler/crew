@@ -21,7 +21,7 @@ final class Tour_HomeTests: XCTestCase {
         tourShot(app, "home_home_filled", "launched as a member with a six-day streak, a crew and today's workout open")
         if tourTap(app.buttons["home.add"]) {
             tourShot(app, "home_add_sheet", "tapped + on a training day")
-            if tourTap(app.buttons["Log cardio"], timeout: 5) {
+            if tourTap(app.buttons["home.add.cardio"], timeout: 5) {
                 _ = app.navigationBars["Log cardio"].waitForExistence(timeout: 10)
                 tourShot(app, "home_cardiolog_empty", "tapped Log cardio in the + sheet")
                 tourBack(app)
@@ -30,6 +30,11 @@ final class Tour_HomeTests: XCTestCase {
         tourLaunch(app, as: member, dark: true)
         tourWaitForHome(app)
         tourShot(app, "home_home_filled_dark", "the same Home with the phone in dark mode")
+        // A28 (a), (b) — the celebration in Midnight (mockup 11 dark): Quick complete is the shortest way to one
+        if tourTap(app.buttons["Quick complete"], timeout: 5) {
+            _ = app.buttons["Share to crew"].waitForExistence(timeout: 15)
+            tourShot(app, "session_celebration_complete_dark", "tapped Quick complete in dark mode")
+        }
     }
 
     func testRestDay() async throws {
@@ -40,7 +45,7 @@ final class Tour_HomeTests: XCTestCase {
         tourShot(app, "home_home_restday", "launched on a rest day")
         if tourTap(app.buttons["home.add"]) {
             tourShot(app, "home_add_sheet_rest", "tapped + on a rest day — cardio and a bonus workout")
-            if tourTap(app.buttons["Bonus workout"], timeout: 5) {
+            if tourTap(app.buttons["home.add.bonus"], timeout: 5) {
                 _ = app.navigationBars["Bonus workout"].waitForExistence(timeout: 10)
                 tourShot(app, "home_bonus_sheet", "tapped Bonus workout in the + sheet")
                 tourDismissSheet(app)

@@ -51,7 +51,10 @@ One table, both modes. Nothing in the UI uses a colour that is not on it.
   sheet and mobility checklist, and Progress; two (flame + ring) on training, rest and done Home; one (the ring) on off-season
   Home; three (flame, XP numeral, XP unit) on the celebration. Onboarding is pure ink-on-canvas (Part III, Onboarding).
 - **1.3 The flame's states:** accent while the streak is alive · `inkMuted` at zero · off-season a snowflake in `inkSecondary`
-  while the ring stays accent, because those workouts happened (A28 (b)).
+  while the ring stays accent, because those workouts happened (A28 (b)). The numeral beside it is ink, except off-season, where
+  it is `inkSecondary` as mockup 06 draws it. At zero it has no eyebrow, because nothing captions a streak of zero (A8, A18.1).
+  The ring appears once the week holds a completed workout (A18.2, R-084 (1)). A rest or zero week can therefore show the unlit
+  flame and its "0" alone, which spends no accent.
 - **1.4 Ink is navy, not charcoal** (A28 (a)). The filled capsule inverts with the mode: navy fill + cream label in light, cream
   fill + navy label in dark. The two accents are one hue (27.0° / 26.9°) — the dark one is the light one lifted, never re-picked.
 - **1.5 No third hue.** No green for done, no blue for links; **red only inside a destructive confirm sheet**, in both modes

@@ -41,12 +41,13 @@ final class OfflineSessionTests: XCTestCase {
         XCTAssertTrue(startFirst.waitForExistence(timeout: 5), "every day is a training day, so the bridge CTA is the workout")
         startFirst.tap()
 
-        // One tap logs set 1 at its pre-filled numbers — and that tap is saved before anything else happens (Flow 3)
-        let firstSet = app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of'")).firstMatch
-        XCTAssertTrue(firstSet.waitForExistence(timeout: 5))
-        expectOnScreen(firstSet, in: app, "the first set row") // 6.7 (JourneySteps.swift)
-        firstSet.tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of' AND label CONTAINS 'done'")).firstMatch.waitForExistence(timeout: 15))
+        // One tap logs set 1 at its pre-filled numbers — and that tap is saved before anything else happens (Flow 3). A28 (d): the
+        // Logger is one set per screen, so a logged set 1 is proved by the screen moving on to set 2 and the ledger naming set 1.
+        let logFirst = app.buttons["Log set 1"]
+        XCTAssertTrue(logFirst.waitForExistence(timeout: 5))
+        expectOnScreen(logFirst, in: app, "Log set 1") // 6.7 (JourneySteps.swift)
+        logFirst.tap()
+        XCTAssertTrue(app.buttons["Log set 2"].waitForExistence(timeout: 15))
         shoot(app, "S09 session — set 1 done, about to be killed")
 
         // The kill: no warning, no save button. A relaunch (signed in, nothing reset) must offer the open session back.
@@ -71,8 +72,9 @@ final class OfflineSessionTests: XCTestCase {
         XCTAssertTrue(resume.waitForExistence(timeout: 20), "the bridge offers no way back into the open session after a kill; Home says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         shoot(app, "S07 Home — the bridge resumes the open session after a kill")
         resume.tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of' AND label CONTAINS 'done'")).firstMatch.waitForExistence(timeout: 5), "the checked set did not survive the kill")
-        XCTAssertTrue(app.buttons["Complete workout"].exists) // always visible (S09)
+        XCTAssertTrue(app.buttons["Log set 2"].waitForExistence(timeout: 5), "the logged set did not survive the kill")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Set 1 ·' AND label ENDSWITH 'done'")).firstMatch.exists, "the ledger lost set 1")
+        XCTAssertTrue(app.buttons["Whole workout"].exists) // A28 (d): Finish is one tap away, in the sheet
         shoot(app, "S09 session — resumed with set 1 still done")
     }
 }

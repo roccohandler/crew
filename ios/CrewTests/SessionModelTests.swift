@@ -1,5 +1,5 @@
-// SPEC: T025 (Verify: ios tests + S09 criteria) — one-tap set logging at pre-fill, ghost row, warm-ups excluded from x/y, holds
-// auto-check, out-of-order, skips, completion numbers match the engine (S10), plate math. A2 (owner-directed
+// SPEC: T025 (Verify: ios tests + S09 criteria) as amended by A28 (c), (d) — one set per screen at pre-fill, warm-ups excluded from
+// x/y, holds as checks (no countdown), out-of-order, skips, completion numbers match the engine (S10), plate math. A2 (owner-directed
 // 2026-09-08): a cardio block's Done stores minutes as seconds plus an optional bounded distance, and the celebration line reads
 // "+ Walk 25 min"; A6: the journal line for the session. A1: the fixture is a rotation plan (trainingWeekdays + ordered
 // workouts, no weekday). In-memory Store (C4). WRITTEN — UNVERIFIED (needs Mac).
@@ -44,15 +44,15 @@ final class SessionModelTests: XCTestCase {
         model.addWarmup(to: first)
         XCTAssertEqual(model.facts.setsPlanned, SpecConstants.templatePushExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax) // warm-ups never count
         let firstWork = model.sets(of: first).first { !$0.isWarmup }!
-        model.checkSet(firstWork, in: first)
+        XCTAssertTrue(model.displayedSet(of: first)?.isWarmup ?? false) // A28 (d): the warm-up opens the exercise, one set per screen
+        model.logSet(firstWork, in: first)
         XCTAssertTrue(firstWork.done)
         XCTAssertTrue(firstWork.asPlanned)
-        XCTAssertTrue(model.restTimer.isRunning)
+        model.selectedSetOrder = firstWork.order // the ledger row, picked to correct it
+        XCTAssertTrue(model.displayedSet(of: first) === firstWork)
         model.adjustReps(firstWork, by: -3)
         XCTAssertEqual(firstWork.actualReps, SpecConstants.templateTargetReps - 3)
-        model.checkSet(firstWork, in: first)
-        model.checkSet(firstWork, in: first)
-        XCTAssertFalse(firstWork.asPlanned) // V33: done, below target
+        XCTAssertFalse(firstWork.asPlanned) // V33: done, below target — a correction re-judges the set
         XCTAssertTrue(model.canComplete)
         model.complete()
         let outcome = try XCTUnwrap(model.celebration)
@@ -73,7 +73,8 @@ final class SessionModelTests: XCTestCase {
         XCTAssertTrue(model.exercises[0].skipped)
         XCTAssertEqual(model.focusIndex, 1) // out-of-order: focus moves on
         let hold = model.exercises.first { $0.type == "mobility" }!
-        model.finishHold(model.sets(of: hold)[0])
+        model.toggleHold(hold) // A28 (c): a hold is a check, never a countdown
+        XCTAssertTrue(model.sets(of: hold)[0].done)
         XCTAssertTrue(model.canComplete) // a hold counts as a set (Flow 2 "18/18")
         model.adjustWeight(model.sets(of: model.exercises[1])[0], by: 1)
         XCTAssertEqual(model.sets(of: model.exercises[1])[0].weight, SpecConstants.weightStepKg)
@@ -136,5 +137,42 @@ final class SessionModelTests: XCTestCase {
     func testPlateMath() { // A22: the meal-tag half left with the plate journal (MealTag is gone)
         XCTAssertEqual(PlateMath.plateLine(totalWeight: 190, units: "lb"), "45 + 25 + 2.5 per side")
         XCTAssertEqual(PlateMath.plateLine(totalWeight: 45, units: "lb"), "just the bar")
+    }
+
+    // SPEC: A28 (d) — one set per screen: Log set walks the exercise's sets in order, the last one hands the screen to the next
+    // exercise, and after the strength work the holds' checklist takes it; "Mark all done" ticks every hold and leaves nothing open
+    func testLogSetWalksTheWorkoutOneSetAtATime() throws {
+        let (store, session) = try sessionInStore()
+        let model = SessionModel(session: session, store: store, units: "lb")
+        let first = try XCTUnwrap(model.focused)
+        XCTAssertEqual(model.countLine, "0 of \(model.facts.setsPlanned) sets")
+        for number in 1...model.workSets(of: first).count {
+            let set = try XCTUnwrap(model.displayedSet(of: first))
+            XCTAssertEqual(model.setNumber(set, in: first), number)
+            model.logSet(set, in: first)
+        }
+        XCTAssertEqual(model.focusIndex, 1) // the exercise is done: the next one takes the screen
+        for exercise in model.exercises where exercise.type == "strength" { for set in model.sets(of: exercise) where !set.done { model.logSet(set, in: exercise) } }
+        XCTAssertTrue(model.isOnChecklist) // A28 (f): the holds are the last screen
+        XCTAssertFalse(model.nothingOpen)
+        model.markAllHolds()
+        XCTAssertTrue(model.nothingOpen)
+        XCTAssertEqual(model.facts.setsDone, model.facts.setsPlanned)
+    }
+
+    // SPEC: A28 (f) — the value button's keypad: a typed weight is clamped and snapped to a loadable step; a typed count is clamped
+    func testTypedNumbersAreClampedAndSnapped() throws {
+        let (store, session) = try sessionInStore()
+        let model = SessionModel(session: session, store: store, units: "lb")
+        let set = try XCTUnwrap(model.displayedSet(of: try XCTUnwrap(model.focused)))
+        model.setWeight(set, to: 152)
+        XCTAssertEqual(set.weight, 150)
+        XCTAssertEqual(set.weightUnit, "lb")
+        model.setWeight(set, to: Double(SpecConstants.setWeightMax + 1))
+        XCTAssertEqual(set.weight, Double(SpecConstants.setWeightMax))
+        model.setReps(set, to: -4)
+        XCTAssertEqual(set.actualReps, 0)
+        model.setReps(set, to: SpecConstants.planTargetRepsMax + 1)
+        XCTAssertEqual(set.actualReps, SpecConstants.planTargetRepsMax)
     }
 }

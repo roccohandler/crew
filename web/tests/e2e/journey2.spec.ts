@@ -49,7 +49,7 @@ test("a returning member logs in, fast-logs today in three taps, and a crewmate'
   await waitForHydration(captain, "button");
   await captain.getByRole("button", { name: "Quick complete" }).click();
   await expect(captain).toHaveURL(/\/session\/[a-f0-9]+\/done(\?earned=.+)?$/, { timeout: 15_000 });
-  await expect(captain.getByText(/^\d+\/\d+ sets · \d+ min/)).toBeVisible();
+  await expect(captain.getByText(/ · \d+ of \d+ sets/)).toBeVisible(); // A28 (c): the day in the journal's sentence, no minutes
   // (E8's "Showed up" is not asserted here any more: A22 seeds the returning member with a walk, and that completion already earned it)
   await expectNoHorizontalScroll(captain);
   await captain.getByRole("link", { name: "Done" }).click();

@@ -28,7 +28,7 @@ struct HomeRewardBlock: View {
             .frame(maxWidth: .infinity)
             if !isPaused, streak > 0 { Whisper(.whyStreak) } // A23: the first lit flame
             if !isPaused, shields > 0 { // GAP: A28 GAP 3, R-084 (1) — A17.1 / H020 kept: the shield fact stays one quiet line
-                Text(shields == 1 ? "1 shield ready — one missed day won't break the streak." : "\(shields) shields ready — a missed day won't break the streak.")
+                Text(numerals: shields == 1 ? "1 shield ready — one missed day won't break the streak." : "\(shields) shields ready — a missed day won't break the streak.")
                     .typeRole(EmberTokens.Typography.caption)
                     .foregroundStyle(EmberColors.inkSecondary)
                     .multilineTextAlignment(.center)

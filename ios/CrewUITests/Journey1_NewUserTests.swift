@@ -62,25 +62,26 @@ final class Journey1_NewUserTests: XCTestCase {
         XCTAssertTrue(startFirst.exists, "the plan trains every day, so the bridge must offer the first workout, not the bonus")
         if startFirst.exists {
             startFirst.tap()
-            // S09: check the first set, run one hold, complete
-            let firstSet = app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of'")).firstMatch
-            XCTAssertTrue(firstSet.waitForExistence(timeout: 5))
-            // 6.7: the row, its Skip and the Complete button all lie inside the window (the iOS overflow check, JourneySteps.swift)
-            expectOnScreen(firstSet, in: app, "the first set row")
-            // A20.11 — A19 (cb84202) gave this button a REAL VoiceOver name, `Skip \(exercise.name)`
-            // (SessionScreen.swift:115), so `app.buttons["Skip"]` matched the bare title before A19 and matches
-            // nothing after it. The app is right — E20 wants a control that says what it skips — and the query was
-            // stale; it had simply never run, the last executed ios job (334ad67) predating A19 by a day.
-            // The rest timer's "Skip the rest timer" is excluded: it is a different control on a different surface.
-            let firstSkip = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Skip ' AND NOT (label CONTAINS 'rest timer')")).firstMatch
+            // S09 as A28 (d) draws it: ONE SET PER SCREEN — the card, "Swap exercise" and "Skip" as text, one filled "Log set 1"
+            let logFirst = app.buttons["Log set 1"]
+            XCTAssertTrue(logFirst.waitForExistence(timeout: 5), "the Logger opened without its one filled button — it says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+            // 6.7: Skip and Log set both lie inside the window (the iOS overflow check, JourneySteps.swift). E20 / A19: Skip names what it skips.
+            let firstSkip = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Skip '")).firstMatch
             XCTAssertTrue(firstSkip.waitForExistence(timeout: 5), "the session offered no Skip for its first exercise")
             expectOnScreen(firstSkip, in: app, "the first Skip")
-            expectOnScreen(app.buttons["Complete workout"], in: app, "Complete workout")
-            firstSet.tap()
-            shoot(app, "S09 session")
-            app.buttons["Complete workout"].tap()
-            // S10 celebration: XP counts in, then Done (A21.9: a solo user's one button — the post follows the tap)
-            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '+'")).firstMatch.waitForExistence(timeout: 5))
+            expectOnScreen(logFirst, in: app, "Log set 1")
+            logFirst.tap()
+            XCTAssertTrue(app.buttons["Log set 2"].waitForExistence(timeout: 5), "Log set 1 did not hand the screen to set 2")
+            shoot(app, "S09 session — set 2, the ledger under the card")
+            // A28 (d) · R-083 (21): Finish lives in the whole-workout sheet, and on the checklist of holds
+            app.buttons["Whole workout"].tap()
+            let finish = app.buttons["Finish workout"]
+            XCTAssertTrue(finish.waitForExistence(timeout: 5), "the whole-workout sheet carries no Finish")
+            shoot(app, "S09 the whole-workout sheet")
+            finish.tap()
+            // S10 celebration: the phrase, the XP, then Done (A21.9: a solo user's one button — the post follows the tap)
+            XCTAssertTrue(app.staticTexts["Counted."].waitForExistence(timeout: 10), "no celebration after Finish")
+            XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Plus '")).firstMatch.exists, "the celebration lost its XP")
             shoot(app, "S10 celebration")
             app.buttons["Done"].tap()
             // A21.4 / W4 — after the FIRST completed workout, once: the reminder opt-in (7:30 pre-filled, G12); Not now is remembered (E5)

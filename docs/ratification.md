@@ -1652,3 +1652,87 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   and a rest day. The map is in `design/targets/README.md`.
 - Look at: the Home shots in both modes against `design/targets/01`–`06`, the "+" sheet against DESIGN.md, and whether the ring's
   count (1) and the Macros row's states (8) are what the owner wants.
+
+- Round 1 of ui-reviewer (CI run 35440565004, TestFlight build 207): 1 PASS · 21 FAIL. The same two findings recur on every Home shot.
+  The CI simulator is iOS 26, which draws the tab bar as a floating Liquid Glass capsule and puts a glass disc behind every
+  toolbar glyph. The Chrome appearance proxies are overridden there. The review also found the missing holds row, and the text-face
+  numerals inside sentences. Further readings:
+  (5) **The "+" amended.** It shows in every state, no-plan Home included, because mockup 02 draws it there. "Log cardio" is always
+      offered; the bonus workout only with a plan.
+  (10) **No glass.** `UIDesignRequiresCompatibility` is set in Info.plist (`project.yml`). It is Apple's key for an app that keeps
+       the classic bars, and it is what §11's "no glass blur" and the approved mockups (a flat `tabBar` with a seam, a bare "+")
+       ask for. Earlier iOS versions ignore the key.
+  (11) **The tab glyphs are outline, and Settings is sliders**, as every mockup draws them. SwiftUI would otherwise fill them.
+  (12) **The streak numeral.** It is ink, except off-season, where it is `inkSecondary` (mockup 06). At zero it has no eyebrow, because
+       nothing captions a streak of zero (A8, A18.1). DESIGN.md 1.3 now carries this, so a reviewer does not read it as a miss.
+  (13) **Numerals inside sentences** ("Push day · 6 of 6 sets", "3×8", "1 exercise") set their digit runs in SF Pro Rounded Bold,
+       and their words in the role's face. This is `Text(numerals:)`, system §4.
+  (14) **The bonus sheet's footer** is now Flow 5's own words, "A bonus workout is never expected." It replaces a builder's
+       imperative ("Pick whatever you feel like."), which A28 (e) bars outside a button label.
+  - Also fixed: the tour plan now carries each workout's canonical mobility block (plan-templates.json), so the card shows its
+    holds as a real install does. The card's sub-line is a step under its rows (secondary 15), and the "+" sheet fits its rows,
+    with 28 pt corners.
+  - Residue, recorded in `docs/debt.md`:
+    - the sheet scrim is UIKit's dimming, not `sheetScrim`;
+    - the rebuild sheet gains a grabber but still has no Cancel (onboarding's rebuild mode);
+    - no redesign session in the worklist names the bonus and rebuild sheets.
+
+### R-085 · 2026-09-19 · A28 R2 — the Logger redesigned (one set per screen, the sheet, the checklist, the celebration) under the owner's standing order for gaps · checkpoint — the builder's readings, each open to the owner
+- The order is the same standing order as R-084. GAP 2 (haptics) and GAP 9 (the celebration's phrase and badges) were R2's
+  preconditions. Each takes the reading that changes least of what the spec already rules, and gives way to the owner's answer.
+- What changed (iOS; web where A28 (c) names both clients):
+  - `SessionScreen` is the Logger:
+    - the bar (`WorkoutBar`), the count and "Whole workout";
+    - the set screen (`SetScreenBody` with `SetCard` / `MetricRow`) or the checklist (`MobilityChecklist`);
+    - Swap exercise and Skip as text, and one filled "Log set N" (Finish on the checklist).
+  - `WholeWorkoutSheet` carries Finish. `CelebrationScreen` is the system's celebration.
+  - `SessionModel` drops the rest timer and the unit question, and gains `logSet`, `displayedSet`, `selectedSetOrder`,
+    `toggleHold`, `markAllHolds` and `nothingOpen`.
+  - Deleted: `RestTimer`, `RestTimerView`, `WeightTape`, `SetRow` (its `Stepper` moved to `StepButton.swift`), `SwipeToRemove`,
+    `UnitConfirmLine`, `MobilityHoldRow`, `CardioRow`, and `StreakFlame` (no reader left).
+  - Constants retired: the seven `weightTape*`, the three `swipeRemove*`, and `restTimerAdjustStepSeconds`.
+    `restTimerDefaultSeconds` and `perSideHoldRepeats` stay: the plan editor's estimate reads them until R4.
+  - The tokens gain the Logger's sizes (stepper, check, segments, set card, row button, the celebration flame) and the `xpUnit`
+    role. `focus.scale` admits the one half-point size, the stepper's 1.5 pt ring.
+  - Web: the rest timer and the hold countdown are gone, a hold is a tap-to-check, and the done page reads "Push day · 1 of 12 sets".
+- The builder's readings:
+  (1) **GAP 2, haptics.** 6.4's fixed language stands. `tick` sounds on Log set and on ticking a hold. `double` sounds when an
+      exercise's last set is logged and on "Mark all done". `thump` sounds on Finish. §10's light / medium / success language is
+      not adopted, and a stepper tap adds no haptic.
+  (2) **GAP 9, the celebration.** The phrase is S10's own "Counted.", in the phrase slot; mockup 11's "Seven straight" is
+      seeded content. The badges (comeback, perfect week, level, PR, achievement) stay on the celebration as ink words under
+      the day's line, with no emoji and no confetti (A28 (b); R-083 (12)). The flame shows the streak this workout leaves: the
+      engine's new value, or else the phone's current streak. It is inkMuted at zero.
+  (3) **One set per screen.** The card shows:
+      - a logged set picked from the ledger (to correct it: Flow 3's out-of-order);
+      - otherwise the first open set, with a warm-up before the work sets;
+      - otherwise the exercise's last set.
+      "Log set N" logs the set on the card and moves on: to the next set, or to the next open exercise. A logged set is never
+      "un-logged"; it is corrected on the card, or removed under ⋯. A skipped exercise shows no filled button, only "Unskip".
+  (4) **The count** is the engine's facts: holds and cardio count, warm-ups never ("1 of 10 sets"). The bar, the sheet, the
+      celebration and the journal therefore say the same number. Mockup 07's "0 of 6" is seeded content.
+  (5) **The bar.** It has one segment per work set, and the holds are ONE segment at the end, because the checklist is one screen.
+      Every segment is the same width, so a group is as wide as its sets. A group on a long workout is narrower than 44 pt; the
+      sheet's rows are the full-size route (`docs/debt.md`).
+  (6) **Finish** is the checklist's filled button and the sheet's. When every exercise is done or skipped and no checklist is left,
+      the sheet opens itself, because Finish lives there.
+  (7) **⋯** holds:
+      - "+ set" and "+ warm-up" (strength);
+      - "Remove set N" (A11, absent on the last work set, V55), with "Undo the removal" while one is pending. This keeps A11's undo
+        without a snackbar, which (f) bans;
+      - "Show the plates" for a barbell weight (plate math on demand);
+      - "Discard workout", an ink menu item that opens the destructive confirm. The confirm is the only red.
+  (8) **The value buttons** open the platform's alert and keypad (R-083 (11)): the number pad for reps and minutes, the decimal pad
+      for a weight or a distance. A typed weight is clamped and snapped to the unit's step; reps are clamped at `planTargetRepsMax`.
+  (9) **A cardio block's set screen** has two rows. Its minutes have steppers in `cardioMinutesStep`, opening at the plan's
+      target (GAP 4 as R-084 (2)). Its distance is a value button in the user's unit (A9). Then "Log set 1". The ledger reads
+      "Set 1 · 25 min".
+  (10) **The equipment tag leaves the Logger.** The mockups draw none, the seed names carry the equipment word ("Barbell Bench
+       Press"), and §11 bans stacked redundancy. Tapping the title still shows the cue.
+  (11) **The Logger's bottom group has no rule above it** (the mockups), so it is `safeAreaInset` directly rather than
+       `crewBottomBar`. Log set and Finish stay bottom-anchored and rise above the keyboard (A19.1, 6.7).
+  (12) **A9's in-session unit line is gone**, and its per-device flag is no longer read (`docs/debt.md`).
+- Tour: start, keypad, mid-set, swap, ⋯, discard, the sheet, the longest name (through the sheet), the checklist, then mid-set,
+  the sheet and the checklist in dark, then Finish → celebration → Home done. The dark celebration is shot in Tour_HomeTests
+  (Quick complete). The map is in `design/targets/README.md`.
+- Look at: the Logger shots against `design/targets/07`–`11`, the phrase and badges (2), and whether a stepper should tick (1).

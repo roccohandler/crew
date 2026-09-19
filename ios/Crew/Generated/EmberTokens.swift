@@ -27,6 +27,8 @@ enum EmberTokens {
         static let exerciseTitle = TypeRole(size: 24, weight: .bold, tracking: -0.02, rounded: false, uppercase: false, relativeTo: .title2)
         /// card sub-heading — 20 pt bold, tracking -0.015
         static let cardSubheading = TypeRole(size: 20, weight: .bold, tracking: -0.015, rounded: false, uppercase: false, relativeTo: .title3)
+        /// the celebration XP unit in accent — at the large-text size 6.5 needs for accent text (R-083 (3)) — 24 pt bold
+        static let xpUnit = TypeRole(size: 24, weight: .bold, tracking: 0, rounded: false, uppercase: false, relativeTo: .title2)
         /// unit label beside a hero numeral — 22 pt semibold
         static let heroUnit = TypeRole(size: 22, weight: .semibold, tracking: 0, rounded: false, uppercase: false, relativeTo: .title3)
         /// body (the system's Medium half of "Medium / Semibold") — 17 pt medium
@@ -63,7 +65,7 @@ enum EmberTokens {
         let relativeTo: Font.TextStyle
     }
 
-    /// A28 (d), (f) — the Focus Card system's rhythm and component sizes (design/focus-card-system.md §5, §8), for REDESIGNED screens only (R-083 (5)); a screen not yet redesigned keeps the G5 scale and the sizes above. Each value enters in the session that first draws it (C7). flameGlyph and rewardGap are measured on mockup 03, which draws them without numbering them (R-084).
+    /// A28 (d), (f) — the Focus Card system's rhythm and component sizes (design/focus-card-system.md §5, §8), for REDESIGNED screens only (R-083 (5)); a screen not yet redesigned keeps the G5 scale and the sizes above. Each value enters in the session that first draws it (C7). flameGlyph and rewardGap are measured on mockup 03, and flameCelebration on mockup 11, which draw them without numbering them (R-084, R-085); setCardInset and setRowPadding are §5's set-card padding, segment* §8's workout bar, stepper* and check* §8's controls, rowButton §8's row button, heat* §8's heat map.
     enum Focus {
         static let gutter: CGFloat = 20
         static let cardPadding: CGFloat = 22
@@ -77,6 +79,24 @@ enum EmberTokens {
         static let flameGlyph: CGFloat = 26
         static let primaryHeight: CGFloat = 58
         static let primaryHeightHome: CGFloat = 56
+        static let stepper: CGFloat = 52
+        static let stepperGlyph: CGFloat = 22
+        static let stepperBorder: CGFloat = 1.5
+        static let checkCircle: CGFloat = 28
+        static let checkRing: CGFloat = 2
+        static let checkGlyph: CGFloat = 14
+        static let segmentHeight: CGFloat = 6
+        static let segmentHeightCurrent: CGFloat = 8
+        static let segmentGap: CGFloat = 4
+        static let segmentGroupGap: CGFloat = 14
+        static let segmentRadius: CGFloat = 3
+        static let segmentRadiusCurrent: CGFloat = 4
+        static let setCardInset: CGFloat = 20
+        static let setRowPadding: CGFloat = 16
+        static let rowButton: CGFloat = 56
+        static let flameCelebration: CGFloat = 40
+        static let heatGap: CGFloat = 7
+        static let heatRadius: CGFloat = 8
     }
 
     /// A28 (a) — design/focus-card-system.md §6: LIGHT lifts a card with a two-layer shadow in the ink colour (0 1 3 at 5%, 0 14 34 at 8%); DARK uses tone alone and no shadow — the view gates the shadow on colorScheme.

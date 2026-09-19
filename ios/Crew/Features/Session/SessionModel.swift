@@ -1,7 +1,10 @@
-// SPEC: 5.6.2 SessionModel — state: session, focusIndex, restTimer, celebration; actions: checkSet (pre-fill → done, ghost
-// row, haptic, rest start) · adjust(reps|weight) · addSet · addWarmup · skip · startHold (countdown → auto-check) · jumpTo ·
-// complete (engine.apply → CelebrationOutcome) · saveForLater · discard. Flow 3: management by exception, pre-fill from
-// reality, log without looking, out-of-order, neutral skips, crash-proof (every tap saves). WRITTEN — UNVERIFIED. T025
+// SPEC: 5.6.2 SessionModel as amended by A28 (c), (d) (owner-approved 2026-09-19) — ONE SET PER SCREEN: state session, focusIndex
+// (the exercise on screen), selectedSetOrder (a ledger row picked to correct), celebration; actions logSet (pre-fill → done, the
+// set-done haptic, the next open set or the next exercise) · adjust(reps|weight) · addSet · addWarmup · skip · toggleHold ·
+// markAllHolds · jumpTo · complete (engine.apply → CelebrationOutcome) · saveForLater · discard. A28 (c): NO TIMERS — the rest
+// timer and the hold countdown are gone (RestTimer, MobilityHoldRow); a hold is a check. A28 (d): the in-session unit question is
+// gone — lb/kg lives in Settings. Flow 3 stands: pre-fill from reality, out-of-order, neutral skips, crash-proof (every tap saves).
+// WRITTEN — UNVERIFIED. T025 · R2
 
 import Foundation
 import Observation
@@ -12,13 +15,12 @@ import SwiftData
 final class SessionModel {
     let session: LocalSession
     var focusIndex = 0
-    var restTimer = RestTimer()
+    var selectedSetOrder: Int?  // A28 (d): a logged set picked from the ledger, shown on the card to correct it
     var celebration: CelebrationOutcome?
     var completeError: String?
-    var unitsConfirmed: Bool // A9: answered once per account; the line never returns
-    var lastRemoved: RemovedSet? // A11: what the "Set removed · Undo" row puts back (SessionModel+Units.swift)
-    var units: String        // A9: the WEIGHT unit — set rows, plate math, the last-time line
-    var distanceUnit: String // A9: the DISTANCE unit — a cardio block's last-time line
+    var lastRemoved: RemovedSet? // A11: what "Undo" puts back (SessionModel+Units.swift)
+    var units: String        // A9: the WEIGHT unit — the card, plate math, the last-time line
+    var distanceUnit: String // A9: the DISTANCE unit — a cardio block
 
     private let store: Store
 
@@ -27,76 +29,72 @@ final class SessionModel {
         self.store = store
         self.units = units ?? AuthStore.shared.weightUnit
         self.distanceUnit = distanceUnit ?? AuthStore.shared.distanceUnit
-        self.unitsConfirmed = SessionModel.storedUnitsConfirmed() // A9 (SessionModel+Units.swift)
+        focusIndex = firstOpenIndex ?? 0 // a resumed session opens where it was left
     }
 
     var exercises: [LocalSessionExercise] { session.exercises.sorted { $0.order < $1.order } }
     var facts: CompletionFacts { Completion.completionFacts(SessionActions.setFacts(session)) }
     var canComplete: Bool { facts.complete }
 
-    // SPEC: S09 · A2 — the live line above Complete: "x/y sets" (holds and cardio count, warm-ups never) + " + Walk 25 min"
-    // for every cardio block with a done set
-    var liveSummaryLine: String { "\(facts.setsDone)/\(facts.setsPlanned) sets\(JournalFacts.cardioSuffix(session))" }
+    // SPEC: A28 (d) — the count under the bar and on the sheet: "1 of 6 sets" (the engine's facts — holds and cardio count, warm-ups never)
+    var countLine: String { "\(facts.setsDone) of \(facts.setsPlanned) sets" }
 
     func sets(of exercise: LocalSessionExercise) -> [LocalSetLog] { exercise.sets.sorted { $0.order < $1.order } }
+    func workSets(of exercise: LocalSessionExercise) -> [LocalSetLog] { sets(of: exercise).filter { !$0.isWarmup } }
 
-    // Flow 3 "pre-fill from reality": the last ACTUAL performance of this exercise, tiny and gray under the name
-    func lastTimeLine(for exercise: LocalSessionExercise) -> String? {
-        guard let previous = try? store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.status == "completed" }, sortBy: [SortDescriptor(\.completedAt, order: .reverse)])).first(where: { $0.clientId != session.clientId && $0.exercises.contains { $0.exerciseId == exercise.exerciseId } }),
+    var focused: LocalSessionExercise? { exercises.indices.contains(focusIndex) ? exercises[focusIndex] : nil }
+
+    // SPEC: A28 (f) — the checklist screen: every mobility hold of the workout, one row each (a hold is one set, Flow 2 "18/18")
+    var holds: [LocalSessionExercise] { exercises.filter { $0.type == "mobility" } }
+    var isOnChecklist: Bool { focused?.type == "mobility" }
+
+    // SPEC: A28 (d) — the set the card shows: a ledger row picked to correct, else the first open set (a warm-up before the work
+    // sets), else the exercise's last set
+    func displayedSet(of exercise: LocalSessionExercise) -> LocalSetLog? {
+        let all = sets(of: exercise)
+        if let selectedSetOrder, let picked = all.first(where: { $0.order == selectedSetOrder }) { return picked }
+        return all.first { !$0.done } ?? all.last
+    }
+
+    // "Set 2 of 3" · "Warm-up" — the work sets are numbered, warm-ups are named (Flow 3: warm-ups never count)
+    func setNumber(_ set: LocalSetLog, in exercise: LocalSessionExercise) -> Int {
+        (workSets(of: exercise).firstIndex { $0 === set } ?? 0) + 1
+    }
+
+    // Flow 3 "pre-fill from reality": the last ACTUAL performance of this exercise — "8 · 8 · 8 @ 150 lb"
+    func lastTime(for exercise: LocalSessionExercise) -> String? {
+        guard exercise.type == "strength",
+              let previous = try? store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.status == "completed" }, sortBy: [SortDescriptor(\.completedAt, order: .reverse)])).first(where: { $0.clientId != session.clientId && $0.exercises.contains { $0.exerciseId == exercise.exerciseId } }),
               let row = previous.exercises.first(where: { $0.exerciseId == exercise.exerciseId }) else { return nil }
         let done = sets(of: row).filter { $0.done && !$0.isWarmup }
-        guard !done.isEmpty, row.type != "mobility" else { return nil } // holds have no "last": no reps, no weight, ever
-        if row.type == "cardio" { return cardioLastLine(done) }
+        guard !done.isEmpty else { return nil }
         let reps = done.map { String($0.actualReps) }.joined(separator: " · ")
-        if let weight = done.compactMap(\.weight).max() { return "last: \(reps) @ \(formatted(weight))" }
-        return "last: \(reps)"
+        if let weight = done.compactMap(\.weight).max() { return "\(reps) @ \(formatted(weight))" }
+        return reps
     }
 
-    // SPEC: A2 — a cardio block's last time reads its minutes and, when logged, its distance in the user's units
-    private func cardioLastLine(_ done: [LocalSetLog]) -> String {
-        let minutes = JournalFacts.minutes(ofSeconds: done.reduce(0) { $0 + ($1.holdSeconds ?? 0) })
-        let distance = done.compactMap(\.distanceMeters).reduce(0, +)
-        guard distance > 0 else { return "last: \(minutes) min" }
-        return "last: \(minutes) min · \(SessionSummaryLine.distanceText(distanceMeters: distance, distanceUnit: distanceUnit))"
-    }
-
-    // SPEC: Flow 3 base loop — tap a set → ✓ at pre-filled numbers · haptic tick · rest timer starts · last set → next exercise opens
-    func checkSet(_ set: LocalSetLog, in exercise: LocalSessionExercise) {
-        set.done.toggle()
-        // SPEC: A9 — a set completed at its pre-filled weight was still ENTERED in today's unit; stamp it here too, or a
-        // one-tap log (the commonest path in Flow 3) would store a weight with no unit at all
-        if set.done, set.weight != nil, set.weightUnit == nil { set.weightUnit = units }
+    // SPEC: A28 (d) · Flow 3 base loop — "Log set N": the set is done at the numbers on the card; the set-done haptic (6.4 — GAP 2
+    // read conservatively, R-085); the last open set of an exercise → the exercise-done haptic and the next open exercise
+    func logSet(_ set: LocalSetLog, in exercise: LocalSessionExercise) {
+        set.done = true
+        // SPEC: A9 — a set completed at its pre-filled weight was still ENTERED in today's unit; stamp it here too
+        if set.weight != nil, set.weightUnit == nil { set.weightUnit = units }
         set.asPlanned = Completion.asPlanned(SetFacts(targetReps: set.targetReps, actualReps: set.actualReps, done: set.done, isWarmup: set.isWarmup))
+        selectedSetOrder = nil
         save()
-        guard set.done else { return }
         Haptics.play(.tick)
-        restTimer.start()
-        if sets(of: exercise).allSatisfy({ $0.done || $0.isWarmup }) {
+        if sets(of: exercise).allSatisfy(\.done) {
             Haptics.play(.double)
-            restTimer.stop()
             advanceFocus(after: exercise)
         }
     }
 
-    // Smart steppers — reps ±1 · weight ±5 lb / ±2.5 kg · invalid values impossible
-    func adjustReps(_ set: LocalSetLog, by delta: Int) {
-        set.actualReps = max(0, set.actualReps + delta * SpecConstants.repsStep)
-        save()
-    }
+    // Smart steppers — reps ±1 · invalid values impossible; a typed count is clamped the same way
+    func adjustReps(_ set: LocalSetLog, by delta: Int) { setReps(set, to: set.actualReps + delta * SpecConstants.repsStep) }
 
-    func addSet(after set: LocalSetLog, in exercise: LocalSessionExercise) {
-        let clone = LocalSetLog(order: exercise.sets.count, targetReps: set.targetReps, actualReps: set.actualReps, weight: set.weight, holdSeconds: set.holdSeconds, isWarmup: false, weightUnit: set.weightUnit ?? units) // A9
-        exercise.sets.append(clone)
-        save()
-    }
-
-    // "+ warm-up" rows are excluded from x/y (Flow 3)
-    func addWarmup(to exercise: LocalSessionExercise) {
-        let first = sets(of: exercise).first
-        let warmup = LocalSetLog(order: -1, targetReps: first?.targetReps ?? exercise.targetReps, actualReps: first?.targetReps ?? exercise.targetReps, weight: nil, holdSeconds: nil, isWarmup: true)
-        for set in exercise.sets { set.order += 1 }
-        warmup.order = 0
-        exercise.sets.append(warmup)
+    func setReps(_ set: LocalSetLog, to reps: Int) {
+        set.actualReps = min(max(0, reps), SpecConstants.planTargetRepsMax)
+        if set.done { set.asPlanned = Completion.asPlanned(SetFacts(targetReps: set.targetReps, actualReps: set.actualReps, done: true, isWarmup: set.isWarmup)) }
         save()
     }
 
@@ -113,37 +111,32 @@ final class SessionModel {
         }
     }
 
-    // Neutral skips: gray, no reasons, no red, no guilt
+    // Neutral skips: no reasons, no red, no guilt; a skipped exercise hands the screen to the next open one
     func skip(_ exercise: LocalSessionExercise) {
         exercise.skipped.toggle()
+        selectedSetOrder = nil
         save()
         if exercise.skipped { advanceFocus(after: exercise) }
     }
 
-    // Mobility holds: tap → countdown → auto-check (the row runs the timer and calls this at zero)
-    func finishHold(_ set: LocalSetLog) {
-        set.done = true
-        set.asPlanned = true
+    // SPEC: A28 (c) — a hold is a check, never a countdown: done and as planned, or open again
+    func toggleHold(_ hold: LocalSessionExercise) {
+        let open = sets(of: hold).contains { !$0.done }
+        for set in hold.sets { set.done = open; set.asPlanned = open }
         save()
-        Haptics.play(.tick)
+        if open { Haptics.play(.tick) }
     }
 
-    // SPEC: A2 — a cardio block is duration-based: Done stores the minutes as seconds (holdSeconds = minutes × 60) and the
-    // optional distance in meters, both bounded; the set is done and as planned (targetReps 0, V51). Part of the +100, never
-    // extra XP. The next open exercise opens, as after a finished set.
-    func finishCardio(_ set: LocalSetLog, minutes: Int, distanceMeters: Int?) {
-        let bounded = min(max(minutes, SpecConstants.cardioMinutesMin), SpecConstants.cardioMinutesMax)
-        set.holdSeconds = bounded * TimeUnits.secondsPerMinute
-        set.distanceMeters = distanceMeters.map { min(max($0, 0), SpecConstants.cardioDistanceMaxMeters) }
-        set.done = true
-        set.asPlanned = true
+    // SPEC: A28 (c) — "Mark all done" in the checklist's header
+    func markAllHolds() {
+        for hold in holds { for set in hold.sets { set.done = true; set.asPlanned = true } }
         save()
-        Haptics.play(.tick)
-        if let exercise = exercises.first(where: { $0.sets.contains { $0 === set } }) { advanceFocus(after: exercise) }
+        Haptics.play(.double)
     }
 
     func jumpTo(_ exercise: LocalSessionExercise) {
         focusIndex = exercises.firstIndex { $0.order == exercise.order } ?? focusIndex
+        selectedSetOrder = nil
     }
 
     // SPEC: S10 — numbers match the engine exactly; partial always counts (Flow 3). A21.9: no post yet — the celebration's tapped
@@ -155,7 +148,6 @@ final class SessionModel {
                 return
             }
             Haptics.play(.thump)
-            restTimer.stop()
             celebration = outcome
         } catch {
             completeError = AppError.storage("session").userLine
@@ -175,14 +167,23 @@ final class SessionModel {
         weight.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(weight)) \(units)" : "\(weight) \(units)"
     }
 
-    private func advanceFocus(after exercise: LocalSessionExercise) {
+    // Every exercise is done or skipped: nothing is left but Finish (the whole-workout sheet opens itself — A28 (d))
+    var nothingOpen: Bool { firstOpenIndex == nil }
+
+    private var firstOpenIndex: Int? {
+        exercises.firstIndex { !$0.skipped && sets(of: $0).contains { !$0.done } }
+    }
+
+    func advanceFocus(after exercise: LocalSessionExercise) { // internal: a cardio block's log advances too (SessionModel+Units.swift)
         let list = exercises
-        if let index = list.firstIndex(where: { $0.order == exercise.order }), let next = list[(index + 1)...].first(where: { !$0.skipped && !sets(of: $0).allSatisfy { $0.done } }) {
+        guard let index = list.firstIndex(where: { $0.order == exercise.order }) else { return }
+        let isOpen: (LocalSessionExercise) -> Bool = { !$0.skipped && self.sets(of: $0).contains { !$0.done } }
+        if let next = list[(index + 1)...].first(where: isOpen) ?? list[..<index].first(where: isOpen) {
             focusIndex = list.firstIndex { $0.order == next.order } ?? focusIndex
         }
     }
 
-    // A9/A10 (SessionModel+Units.swift) writes through this too — internal, not private
+    // A9/A10/A11 (SessionModel+Units.swift) writes through this too — internal, not private
     func save() {
         session.updatedAt = Date()
         try? store.save()

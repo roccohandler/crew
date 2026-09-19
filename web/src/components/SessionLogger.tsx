@@ -1,16 +1,16 @@
 "use client";
-// SPEC: S09 — one-tap set logging at pre-fill, ghost row, warm-ups excluded from x/y, holds, cardio rows (A2), rest timer,
+// SPEC: S09 — one-tap set logging at pre-fill, ghost row, warm-ups excluded from x/y, holds as checks (A28 (c): no rest timer, no
+// hold countdown), cardio rows (A2),
 // out-of-order (any exercise opens), neutral skips, Complete always visible (sticky), every tap saves (PATCH). Web twin of ios
 // SessionModel + SessionScreen.
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { CardioRow } from "@/components/CardioRow";
 import { HoldRow } from "@/components/HoldRow";
-import { RestTimer } from "@/components/RestTimer";
 import { SessionSwap, swappedExercise, updatePlanWithSwap, type SwapScope } from "@/components/SessionSwap";
 import { SetRow } from "@/components/SetRow";
 import { Whisper } from "@/components/Whisper";
-import { exercises as seedExercises, type SeedExercise } from "@/generated/seed";
+import type { SeedExercise } from "@/generated/seed";
 import { earnedQuery, patchSession, type SessionExerciseView, type SessionSummary } from "@/lib/api-client";
 import { asPlanned, completionFacts } from "@/lib/engine/completion";
 import { workoutKindFromName } from "@/lib/engine/plan-rotation";
@@ -19,9 +19,9 @@ import { SpecConstants } from "@/generated/spec-constants";
 type Props = { initial: SessionSummary; units: "lb" | "kg"; distanceUnit: "mi" | "km"; timezone: string; lastTime: Record<string, string>; inCrew: boolean };
 type SetUpdate = (index: number, next: SessionExerciseView["sets"][number]) => void;
 
-// One set line by exercise type: a hold counts down (Flow 3), a cardio block takes minutes + distance (A2), a strength set is the tap row
+// One set line by exercise type: a hold is a check (A28 (c)), a cardio block takes minutes + distance (A2), a strength set is the tap row
 function SetLine({ exercise, set, index, units, distanceUnit, onSet }: { exercise: SessionExerciseView; set: SessionExerciseView["sets"][number]; index: number; units: "lb" | "kg"; distanceUnit: "mi" | "km"; onSet: SetUpdate }) {
-  if (exercise.type === "mobility") return <HoldRow name={exercise.name} seconds={set.holdSeconds ?? 0} perSide={seedExercises.find((candidate) => candidate.id === exercise.exerciseId)?.perSide ?? false} done={set.done} onFinished={() => onSet(index, { ...set, done: true, asPlanned: true })} />;
+  if (exercise.type === "mobility") return <HoldRow name={exercise.name} done={set.done} onFinished={() => onSet(index, { ...set, done: true, asPlanned: true })} />;
   if (exercise.type === "cardio") return <CardioRow name={exercise.name} seconds={set.holdSeconds ?? exercise.holdSeconds ?? 0} distanceMeters={set.distanceMeters ?? null} distanceUnit={distanceUnit} done={set.done} onDone={(seconds, distanceMeters) => onSet(index, { ...set, holdSeconds: seconds, distanceMeters, done: true, asPlanned: true })} />;
   const firstOpen = exercise.sets.findIndex((candidate) => !candidate.done && !candidate.isWarmup);
   const workCount = exercise.sets.filter((candidate) => !candidate.isWarmup).length;
@@ -73,7 +73,6 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
   const [focus, setFocus] = useState(0);
   const [share, setShare] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [restToken, setRestToken] = useState(0); // G9: every checked set (re)starts the rest countdown
   const [swapping, setSwapping] = useState<number | null>(null); // E7: which exercise is being swapped
   const facts = completionFacts(exercises.flatMap((exercise) => exercise.sets));
   const kind = initial.workoutKind ?? workoutKindFromName(initial.workoutName); // A1: legacy sessions carry only a name
@@ -84,7 +83,6 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
     await lastSave.current;
   };
   const updateSet = (exerciseIndex: number, setIndex: number, set: SessionExerciseView["sets"][number]) => {
-    if (set.done && !set.isWarmup) setRestToken((token) => token + 1);
     void save(withSet(exercises, exerciseIndex, setIndex, set));
   };
   const swap = (replacement: SeedExercise, scope: SwapScope) => { if (swapping !== null) { setSwapping(null); void performSwap(exercises, swapping, replacement, scope, kind, save, () => setError("Swapped for today, but the plan didn't save. Try again from Plan.")); } };
@@ -98,7 +96,6 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
     <div className="stack">
       <h1>{initial.workoutName}</h1>
       <p className="muted">{facts.setsDone}/{facts.setsPlanned} sets</p>
-      <RestTimer startToken={restToken} />
       {exercises.map((exercise, index) => <ExerciseCard key={exercise.order} exercise={exercise} open={index === focus} units={units} distanceUnit={distanceUnit} lastTime={lastTime[exercise.exerciseId]} first={index === 0} firstRemembered={index === exercises.findIndex((candidate) => lastTime[candidate.exerciseId] !== undefined)} onOpen={() => setFocus(index)} onSwap={() => setSwapping(index)} onSkip={() => void save(exercises.map((candidate, candidateIndex) => (candidateIndex === index ? { ...candidate, skipped: !candidate.skipped } : candidate)))} onSet={(setIndex, set) => updateSet(index, setIndex, set)} />)}
       {swapping !== null && exercises[swapping] ? <SessionSwap exercise={exercises[swapping]} onPick={swap} onClose={() => setSwapping(null)} /> : null}
       {inCrew ? <label className="row"><input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} /> Share to crew</label> : null}

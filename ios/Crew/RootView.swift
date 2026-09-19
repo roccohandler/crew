@@ -57,11 +57,12 @@ struct MainTabs: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            HomeScreen(onOpenJournal: { journalRequested = true; selection = .progress }).tabItem { Label("Home", systemImage: "house") }.tag(MainTab.home)
-            PlanScreen().tabItem { Label("Plan", systemImage: "calendar") }.tag(MainTab.plan)
-            CrewScreen().tabItem { Label("Crew", systemImage: "person.2") }.tag(MainTab.crew)
-            ProgressScreen(onGoHome: { selection = .home }, journalRequested: $journalRequested).tabItem { Label("Progress", systemImage: "chart.bar") }.tag(MainTab.progress) // W6: the empty state's CTA is today
-            SettingsScreen().tabItem { Label("Settings", systemImage: "gearshape") }.tag(MainTab.settings)
+            // A28 (d): the mockups draw the tab glyphs in outline (SwiftUI fills them unless told not to) and Settings as sliders
+            HomeScreen(onOpenJournal: { journalRequested = true; selection = .progress }).tabItem { tab("Home", "house") }.tag(MainTab.home)
+            PlanScreen().tabItem { tab("Plan", "calendar") }.tag(MainTab.plan)
+            CrewScreen().tabItem { tab("Crew", "person.2") }.tag(MainTab.crew)
+            ProgressScreen(onGoHome: { selection = .home }, journalRequested: $journalRequested).tabItem { tab("Progress", "chart.bar") }.tag(MainTab.progress) // W6: the empty state's CTA is today
+            SettingsScreen().tabItem { tab("Settings", "slider.horizontal.3") }.tag(MainTab.settings)
         }
         .tint(EmberColors.inkText) // Part III law ① — chrome is monochrome forever
         .toolbarBackground(EmberColors.tabBar, for: .tabBar) // A28 (a): the tab bar's own surface, where the platform honours it
@@ -76,5 +77,9 @@ struct MainTabs: View {
             await AuthStore.shared.refreshNutritionIfUnknown() // A16.c: a user cached by an older build carries no answer yet
             await ServerHydrate.pullIfEmpty(userId: AuthStore.shared.currentUser?.id ?? "local", store: .shared)
         }
+    }
+
+    private func tab(_ title: String, _ symbol: String) -> some View {
+        Label(title, systemImage: symbol).environment(\.symbolVariants, .none)
     }
 }

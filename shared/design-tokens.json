@@ -157,6 +157,7 @@
       "sheetTitle": { "size": 27, "weight": "heavy", "tracking": -0.03, "rounded": false, "uppercase": false, "relativeTo": "title", "role": "sheet title" },
       "exerciseTitle": { "size": 24, "weight": "bold", "tracking": -0.02, "rounded": false, "uppercase": false, "relativeTo": "title2", "role": "exercise title" },
       "cardSubheading": { "size": 20, "weight": "bold", "tracking": -0.015, "rounded": false, "uppercase": false, "relativeTo": "title3", "role": "card sub-heading" },
+      "xpUnit": { "size": 24, "weight": "bold", "tracking": 0, "rounded": false, "uppercase": false, "relativeTo": "title2", "role": "the celebration XP unit in accent — at the large-text size 6.5 needs for accent text (R-083 (3))" },
       "heroUnit": { "size": 22, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "relativeTo": "title3", "role": "unit label beside a hero numeral" },
       "body": { "size": 17, "weight": "medium", "tracking": 0, "rounded": false, "uppercase": false, "relativeTo": "body", "role": "body (the system's Medium half of \"Medium / Semibold\")" },
       "bodySemibold": { "size": 17, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "relativeTo": "body", "role": "body (the system's Semibold half of \"Medium / Semibold\")" },
@@ -197,7 +198,7 @@
     }
   },
   "focus": {
-    "spec": "A28 (d), (f) — the Focus Card system's rhythm and component sizes (design/focus-card-system.md §5, §8), for REDESIGNED screens only (R-083 (5)); a screen not yet redesigned keeps the G5 scale and the sizes above. Each value enters in the session that first draws it (C7). flameGlyph and rewardGap are measured on mockup 03, which draws them without numbering them (R-084).",
+    "spec": "A28 (d), (f) — the Focus Card system's rhythm and component sizes (design/focus-card-system.md §5, §8), for REDESIGNED screens only (R-083 (5)); a screen not yet redesigned keeps the G5 scale and the sizes above. Each value enters in the session that first draws it (C7). flameGlyph and rewardGap are measured on mockup 03, and flameCelebration on mockup 11, which draw them without numbering them (R-084, R-085); setCardInset and setRowPadding are §5's set-card padding, segment* §8's workout bar, stepper* and check* §8's controls, rowButton §8's row button, heat* §8's heat map.",
     "scale": {
       "gutter": 20,
       "cardPadding": 22,
@@ -210,7 +211,25 @@
       "ringStroke": 16,
       "flameGlyph": 26,
       "primaryHeight": 58,
-      "primaryHeightHome": 56
+      "primaryHeightHome": 56,
+      "stepper": 52,
+      "stepperGlyph": 22,
+      "stepperBorder": 1.5,
+      "checkCircle": 28,
+      "checkRing": 2,
+      "checkGlyph": 14,
+      "segmentHeight": 6,
+      "segmentHeightCurrent": 8,
+      "segmentGap": 4,
+      "segmentGroupGap": 14,
+      "segmentRadius": 3,
+      "segmentRadiusCurrent": 4,
+      "setCardInset": 20,
+      "setRowPadding": 16,
+      "rowButton": 56,
+      "flameCelebration": 40,
+      "heatGap": 7,
+      "heatRadius": 8
     }
   },
   "elevation": {

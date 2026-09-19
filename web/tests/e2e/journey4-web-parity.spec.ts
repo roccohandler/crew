@@ -18,7 +18,7 @@ test("plan build then a full workout log on web, keyboard-first", async ({ page 
   await expect(page.getByText(/^1\/\d+ sets/)).toBeVisible();
   await page.getByRole("button", { name: "Complete workout" }).click();
   await expect(page).toHaveURL(/\/session\/[a-f0-9]+\/done(\?earned=.+)?$/, { timeout: 15_000 }); // completion = PATCH + recompute + the first compile of /done under next dev
-  await expect(page.getByText(/^1\/\d+ sets · \d+ min/)).toBeVisible();
+  await expect(page.getByText(/ · 1 of \d+ sets$/)).toBeVisible(); // A28 (c): no minutes on the done page
   await expect(page.getByText("Showed up")).toBeVisible(); // E8: the first completion unlocks Showed up in the celebration
   await expect(page.getByText(/125 XP total/)).toBeVisible(); // V25: day-one total 125
   await expect(page.getByLabel("Streak 1")).toBeVisible();

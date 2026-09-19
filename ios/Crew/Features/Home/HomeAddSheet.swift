@@ -13,7 +13,8 @@ enum HomeAddChoice {
 struct HomeAddSheet: View {
     let offersBonus: Bool
     let onPick: (HomeAddChoice) -> Void
-    @ScaledMetric private var rowHeight: CGFloat = EmberTokens.Focus.primaryHeightHome // §8: a row button is 56 pt minimum
+    @ScaledMetric private var rowHeight: CGFloat = EmberTokens.Focus.rowButton // §8: a row button is 56 pt minimum
+    @State private var contentHeight: CGFloat = 0 // the sheet is as tall as its rows, not half the phone (6.9: no empty surface)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -21,20 +22,23 @@ struct HomeAddSheet: View {
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.top, EmberTokens.Focus.gutter)
                 .padding(.bottom, EmberTokens.Spacing.space12)
-            row("Log cardio") { onPick(.cardio) }
+            row("Log cardio", id: "home.add.cardio") { onPick(.cardio) }
             if offersBonus {
                 Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.gutter)
-                row("Bonus workout") { onPick(.bonus) }
+                row("Bonus workout", id: "home.add.bonus") { onPick(.bonus) }
             }
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, EmberTokens.Focus.gutter)
+        .background(GeometryReader { proxy in Color.clear.onAppear { contentHeight = proxy.size.height } })
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(EmberColors.card.ignoresSafeArea())
-        .presentationDetents([.medium])
+        .presentationDetents(contentHeight > 0 ? [.height(contentHeight)] : [.medium])
         .presentationDragIndicator(.visible)
+        .presentationCornerRadius(EmberTokens.Focus.cardRadius) // §8: 28 pt for a sheet's top corners
     }
 
-    private func row(_ title: String, action: @escaping () -> Void) -> some View {
+    // `id` because on a training day the "+" itself is labelled "Log cardio": the tests tell the two apart by identifier
+    private func row(_ title: String, id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: EmberTokens.Spacing.space12) {
                 Text(title).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
@@ -47,5 +51,6 @@ struct HomeAddSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .accessibilityIdentifier(id)
     }
 }
