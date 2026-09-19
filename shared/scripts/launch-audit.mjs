@@ -93,8 +93,8 @@ scan("A21.13", "exercise media (A13 is lawyer-gated — not in MVP)", /(AVPlayer
 scan("A21.13", "web push", /(serviceWorker|PushManager|web-push|pushManager|Notification\.requestPermission)/);
 absent("A21.13", "no Android project", ["android", "app/build.gradle", "AndroidManifest.xml"]);
 
-// A23 — reported, never failed: the education copy ships as the owner's DRAFT until it is ratified line by line, and the page says so
-// on screen ("Draft" under the note from Max). This line is here so a launch checklist cannot miss it.
+// A23 — reported, never failed: while page.note.draft is true the page says "Draft" under the note from Max, and a launch checklist
+// must not miss it. The owner ratified the copy on 2026-09-19 (R-081), so this prints nothing unless a note is marked draft again.
 const education = JSON.parse(readFileSync(join(repoRoot, "shared", "copy", "education.json"), "utf8"));
 if (education.page?.note?.draft === true) console.log("NOTE   A23  the note from Max is still marked draft (shared/copy/education.json → page.note.draft) — the owner rewrites it before launch");
 

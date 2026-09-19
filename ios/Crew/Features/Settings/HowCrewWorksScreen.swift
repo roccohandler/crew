@@ -1,6 +1,7 @@
 // SPEC: A23 (Appendix A 2026-09-18) · docs/education-copy-draft.md §C, §D — S19 "How Crew works": the one re-readable page behind
 // the whispers, reached from Settings → About (a row above Version). One scrolling page, nothing interactive but links (every source
-// opens in the in-app browser the legal pages use): the note from Max (marked Draft until the owner rewrites it), the seven sections
+// opens in the in-app browser the legal pages use): the note from Max (the owner's own, ratified 2026-09-19 — R-081; a "Draft" label
+// shows only while page.note.draft is true, and it is false), the seven sections
 // in the owner's order, what the whispers said — verbatim, in trigger order — and the A16.a line. The page renders for every age;
 // under 18, or with no birth year on file, the Protein section drops its numeric sentence and its source link and the three nutrition
 // whispers are omitted — with no copy about the omission (A16.c: no upsell). Every word is shared/copy/education.json, so the web

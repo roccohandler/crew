@@ -118,7 +118,7 @@ export const education: EducationCopy = {
     },
     {
       "id": "why.crews",
-      "line": "Four people who know you beat any algorithm.",
+      "line": "Your crew sees you show up. That's the whole system.",
       "moment": "the first crew on the Crew tab",
       "gate": "all"
     },
@@ -148,7 +148,7 @@ export const education: EducationCopy = {
     },
     {
       "id": "why.freeDinner",
-      "line": "Same foods by day, dinner's yours. Fewer decisions, honest tracking.",
+      "line": "Same breakfast and lunch every day. Dinner's yours.",
       "moment": "the first daily template",
       "gate": "adult"
     },
@@ -162,15 +162,15 @@ export const education: EducationCopy = {
   "page": {
     "title": "How Crew works",
     "note": {
-      "draft": true,
+      "draft": false,
       "heading": "A note from Max",
-      "body": "I work a full-time job and I still want to train well. This is how I actually train: three days, push, pull, legs, the same breakfast and lunch, a dinner I look forward to. Crew is the plan I follow — nothing in here I don't do myself. If it gets you through one full week, that's the whole point."
+      "body": "I work a full-time job and I still want to train well. This is how I actually train: three days, push, pull, legs, the same breakfast and lunch, a dinner I look forward to. Crew is the plan I follow — everything in here is what I do myself. If it gets you through one full week, that's the whole point."
     },
     "sections": [
       {
         "id": "ppl",
         "heading": "Push, pull, legs",
-        "body": "It's simple: three days, one job each, no decisions at the rack. It's balanced — every major muscle gets its day — and efficient, because you're never waiting on a pattern you trained yesterday. Recovery is built in: one group rests while the next day works another. A plan you'll follow beats a perfect one you won't; when you're ready, add a fourth day and every muscle gets hit more often.",
+        "body": "It's simple: three days, one job each, no decisions at the rack. It's balanced — every major muscle gets its day — and efficient — three sessions a week fits around a job. Recovery is built in: one group rests while the next day works another. A plan you'll follow beats a perfect one you won't; when you're ready, add a fourth day and every muscle gets hit more often.",
         "adultBody": "",
         "source": {
           "label": "Schoenfeld, Ogborn & Krieger, Effects of Resistance Training Frequency on Measures of Muscle Hypertrophy. Sports Medicine, 2016.",
@@ -199,14 +199,14 @@ export const education: EducationCopy = {
       {
         "id": "streak",
         "heading": "The streak",
-        "body": "Showing up is the whole game. The flame counts days, not effort — a light day and a big day light it the same.",
+        "body": "Showing up is the whole game. The flame counts days, not effort — a light day and a big day light it the same. Rest days are free: the flame counts your training days, and a rest day never breaks it.",
         "adultBody": "",
         "source": null
       },
       {
         "id": "crews",
         "heading": "Crews",
-        "body": "Four people who know you beat any algorithm. Your crew sees you show up and reacts; that's it — no feed, no chat, no scores. Two to ten friends, one link or code.",
+        "body": "Being seen is the whole system. Your crew sees you show up and reacts; that's it — no feed, no chat, no scores. Two to ten people, one link or code.",
         "adultBody": "",
         "source": null
       },

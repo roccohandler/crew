@@ -1448,3 +1448,27 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   `docs/commit-queue.sh` — is a record of what was true when it was written and was not touched.
 - Look at: §2.1 of `docs/OWNER-REVIEW.md` (flip the Vercel primary domain to the apex, then move `CREW_API_HOST`), and reading (6)
   in the run log before trusting push on build 201.
+
+### R-081 · 2026-09-19 · A23 education copy RATIFIED by the owner with eight amendments · checkpoint — RATIFIED BY OWNER (one builder's wording inside it, open to a "no")
+- What was checked: the owner's ratification of `docs/education-copy-draft.md`, with eight amendments; `shared/copy/education.json`
+  becomes the ratified source of truth and `page.note.draft` flips to false (Appendix A, the line under A23). Every amendment was
+  applied to the one file, regenerated into `web/src/generated/copy.ts` and `ios/Crew/Generated/CopyData.swift`, and read back:
+  `check-copy` passes; the twelve lines run 6–11 words (why.crews 10, why.freeDinner 8; the cap is `copy.whisperMaxWords` = 12);
+  the three `adult` gates are unchanged; `launch-audit` no longer prints its draft NOTE, because it prints only while
+  `page.note.draft` is true.
+- Verdict, two readings:
+  (1) **THE STREAK SENTENCE WAS CHECKED AGAINST THE ENGINE BEFORE IT WENT ON THE PAGE.** Amendment 3 says "a rest day never breaks
+  it". A22 G1 (a), ruled 2026-09-18, is exactly that — "the streak counts planned training days only; a rest day neither requires nor
+  breaks it" — and both engines carry it (R-068, vectors from V66). The page no longer says less than the rule, and A23's own
+  rest-day silence (written while G1 was open) is superseded, not rewritten.
+  (2) **THE CREWS SECTION'S FIRST SENTENCE IS THE BUILDER'S WORDING — "Being seen is the whole system."** The owner's instruction:
+  "Its first sentence is reworded off the old algorithm line to match the new whisper." Only the first sentence is authorised to move,
+  and the second, which stays, already says "Your crew sees you show up and reacts". Copying the whisper in whole ("Your crew sees
+  you show up. That's the whole system.") would put the same clause twice in a row. So the first sentence carries the whisper's
+  CLAIM — being seen is the system — and the unchanged second sentence says what being seen looks like. "Match" was read as "agree
+  with", not "repeat". The section now reads: "Being seen is the whole system. Your crew sees you show up and reacts; that's it — no
+  feed, no chat, no scores. Two to ten people, one link or code." A different first sentence is a one-string change in the file.
+- Not touched, and why: the Crew tab's own empty state ("Two to ten friends. A link, a name, an emoji." — `CrewSoloView.swift`,
+  `CrewView.tsx`) still says "friends". Amendment 5 names the page's crews section, and the empty state is a different line on a
+  different screen, so it was left for the owner rather than widened into.
+- Look at: the crews sentence above, and the three new tour shots of S19 (`tour_settingstests/0N_settings_howcrewworks_*`).

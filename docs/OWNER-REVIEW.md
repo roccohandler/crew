@@ -48,9 +48,11 @@ holds every reading made without you, `docs/debt.md` every compromise.
    what the app now does in mind: it gives adults calorie and macro targets and keeps one bodyweight, and posts are user-generated
    content inside invite-only groups. The answers are yours. Record the rating Apple returns in `docs/progress.md` (or tell the builder).
    **The App Store submission is gated on this and on nothing else in the code.**
-6. **The education copy (A23).** Read `docs/education-copy-draft.md` line by line — twelve whispers and the How Crew works page —
-   and **rewrite the note from Max in your own words**. On screen the note is labelled "Draft" until you do. Send the final text;
-   the builder changes `shared/copy/education.json` (`page.note.draft` → false) and both apps follow.
+6. **The education copy (A23) — DONE 2026-09-19.** Ratified with your eight amendments; `shared/copy/education.json` is the source
+   of truth, the note from Max is yours and carries no "Draft" label, and both apps print it. One sentence is the builder's, not
+   yours: the crews section now opens "Being seen is the whole system." (you asked for it to be reworded to match the new whisper
+   without saying how — R-081 (2)); a different sentence is a one-string change. Also yours to look at: the Crew tab's empty state
+   still says "Two to ten **friends**. A link, a name, an emoji." — you changed that phrase on the page only, so it was left.
 7. **The canonical Push / Pull / Legs lists — DONE 2026-09-18 (A26).** Your lists are the templates at every experience (3×8 · 4×8 ·
    5×8), every named swap is always offered, and the phone draws a symbol beside each equipment tag. No vector moved (the templates
    are no gamification rule). Yours to look at on the phone: the names the rows took (`docs/ratification.md` R-079 (3)), the five
@@ -83,6 +85,7 @@ holds every reading made without you, `docs/debt.md` every compromise.
 | Education: `how.invite` shows on the Crew tab, not inside the Invite sheet (a whisper never sits in a sheet) | R-076 | Rule 3 of the whisper contract wins over the placement table |
 | 6.9 density on Today: Quick add and "Logged today" became their own screens; How Crew works stays one scrolling page | R-077 | Nothing was removed; the second scroll-length moved one tap away. S19 is prose, read once |
 | W9: the store's first versioned schema is build 150's; the legal pages leave three blanks for you | R-078 | See §2.4 |
+| A23 ratified: the crews section's first sentence, reworded to match the new whisper without repeating the sentence after it | R-081 (2) | "Being seen is the whole system." |
 | A26: a row may repeat an exercise, so rows are named by their order; named swaps are kept by swap-group size, not a new rule; six rows renamed to your words; the web chip stays words | R-079 | Each the narrowest reading of your ruling |
 
 ## 4. The phone checklist (TestFlight, latest build — the number is on the top line of `docs/progress.md`)
@@ -109,7 +112,7 @@ holds every reading made without you, `docs/debt.md` every compromise.
 |---|---|---|
 | Age questionnaire re-answered (A16.b) | you | open — §2.5 |
 | Privacy and terms reviewed; legal name and governing law added | you | open — §2.4 |
-| Education copy ratified; the note rewritten | you | open — §2.6 |
+| Education copy ratified; the note rewritten | you | **done 2026-09-19** — §2.6, R-081 |
 | A demo account for App Review with a plan, workouts and a two-person crew | you | open — notes drafted in `docs/app-store-listing.md` |
 | The phone checklist in §4 | you | open |
 | Listing copy, privacy label answers, review notes | builder | drafted — `docs/app-store-listing.md` |

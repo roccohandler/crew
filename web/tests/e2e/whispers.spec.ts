@@ -28,7 +28,9 @@ test("a whisper shows once, leaves on the first tap, and the account remembers i
   await expect(page.getByText(PAUSE)).toHaveCount(0);
 });
 
-test("S19 How Crew works: the draft note, the sections and the whispers — twelve for an adult, nine under 18", async ({ page }) => {
+// A23 RATIFIED 2026-09-19 (R-081): the page prints the owner's amended lines from the generated copy — the note, the rest-day
+// sentence the streak section gained, and the two new whisper lines in the list — and says "Draft" nowhere.
+test("S19 How Crew works: the ratified note, the sections and the whispers — twelve for an adult, nine under 18", async ({ page }) => {
   await buildWeekAndSave(page, { label: "s19" });
   await expect(page.getByText(/^Your (first flame lights today|plan rests today)\./)).toBeVisible({ timeout: 15_000 });
   await page.goto("/settings");
@@ -36,8 +38,12 @@ test("S19 How Crew works: the draft note, the sections and the whispers — twel
   await page.getByRole("link", { name: "How Crew works" }).click();
   await expect(page.getByRole("heading", { name: "How Crew works" })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "A note from Max" })).toBeVisible();
-  await expect(page.getByText("Draft", { exact: true })).toBeVisible(); // the owner rewrites the note; until then it says what it is
+  await expect(page.getByText(/everything in here is what I do myself/)).toBeVisible();
+  await expect(page.getByText("Draft", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/Rest days are free: the flame counts your training days, and a rest day never breaks it\./)).toBeVisible();
   await expect(page.locator("ol > li")).toHaveCount(12);
+  await expect(page.locator("ol > li", { hasText: "Your crew sees you show up. That's the whole system." })).toHaveCount(1);
+  await expect(page.locator("ol > li", { hasText: "Same breakfast and lunch every day. Dinner's yours." })).toHaveCount(1);
   await expect(page.getByText(/1 g per pound is the easy target/)).toBeVisible();
   await expect(page.getByRole("link", { name: /^Morton et al\./ })).toBeVisible();
 });
@@ -48,6 +54,8 @@ test("S19 under 18: no protein numbers, no protein source, no nutrition whispers
   await page.goto("/how-crew-works");
   await expect(page.getByRole("heading", { name: "Protein first" })).toBeVisible({ timeout: 15_000 });
   await expect(page.locator("ol > li")).toHaveCount(9);
+  await expect(page.locator("ol > li", { hasText: "Your crew sees you show up. That's the whole system." })).toHaveCount(1); // gate: all
+  await expect(page.locator("ol > li", { hasText: "Same breakfast and lunch every day. Dinner's yours." })).toHaveCount(0); // gate: adult
   await expect(page.getByText(/per pound/)).toHaveCount(0);
   await expect(page.getByRole("link", { name: /^Morton et al\./ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /^Schoenfeld/ })).toBeVisible(); // the training source is for every age

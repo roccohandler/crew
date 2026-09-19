@@ -52,7 +52,7 @@ final class Journey4_ScreensTests: XCTestCase {
         app.staticTexts["Units"].tap()
         XCTAssertFalse(pauseWhisper.waitForExistence(timeout: 2), "A23 rule 4: the first tap anywhere did not clear the whisper")
         shoot(app, "S17 Settings")
-        // A23 · S19 — the page behind the whispers, a row above Version; the note from Max says it is still the draft
+        // A23 · S19 — the page behind the whispers, a row above Version; the note from Max is the owner's, ratified (R-081)
         let howItWorks = app.buttons["How Crew works"]
         // About is the LAST section of a list that is three pages long since W8 (run 35340692297: one swipe stopped at Account), and a
         // List builds its rows lazily — so scroll until the row exists, a page at a time. EXISTING is not enough (run 35400020876): a
@@ -65,7 +65,10 @@ final class Journey4_ScreensTests: XCTestCase {
         XCTAssertLessThanOrEqual(howItWorks.frame.maxY, tabBarTop, "the How Crew works row never cleared the tab bar — the screen says: \(screenSays())")
         howItWorks.tap()
         XCTAssertTrue(app.navigationBars["How Crew works"].waitForExistence(timeout: 15), "S19 did not open")
-        XCTAssertTrue(app.staticTexts["Draft"].exists, "the note from Max is marked Draft until the owner rewrites it")
+        // A23 ratified 2026-09-19 (R-081): the page prints the owner's own words from the generated copy, and says "Draft" nowhere
+        let ratifiedNote = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "everything in here is what I do myself")).firstMatch
+        XCTAssertTrue(ratifiedNote.waitForExistence(timeout: 5), "S19 does not print the ratified note from Max — the screen says: \(screenSays())")
+        XCTAssertFalse(app.staticTexts["Draft"].exists, "the note from Max is ratified: no Draft label")
         shoot(app, "S19 How Crew works")
     }
 }

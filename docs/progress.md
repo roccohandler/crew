@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-19 00:45Z (**LATEST TESTFLIGHT BUILD: 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-19 01:50Z (**LATEST TESTFLIGHT BUILD: 201** — W7 ACTIVATED, from 0420cc9: CI run 35412369342 green on five jobs, TestFlight run 35413652316 "Upload succeeded" 01:48Z — the first build that carries `applinks:trycrew.fit`; its `aps-environment` after the export is UNCONFIRMED, see the W7 section) — earlier: 2026-09-19 00:45Z (**TESTFLIGHT BUILD 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -877,6 +877,56 @@ evidence the parser ignores the host, and deleting them would delete the proof (
 (3) · the Vercel primary domain is the owner's to flip (1) · `ios/project.yml`'s `aps-environment: development` was NOT
 pre-emptively changed (6) — build 201 is the FIRST archive ever signed with the project's own entitlements, so the answer is read
 off the run's "What the export signed" step rather than guessed at.
+
+### CI run 35412369342 (0420cc9) — GREEN on five jobs, first attempt · TestFlight run 35413652316 → **BUILD 201, the W7 build**
+
+contracts ✓ · web ✓ · web e2e ✓ · ios engine ✓ · **ios ✓**. Vercel deployed 0420cc9 to Production (GitHub deployment record: success) and the
+association file answered 200 on every poll through the deploy. **Build 201 uploaded 2026-09-19 01:48Z.** Both W7 steps ran for the first
+time and both are proven by the log: "Wire universal links" wrote `ios/project.yml:64 com.apple.developer.associated-domains:
+["applinks:trycrew.fit"]`, and "Declare the entitlements on the archived app" ad-hoc signed the archive with
+`aps-environment=development · applesignin=[Default] · associated-domains=[applinks:trycrew.fit]`. EXPORT SUCCEEDED, "Upload succeeded".
+
+**R-080 (6) is NOT settled, and the step meant to settle it is blind.** "What the export signed" printed nothing: it found the
+distribution log (otherwise it would print "no distribution log on this runner") and `grep -i entitlements` matched no line in it.
+The run keeps no artifact and the export uploads straight to Apple, so the IPA the re-sign produced cannot be read from here. Every
+Xcode App Store export re-signs `aps-environment` to the profile's `production` — it is how any project whose `.entitlements` file
+says `development` ships push — and `testflight.yml:117` asserts it; but on THIS pipeline it has not been observed. `docs/debt.md`
+carries the repair (print the exported IPA's own entitlements). The phone is the check: a push that arrived on 199 must still arrive
+on 201.
+
+NEXT (owner): install **201**, then OWNER-REVIEW §4.5 (the link) and one push; then §2.1, the Vercel primary domain. NEXT (builder):
+nothing queued. The progress and debt lines for this run were held uncommitted (the owner's rule of 2026-09-18: no docs-only
+commit) and rode the next real change — the A23 ratification below.
+
+## 2026-09-19 — A23 EDUCATION COPY RATIFIED (owner, eight amendments; Appendix A, the line under A23; R-081)
+
+The owner ratified `docs/education-copy-draft.md` with eight amendments. `shared/copy/education.json` is now the ratified source of
+truth and `page.note.draft` is false. What moved, all in the one file and regenerated into both apps' copy:
+
+| # | Where | Now |
+|---|---|---|
+| 1 | `why.crews` | "Your crew sees you show up. That's the whole system." (10 words) |
+| 2 | `why.freeDinner` | "Same breakfast and lunch every day. Dinner's yours." (8 words; 18+ gate unchanged) |
+| 3 | streak section | + "Rest days are free: the flame counts your training days, and a rest day never breaks it." — checked against A22 G1 (a) first |
+| 4 | PPL section | "…and efficient — three sessions a week fits around a job." Recovery sentence unchanged |
+| 5 | crews section | "Two to ten people"; first sentence → "Being seen is the whole system." (the builder's wording, R-081 (2)) |
+| 6 | note from Max | "everything in here is what I do myself"; `draft: false` — the page's "Draft" label is gone on both platforms |
+| 7 | "What the whispers said" | regenerated — both apps build it from the whisper list, still in trigger order |
+| 8 | WHY 1 · no-merge · About placement | ratified as written |
+
+**Verified locally:** `check-copy` passes with every line at 6–11 words (cap 12); `launch-audit`'s draft NOTE is gone (it prints only
+while `page.note.draft` is true); the three `adult` gates are unchanged, so under 18 the page still lists nine lines and drops the
+protein numbers and source. **Tests moved with the copy:** web journey `whispers.spec.ts` now asserts no "Draft", the ratified note,
+the rest-day sentence and the two new list lines (and, under 18, the crews line present and the dinner line absent); iOS journey ④
+asserts the ratified note from the generated copy and no "Draft". **The tour gains S19:** it had no shot of the page, so
+`Tour_SettingsTests.testHowCrewWorks` photographs the note and PPL section, the streak and crews sections, and the whisper list, in a
+method of its own so the eight existing settings shots keep their numbers. The two amended whispers already appear in the tour:
+`01_crew_stream_filled` (why.crews; on the tour-diff's drift list, so reviewed by name) and `10_nutrition_template_filled`
+(why.freeDinner). Docs: the draft document is marked RATIFIED with the amendments applied and its open section closed;
+OWNER-REVIEW §2.6 and the §5 submission gate are done; `docs/mvp-definition.md` names the file as the source of truth.
+
+Left alone, and why: the Crew tab's empty state still says "Two to ten friends" (`CrewSoloView.swift`, `CrewView.tsx`); amendment 5
+names the page's crews section only (R-081).
 
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 

@@ -1,5 +1,5 @@
 // SPEC: Appendix A 2026-09-18 A24 (1) — the screenshot tour, SETTINGS (the list · blocked people · profile · the photo dialog · pause,
-// and the paused Home it produces). Seeded through the real API (TourSeed.swift); asserts nothing and never fails CI
+// and the paused Home it produces · S19 How Crew works, A23). Seeded through the real API (TourSeed.swift); asserts nothing and never fails CI
 // (TourSteps.swift says why); every step is a shot named NN_<tab>_<screen>_<state> for design/baselines/. The two legal rows open
 // Safari on the deployed site, which the CI harness is not — they are not toured.
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
@@ -45,5 +45,25 @@ final class Tour_SettingsTests: XCTestCase {
         tourTap(app.tabBars.buttons["Home"])
         _ = app.buttons["End the pause now"].waitForExistence(timeout: 15)
         tourShot(app, "home_home_paused", "went Home with the plan paused")
+    }
+
+    // A23 RATIFIED 2026-09-19 (R-081): S19 had no tour shot, so the owner's amended page could not be reviewed. Three shots — the note
+    // and the PPL section, the streak and crews sections, what the whispers said — in a method of its own, so the eight shots above
+    // keep their numbers. The tour member is an adult, so the page carries all twelve lines.
+    func testHowCrewWorks() async throws {
+        tourLaunch(app, as: try await tourFilledMember(seed))
+        tourWaitForHome(app)
+        tourTap(app.tabBars.buttons["Settings"])
+        _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
+        let row = app.buttons["How Crew works"]
+        tourScrollClearOfBottomBar(app, until: row, pages: 8) // About is the list's last section; a row under the tab bar reports hittable
+        guard tourTap(row, timeout: 5) else { return }
+        _ = app.navigationBars["How Crew works"].waitForExistence(timeout: 15)
+        tourShot(app, "settings_howcrewworks_top", "tapped How Crew works")
+        tourScrollClearOfBottomBar(app, until: app.staticTexts["Mobility"], pages: 6) // the streak and crews sections sit right above it
+        tourShot(app, "settings_howcrewworks_middle", "scrolled to the streak and crews sections")
+        let clinician = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "These are estimates")).firstMatch
+        tourScrollClearOfBottomBar(app, until: clinician, pages: 6) // the page's last line: the whisper list ends right above it
+        tourShot(app, "settings_howcrewworks_whispers", "scrolled to what the whispers said")
     }
 }
