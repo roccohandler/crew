@@ -1,37 +1,46 @@
 /* GENERATED FILE — DO NOT EDIT. Source: shared/design-tokens.json · Generator: shared/scripts/generate.mjs */
 /* Re-run `node shared/scripts/generate.mjs`; `node shared/scripts/check-drift.mjs` fails CI when this file drifts. */
-/* SPEC: Part III — the Ember color system. Ink acts, Ember rewards. 6.4 — spacing + the one spring. A21.10 (amended 2026-09-18): light always. */
+/* SPEC: A28 — the Focus Card colour table and type scale. Ink acts; orange is a point. 6.4 — spacing + the one spring. A21.10 (amended 2026-09-18): light lock, lifted by A28 (a) in the Home session. */
 
 :root {
   color-scheme: light;
-  /* 70% Canvas — every page background (Bone) */
-  --ember-canvas: #FAF8F5;
-  /* 70% Canvas — cards */
-  --ember-card: #FFFFFF;
-  /* 70% Canvas — hairlines */
-  --ember-hairline: #E9E4DD;
-  /* 20% Ink — ALL text and structure */
-  --ember-ink-text: #211D19;
-  /* 20% Ink — primary button fill (ink acts; ≈15:1 on canvas) */
-  --ember-primary-button-fill: #211D19;
-  /* 20% Ink — primary button label */
-  --ember-primary-button-label: #FAF8F5;
-  /* 20% Ink — secondary button = hairline outline */
-  --ember-secondary-button-outline: #E9E4DD;
-  /* 20% Ink — secondary button = ink label */
-  --ember-secondary-button-label: #211D19;
-  /* 20% Ink — the visible boundary of every OUTLINE control (secondary buttons, the Home log rows). A18.11 (2026-09-10): outline controls drew their boundary with `hairline`/`secondaryButtonOutline` #E9E4DD, which measures 1.26:1 on a card and 1.19:1 on the canvas against 6.5's 3:1 non-text gate — so the thing that says "this is a control" was invisible and the owner read three buttons as three dead containers. #938C83 measures 3.32:1 on card and 3.13:1 on canvas; #726A61 measures 3.15:1 on the dark card and 3.45:1 on the dark canvas. `hairline` keeps its own value: a boundary between two SURFACES is not a control, and darkening dividers would be a different change. */
-  --ember-control-outline: #938C83;
-  /* 20% Ink — secondary text */
-  --ember-secondary-text: #6F6860;
-  /* 20% Ink — missed = warm gray, never red; recedes on dark */
-  --ember-missed-gray: #A8A29A;
-  /* ≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts. A17.4 (2026-09-10): the light value was #FF6600, which measures 2.77:1 on the bone canvas and fails the 3:1 non-text gate in 6.5; #DF5908 measures 3.56:1 at hue h23 against h24 — the same orange, one shade deeper. emberText #B84D00 (4.83:1, the text gate) and emberTint are unchanged, and dark #FF7A1F already measured 7.03:1. */
-  --ember-ember: #DF5908;
-  /* ≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark) */
-  --ember-ember-text: #B84D00;
-  /* ≤10% Ember — tints & ring tracks */
-  --ember-ember-tint: #FFEFE3;
+  /* Every page background — Varsity cream / Midnight navy */
+  --ember-canvas: #F7F1E4;
+  /* Cards and the sheet surface — one step off the canvas (1.10:1 light, 1.21:1 dark); light lifts it with the card shadow, dark with tone alone */
+  --ember-card: #FFFCF6;
+  /* NAVY ink — all text and structure, every icon and glyph, every text button, the stepper's plus and minus, the completed check, completed progress segments, heat-map done-days, day marks, the streak and ring numerals, the selected tab, and the primary capsule's fill (it inverts with the mode). 13.29 / 14.61 light and 15.05 / 12.46 dark on canvas / card */
+  --ember-ink: #142744;
+  /* Secondary text, eyebrows, quiet fact rows, the off-season snowflake. 5.84 / 6.42 light and 7.03 / 5.82 dark on canvas / card */
+  --ember-ink-secondary: #4E5E78;
+  /* Muted marks — the unlit flame at zero; carries NO text below 24 pt (3.32 / 3.64 light, 3.98 / 3.29 dark on canvas / card: a graphical object, never small text) */
+  --ember-ink-muted: #7E8496;
+  /* The seam between two rows inside a card — a boundary between surfaces, never a control's boundary */
+  --ember-hairline-on-card: #EFE8D9;
+  /* A seam drawn on the canvas (the tab bar's top rule) — a boundary between surfaces, never a control's boundary */
+  --ember-hairline-on-canvas: #E6DCC8;
+  /* The stepper's 1.5 pt ring. ~1.6:1 by design (§6): a control drawn with it is identified by its ink glyph, which clears 3:1 — it is never a control's only mark (R-083) */
+  --ember-control-border: #D3C7AE;
+  /* Segmented workout bar — a pending set */
+  --ember-segment-empty: #E0D6C0;
+  /* Segmented workout bar — the current exercise's segments (also 8 pt tall against 6 pt, so height carries the state too) */
+  --ember-segment-current: #A89C84;
+  /* A row button's chevron — decoration; the row's name identifies the control */
+  --ember-chevron: #A89C84;
+  /* The weekly ring's track — a neutral in both modes, never a tint of the accent (a wash over a 140 pt circle is a field) */
+  --ember-ring-track: #E0D6C0;
+  /* Heat map — a day with no workout (done-days are ink) */
+  --ember-heat-empty: #E4E3E1;
+  /* The tab bar's surface */
+  --ember-tab-bar: #FBF7EE;
+  /* ORANGE IS A POINT, NOT A FIELD — exactly three places: the flame glyph (fill), the weekly ring's progress arc (stroke), the celebration's XP numeral and its unit (text). Never a background, never on a control, never behind text, never an area larger than a fingertip. One hue (27.0° / 26.9°): the dark value is the light one lifted for its ground, not a second colour — do not re-pick either. 3.15 / 3.46 light and 7.40 / 6.13 dark on canvas / card */
+  --ember-accent: #DE6400;
+  /* The label on an ink fill (the primary capsule): cream on navy in light, navy on cream in dark — 14.61 / 15.05 */
+  --ember-on-ink: #FFFCF6;
+  /* Red — only inside a destructive confirm sheet, in both modes, and nowhere else. 5.88 / 6.09 on its sheet */
+  --ember-destructive: #BC2A1C;
+  /* The scrim behind a sheet — rgba(20,39,68,0.34) light, rgba(4,9,17,0.58) dark */
+  --ember-sheet-scrim: rgba(20, 39, 68, 0.34);
+  /* A16's bounded exception to Part III law ⑥ (nutrition surfaces only) — NOT on A28's table and NOT re-picked by it: the design system is silent on nutrition, so these stand unchanged until the Nutrition session rules on them (docs/debt.md 2026-09-19, A28). Dark carbs measures 2.79:1 on A28's dark card; dark is unreachable until the light lock lifts. */
   /* Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone. */
   --ember-macro-protein: #2E4E28;
   /* Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text). */
@@ -44,10 +53,127 @@
   --ember-macro-carbs-track: #E0E7EB;
   /* Macro bar track — fat */
   --ember-macro-fat-track: #E3D8DD;
-  /* Semantic — success (single value in spec; both modes) */
-  --ember-success: #3E8E5A;
-  /* Semantic — danger (berry, never near orange; single value in spec; both modes) */
-  --ember-danger: #D64550;
+  /* A28 (2026-09-19): the names screens still call colours by, each pointing at ONE row of the table above, so the whole app recolors with no screen edit. An alias carries no value of its own. Each goes when the last screen that reads it is redesigned onto the table's own names (docs/debt.md 2026-09-19, A28). Retired outright with A28 because nothing read them: secondaryButtonOutline (the pre-A18.11 hairline outline — an alias with that name would re-arm the trap A18.11 closed) and success (no green for done; a navy success invites misuse). */
+  --ember-hairline: var(--ember-hairline-on-canvas);
+  --ember-ink-text: var(--ember-ink);
+  --ember-primary-button-fill: var(--ember-ink);
+  --ember-primary-button-label: var(--ember-on-ink);
+  --ember-secondary-button-label: var(--ember-ink);
+  --ember-control-outline: var(--ember-ink-muted);
+  --ember-secondary-text: var(--ember-ink-secondary);
+  --ember-missed-gray: var(--ember-ink-muted);
+  --ember-ember: var(--ember-accent);
+  --ember-ember-text: var(--ember-ink);
+  --ember-ember-tint: var(--ember-ring-track);
+  --ember-danger: var(--ember-destructive);
+  /* A28 (a), (f) — the type scale of design/focus-card-system.md §4. SF Pro throughout (Display above 28 pt, Text below — the system font picks it by size). EVERY NUMERAL is SF Pro Rounded (rounded: true) — set counts, weights, reps, streak, ring, XP, targets, week and workout counts; words are never rounded. Size in points on iOS and px on web. Tracking is a FRACTION of the size (−0.05 = −5%): SwiftUI's .tracking takes points, so a view passes size × tracking; CSS writes it in em. An uppercase role renders its string uppercase and the string itself stays sentence case (VoiceOver reads the string). Scale with Dynamic Type (@ScaledMetric or .custom(_:relativeTo:)). */
+  --ember-font-text: -apple-system, system-ui, sans-serif;
+  --ember-font-rounded: ui-rounded, -apple-system, system-ui, sans-serif;
+  --ember-type-celebration-numeral-size: 96px;
+  --ember-type-celebration-numeral-weight: 700;
+  --ember-type-celebration-numeral-tracking: -0.05em;
+  --ember-type-celebration-numeral-family: var(--ember-font-rounded);
+  --ember-type-celebration-numeral-transform: none;
+  --ember-type-hero-numeral-size: 76px;
+  --ember-type-hero-numeral-weight: 700;
+  --ember-type-hero-numeral-tracking: -0.04em;
+  --ember-type-hero-numeral-family: var(--ember-font-rounded);
+  --ember-type-hero-numeral-transform: none;
+  --ember-type-streak-numeral-size: 54px;
+  --ember-type-streak-numeral-weight: 700;
+  --ember-type-streak-numeral-tracking: -0.03em;
+  --ember-type-streak-numeral-family: var(--ember-font-rounded);
+  --ember-type-streak-numeral-transform: none;
+  --ember-type-ring-numeral-size: 46px;
+  --ember-type-ring-numeral-weight: 700;
+  --ember-type-ring-numeral-tracking: -0.02em;
+  --ember-type-ring-numeral-family: var(--ember-font-rounded);
+  --ember-type-ring-numeral-transform: none;
+  --ember-type-screen-title-size: 38px;
+  --ember-type-screen-title-weight: 800;
+  --ember-type-screen-title-tracking: -0.03em;
+  --ember-type-screen-title-family: var(--ember-font-text);
+  --ember-type-screen-title-transform: none;
+  --ember-type-screen-title-bare-size: 44px;
+  --ember-type-screen-title-bare-weight: 800;
+  --ember-type-screen-title-bare-tracking: -0.035em;
+  --ember-type-screen-title-bare-family: var(--ember-font-text);
+  --ember-type-screen-title-bare-transform: none;
+  --ember-type-celebration-phrase-size: 30px;
+  --ember-type-celebration-phrase-weight: 800;
+  --ember-type-celebration-phrase-tracking: -0.03em;
+  --ember-type-celebration-phrase-family: var(--ember-font-text);
+  --ember-type-celebration-phrase-transform: none;
+  --ember-type-sheet-title-size: 27px;
+  --ember-type-sheet-title-weight: 800;
+  --ember-type-sheet-title-tracking: -0.03em;
+  --ember-type-sheet-title-family: var(--ember-font-text);
+  --ember-type-sheet-title-transform: none;
+  --ember-type-exercise-title-size: 24px;
+  --ember-type-exercise-title-weight: 700;
+  --ember-type-exercise-title-tracking: -0.02em;
+  --ember-type-exercise-title-family: var(--ember-font-text);
+  --ember-type-exercise-title-transform: none;
+  --ember-type-card-subheading-size: 20px;
+  --ember-type-card-subheading-weight: 700;
+  --ember-type-card-subheading-tracking: -0.015em;
+  --ember-type-card-subheading-family: var(--ember-font-text);
+  --ember-type-card-subheading-transform: none;
+  --ember-type-hero-unit-size: 22px;
+  --ember-type-hero-unit-weight: 600;
+  --ember-type-hero-unit-tracking: 0em;
+  --ember-type-hero-unit-family: var(--ember-font-text);
+  --ember-type-hero-unit-transform: none;
+  --ember-type-body-size: 17px;
+  --ember-type-body-weight: 500;
+  --ember-type-body-tracking: 0em;
+  --ember-type-body-family: var(--ember-font-text);
+  --ember-type-body-transform: none;
+  --ember-type-body-semibold-size: 17px;
+  --ember-type-body-semibold-weight: 600;
+  --ember-type-body-semibold-tracking: 0em;
+  --ember-type-body-semibold-family: var(--ember-font-text);
+  --ember-type-body-semibold-transform: none;
+  --ember-type-secondary-size: 15px;
+  --ember-type-secondary-weight: 500;
+  --ember-type-secondary-tracking: 0em;
+  --ember-type-secondary-family: var(--ember-font-text);
+  --ember-type-secondary-transform: none;
+  --ember-type-caption-size: 13px;
+  --ember-type-caption-weight: 600;
+  --ember-type-caption-tracking: 0em;
+  --ember-type-caption-family: var(--ember-font-text);
+  --ember-type-caption-transform: none;
+  --ember-type-eyebrow-size: 11px;
+  --ember-type-eyebrow-weight: 700;
+  --ember-type-eyebrow-tracking: 0.14em;
+  --ember-type-eyebrow-family: var(--ember-font-text);
+  --ember-type-eyebrow-transform: uppercase;
+  --ember-type-eyebrow-under-ring-size: 11px;
+  --ember-type-eyebrow-under-ring-weight: 700;
+  --ember-type-eyebrow-under-ring-tracking: 0.12em;
+  --ember-type-eyebrow-under-ring-family: var(--ember-font-text);
+  --ember-type-eyebrow-under-ring-transform: uppercase;
+  --ember-type-eyebrow-weekday-size: 11px;
+  --ember-type-eyebrow-weekday-weight: 700;
+  --ember-type-eyebrow-weekday-tracking: 0.06em;
+  --ember-type-eyebrow-weekday-family: var(--ember-font-text);
+  --ember-type-eyebrow-weekday-transform: uppercase;
+  --ember-type-primary-label-size: 17px;
+  --ember-type-primary-label-weight: 700;
+  --ember-type-primary-label-tracking: 0em;
+  --ember-type-primary-label-family: var(--ember-font-text);
+  --ember-type-primary-label-transform: none;
+  --ember-type-text-button-size: 15px;
+  --ember-type-text-button-weight: 600;
+  --ember-type-text-button-tracking: 0em;
+  --ember-type-text-button-family: var(--ember-font-text);
+  --ember-type-text-button-transform: none;
+  --ember-type-tab-label-size: 10px;
+  --ember-type-tab-label-weight: 600;
+  --ember-type-tab-label-tracking: 0em;
+  --ember-type-tab-label-family: var(--ember-font-text);
+  --ember-type-tab-label-transform: none;
   /* Decision Registry G5 (2026-09-04) — 4 / 8 / 12 / 16 / 24 / 32, nothing off-scale (points on iOS, px on web). A14 (2026-09-09) adds two ROLE aliases onto that same scale so macro and micro rhythm can diverge without a new number: sectionGap (24) is the gap BETWEEN groups, rowGap (8) the gap WITHIN one — a uniform 16 pt everywhere is why Home read as empty rather than composed. */
   --ember-space-4: 4px;
   --ember-space-8: 8px;
@@ -78,28 +204,30 @@
   --crew-touch-target-breakpoint: 768px;
 }
 
-/* The dark values, kept for parity and for a future ruling; no element carries data-theme="dark" (A21.10 amended 2026-09-18) */
+/* The dark values (A28 (a), Midnight). No element carries data-theme="dark" until the light lock lifts; an alias needs no dark line — its var() resolves to the row below */
 :root[data-theme="dark"] {
-    --ember-canvas: #171412;
-    --ember-card: #211D19;
-    --ember-hairline: #2E2822;
-    --ember-ink-text: #F5F1EB;
-    --ember-primary-button-fill: #F5F1EB;
-    --ember-primary-button-label: #171412;
-    --ember-secondary-button-outline: #2E2822;
-    --ember-secondary-button-label: #F5F1EB;
-    --ember-control-outline: #726A61;
-    --ember-secondary-text: #A69E94;
-    --ember-missed-gray: #5E574F;
-    --ember-ember: #FF7A1F;
-    --ember-ember-text: #FF7A1F;
-    --ember-ember-tint: #33241A;
+    --ember-canvas: #0E1A2E;
+    --ember-card: #1B2A42;
+    --ember-ink: #F2EEE6;
+    --ember-ink-secondary: #95A6BE;
+    --ember-ink-muted: #687A93;
+    --ember-hairline-on-card: #26364E;
+    --ember-hairline-on-canvas: #223049;
+    --ember-control-border: #33475F;
+    --ember-segment-empty: #27384F;
+    --ember-segment-current: #5A6E88;
+    --ember-chevron: #5A6E88;
+    --ember-ring-track: #27384F;
+    --ember-heat-empty: #27384F;
+    --ember-tab-bar: #12203A;
+    --ember-accent: #FF8A2B;
+    --ember-on-ink: #0E1A2E;
+    --ember-destructive: #FF8575;
+    --ember-sheet-scrim: rgba(4, 9, 17, 0.58);
     --ember-macro-protein: #BDD9B9;
     --ember-macro-carbs: #3D7392;
     --ember-macro-fat: #DAADDB;
     --ember-macro-protein-track: #42473D;
     --ember-macro-carbs-track: #212D33;
     --ember-macro-fat-track: #4A3C46;
-    --ember-success: #3E8E5A;
-    --ember-danger: #D64550;
 }

@@ -1500,3 +1500,101 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
 - The web message: "Saved · Changes apply from your next workout on." — the page's own sentence, held in one constant so the two can
   never disagree again.
 - Look at: `shared/vectors/training-days.vectors.json` (V85–V90) and `docs/api.md` plans.
+
+### R-083 · 2026-09-19 · A28 — the Focus Card redesign recorded, the tokens moved (R0) · checkpoint — the builder's readings, each open to the owner; ten SPECIFICATION GAPS for the owner
+- What was checked: the owner's six rulings (Appendix A, A28 (a)–(f)) against `design/focus-card-system.md`, the twelve approved
+  mockups in `design/targets/` (light and dark; `01` dark only) and the whole spec. A nine-agent sweep read Parts I–XII and Appendix A
+  line by line (every passage each ruling overturns — 35 marker lines and 9 screen-head markers now point at A28), the code for every
+  timer, duration, accent use and Home/Logger touchpoint (the work orders R1–R3 inherit, `docs/debt.md`), every token consumer, and
+  the design docs. The token table is checked row for row against the system document by a test (`web/tests/contrast.test.ts`), and
+  every contrast figure the system publishes was recomputed (all match).
+- What changed in R0 (no screen file): `shared/design-tokens.json` — `colors` is the system's 18-row table; A16's six macro colours
+  sit apart, unchanged; twelve legacy names are aliases of one row each; the type scale is 21 roles (§4's table plus §8's
+  primary label and text button) → `EmberColors.swift`,
+  `EmberTokens.swift` (`EmberTokens.Typography`, `TypeRole`), `ember.css` (`--ember-type-*`). `design/DESIGN.md`'s owner sections
+  carry the system's words; `design/targets/README.md` maps each mockup to its tour shots; `ui-reviewer` judges the matching mode.
+- The builder's readings (numbered as the A28 entry cites them):
+  (1) **Tokens.** `colors` is the table verbatim; every legacy name a screen still reads is an ALIAS of one row, so the app recolors
+      with no screen edit: hairline → hairlineOnCanvas (17 of its 21 uses sit on the canvas) · inkText, primaryButtonFill,
+      secondaryButtonLabel → ink · primaryButtonLabel → onInk · controlOutline → inkMuted · secondaryText → inkSecondary · missedGray →
+      inkMuted · ember → accent · emberText → ink · emberTint → ringTrack · danger → destructive. An alias leaves when its last reader
+      is redesigned. secondaryButtonOutline and success had no reader and are retired (an alias named "button outline" at 1.2:1
+      would re-arm A18.11's trap; a navy "success" invites misuse). The alias targets follow each token's role (ember's successor is
+      the accent, danger's the destructive red) — where the role itself is narrowed by A28, the over-use is debt per screen.
+  (2) **A control's mark still clears 3:1** (6.5, A18.11). controlBorder (~1.6:1) is the stepper's ring and never its only mark —
+      the ink glyph is; an open check is a 2 pt ink ring; done segments are ink and the current exercise's are taller; the quiet fact
+      row's mark is its inkSecondary text (5.84:1) with the button trait. A legacy outline control keeps controlOutline → inkMuted
+      (3.32 / 3.64 light, 3.98 / 3.29 dark) until its screen is redesigned; controlBorder would have failed it.
+  (3) **Large text.** 6.5's text gate reads with WCAG 1.4.3's large-text threshold (3:1 at ≥ 24 pt, or ≥ 18.66 pt Bold — the
+      system states the 24 pt half, §11); (b) needs it for the XP numeral and unit (accent 3.15:1 on the canvas). The numeral (46 pt
+      Bold) qualifies; the unit qualifies only at a large-text size — heroUnit (22 pt Semibold) does not, so R2 sets it at ≥ 24 pt or
+      ≥ 18.66 pt Bold. Law ③ reads with (b): those two are its
+      one sanctioned orange text; #B84D00 retires, and every other orange word becomes ink (emberText → ink).
+  (4) **Laws ②, ⑤, ⑥ read with (a).** ② keeps the canvas family warm (Varsity cream) and (a) makes the ink navy; ⑥'s "no second
+      hue" is the system's "no third hue" — navy ink and the orange accent are the two; ⑤'s "lifts, never inverts" governs the accent
+      (#FF8A2B is #DE6400 lifted), and the capsule's mode inversion is two table rows, not an inverted ember.
+  (5) **Spacing, radii, sizes.** On every redesigned screen they are the system's — (d) "per the mockups" and (f) "the component
+      list" carry them (gutter 20, card padding 22, reward block to card 30, radii 28 / 26 / 14 / 8 / 4 / 3 / capsule). G5's
+      "nothing off-scale" and cornerRadius 16 govern screens not yet redesigned. Each value enters `design-tokens.json` in the
+      session that first draws it (C7) — none was added in R0, where nothing draws them. §12's literal snippets and §5's 59 / 34 /
+      49 pt are illustrations; 6.7's safe-area-relative layout and C7 stand.
+  (6) **(c)'s "durations" are time spent training** — rest, holds, the session clock, workout minutes, time estimates. A season's
+      "N weeks" ((e) itself), a pause's return date and "max 3 weeks" are calendar facts and stay. `mobilityMinutesMin/Max` and
+      `holdSecondsMax` can stay as seed / server data bounds (never shown); R2 decides with the constants it retires.
+  (7) **Eyebrows.** The string stays sentence case (6.6) and the type role renders it uppercase (VoiceOver reads the string). §11's
+      "uppercase labels stacked above values" is field chrome; an eyebrow over a read-only fact ("LAST TIME", "TOMORROW") is §4's role.
+  (8) **The light lock** stays through R0 (the owner's "no screen file"; the lock is Info.plist and the root view) and lifts in R1
+      on both platforms, not while any dark pair fails its gate (today: A16's dark carbs, GAP 6).
+  (9) **Tone.** (e) adopts the system's tone with its vocabulary; new copy follows it. Copy the owner already ratified (A23's
+      whispers, the protein line, 6.1's "what to do" error pattern, notifications) stands until its session re-cuts it with the
+      owner (GAP 7).
+  (10) **Web.** 6.8 stands — parity of capability, not pixel-cloning: the same table in both modes, the same structure, flows and
+      copy, the type scale through system font stacks (`--ember-font-text`, `--ember-font-rounded`).
+  (11) **Platform-native controls** (6.8) are admitted where a job cannot be done without one — a text field, the keyboard, a date or
+      time picker, a toggle, Sign in with Apple (whose style Apple mandates) — drawn without field chrome, in the table's colours.
+      Without this reading (f) would leave auth, crew names, the pause date and the reminder time with no control at all.
+  (12) **Emoji.** User content — A21.2's five reactions, a crew's emoji, a caption — is not a glyph; §11's ban governs the app's own
+      chrome, so the app's own emoji (🎉, 🛡, 🧊, 💪 in copy; the web's 🔥 / 🧊 flame) become SF Symbols or words as their screens
+      are redesigned.
+  (13) **6.1's five states stand**, composed from the list: a quiet line for loading and offline; an error is one sentence and the
+      one filled "Try again". A23's whisper is §11's "a tip appears once".
+  (14) **A season does not restart when the training days change** (A27 (a) appends an entry; only a build, a rebuild or a pause's
+      end starts one).
+  (15) **Mechanics stand under the tone**: the comeback (V39), Welcome back (S18) and the reminders keep their rules and every
+      gamification number (Appendix C); only their words move.
+  (16) **A21.12's Build B is overtaken**: A28 (d) lays Home out; the branch stays preserved and untouched, nothing lands from it
+      without a ruling. (A20.6's "crew strip off Home" was Build B's and never landed — the strip IS on Home today on both clients;
+      A28 (d) removes it in its own right.)
+  (17) §11's "per-workout settings" are settings like the rest length (G9) and a session's unit (A9), not plan content — A4's
+      workout editor stands.
+  (18) "Edit today's log" (mockup 05) opens today's day in the Journal with the powers it already has (A6's delete, E3's caption) —
+      no new edit capability.
+  (19) The Asset Catalog instruction (§2, §12) is met by the generated adaptive colours — one Any/Dark pair per row, named as the
+      token; no `.colorset` files are made (6.8's pipeline).
+  (20) Every stated height (the 56 / 58 pt capsule, the 52 pt stepper, the 44 / 56 pt rows) is a MINIMUM: at accessibility sizes
+      the label wraps and the control grows — nothing truncates (6.7, system §10).
+  (21) Finish has two doors to one job: the mobility checklist's ends the workout, the whole-workout sheet's finishes early. Discard
+      sits under ⋯ behind its destructive confirm (the one place red appears); the back chevron leaves with the session open. Where set
+      removal lives on the set screen is R2's to draw (A28 (d)).
+  (22) The "+" offers what exists today where it exists today — Log cardio in every state with a plan, a bonus workout on rest and
+      done days (A3, Flow 5) — a route to two existing screens, not a new screen with its own job.
+  (23) An open session makes "Resume workout" the card's one filled primary in any state (A18.8's capability; one filled button).
+  (24) The two new Logger screens take the system's jobs (§9) until the owner words them: the whole-workout sheet "jump between
+      exercises, finish"; the mobility checklist "tick the holds, finish".
+  (25) Table marks below 3:1 — segmentEmpty, segmentCurrent, ringTrack, heatEmpty, chevron — are never a state's only carrier.
+- SPECIFICATION GAPS for the owner (each answered before the session it names; the spec stands until then):
+  GAP 1 (R3) five screen types or the system's six (the data screen — Progress, and every screen that is none of the five) ·
+  GAP 2 (R2) haptics: 6.4's tick / double / thump / softTap or §10's light / medium / success ("nothing else vibrates" drops softTap) ·
+  GAP 3 (R1) the reward block: "4 OF 7" vs A18.1's planned-workout count, the zero-done week (A18.2), the shields line ·
+  GAP 4 (R1) cardio's entered minutes under (c) ·
+  GAP 5 (R1) "Your season starts today": the plan reveal (onboarding, no redesign session), first-day Home's card, or both ·
+  GAP 6 (R1's lock lift, R7) A16's macro colours under "no third hue"; dark carbs is 2.79:1 on the Midnight card ·
+  GAP 7 (R6) How Crew works has no tone section; its Mobility sentence states a duration; ratified imperatives meet the tone ·
+  GAP 8 (R9) illustrations: what they are (exercise media is A21.13 Not Building) ·
+  GAP 9 (R2) the celebration's phrase ("Seven straight"; S10 has "Counted.") and where its badges go ·
+  GAP 10 (R3) the season label's inputs are not stored (no rebuild date; the phone drops an ended pause) and its arithmetic.
+- Found on the way, recorded in `docs/debt.md`: the crew strip is on Home (A20.6 never landed); the iOS rest timer's local
+  notification plays the default SOUND (haptics-only law); the web's Quick complete posts to the crew without A21.9's choice; the web
+  heat map's cardio outline never drew (a colour inside `calc()`); the tour step "the rest timer is running"; 01's missing light frame.
+- Look at: the A28 entry and its markers (`docs/crew-mvp-spec.md`), `design/DESIGN.md`, `design/targets/README.md`, the token diff
+  (`shared/design-tokens.json`), and the recolored tour (every screen changes; no baseline is approved).

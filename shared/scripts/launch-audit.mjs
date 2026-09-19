@@ -68,8 +68,10 @@ const SOCIAL = ["web/src/lib/crew", "web/src/lib/posts", "web/src/lib/reactions"
 // ① no food, meal or day is scored, rated, ranked or labelled — not in the UI, not in the seed, not in a sort order
 scan("①", "a quality word on a food, a meal or a day", /\b(healthy|unhealthy|healthier|clean eating|junk|guilt|cheat (meal|day)|good food|bad food|superfood)\b/i, [...NUTRITION_UI, ...NUTRITION_SERVER, "shared/seed/fast-food.json", "shared/copy/"]);
 scan("①", "a score, grade, rating or rank field on nutrition data", /\b(score|grade|rating|rank|stars?|healthScore|nutriScore)\b\s*[:=?]/i, [...NUTRITION_UI, ...NUTRITION_SERVER, ...NUTRITION_PHONE, "shared/seed/fast-food.json"]);
-// ② over-target is never red, never an alert, never a notification; no semantic token and no ember on a nutrition surface
-scan("②", "a semantic or ember token on a nutrition surface", /(EmberColors\.(danger|success|missedGray|ember|emberText|emberTint)\b|className="[^"]*\b(danger|missed|ember-text)\b|--ember-(danger|success|missed-gray|ember)\b)/, NUTRITION_UI);
+// ② over-target is never red, never an alert, never a notification; no semantic token and no ember on a nutrition surface —
+// A28 (2026-09-19): the legacy names stay banned, and so do their successors on the Focus Card table (accent for ember,
+// destructive for danger), so a redesigned nutrition screen cannot reach the same colour by its new name
+scan("②", "a semantic or ember token on a nutrition surface", /(EmberColors\.(danger|success|missedGray|ember|emberText|emberTint|accent|destructive)\b|className="[^"]*\b(danger|missed|ember-text)\b|--ember-(danger|success|missed-gray|ember|accent|destructive)\b)/, NUTRITION_UI);
 scan("②", "an alert, a modal or a notification about macros", /\.(alert|confirmationDialog)\(|window\.(alert|confirm)\(|UNMutableNotificationContent|sendPush|apns/i, [...NUTRITION_UI, ...NUTRITION_SERVER, ...NUTRITION_PHONE]);
 scan("②", "a notification that mentions nutrition", /\b(macro|protein|carbs|calorie|nutrition|meal log)/i, ["web/src/lib/notification", "web/src/lib/push", "web/src/app/api/cron/", "ios/Crew/PushRegistrar"]);
 // ③ a macro entry earns no XP, breaks no streak, consumes no shield, unlocks no achievement

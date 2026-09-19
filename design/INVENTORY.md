@@ -1,5 +1,10 @@
 # Crew — UI inventory before the redesign
 
+> **Pre-A28 snapshot (2026-09-19).** Rule numbers here are `design/DESIGN.md`'s as of eadf021. A28 (the Focus Card system,
+> Appendix A) renumbered and rewrote several of them — 1.1 is now "orange is a point", 1.5 "no third hue", 4.1 the system's rhythm —
+> and removed the rest timer, the week strip and every duration. Where A28 overturns a rule the observation still stands and the
+> verdict does not; the redesign sessions (docs/mvp-definition.md, R1–R9) judge each screen afresh.
+
 Source: the master UI tour of ci run 35351054305 (commit 9d309d1, 2026-09-18, 65 screenshots, iPhone 17 simulator, light). Screenshot
 paths are relative to the tour folder (`CREW_TOUR_DIR/master/`, or `design/tour/latest/`); tap paths are TOUR.md's. Actions were read
 from the Swift views, visuals from the pixels. Rule numbers are `design/DESIGN.md`'s, with the spec section each one cites.

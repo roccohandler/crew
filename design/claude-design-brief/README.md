@@ -1,5 +1,9 @@
 # Crew — brief for a design session
 
+> **Historical (2026-09-19).** This brief was the input to the owner's Claude Design session. Its hard constraints — the tokens,
+> spacing and radius, "ember is reward-only … ring and heat-map fills", 70 / 20 / 10, warm neutrals, light always, the voice — are
+> superseded by what that session produced: `design/focus-card-system.md`, ratified as Appendix A A28.
+
 ## What Crew is
 
 Crew is an iPhone app for people who already train at a gym. It builds one push · pull · legs plan that repeats every week from two

@@ -1,107 +1,173 @@
 {
-  "spec": "Part III — the Ember color system (six laws: ink acts, ember rewards) + 6.4 motion & haptic language. Feedback is haptics only, never sound. Gap resolutions G4/G5/G8 logged in Appendix A 2026-09-04.",
+  "spec": "A28 (2026-09-19, owner-approved) — the Focus Card design system (design/focus-card-system.md): Varsity light, Midnight dark, navy ink, orange a point and never a field; the type scale. Part III's table is superseded by A28 (a); Ember laws ①–⑥ stand with ④ narrowed by A28 (b). 6.4 motion & haptic language unchanged. Gap resolutions G4/G5/G8 logged in Appendix A 2026-09-04 (G4's dark values superseded by A28 (a)).",
   "colors": {
     "canvas": {
-      "light": "#FAF8F5",
-      "dark": "#171412",
-      "role": "70% Canvas — every page background (Bone)",
-      "spec": "Part III table"
+      "light": "#F7F1E4",
+      "dark": "#0E1A2E",
+      "role": "Every page background — Varsity cream / Midnight navy",
+      "spec": "A28 (a); design/focus-card-system.md §2"
     },
     "card": {
-      "light": "#FFFFFF",
-      "dark": "#211D19",
-      "role": "70% Canvas — cards",
-      "spec": "Part III table"
+      "light": "#FFFCF6",
+      "dark": "#1B2A42",
+      "role": "Cards and the sheet surface — one step off the canvas (1.10:1 light, 1.21:1 dark); light lifts it with the card shadow, dark with tone alone",
+      "spec": "A28 (a); design/focus-card-system.md §2, §6"
     },
-    "hairline": {
-      "light": "#E9E4DD",
-      "dark": "#2E2822",
-      "role": "70% Canvas — hairlines",
-      "spec": "Part III table"
+    "ink": {
+      "light": "#142744",
+      "dark": "#F2EEE6",
+      "role": "NAVY ink — all text and structure, every icon and glyph, every text button, the stepper's plus and minus, the completed check, completed progress segments, heat-map done-days, day marks, the streak and ring numerals, the selected tab, and the primary capsule's fill (it inverts with the mode). 13.29 / 14.61 light and 15.05 / 12.46 dark on canvas / card",
+      "spec": "A28 (a), (b); design/focus-card-system.md §2 — supersedes Part III's charcoal #211D19 / #F5F1EB"
     },
-    "inkText": {
-      "light": "#211D19",
-      "dark": "#F5F1EB",
-      "role": "20% Ink — ALL text and structure",
-      "spec": "Part III table; law ①"
+    "inkSecondary": {
+      "light": "#4E5E78",
+      "dark": "#95A6BE",
+      "role": "Secondary text, eyebrows, quiet fact rows, the off-season snowflake. 5.84 / 6.42 light and 7.03 / 5.82 dark on canvas / card",
+      "spec": "A28 (a); design/focus-card-system.md §2, §3, §8"
     },
-    "primaryButtonFill": {
-      "light": "#211D19",
-      "dark": "#F5F1EB",
-      "role": "20% Ink — primary button fill (ink acts; ≈15:1 on canvas)",
-      "spec": "Part III table; law ①"
+    "inkMuted": {
+      "light": "#7E8496",
+      "dark": "#687A93",
+      "role": "Muted marks — the unlit flame at zero; carries NO text below 24 pt (3.32 / 3.64 light, 3.98 / 3.29 dark on canvas / card: a graphical object, never small text)",
+      "spec": "A28 (a); design/focus-card-system.md §2, §3"
     },
-    "primaryButtonLabel": {
-      "light": "#FAF8F5",
-      "dark": "#171412",
-      "role": "20% Ink — primary button label",
-      "spec": "Part III table; law ①"
+    "hairlineOnCard": {
+      "light": "#EFE8D9",
+      "dark": "#26364E",
+      "role": "The seam between two rows inside a card — a boundary between surfaces, never a control's boundary",
+      "spec": "A28 (a); design/focus-card-system.md §2, §6"
     },
-    "secondaryButtonOutline": {
-      "light": "#E9E4DD",
-      "dark": "#2E2822",
-      "role": "20% Ink — secondary button = hairline outline",
-      "spec": "Part III table (composed from hairline)"
+    "hairlineOnCanvas": {
+      "light": "#E6DCC8",
+      "dark": "#223049",
+      "role": "A seam drawn on the canvas (the tab bar's top rule) — a boundary between surfaces, never a control's boundary",
+      "spec": "A28 (a); design/focus-card-system.md §2"
     },
-    "secondaryButtonLabel": {
-      "light": "#211D19",
-      "dark": "#F5F1EB",
-      "role": "20% Ink — secondary button = ink label",
-      "spec": "Part III table (composed from ink text)"
+    "controlBorder": {
+      "light": "#D3C7AE",
+      "dark": "#33475F",
+      "role": "The stepper's 1.5 pt ring. ~1.6:1 by design (§6): a control drawn with it is identified by its ink glyph, which clears 3:1 — it is never a control's only mark (R-083)",
+      "spec": "A28 (a), (f); design/focus-card-system.md §2, §6, §8"
     },
-    "controlOutline": {
-      "light": "#938C83",
-      "dark": "#726A61",
-      "role": "20% Ink — the visible boundary of every OUTLINE control (secondary buttons, the Home log rows). A18.11 (2026-09-10): outline controls drew their boundary with `hairline`/`secondaryButtonOutline` #E9E4DD, which measures 1.26:1 on a card and 1.19:1 on the canvas against 6.5's 3:1 non-text gate — so the thing that says \"this is a control\" was invisible and the owner read three buttons as three dead containers. #938C83 measures 3.32:1 on card and 3.13:1 on canvas; #726A61 measures 3.15:1 on the dark card and 3.45:1 on the dark canvas. `hairline` keeps its own value: a boundary between two SURFACES is not a control, and darkening dividers would be a different change.",
-      "spec": "Part III table; law ①; 6.5; A18.11"
+    "segmentEmpty": {
+      "light": "#E0D6C0",
+      "dark": "#27384F",
+      "role": "Segmented workout bar — a pending set",
+      "spec": "A28 (d), (f); design/focus-card-system.md §8"
     },
-    "secondaryText": {
-      "light": "#6F6860",
-      "dark": "#A69E94",
-      "role": "20% Ink — secondary text",
-      "spec": "Part III table"
+    "segmentCurrent": {
+      "light": "#A89C84",
+      "dark": "#5A6E88",
+      "role": "Segmented workout bar — the current exercise's segments (also 8 pt tall against 6 pt, so height carries the state too)",
+      "spec": "A28 (d), (f); design/focus-card-system.md §8"
     },
-    "missedGray": {
-      "light": "#A8A29A",
-      "dark": "#5E574F",
-      "role": "20% Ink — missed = warm gray, never red; recedes on dark",
-      "spec": "Part III table + semantics; dark = Decision Registry G4 (2026-09-04)"
+    "chevron": {
+      "light": "#A89C84",
+      "dark": "#5A6E88",
+      "role": "A row button's chevron — decoration; the row's name identifies the control",
+      "spec": "A28 (f); design/focus-card-system.md §2, §8"
     },
-    "ember": {
-      "light": "#DF5908",
-      "dark": "#FF7A1F",
-      "role": "≤10% Ember — SHAPES only: streak flame, XP count-ups, ring & heat-map fills, PR/comeback/celebration accents; dark lifts, never inverts. A17.4 (2026-09-10): the light value was #FF6600, which measures 2.77:1 on the bone canvas and fails the 3:1 non-text gate in 6.5; #DF5908 measures 3.56:1 at hue h23 against h24 — the same orange, one shade deeper. emberText #B84D00 (4.83:1, the text gate) and emberTint are unchanged, and dark #FF7A1F already measured 7.03:1.",
-      "spec": "Part III table; laws ③ ④ ⑤"
+    "ringTrack": {
+      "light": "#E0D6C0",
+      "dark": "#27384F",
+      "role": "The weekly ring's track — a neutral in both modes, never a tint of the accent (a wash over a 140 pt circle is a field)",
+      "spec": "A28 (b); design/focus-card-system.md §3, §8"
     },
-    "emberText": {
-      "light": "#B84D00",
-      "dark": "#FF7A1F",
-      "role": "≤10% Ember — any orange WORDS (#FF6600 fails WCAG on light; #FF7A1F clears 4.5:1 on dark)",
-      "spec": "Part III table; law ③; 6.5; dark = Decision Registry G4 (2026-09-04)"
+    "heatEmpty": {
+      "light": "#E4E3E1",
+      "dark": "#27384F",
+      "role": "Heat map — a day with no workout (done-days are ink)",
+      "spec": "A28 (b); design/focus-card-system.md §2, §8"
     },
-    "emberTint": {
-      "light": "#FFEFE3",
-      "dark": "#33241A",
-      "role": "≤10% Ember — tints & ring tracks",
-      "spec": "Part III table"
+    "tabBar": {
+      "light": "#FBF7EE",
+      "dark": "#12203A",
+      "role": "The tab bar's surface",
+      "spec": "A28 (a); design/focus-card-system.md §2"
     },
-    "macroProtein": { "light": "#2E4E28", "dark": "#BDD9B9", "role": "Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
-    "macroCarbs": { "light": "#5A8EB4", "dark": "#3D7392", "role": "Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text).", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
-    "macroFat": { "light": "#6C315F", "dark": "#DAADDB", "role": "Macro identity — fat (mulberry). Nutrition surfaces ONLY; identity, never status. Outline + hairline. 8.84:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
-    "macroProteinTrack": { "light": "#D9DDD4", "dark": "#42473D", "role": "Macro bar track — protein", "spec": "ux-plan 7.4" },
-    "macroCarbsTrack": { "light": "#E0E7EB", "dark": "#212D33", "role": "Macro bar track — carbs", "spec": "ux-plan 7.4" },
-    "macroFatTrack": { "light": "#E3D8DD", "dark": "#4A3C46", "role": "Macro bar track — fat", "spec": "ux-plan 7.4" },
-    "success": {
-      "light": "#3E8E5A",
-      "dark": "#3E8E5A",
-      "role": "Semantic — success (single value in spec; both modes)",
-      "spec": "Part III semantics; law ⑥"
+    "accent": {
+      "light": "#DE6400",
+      "dark": "#FF8A2B",
+      "role": "ORANGE IS A POINT, NOT A FIELD — exactly three places: the flame glyph (fill), the weekly ring's progress arc (stroke), the celebration's XP numeral and its unit (text). Never a background, never on a control, never behind text, never an area larger than a fingertip. One hue (27.0° / 26.9°): the dark value is the light one lifted for its ground, not a second colour — do not re-pick either. 3.15 / 3.46 light and 7.40 / 6.13 dark on canvas / card",
+      "spec": "A28 (a), (b); design/focus-card-system.md §2, §3; Part III laws ③ ④ (narrowed) ⑤"
     },
-    "danger": {
-      "light": "#D64550",
-      "dark": "#D64550",
-      "role": "Semantic — danger (berry, never near orange; single value in spec; both modes)",
-      "spec": "Part III semantics; law ⑥"
+    "onInk": {
+      "light": "#FFFCF6",
+      "dark": "#0E1A2E",
+      "role": "The label on an ink fill (the primary capsule): cream on navy in light, navy on cream in dark — 14.61 / 15.05",
+      "spec": "A28 (a); design/focus-card-system.md §2, §8"
+    },
+    "destructive": {
+      "light": "#BC2A1C",
+      "dark": "#FF8575",
+      "role": "Red — only inside a destructive confirm sheet, in both modes, and nowhere else. 5.88 / 6.09 on its sheet",
+      "spec": "A28 (a); design/focus-card-system.md §2, §3"
+    },
+    "sheetScrim": {
+      "light": "#142744",
+      "lightOpacity": 0.34,
+      "dark": "#040911",
+      "darkOpacity": 0.58,
+      "role": "The scrim behind a sheet — rgba(20,39,68,0.34) light, rgba(4,9,17,0.58) dark",
+      "spec": "A28 (a); design/focus-card-system.md §2"
+    }
+  },
+  "macroColors": {
+    "spec": "A16's bounded exception to Part III law ⑥ (nutrition surfaces only) — NOT on A28's table and NOT re-picked by it: the design system is silent on nutrition, so these stand unchanged until the Nutrition session rules on them (docs/debt.md 2026-09-19, A28). Dark carbs measures 2.79:1 on A28's dark card; dark is unreachable until the light lock lifts.",
+    "colors": {
+      "macroProtein": { "light": "#2E4E28", "dark": "#BDD9B9", "role": "Macro identity — protein (pine). Nutrition surfaces ONLY; identity, never status: it never changes with over / under / on target; never beside an ember element (law ⑥'s bounded exception). Solid fill. 8.86:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+      "macroCarbs": { "light": "#5A8EB4", "dark": "#3D7392", "role": "Macro identity — carbs (slate). Nutrition surfaces ONLY; identity, never status. Solid fill + ink hairline. 3.32:1 on bone (a graphical object, never text).", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+      "macroFat": { "light": "#6C315F", "dark": "#DAADDB", "role": "Macro identity — fat (mulberry). Nutrition surfaces ONLY; identity, never status. Outline + hairline. 8.84:1 on bone.", "spec": "Part III law ⑥ as amended by A16 (ux-plan 7.4); nutrition addendum §4" },
+      "macroProteinTrack": { "light": "#D9DDD4", "dark": "#42473D", "role": "Macro bar track — protein", "spec": "ux-plan 7.4" },
+      "macroCarbsTrack": { "light": "#E0E7EB", "dark": "#212D33", "role": "Macro bar track — carbs", "spec": "ux-plan 7.4" },
+      "macroFatTrack": { "light": "#E3D8DD", "dark": "#4A3C46", "role": "Macro bar track — fat", "spec": "ux-plan 7.4" }
+    }
+  },
+  "colorAliases": {
+    "spec": "A28 (2026-09-19): the names screens still call colours by, each pointing at ONE row of the table above, so the whole app recolors with no screen edit. An alias carries no value of its own. Each goes when the last screen that reads it is redesigned onto the table's own names (docs/debt.md 2026-09-19, A28). Retired outright with A28 because nothing read them: secondaryButtonOutline (the pre-A18.11 hairline outline — an alias with that name would re-arm the trap A18.11 closed) and success (no green for done; a navy success invites misuse).",
+    "aliases": {
+      "hairline": { "token": "hairlineOnCanvas", "why": "card edges and dividers — a boundary between two surfaces; 17 of its 21 uses sit on the canvas, where the table's seam is hairlineOnCanvas (1.21:1; 1.33:1 on a card, still a seam and never a control)" },
+      "inkText": { "token": "ink", "why": "all text and structure" },
+      "primaryButtonFill": { "token": "ink", "why": "the primary capsule's fill" },
+      "primaryButtonLabel": { "token": "onInk", "why": "the primary capsule's label" },
+      "secondaryButtonLabel": { "token": "ink", "why": "an outline control's label" },
+      "controlOutline": { "token": "inkMuted", "why": "the boundary of a legacy OUTLINE control — A18.11's 3:1 gate holds (3.32 / 3.64 light, 3.98 / 3.29 dark) until the redesign replaces outline controls with the system's text buttons; controlBorder (~1.6:1) would fail it" },
+      "secondaryText": { "token": "inkSecondary", "why": "secondary text" },
+      "missedGray": { "token": "inkMuted", "why": "the unlit flame and missed marks — a miss is a fact, not a verdict; never red" },
+      "ember": { "token": "accent", "why": "the reward shapes — A28 (b) leaves only the flame glyph and the ring's arc; heat-map fills, day marks and crew dots still drawn with it turn ink in their screen's redesign" },
+      "emberText": { "token": "ink", "why": "orange WORDS retire under A28 (b) (accent measures 3.15:1 on the canvas, below 4.5:1 for small text); the celebration's XP numeral and unit move to accent in the Logger session" },
+      "emberTint": { "token": "ringTrack", "why": "tints and ring tracks — A28 (b): no accent wash; the ring track is a neutral" },
+      "danger": { "token": "destructive", "why": "red — A28 (a) confines it to destructive confirms; the error lines and delete labels still drawn with it move in their screen's redesign" }
+    }
+  },
+  "typography": {
+    "spec": "A28 (a), (f) — the type scale of design/focus-card-system.md §4. SF Pro throughout (Display above 28 pt, Text below — the system font picks it by size). EVERY NUMERAL is SF Pro Rounded (rounded: true) — set counts, weights, reps, streak, ring, XP, targets, week and workout counts; words are never rounded. Size in points on iOS and px on web. Tracking is a FRACTION of the size (−0.05 = −5%): SwiftUI's .tracking takes points, so a view passes size × tracking; CSS writes it in em. An uppercase role renders its string uppercase and the string itself stays sentence case (VoiceOver reads the string). Scale with Dynamic Type (@ScaledMetric or .custom(_:relativeTo:)).",
+    "web": {
+      "text": "-apple-system, system-ui, sans-serif",
+      "rounded": "ui-rounded, -apple-system, system-ui, sans-serif"
+    },
+    "roles": {
+      "celebrationNumeral": { "size": 96, "weight": "bold", "tracking": -0.05, "rounded": true, "uppercase": false, "role": "celebration numeral" },
+      "heroNumeral": { "size": 76, "weight": "bold", "tracking": -0.04, "rounded": true, "uppercase": false, "role": "hero numeral — reps, weight" },
+      "streakNumeral": { "size": 54, "weight": "bold", "tracking": -0.03, "rounded": true, "uppercase": false, "role": "streak numeral" },
+      "ringNumeral": { "size": 46, "weight": "bold", "tracking": -0.02, "rounded": true, "uppercase": false, "role": "ring numeral and XP numeral" },
+      "screenTitle": { "size": 38, "weight": "heavy", "tracking": -0.03, "rounded": false, "uppercase": false, "role": "screen title" },
+      "screenTitleBare": { "size": 44, "weight": "heavy", "tracking": -0.035, "rounded": false, "uppercase": false, "role": "screen title on a bare screen (no reward block — no-plan Home's card hero)" },
+      "celebrationPhrase": { "size": 30, "weight": "heavy", "tracking": -0.03, "rounded": false, "uppercase": false, "role": "celebration phrase" },
+      "sheetTitle": { "size": 27, "weight": "heavy", "tracking": -0.03, "rounded": false, "uppercase": false, "role": "sheet title" },
+      "exerciseTitle": { "size": 24, "weight": "bold", "tracking": -0.02, "rounded": false, "uppercase": false, "role": "exercise title" },
+      "cardSubheading": { "size": 20, "weight": "bold", "tracking": -0.015, "rounded": false, "uppercase": false, "role": "card sub-heading" },
+      "heroUnit": { "size": 22, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "role": "unit label beside a hero numeral" },
+      "body": { "size": 17, "weight": "medium", "tracking": 0, "rounded": false, "uppercase": false, "role": "body (the system's Medium half of \"Medium / Semibold\")" },
+      "bodySemibold": { "size": 17, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "role": "body (the system's Semibold half of \"Medium / Semibold\")" },
+      "secondary": { "size": 15, "weight": "medium", "tracking": 0, "rounded": false, "uppercase": false, "role": "secondary" },
+      "caption": { "size": 13, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "role": "caption" },
+      "eyebrow": { "size": 11, "weight": "bold", "tracking": 0.14, "rounded": false, "uppercase": true, "role": "eyebrow (uppercase), +14%" },
+      "eyebrowUnderRing": { "size": 11, "weight": "bold", "tracking": 0.12, "rounded": false, "uppercase": true, "role": "eyebrow under the ring and the streak, +12%" },
+      "eyebrowWeekday": { "size": 11, "weight": "bold", "tracking": 0.06, "rounded": false, "uppercase": true, "role": "Progress weekday letters, +6%" },
+      "primaryLabel": { "size": 17, "weight": "bold", "tracking": 0, "rounded": false, "uppercase": false, "role": "the primary capsule's label (system §8, Primary button)" },
+      "textButton": { "size": 15, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "role": "a text button's label (system §8, Text button)" },
+      "tabLabel": { "size": 10, "weight": "semibold", "tracking": 0, "rounded": false, "uppercase": false, "role": "tab label — the smallest type in the app (nothing below 10 pt)" }
     }
   },
   "spacing": {

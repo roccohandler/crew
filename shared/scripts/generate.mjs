@@ -43,9 +43,26 @@ function readSpecConstants() {
 function readDesignTokens() {
   const tokens = JSON.parse(readFileSync(designTokensPath, "utf8"));
   const hex = /^#[0-9A-F]{6}$/;
-  for (const [name, color] of Object.entries(tokens.colors)) {
-    if (!hex.test(color.light) || !hex.test(color.dark)) throw new Error(`design-tokens.json: colors.${name} needs light + dark as #RRGGBB`);
-    if (typeof color.role !== "string") throw new Error(`design-tokens.json: colors.${name} needs a role`);
+  const opacity = (value) => value === undefined || (typeof value === "number" && value > 0 && value < 1);
+  const checkColor = (where, color) => {
+    if (!hex.test(color.light) || !hex.test(color.dark)) throw new Error(`design-tokens.json: ${where} needs light + dark as #RRGGBB`);
+    if (!opacity(color.lightOpacity) || !opacity(color.darkOpacity) || (color.lightOpacity === undefined) !== (color.darkOpacity === undefined)) throw new Error(`design-tokens.json: ${where} opacities come as a pair, each between 0 and 1`);
+    if (typeof color.role !== "string") throw new Error(`design-tokens.json: ${where} needs a role`);
+  };
+  // A28 (a) — `colors` IS the system's table; macro identity is A16's bounded exception; every alias names ONE table row
+  for (const [name, color] of Object.entries(tokens.colors)) checkColor(`colors.${name}`, color);
+  for (const [name, color] of Object.entries(tokens.macroColors.colors)) checkColor(`macroColors.colors.${name}`, color);
+  const colorNames = new Set([...Object.keys(tokens.colors), ...Object.keys(tokens.macroColors.colors)]);
+  for (const [name, alias] of Object.entries(tokens.colorAliases.aliases)) {
+    if (colorNames.has(name)) throw new Error(`design-tokens.json: colorAliases.aliases.${name} shadows a colour of the same name`);
+    if (!(alias.token in tokens.colors)) throw new Error(`design-tokens.json: colorAliases.aliases.${name} must point at a row of the table (colors), not ${alias.token}`);
+    if (typeof alias.why !== "string") throw new Error(`design-tokens.json: colorAliases.aliases.${name} needs a why`);
+  }
+  const weights = new Set(["medium", "semibold", "bold", "heavy"]);
+  for (const [name, role] of Object.entries(tokens.typography.roles)) {
+    if (!Number.isInteger(role.size) || !weights.has(role.weight) || typeof role.tracking !== "number" || typeof role.rounded !== "boolean" || typeof role.uppercase !== "boolean" || typeof role.role !== "string") {
+      throw new Error(`design-tokens.json: typography.roles.${name} needs an integer size, a weight (${[...weights].join(" / ")}), a numeric tracking, rounded and uppercase booleans, and a role`);
+    }
   }
   for (const [name, value] of Object.entries(tokens.spacing.scale)) {
     if (!Number.isInteger(value)) throw new Error(`design-tokens.json: spacing.scale.${name} must be an integer`);

@@ -1,6 +1,6 @@
 # Crew build progress
 
-Updated: 2026-09-19 05:15Z (**A27 (a) BUILT — the training-days history, V85–V90** — its section; A27 screen jobs recorded before it · **LATEST TESTFLIGHT BUILD: 202** — A23 EDUCATION COPY RATIFIED, from 3953313: CI run 35415601598 green on five jobs, TestFlight run 35416946917 "Upload succeeded" 02:56Z; ui-reviewer 2 PASS · 3 FAIL, every FAIL pre-existing — the A23 ratification section) — earlier: 2026-09-19 01:50Z (**TESTFLIGHT BUILD 201** — W7 ACTIVATED, from 0420cc9: CI run 35412369342 green on five jobs, TestFlight run 35413652316 "Upload succeeded" 01:48Z — the first build that carries `applinks:trycrew.fit`; its `aps-environment` after the export is UNCONFIRMED, see the W7 section) — earlier: 2026-09-19 00:45Z (**TESTFLIGHT BUILD 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
+Updated: 2026-09-19 10:30Z (**A28 R0 — THE FOCUS CARD REDESIGN: the rulings, the tokens, DESIGN.md, the worklist** — its section; ten SPECIFICATION GAPS wait on the owner) — earlier: 2026-09-19 06:14Z (**LATEST TESTFLIGHT BUILD: 204** — A27 (a) BUILT, the training-days history, V85–V90, from ca8f949: CI run 35423561463 green on five jobs, TestFlight run 35424726409 "Upload succeeded" 05:46Z; ui-reviewer 1 PASS · 9 FAIL, every FAIL pre-existing — the A27 (a) section) — earlier: build 202 — A23 EDUCATION COPY RATIFIED, from 3953313: CI run 35415601598 green on five jobs, TestFlight run 35416946917 "Upload succeeded" 02:56Z; ui-reviewer 2 PASS · 3 FAIL, every FAIL pre-existing — the A23 ratification section) — earlier: 2026-09-19 01:50Z (**TESTFLIGHT BUILD 201** — W7 ACTIVATED, from 0420cc9: CI run 35412369342 green on five jobs, TestFlight run 35413652316 "Upload succeeded" 01:48Z — the first build that carries `applinks:trycrew.fit`; its `aps-environment` after the export is UNCONFIRMED, see the W7 section) — earlier: 2026-09-19 00:45Z (**TESTFLIGHT BUILD 199** — A26 THE CANONICAL TEMPLATES, from a6bcfd6: CI run 35407920313 green on five jobs (one transport reset re-run), TestFlight run 35409987054 "Upload succeeded" 00:40Z; ui-reviewer: 12 A26 screens PASS, the long-name session card FAILS on three pre-existing findings only — all under the A26 section) — earlier: 2026-09-18 21:06Z (**TESTFLIGHT BUILD 193**, from e89d9f5 — CI run 35391799095 green on five jobs, TestFlight run 35394604478 "Upload succeeded" 21:05Z; the phone app is the same as build 191's (8c83a74, CI run 35387497620, TestFlight run 35390307268) — 192 is the docs-only design commit a5d2f9e, 193 is Q12, a server fix; the six-item "continue to full completion" order is DONE and on master, END row filled; Q12 repaid; design/INVENTORY.md + design/claude-design-brief/ committed) — earlier: 2026-09-18 (OWNER: A22 RULED G1 (a)–G4, the addendum RATIFIED Q1–Q3, "CONTINUE TO FULL COMPLETION" — the six-item order below; item 0 = the rulings recorded) — earlier: 2026-09-18 (A23 education layer drafted, pending the owner's line-by-line ratification of docs/education-copy-draft.md) — earlier: 2026-09-18 05:48Z (BUILD 150 UPLOADED — light always for real + "launch: real UI first" + W2 → W6; CI GREEN for it, run 35311124097; TestFlight repaired at build 145; W3 → W6 CI green at run 35302729856) — earlier: 2026-09-17 late (A22 plate-journal removal DRAFTED, pending G1–G4; W3 parked on wip/w3-crew-surface) — earlier: 2026-09-17 night (W2 gym-only DONE; the three A21 GAP readings owner-confirmed) — earlier: 2026-09-17 evening (A21 recorded in Appendix A; docs/mvp-definition.md; docs/nutrition-addendum-draft.md) — earlier: 2026-09-17 (audit report, gym-assumption map, the owner's test-account loop; git unblocked — the agent commits and pushes directly) — earlier: 2026-09-11 (A18 complete and tested; A19 RATIFIED and Stages A/B/D landed) — earlier: 2026-09-10 night (A18 — the fourth Home review)
 on this Windows machine is green; the beta wiring — Vercel host, Apple keys, TestFlight, the device pass — is the open front)
 
 This file was REWRITTEN FROM SCRATCH on 2026-09-08 after a cold-start audit that trusted no prior checkmark. Every
@@ -1000,6 +1000,72 @@ nothing queued. The build-202 record and its three debt lines are still held UNC
 - Also committed here: the build-202 record and its three debt lines, held uncommitted until a real change.
 
 NEXT (owner): the redesign. NEXT (builder): read this commit's CI verdict; nothing else queued.
+
+### CI run 35423561463 (ca8f949) — GREEN on five jobs, first attempt · TestFlight run 35424726409 → **BUILD 204, the A27 (a) build**
+
+contracts ✓ · web ✓ · web e2e ✓ · ios engine (Linux) ✓ · **ios ✓** — the macOS job compiled SwiftData CrewSchemaV3 and ran
+`StoreMigrationTests.testABuild202StoreOpensAtV3AndKeepsItsRows` (the V2 → V3 stage is lightweight: plan and queued op survive),
+`TrainingDaysLocalTests` (5/5), `TrainingDaysTests`, `VectorRunnerTests` (V85–V90 on the Swift engine). Build 204 uploaded
+2026-09-19 05:46Z ("Upload succeeded"). Tour: the same 9 changed · 25 new · 7 removed against the baselines as run 35415601598 —
+baseline drift from earlier commits; compared screen by screen with that run, every difference is the calendar (it ran on a
+Friday, this one on a Saturday). Baselines untouched; `/approve-screens` is the owner's.
+
+**ui-reviewer, the ten screens this change can reach (week strip, ring, Plan week map, Progress rings, Journal tag, onboarding
+projection) — 1 PASS · 9 FAIL, every FAIL pre-existing and matching its baseline; no visual change was intended or made (the owner
+ordered "no UI"):** Home ×4 — the card ~48 pt under the week sentence (§4.1), "PUSH DAY" / "TOMORROW" in caps (§8); Plan week map —
+one uniform interval, Change days reads as an eighth row (§4.1); Charts — ten rows of empty cells before the answer, ember cells
+tinting the tab bar (§1.1), a second scroll-length (§3.3); Charts lower — the sideways ring strip (§4.3), the chart stack (§3.3);
+Journal — off-scale gaps and a rounder radius (§4.1); the plan reveal on a Saturday names no workout (Screen jobs; calendar-caused,
+INVENTORY already records the blank rows). PASS: `07_onboarding_plan_rows`. All of it is redesign material. One reviewer note for the
+owner: the Progress ring history shows 0/7 rings for weeks before the plan existed — unchanged by this build, because R-082 (1)
+judges a day before the first entry by the first entry; a "no" to that reading would blank those weeks instead.
+
+NEXT (owner): install **204**; the redesign. NEXT (builder): nothing queued. This record is held UNCOMMITTED (no docs-only commits).
+
+## 2026-09-19 — A28, THE FOCUS CARD REDESIGN — R0: TOKENS, RULES AND THE REGISTRY (owner: "session 1 of many … No screen code in this session")
+
+The owner ratified a design system in Claude Design (`design/focus-card-system.md`) with twelve approved mockups, light and dark
+(`design/targets/`; `01` dark only), and ordered R0: record the rulings, fill DESIGN.md, move the tokens, order the worklist.
+
+**Plan as run (rule 5).** Files → the A28 entry + 35 marker lines + 9 screen-head markers in `docs/crew-mvp-spec.md`; `design/DESIGN.md`
+(Direction / Component kit / Banned patterns from the system; §1–§8 re-cut to A28; Screen jobs unchanged); `shared/design-tokens.json`,
+`shared/scripts/render-ember.mjs`, `shared/scripts/generate.mjs` → `EmberColors.swift`, `EmberTokens.swift`, `ember.css`;
+`design/targets/README.md` (the mockup → tour-shot map) and `.claude/agents/ui-reviewer.md` (the matching mode);
+`shared/scripts/launch-audit.mjs` (clause ② bans the successors `accent` / `destructive` on nutrition surfaces); `docs/mvp-definition.md`
+(R0–R9); `docs/debt.md`; `docs/ratification.md` R-083; header notes on `design/INVENTORY.md`, `design/claude-design-brief/README.md`
+and the system file. Tests → `web/tests/contrast.test.ts` (the table asserted row for row against the system document; every table
+pair gated in both modes; the XP numeral as large text; the accent one hue in both modes; A16's dark carbs as KNOWN FAILING via
+`it.fails`), `web/tests/token-parity.test.ts` (aliases, rgba, the type scale). Vectors → none (90 stay 90). No screen file touched.
+
+| Area | State | Evidence |
+|---|---|---|
+| A28 (a)–(f), each on its own line naming what it supersedes; readings R-083 (1)–(25); GAPs 1–10 | DONE | Appendix A after A27; the sweep (9 agents, every Part and the registry line by line) placed the markers; an adversarial verify (5 reviewers, each finding re-checked) read the diff before commit |
+| Tokens | DONE-VERIFIED | `colors` = the system's 18 rows (incl. `sheetScrim` rgba); `macroColors` = A16's 6, unchanged; `colorAliases` = 12 legacy names → one row each (`secondaryButtonOutline`, `success` retired: no reader); `typography` = 21 roles (§4 + §8's primary label and text button) · generate + check-drift ok |
+| DESIGN.md, targets map, ui-reviewer | DONE | owner sections from the system; `design/targets/` stated as the approved mockups; reviewer reads the map and the matching mode |
+| Worklist | DONE | `docs/mvp-definition.md` R0–R9 in the owner's order, each with its GAP preconditions |
+| Local gates | DONE-VERIFIED | swift-xref clean (256 Swift files) · generate + check-drift ok · check-vectors 90 · check-seeds ok · check-copy ok · doctrine-lint clean · launch-audit clean (18 checks) · web typecheck 0 · lint 0 · test 53 files: 582 passed + 1 expected fail (dark carbs) + 23 skipped (retired vectors) · vectors 67 + 23 skipped · build ok · e2e 48 passed + 1 skipped by design, 2 transport resets (ECONNRESET under parallel workers) green re-run alone (6/6 across three viewports) · native swift test 105 tests, 0 failures |
+
+**Token diff summary.** Light: canvas #FAF8F5 → #F7F1E4 · card #FFFFFF → #FFFCF6 · ink #211D19 → navy #142744 · secondary #6F6860 →
+#4E5E78 · ember #DF5908 → accent #DE6400 · control outline #938C83 → inkMuted #7E8496 · danger #D64550 → destructive #BC2A1C. Dark
+(Midnight, generated, unreachable until R1 lifts the lock): canvas #171412 → #0E1A2E · card #211D19 → #1B2A42 · ink #F5F1EB → #F2EEE6 ·
+accent #FF7A1F → #FF8A2B. New rows: inkMuted, hairlineOnCard / OnCanvas, controlBorder, segmentEmpty / Current, chevron, ringTrack,
+heatEmpty, tabBar, onInk, sheetScrim. Retired: emberText's orange (→ ink), emberTint's orange tint (→ ringTrack), success's green.
+
+**Found on the way** (`docs/debt.md` 2026-09-19): the crew strip IS on Home on both clients (A20.6 was Build B's and never landed —
+A28 (d) removes it in R1); the iOS rest timer's notification plays the default sound (haptics-only law; gone in R2); the web's Quick
+complete shares without A21.9's choice; the web heat map's cardio outline never drew; five dark defects the light lock hides (grouped
+lists, the ink-tinted Toggle, Sign in with Apple's black, the ghost row, sheets on canvas) — R1 fixes them as it lifts the lock.
+
+**SPECIFICATION GAPS for the owner** (the A28 entry's end; each blocks the session named): 1 five or six screen types (R3) · 2 haptics
+(R2) · 3 the ring's "4 OF 7" / zero week / shields line (R1) · 4 cardio minutes (R1) · 5 "Your season starts today" — reveal or Home
+(R1) · 6 A16's macro colours; dark carbs 2.79:1 (before the lock lifts) · 7 How Crew works' tone section and duration line (R6) ·
+8 illustrations (R9) · 9 the celebration's phrase and badges (R2) · 10 the season label's stored inputs (R3).
+
+The adversarial review (5 reviewers, 42 findings, each re-checked by a skeptic: 32 confirmed and fixed before commit, 10 refuted) found, among others: two unmarked supersessions (1A bone, 1C black), law ③ listed as untouched, the XP unit needing a large-text size, restTimerDefaultSeconds read by the plan estimate (it now leaves in R4), the done card's minutes owed by R1, and the Macros row wrongly gated on a birth year.
+
+CI and the TestFlight build: recorded below after the push.
+
+NEXT (owner): answer GAPs 3, 4, 5 and 6 — R1 (Home, six states) starts on them. NEXT (builder): R1.
 
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 
