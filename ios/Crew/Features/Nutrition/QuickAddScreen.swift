@@ -4,6 +4,7 @@
 // the log lists today's entries, each with its own Delete, and nothing is recomputed when one goes — a log was never counted
 // (clause ③). Three gram amounts and nothing else: no food is named and no food is judged (clause ⑤). Ink only; an error is ink.
 // Screens hold ZERO logic (5.6.6): NutritionTodayModel — the same instance Today holds — decides.
+// R-093: both sit on the 20 pt gutter; the grams are one card (GramFields), the log's entries one card of rows.
 // Twin of web nutrition/quick-add + nutrition/log (components/nutrition/DayLogViews.tsx). WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
@@ -20,7 +21,8 @@ struct QuickAddScreen: View {
                 GramFields(grams: $grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: $focused, prefix: "quick")
                 if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
             }
-            .padding(EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         // 6.3 · 6.7 (DESIGN.md 4.2) — the primary is bottom-anchored in the thumb zone; ui-reviewer failed it mid-screen (run 35347725730)
@@ -54,11 +56,19 @@ struct NutritionLogScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 if model.logs.isEmpty { Text("Nothing logged yet today.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary) }
                 if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
-                ForEach(model.logs) { log in
-                    MealLineRow(line: log, actions: [MealLineAction(title: "Delete", spoken: "Delete \(log.name)") { model.deleteLog(log.id) }])
+                if !model.logs.isEmpty {
+                    FocusCard(padding: 0) {
+                        VStack(spacing: 0) {
+                            ForEach(Array(model.logs.enumerated()), id: \.element.id) { index, log in
+                                if index > 0 { cardSeam() }
+                                MealLineRow(line: log, actions: [MealLineAction(title: "Delete", spoken: "Delete \(log.name)") { model.deleteLog(log.id) }])
+                            }
+                        }
+                    }
                 }
             }
-            .padding(EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle("Logged today")

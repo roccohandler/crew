@@ -1976,3 +1976,27 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       crew's title and Pause's line. None was ratified copy.
   (5) **GAP: the crew pulse and the today-dots.** System §11 bans a count over a row of dots. Flow 6 names both the pulse
       ("4/5 today") and the strip's today-dots, so both stay (tagged `// GAP:` in MemberStrip). This is the owner's pick.
+
+### R-093 · 2026-09-19 · A28 review rounds — Nutrition (round 2) fixed forward from ui-reviewer on run 35445082374 (1 PASS · 13 FAIL) · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084.
+- What changed (iOS):
+  - **Today.**
+    - Saved meals and the Template are two rows and two screens. The segmented control is gone.
+    - The template's tick is the kit's 28 pt check. A slot's grams sit under its name, so the name no longer wraps against
+      the numbers.
+    - "How targets are estimated" is the kit's text button, on Today's first run and on Nutrition targets.
+  - **Fields.** No label is stacked over a value. The title is the field's inkSecondary prompt and VoiceOver's label. The
+    bodyweight reads "180 lb", with the unit a word beside the number. The grams read "40 g" and their three rows are one card,
+    on Quick add, the meal form and Nutrition targets.
+  - **Pages.** Quick add, Logged today, Saved meals, the Template, Nutrition targets and the methodology page sit on the 20 pt
+    gutter. Their rows are cards, with the actions as the kit's text buttons. The template's actions drop under the grams when
+    they would squeeze the name.
+  - **Sheets.** The meal form is the system's sheet (card, grabber, the title in the content with Cancel). The bottom bar can
+    now sit on a sheet's card.
+  - **The methodology page.** Its sources are ink text buttons without an underline.
+- The builder's readings:
+  (1) **Two screens, not a segment.** A27's screen jobs (owner-ratified) name Saved meals and the Template as two jobs, and A28 (f)
+      has no segmented control. The addendum's "two-way segment" becomes two rows on Today. That is the conservative reading:
+      no new component, and both jobs stay one tap from Today.
+  (2) **The template's check is the kit's check.** This closes R-090 (3)'s open reading in the kit's favour.
+  (3) **A gram's unit is "g" beside the number.** VoiceOver already said "grams", so the screen now says it too.

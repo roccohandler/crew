@@ -112,7 +112,7 @@ final class Journey5_NutritionTests: XCTestCase {
         expectLine("Protein: 0 / 145 g, 145 to go", "the same tap did not undo the slot")
 
         // Saved meals & template, and a meal copied from a chain's own published numbers
-        app.buttons["Saved meals & template"].tap()
+        app.buttons["Saved meals"].tap() // A27 · R-093: Saved meals and the Template are two screens
         XCTAssertTrue(labelled("Oats and whey").waitForExistence(timeout: 15), "the saved meal the server holds is not in the list")
         shoot(app, "N2 Saved meals — the list")
         app.buttons["Add from a chain"].tap()
@@ -129,7 +129,9 @@ final class Journey5_NutritionTests: XCTestCase {
         shoot(app, "N2 Meal form — a chain item's numbers, copied")
         save.tap()
         XCTAssertTrue(labelled("Edit Chicken").waitForExistence(timeout: 15), "the meal copied from the chain is not in the list")
-        app.buttons["Template"].tap() // the segment's other half
+        app.navigationBars.buttons.element(boundBy: 0).tap() // back to Today, where the Template is its own row
+        XCTAssertTrue(app.buttons["Template"].waitForExistence(timeout: 10), "Today lost its Template row")
+        app.buttons["Template"].tap()
         XCTAssertTrue(labelled("Move Oats and whey up").waitForExistence(timeout: 15), "the Template half never showed the slot")
         shoot(app, "N2 Template")
     }

@@ -4,7 +4,9 @@
 // BAR, never on a control (§7.4). The text binding converts on every keystroke, so a Save tapped while the number pad is still up
 // reads what is on screen (the A20.11 lesson: a `value:` binding commits only when the field loses focus). The number pad carries no
 // return key: the screen that hosts these fields owns the keyboard's Done item and clears `focus` (A19.2).
-// Twin of web components/nutrition/GramField.tsx. WRITTEN — UNVERIFIED (needs Mac).
+// R-093: the unit is a word beside the number ("40 g", system §11), and the three rows are one card, as the set screen's metric rows
+// are (a stepper row floating on the canvas is not a screen type the kit draws). Twin of web components/nutrition/GramField.tsx.
+// WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
 
@@ -30,6 +32,7 @@ struct GramField: View {
                 .focused(focus, equals: key)
                 .frame(width: minTarget + EmberTokens.Spacing.space16, height: minTarget) // R-083 (11): the platform's field, without field chrome
                 .accessibilityLabel("\(label) grams")
+            Text("g").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).accessibilityHidden(true)
             StepButton(symbol: "plus", noun: label, focus: true) { grams = GramField.clamp(grams + SpecConstants.macroGramsRoundTo, limit) }
         }
     }
@@ -52,10 +55,17 @@ struct GramFields: View {
     var prefix = "grams"
 
     var body: some View {
-        VStack(spacing: EmberTokens.Spacing.space8) {
-            GramField(label: "Protein", grams: binding(\.proteinG, { MacroGrams(proteinG: $0, carbsG: grams.carbsG, fatG: grams.fatG) }), limit: limit, focus: focus, key: "\(prefix).protein")
-            GramField(label: "Carbs", grams: binding(\.carbsG, { MacroGrams(proteinG: grams.proteinG, carbsG: $0, fatG: grams.fatG) }), limit: limit, focus: focus, key: "\(prefix).carbs")
-            GramField(label: "Fat", grams: binding(\.fatG, { MacroGrams(proteinG: grams.proteinG, carbsG: grams.carbsG, fatG: $0) }), limit: limit, focus: focus, key: "\(prefix).fat")
+        FocusCard(padding: 0) {
+            VStack(spacing: 0) {
+                GramField(label: "Protein", grams: binding(\.proteinG, { MacroGrams(proteinG: $0, carbsG: grams.carbsG, fatG: grams.fatG) }), limit: limit, focus: focus, key: "\(prefix).protein")
+                    .padding(.horizontal, EmberTokens.Focus.setCardInset).padding(.vertical, EmberTokens.Spacing.space8)
+                cardSeam()
+                GramField(label: "Carbs", grams: binding(\.carbsG, { MacroGrams(proteinG: grams.proteinG, carbsG: $0, fatG: grams.fatG) }), limit: limit, focus: focus, key: "\(prefix).carbs")
+                    .padding(.horizontal, EmberTokens.Focus.setCardInset).padding(.vertical, EmberTokens.Spacing.space8)
+                cardSeam()
+                GramField(label: "Fat", grams: binding(\.fatG, { MacroGrams(proteinG: grams.proteinG, carbsG: grams.carbsG, fatG: $0) }), limit: limit, focus: focus, key: "\(prefix).fat")
+                    .padding(.horizontal, EmberTokens.Focus.setCardInset).padding(.vertical, EmberTokens.Spacing.space8)
+            }
         }
     }
 

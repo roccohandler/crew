@@ -33,13 +33,15 @@ import SwiftUI
 
 extension View {
     // SPEC: A19.1 — the bar. `content` builds the primary (and, where a screen has one, its single secondary beneath).
-    func crewBottomBar<Bar: View>(@ViewBuilder _ content: () -> Bar) -> some View {
-        modifier(CrewBottomBar(bar: content()))
+    // `surface` is the floor it sits on: the page's canvas, or a sheet's card (R-093)
+    func crewBottomBar<Bar: View>(surface: Color = EmberColors.canvas, @ViewBuilder _ content: () -> Bar) -> some View {
+        modifier(CrewBottomBar(bar: content(), surface: surface))
     }
 }
 
 struct CrewBottomBar<Bar: View>: ViewModifier {
     let bar: Bar
+    let surface: Color
     // 6.5 — the bar grows with Dynamic Type. A fixed inset is how a CTA ends up clipped at accessibility-XXL on an SE,
     // which is the device and type combination 6.7 names as non-negotiable.
     @ScaledMetric private var verticalPadding: CGFloat = EmberTokens.Spacing.space12
@@ -51,9 +53,9 @@ struct CrewBottomBar<Bar: View>: ViewModifier {
             bar
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.vertical, verticalPadding)
-            // The canvas, not a card: the bar is the page's own floor, and a second surface colour here would read as
-            // a panel floating over the content rather than as the bottom of it.
-            .background(EmberColors.canvas)
+            // The page's own surface, never a second one: a different colour here would read as a panel floating over the
+            // content rather than as the bottom of it.
+            .background(surface)
         }
     }
 }

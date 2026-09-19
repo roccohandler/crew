@@ -15,6 +15,7 @@ struct NutritionTodayScreen: View {
     @State private var birthYearText = ""
     @State private var showsQuickAdd = false
     @State private var showsLog = false
+    @State private var showsMeals: SavedMealsSegment?
     @FocusState private var focused: String?
 
     // 6.3 · 6.7 (DESIGN.md 4.2) — the two asking states carry one primary, bottom-anchored; Today itself has none, and a screen with no
@@ -56,6 +57,7 @@ struct NutritionTodayScreen: View {
         }
         .navigationDestination(isPresented: $showsQuickAdd) { QuickAddScreen(model: model) { showsQuickAdd = false } } // 6.9: one job, one tap away
         .navigationDestination(isPresented: $showsLog) { NutritionLogScreen(model: model) }
+        .navigationDestination(item: $showsMeals) { SavedMealsScreen(segment: $0) }
         .task { await model.open() }
         .onAppear { model.refresh() } // back from Saved meals & template: the template may have changed
     }
@@ -76,19 +78,12 @@ struct NutritionTodayScreen: View {
                     Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
                     RowButton(title: "Logged today", value: "\(model.logs.count)") { showsLog = true }
                 }
-                Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
-                NavigationLink { SavedMealsScreen() } label: {
-                    HStack(spacing: EmberTokens.Spacing.space12) {
-                        Text("Saved meals & template").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
-                        Spacer(minLength: EmberTokens.Spacing.space8)
-                        Image(systemName: "chevron.right").foregroundStyle(EmberColors.chevron)
-                    }
-                    .padding(.horizontal, EmberTokens.Focus.setCardInset)
-                    .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Saved meals & template")
+                // A27's screen jobs: Saved meals and the Template are two screens with two jobs (R-093: the segmented control that
+                // shared one screen is not on the kit's list)
+                cardSeam()
+                RowButton(title: "Saved meals") { showsMeals = .meals }
+                cardSeam()
+                RowButton(title: "Template") { showsMeals = .template }
             }
         }
     }
@@ -97,9 +92,9 @@ struct NutritionTodayScreen: View {
     private var firstRun: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
             Text("Start with your bodyweight. It sets a first estimate of your protein, carbs and fat, and you can change any of it.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
-            NutritionTextField(title: "Bodyweight (\(model.weightUnit))", text: $bodyweightText, keyboard: .decimalPad, focus: $focused, key: "bodyweight")
+            NutritionTextField(title: "Bodyweight", text: $bodyweightText, keyboard: .decimalPad, unit: model.weightUnit, focus: $focused, key: "bodyweight")
             Text("Used for the estimate and nothing else. Only you can see it.").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
-            NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.ink)
+            MethodLink()
         }
     }
 
@@ -112,25 +107,43 @@ struct NutritionTodayScreen: View {
     }
 }
 
-// The one labelled text field the nutrition screens share (a bodyweight, a birth year, a meal's name, a slot's label)
+// The one text field the nutrition screens share (a bodyweight, a birth year, a meal's name, a slot's label). R-093 · system §11: no
+// label stacked above the value — the title is the field's inkSecondary prompt and VoiceOver's label, and a unit is a word beside
+// the number ("180 lb"), never in parentheses in a label
 struct NutritionTextField: View {
     let title: String
     @Binding var text: String
     var keyboard: UIKeyboardType = .default
+    var unit: String? = nil
     var focus: FocusState<String?>.Binding
     let key: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-            Text(title).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink)
-            TextField(title, text: $text)
+        HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Focus.space6) {
+            TextField(title, text: $text, prompt: Text(title).foregroundStyle(EmberColors.inkSecondary))
                 .keyboardType(keyboard)
                 .autocorrectionDisabled()
                 .focused(focus, equals: key)
                 .typeRole(EmberTokens.Typography.cardSubheading)
+                .fontDesign(keyboard == .default ? .default : .rounded) // §4: a number is Rounded
                 .foregroundStyle(EmberColors.ink)
+                .fixedSize(horizontal: unit != nil, vertical: false)
                 .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt)) // R-083 (11): the platform's field, without field chrome
-                .accessibilityLabel(title)
+                .accessibilityLabel(unit.map { "\(title) in \($0)" } ?? title)
+            if let unit { Text(unit).typeRole(EmberTokens.Typography.heroUnit).foregroundStyle(EmberColors.inkSecondary) }
+            if unit != nil { Spacer(minLength: 0) }
         }
+    }
+}
+
+// The link to the methodology page (A16.a), as the kit's text button: ink, 15 pt Semibold, no underline, a 44 pt target
+struct MethodLink: View {
+    var body: some View {
+        NavigationLink { NutritionMethodScreen() } label: {
+            Text("How targets are estimated").typeRole(EmberTokens.Typography.textButton).foregroundStyle(EmberColors.ink)
+                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

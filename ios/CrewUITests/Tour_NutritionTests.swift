@@ -40,14 +40,20 @@ final class Tour_NutritionTests: XCTestCase {
             tourShot(app, "nutrition_log_filled", "tapped Logged today")
             tourBack(app)
         }
-        if tourTap(app.buttons["Saved meals & template"], timeout: 5) { tourSavedMeals() }
+        // A27's screen jobs · R-093: Saved meals and the Template are two rows on Today, two screens
+        if tourTap(app.buttons["Saved meals"], timeout: 5) { tourSavedMeals() }
+        if tourTap(app.buttons["Template"], timeout: 5) {
+            _ = labelled("Move Oats and whey up").waitForExistence(timeout: 10)
+            tourShot(app, "nutrition_template_filled", "tapped Template")
+            tourBack(app)
+        }
         tourBack(app)
         tourSettingsRows()
     }
 
     private func tourSavedMeals() {
         _ = labelled("Oats and whey").waitForExistence(timeout: 15)
-        tourShot(app, "nutrition_meals_filled", "tapped Saved meals & template")
+        tourShot(app, "nutrition_meals_filled", "tapped Saved meals")
         if tourTap(app.buttons["Add a meal"], timeout: 5) {
             tourShot(app, "nutrition_mealform_sheet", "tapped Add a meal")
             tourDismissSheet(app, button: "Cancel")
@@ -59,9 +65,6 @@ final class Tour_NutritionTests: XCTestCase {
             }
             tourBack(app) // run 35347725730: the items list has no Cancel and the pull scrolled the list — back to the chains, whose Cancel closes the sheet
             tourDismissSheet(app, button: "Cancel")
-        }
-        if tourTap(app.buttons["Template"], timeout: 5) {
-            tourShot(app, "nutrition_template_filled", "tapped the Template segment")
         }
         tourBack(app)
     }
