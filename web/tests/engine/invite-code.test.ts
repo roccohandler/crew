@@ -8,6 +8,9 @@ describe("inviteToken", () => {
     expect(inviteToken("  abc123DEF  ")).toBe("abc123DEF");
   });
   it("reads the code out of a full invite link, with or without a query or fragment", () => {
+    // The host is nothing to the parser, and the two here prove it: the one the links carried before W7 and the one they carry
+    // now (APP_BASE_URL, 2026-09-18). Neither is rewritten when the domain moves again — that is the point of keeping both.
+    expect(inviteToken("https://trycrew.fit/join/abc123DEF")).toBe("abc123DEF");
     expect(inviteToken("https://crew-eta-one.vercel.app/join/abc123DEF")).toBe("abc123DEF");
     expect(inviteToken("https://crew-eta-one.vercel.app/join/abc123DEF?utm=x#top")).toBe("abc123DEF");
     expect(inviteToken("crew-eta-one.vercel.app/join/abc123DEF/")).toBe("abc123DEF");

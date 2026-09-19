@@ -41,4 +41,20 @@ describe("apple-app-site-association", () => {
     setEnv("APPLE_BUNDLE_ID", undefined);
     expect((await GET()).status).toBe(404);
   });
+
+  // W7 (2026-09-18): the two ways a configured host still serves nothing, or serves an appID Apple never matches.
+  it("counts a blank id as unset, and keeps no pasted whitespace in the appID", async () => {
+    setEnv("APPLE_TEAM_ID", "");
+    setEnv("APNS_TEAM_ID", "ZYXWV98765");
+    setEnv("APPLE_BUNDLE_ID", "com.example.crew");
+    const viaApns = (await (await GET()).json()) as { applinks: { details: { appIDs: string[] }[] } };
+    expect(viaApns.applinks.details[0]?.appIDs).toEqual(["ZYXWV98765.com.example.crew"]);
+    setEnv("APPLE_TEAM_ID", " ABCDE12345\n");
+    setEnv("APPLE_BUNDLE_ID", " com.example.crew ");
+    const pasted = (await (await GET()).json()) as { applinks: { details: { appIDs: string[] }[] } };
+    expect(pasted.applinks.details[0]?.appIDs).toEqual(["ABCDE12345.com.example.crew"]);
+    setEnv("APPLE_TEAM_ID", "   ");
+    setEnv("APNS_TEAM_ID", undefined);
+    expect((await GET()).status).toBe(404);
+  });
 });

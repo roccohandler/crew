@@ -9,32 +9,38 @@ holds every reading made without you, `docs/debt.md` every compromise.
 
 | Area | State |
 |---|---|
-| Server + web (Vercel, `crew-eta-one.vercel.app`) | Live and current: training, crews, invites by code or link, nutrition (18+), the education layer, the drafted privacy and terms pages. Checked 2026-09-18: `/` 200 · `/privacy` 200 · `/api/v1/users/me` 401 · the app-site-association route answers 404 until step 2 below |
+| Server + web (Vercel, **`trycrew.fit`** — `crew-eta-one.vercel.app` still answers and is still what the phone calls) | Live and current: training, crews, invites by code or link, nutrition (18+), the education layer, the drafted privacy and terms pages. Checked 2026-09-19: `www.trycrew.fit/` 200 · `/privacy` 200 · `/api/v1/users/me` 401 · **the app-site-association route answers 200** with `PZ56UL99NM.com.maxwellcuenca.crew`. The apex `trycrew.fit` 308-redirects every path to `www` (a Vercel domain setting, not the repo) — see §2.1 |
 | iPhone app | Everything above is written and compiled and tested on GitHub's macOS simulator. No Mac exists here, so nothing is proven on a phone until you run the checklist in §4 |
 | Tests | 84 vectors on both engines · the web suite and the Playwright journeys ①–⑤ at 375 / 768 / 1280 · the iPhone unit tests and journeys · the launch audit (the seven no-grade clauses + the Not Building list) runs in CI on every push |
 | Not built, by your rulings | A21.13's list: feed, chat, leaderboards, comments, DMs, food search / barcode / recognition, supersets, A15, exercise media, web push, Android, Google sign-in (v1.1) |
 
 ## 2. Your tasks, in order (each is independent unless it says otherwise)
 
-1. **Domain (W7).** Buy a domain, attach it to the Vercel project `crew`, then in Vercel → Settings → Environment Variables set
-   `APP_BASE_URL` to `https://<your-domain>` and redeploy. Then tell the builder the host, or run:
+1. **Domain (W7) — DONE 2026-09-19, with one thing left.** `trycrew.fit` is attached, `APP_BASE_URL` is `https://trycrew.fit`, and
+   the association file, the API and the pages all answer. **The one thing left is yours and takes a minute:** Vercel → the `crew`
+   project → Settings → Domains currently makes **`www.trycrew.fit` the primary**, so every request to the bare `trycrew.fit`
+   answers `308 → www`, including the invite links the server mints from `APP_BASE_URL`. Set **`trycrew.fit`** as the primary
+   (`www` then redirects to it) so the link a friend taps is the host that serves it. Not urgent — Apple already followed the
+   redirect and holds a valid association for the apex (checked below) — but the two should agree.
+   `CREW_API_HOST` is deliberately still `crew-eta-one.vercel.app`: it is what the phone calls, a POST to the apex would take a
+   redirect hop mid-login, and it is the same deployment and the same database. Move it after the primary is flipped:
    ```powershell
-   gh variable set CREW_API_HOST --body "<your-domain>"
+   gh variable set CREW_API_HOST --body "trycrew.fit"
    ```
-   Skipping this is fine for the beta: the vercel.app host works today.
-2. **Universal links (W7).** (a) developer.apple.com → Identifiers → `com.maxwellcuenca.crew` → tick **Associated Domains** → Save.
-   (b) In Vercel set `APPLE_TEAM_ID` (your ten-character Team ID; it becomes public inside the association file, which is normal)
-   and check `APPLE_BUNDLE_ID` is `com.maxwellcuenca.crew`; redeploy. (c) Then:
+2. **Universal links (W7) — DONE 2026-09-19.** (a) Associated Domains is ticked on `com.maxwellcuenca.crew`. (b) Vercel holds
+   `APPLE_TEAM_ID` and `APPLE_BUNDLE_ID` — proven, not assumed: the live file reads `PZ56UL99NM.com.maxwellcuenca.crew`. (c) The
+   variable is set and the build carries the entitlement:
    ```powershell
-   gh variable set CREW_APPLINKS_HOST --body "crew-eta-one.vercel.app"
-   gh workflow run testflight.yml
+   gh variable set CREW_APPLINKS_HOST --body "trycrew.fit"   # already run
    ```
-   (use your own domain instead once step 1 is done). If that build fails at the export step, Associated Domains is not enabled on
-   the App ID yet; `gh variable delete CREW_APPLINKS_HOST` returns the build to green. Until all three are done, invites still work
-   by pasted code, and a tapped link opens the web page with a Copy code button.
+   Apple's own cache confirms it end to end — `https://app-site-association.cdn-apple.com/a/v1/trycrew.fit` answers 200 with the
+   right appID, and its `Apple-From` header names both `trycrew.fit` and `www.trycrew.fit`. Test it with §4.5. If a future build
+   ever fails at the export step, Associated Domains has come off the App ID; `gh variable delete CREW_APPLINKS_HOST` returns the
+   build to green. **Only the apex is claimed** — a link someone shares as `www.trycrew.fit/join/…` opens the web page, not the
+   app (`docs/debt.md`, 2026-09-19).
 3. **Support address.** In Vercel set `SUPPORT_EMAIL` to the address people should write to, then redeploy (the two pages are built
    once per deploy). The privacy and terms pages print it; until then they say "Write to the support address on Crew's App Store page."
-4. **Privacy and terms (W9).** Read `https://crew-eta-one.vercel.app/privacy` and `/terms` (source: `shared/copy/legal.json`). They
+4. **Privacy and terms (W9).** Read `https://trycrew.fit/privacy` and `/terms` (source: `shared/copy/legal.json`). They
    are drafted from what the code does — what is stored, who sees it, the four providers, export and deletion, the 13+ and 18+ ages.
    Three things are yours to add, and a lawyer's eye is worth it: **the operator's legal name**, **a governing-law sentence**, and
    whether you want Apple's standard EULA or these terms as the App Store EULA. Send the changes; the builder edits the one file.
@@ -85,7 +91,12 @@ holds every reading made without you, `docs/debt.md` every compromise.
 2. A rest day's Home asks nothing: no camera, no meal row, the streak unchanged the next morning.
 3. Finish a workout: the celebration offers "Share to crew" and "Keep it private"; nothing posts before you tap one; the caption saves.
 4. Paste an invite code on the hero or the Crew tab: the crew's name previews, and you land in the crew.
-5. Tap a `/join/…` link in Messages: today it opens the web page with Copy code; after §2.2 it opens the app.
+5. **The universal link (W7 — new in build 201).** Crew tab → Invite → copy the link (it is already `https://trycrew.fit/join/…`;
+   the server mints it from `APP_BASE_URL`). Send it to yourself in Messages or Notes and **tap it there**. It must be a tap from
+   another app: iOS never hands the app a link typed into Safari's address bar, nor one tapped inside a page on the same domain,
+   so a test done that way proves nothing. Pass = Crew opens on the Crew tab with the join sheet up and the code already filled.
+   Tapping Join then answers "You're already in a crew" — correct, not a failure; you are in the crew you invited yourself to.
+   If it opens the web page instead, give it a minute on Wi-Fi and relaunch: iOS fetches the association shortly after install.
 6. Home shows "Log macros" on an adult account (absent under 18): estimate targets from a bodyweight, then Today shows four lines.
 7. Save a meal, add one from a chain, build the template, log a slot with one tap, undo it; Quick add: one tap on + adds 5 g and a hold repeats (the same fix is on reps and weight in the logger); "Logged today" lists both.
 8. Airplane mode: log a meal and a quick add, then reconnect: both reach the web app's Today without a duplicate.

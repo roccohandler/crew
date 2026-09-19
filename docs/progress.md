@@ -844,6 +844,40 @@ NEXT (owner): install **199**; on a fresh account the plan is your Push / Pull /
 bench press is the first swap offered for the flat bench; an existing account sees the templates after Rebuild my plan. NEXT (builder): nothing queued — the three
 session findings above wait for the design direction.
 
+## 2026-09-19 — W7 ACTIVATED: trycrew.fit, THE ASSOCIATION FILE, THE APPLINKS ENTITLEMENT (owner's account work done; readings R-080)
+
+The owner attached `trycrew.fit` (with `www`) to the Vercel project, set `APP_BASE_URL=https://trycrew.fit`, `SUPPORT_EMAIL`,
+`APPLE_TEAM_ID=PZ56UL99NM` and `RESEND_FROM=Crew <hello@trycrew.fit>`, and ticked Associated Domains on
+`com.maxwellcuenca.crew`. The order: set the applinks variable, verify the association file, confirm the `onOpenURL` path and the
+landing page, repoint stale hosts, build.
+
+**W7's code half needed almost nothing — it was built in the 2026-09-18 pass and it was right.** What this session actually did:
+
+| Item | State |
+|---|---|
+| `CREW_APPLINKS_HOST` | **set to `trycrew.fit`** (repository variable, 00:51Z). `testflight.yml:83/120` read it; `:85` rewrites the placeholder at `ios/project.yml:64` into `com.apple.developer.associated-domains: ["applinks:trycrew.fit"]` before `xcodegen`, and `:124` ad-hoc signs the archive with it. No file changed to enable it |
+| The AASA route | reads `APPLE_TEAM_ID` (falling back to `APNS_TEAM_ID`) and `APPLE_BUNDLE_ID` only — it **never reads `APP_BASE_URL`**, so the document is host-agnostic and every host that reaches the app serves it. `force-dynamic`, explicit `application/json`, `max-age=3600`, modern `components` form, `/join/*` |
+| Live check | `https://www.trycrew.fit/.well-known/apple-app-site-association` → **200**, `application/json`, `PZ56UL99NM.com.maxwellcuenca.crew`, `components [{"/":"/join/*"}]`. The apex answers **308 → www** (a Vercel primary-domain setting; nothing in the repo). **Apple's own cache proves the apex is still claimable:** `app-site-association.cdn-apple.com/a/v1/trycrew.fit` → 200, `Apple-From: https://trycrew.fit/…, https://www.trycrew.fit/…`; a nonsense host on that CDN → 404 — R-080 (1) |
+| `onOpenURL` → A21.3 | confirmed in code: `RootView.swift:22` on the SCENE ROOT, above both branches, so a cold launch and a foreground both land; `InviteInbox` holds the token (path-only, host-agnostic); `OnboardingFlow.swift:45` (signed out) and `CrewScreen.swift:38` (signed in) each `consume()` it, fill `model.inviteCode` and call `lookUpInvite()` — literally the pasted-code path. `RootView.swift:68/70` opens the Crew tab |
+| `/join/[token]` | confirmed: `page.tsx:39` renders `<CopyCodeButton token={token} />` under the printed `<code>{token}</code>` at `:38`, in the signed-out, not-full branch; it copies the raw CODE, not the URL. Dead and full links keep their explicit states (S13) |
+| Hardcoded hosts | **no production code anywhere hardcodes the old host** — every runtime host is an environment or build variable. The 23 hits are docs and two parser fixtures |
+
+**The one code defect the confirmation turned up — fixed here.** `route.ts` read
+`process.env.APPLE_TEAM_ID ?? process.env.APNS_TEAM_ID`, and `??` only catches `undefined`. A host holding `APPLE_TEAM_ID` as an
+EMPTY string — what a provider's console produces when a name is created and left blank — took the empty value, skipped the APNs
+fallback the file's own header promises, and answered 404 with nothing to read. That is the 404 §2.2 of OWNER-REVIEW was written
+around. Both ids are now taken trimmed, empty falling through; the trim matters just as much, because an id pasted with a trailing
+newline builds a syntactically valid appID that Apple silently never matches. Two new cases in
+`web/tests/api/app-site-association.test.ts` pin both. The production host was ADDED beside the old one in both invite-code twins
+(`web/tests/engine/invite-code.test.ts`, `ios/CrewTests/InviteCodeTests.swift`) — not swapped for it: the old-host cases are the
+evidence the parser ignores the host, and deleting them would delete the proof (R-080 (5)).
+
+**Left deliberately undone, each with a reason (R-080):** only the apex is claimed, not `www` (2) · `CREW_API_HOST` stays on
+`crew-eta-one.vercel.app`, because a POST to the apex takes a redirect hop and the old host is the same deployment and database
+(3) · the Vercel primary domain is the owner's to flip (1) · `ios/project.yml`'s `aps-environment: development` was NOT
+pre-emptively changed (6) — build 201 is the FIRST archive ever signed with the project's own entitlements, so the answer is read
+off the run's "What the export signed" step rather than guessed at.
+
 ## 2026-09-18 — A23 EDUCATION LAYER: RECORDED AND DRAFTED, NOT BUILT (owner ruling: "record and draft, do not build … report the whisper list with triggers, and stop")
 
 - The ruling arrived while W3b was being read (no W3b source had been touched) and it carries an explicit stop, so the "continue

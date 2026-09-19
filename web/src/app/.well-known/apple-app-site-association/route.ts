@@ -10,8 +10,11 @@ export const dynamic = "force-dynamic"; // read the environment per request: con
 
 export async function GET() {
   try {
-    const teamId = process.env.APPLE_TEAM_ID ?? process.env.APNS_TEAM_ID ?? "";
-    const bundleId = process.env.APPLE_BUNDLE_ID ?? "";
+    // A name the host holds as an EMPTY string is NOT configured: `??` took it and the APNs fallback above never fired, so a
+    // team id "set" to nothing answered 404 with nothing to read (W7, 2026-09-18). Trimmed too — an id pasted with a trailing
+    // newline builds an appID that is syntactically fine and that Apple silently never matches, which is the worse failure.
+    const teamId = (process.env.APPLE_TEAM_ID ?? "").trim() || (process.env.APNS_TEAM_ID ?? "").trim();
+    const bundleId = (process.env.APPLE_BUNDLE_ID ?? "").trim();
     if (teamId.length === 0 || bundleId.length === 0) throw notFound("App association");
     const body = { applinks: { details: [{ appIDs: [`${teamId}.${bundleId}`], components: [{ "/": "/join/*", comment: "Crew invite links (A21.3)" }] }] } };
     return new Response(JSON.stringify(body), { headers: { "content-type": "application/json", "cache-control": "public, max-age=3600" } });

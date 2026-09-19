@@ -172,6 +172,9 @@ the chat.
    2026-09-08: the host is `crew-eta-one.vercel.app`; the first two builds failed until Root Directory was saved as
    `web` (Vercel's log: "No Next.js version detected"), and the Vercel CLI (`npx vercel login`) lets the agent read build
    logs, list variable names and redeploy from this machine.
+   Then 2026-09-19: the custom domain `trycrew.fit` (with `www`) is attached and `APP_BASE_URL=https://trycrew.fit`. Vercel makes
+   `www` the primary by default, so the apex answers `308 → www` on every path — harmless for a browser, and Apple followed it
+   when it cached the association, but the project's primary domain should be flipped to the apex so links and host agree.
 4. **Apple, on developer.apple.com/account** — first accept the updated Program License Agreement (the Account Holder;
    until then the App Store Connect API answers 403 to everything, cloud signing included). Membership details → the
    10-character Team ID. Certificates, Identifiers & Profiles → Keys → a key with "Apple Push Notifications service (APNs)"

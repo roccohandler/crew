@@ -1398,3 +1398,53 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   first `swapCandidatesMin` offered. The finder is still unchanged. Barbell row stays last among the seated row's five, as "barbell never the
   default" reads. The swap sheet also gained a Cancel button (DESIGN.md 4.2: every swipe has a visible-button equivalent) — it could only be
   pulled down, on all three of its entry points.
+
+### R-080 · 2026-09-19 · W7 activation: the custom domain, the association file, the applinks entitlement · checkpoint — proceeding
+- What was checked: the owner attached `trycrew.fit` (with `www`) to the Vercel project, set `APP_BASE_URL=https://trycrew.fit`,
+  `APPLE_TEAM_ID`, `SUPPORT_EMAIL` and `RESEND_FROM`, and ticked Associated Domains on `com.maxwellcuenca.crew`. The order was:
+  set `CREW_APPLINKS_HOST`, verify the association file, confirm the `onOpenURL` path and the landing page, repoint stale hosts.
+  Five readers and a critic went over the AASA route, the entitlement wiring, the iOS deep-link path, `/join/[token]` and every
+  host string in the repo; every live claim below was then re-checked by hand with `curl` before it was written down.
+- Verdict, seven readings:
+  (1) **THE APEX REDIRECT IS NOT A BLOCKER — CHECKED, NOT ASSUMED.** `https://trycrew.fit/.well-known/apple-app-site-association`
+  answers `308 → www` (Vercel makes `www` the primary domain by default; nothing in the repo does it — `web/vercel.json` holds only
+  a crons array and `next.config.ts` declares no redirects). Apple's documentation says the file must be served with no redirect,
+  which reads as fatal. It is not, here: `https://app-site-association.cdn-apple.com/a/v1/trycrew.fit` answers **200** with
+  `{"appIDs":["PZ56UL99NM.com.maxwellcuenca.crew"],"components":[{"/":"/join/*"}]}` and the header
+  `Apple-From: https://trycrew.fit/…, https://www.trycrew.fit/…` — Apple fetched the apex, followed the 308, and stored the result
+  under the apex key. A nonsense host on the same CDN answers 404, so that 200 is a real fetched association and not an echo. The
+  entitlement therefore validates as configured. The reading taken: **ship the entitlement on the apex now, and ask the owner to
+  flip the Vercel primary domain anyway** (§2.1) — undocumented behaviour that works today is not something to depend on, and the
+  apex is what `APP_BASE_URL` mints links from, so the two should agree without a hop.
+  (2) **ONE HOST IS CLAIMED, NOT TWO.** `testflight.yml` writes a one-element `applinks:` array from the variable, so a link shared
+  as `www.trycrew.fit/join/…` opens the web page. Claiming both would mean teaching that `sed` a list and editing the placeholder
+  in `ios/project.yml` in lockstep (the `sed` matches that comment byte for byte) — on the FIRST build that exercises the ad-hoc
+  signing path at all. One change at a time: the second host is `docs/debt.md`, not this build.
+  (3) **`CREW_API_HOST` STAYS ON `crew-eta-one.vercel.app`, DELIBERATELY.** It is compiled into the app (`Api.swift` reads
+  `CrewApiHost` from Info.plist) and is the transport, not a shared link. `POST https://trycrew.fit/api/v1/auth/login` answers
+  `308 → www`, so moving it today would put a redirect hop under every authenticated request, on the same build that debuts the
+  entitlement — two variables at once, and a failure impossible to attribute. The old host is verified alive (root 200, API 401,
+  association 200) and is the same deployment and the same database, so a `trycrew.fit` invite token resolves through it.
+  (4) **A BLANK NAME NOW COUNTS AS UNSET** — the one code defect the confirmation turned up. The route read
+  `process.env.APPLE_TEAM_ID ?? process.env.APNS_TEAM_ID`, and `??` only catches `undefined`: a host that holds `APPLE_TEAM_ID` as
+  an EMPTY string — which is exactly what a provider's console produces when a name is created and left blank — took the empty
+  value, skipped the APNs fallback the file's own header documents, and answered 404 with nothing to read. That is the failure
+  the owner spent a step on. Both ids are now taken as trimmed strings, empty falling through, because an id pasted with a
+  trailing newline is worse still: it builds a syntactically valid appID that Apple silently never matches.
+  (5) **THE OLD HOST STAYS IN THE PARSER FIXTURES.** `inviteToken` and `InviteCode.token(from:)` read the path and ignore the host,
+  so a fixture's host asserts nothing about production — and rewriting the old-host cases would have DELETED the evidence that the
+  parser is host-agnostic. The production host was ADDED beside them in both twins, with the reason in a comment.
+  (6) **BUILD 201 IS THE FIRST ARCHIVE EVER SIGNED WITH THE PROJECT'S OWN ENTITLEMENTS.** The ad-hoc `codesign` step in
+  `testflight.yml` is gated on `CREW_APPLINKS_HOST`, which did not exist until 00:51Z today, so it has never run: every upload
+  before this one archived unsigned and let the export derive its entitlements from the App Store profile. From now the archive
+  carries `ios/project.yml`'s, which include `aps-environment: development`, and the export re-signs over them. The workflow
+  asserts in a comment that the re-sign turns that into `production`; nothing has ever observed it on this pipeline. It was NOT
+  pre-empted — changing the value would be wrong for every Debug and simulator build — it is READ OFF THE RUN, from the step
+  "What the export signed", and the answer is recorded with the build below. If it ever says `development`, push notifications
+  fail silently with `BadDeviceToken` and the entitlement needs splitting per configuration.
+  (7) **LIVE DOCS REPOINTED; THE LEDGER LEFT ALONE.** `docs/OWNER-REVIEW.md` (its §2.2 prescribed the OLD host in a command the
+  owner would have pasted), `docs/app-store-listing.md` and `docs/testing-without-a-mac.md` are instructions and now name
+  `trycrew.fit`. Every other hit — dated entries in `docs/progress.md`, R-056's reading, Appendix A, `docs/debt.md`,
+  `docs/commit-queue.sh` — is a record of what was true when it was written and was not touched.
+- Look at: §2.1 of `docs/OWNER-REVIEW.md` (flip the Vercel primary domain to the apex, then move `CREW_API_HOST`), and reading (6)
+  in the run log before trusting push on build 201.

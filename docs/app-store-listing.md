@@ -60,7 +60,7 @@ workout,gym,push pull legs,PPL,strength,training log,lifting,accountability,stre
 | Field | Value |
 |---|---|
 | Support URL | the owner's — a page or a mailto that reaches `SUPPORT_EMAIL` |
-| Marketing URL (optional) | `APP_BASE_URL` (today https://crew-eta-one.vercel.app) |
+| Marketing URL (optional) | `APP_BASE_URL` (today https://trycrew.fit) |
 | Privacy Policy URL | `APP_BASE_URL`/privacy |
 | Terms (EULA) | `APP_BASE_URL`/terms — or Apple's standard EULA; the owner chooses |
 
