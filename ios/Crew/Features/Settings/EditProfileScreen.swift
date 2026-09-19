@@ -16,22 +16,24 @@ struct EditProfileScreen: View {
             Button { showsPhotoChoices = true } label: {
                 VStack(spacing: EmberTokens.Spacing.space8) {
                     AvatarView(displayName: model.displayName, image: model.photo, photoKey: model.existingPhotoKey, size: EmberTokens.Size.avatarLarge)
-                    Text("Change photo").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                    Text("Change photo").typeRole(EmberTokens.Typography.textButton).foregroundStyle(EmberColors.ink) // A28 (f): a text button
                 }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Change photo")
             if model.cameraDenied {
-                Text("Camera's off for Crew. Library photos still work.").font(.footnote).foregroundStyle(EmberColors.secondaryText).multilineTextAlignment(.center)
+                Text("Camera's off for Crew. Library photos still work.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).multilineTextAlignment(.center)
                 // 6.3 — the one route out of a denied camera (E5), at footnote size it was the smallest target on the screen
                 TextActionButton(title: "Open Settings", font: .footnote, horizontalPadding: 0, accessibilityLabel: "Open Settings to turn the camera on") { model.openSettings() }
             }
             TextField("Name", text: Binding(get: { model.displayName }, set: { model.setName($0) }))
                 .textContentType(.name)
-                .padding(EmberTokens.Spacing.space12)
-                .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
+                .typeRole(EmberTokens.Typography.cardSubheading)
+                .foregroundStyle(EmberColors.ink)
+                .multilineTextAlignment(.center)
+                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt)) // R-083 (11): the platform's field, without field chrome
                 .accessibilityLabel("Name")
-            if let error = model.errorLine { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
+            if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) } // A28 (a): red only in a destructive confirm
             // SPEC: A19.5 / R9 — THE SPACER MOVED ABOVE THE SAVE. It was below it, so the only action on the screen sat
             // directly under a one-line name field with the rest of the canvas empty beneath it — the same defect A17.2
             // fixed on Home and R9 fixes everywhere else. 6.7: primary actions stay bottom-anchored.
@@ -40,7 +42,8 @@ struct EditProfileScreen: View {
                 .disabled(!model.canSave)
                 .opacity(model.canSave ? 1 : EmberTokens.Opacity.disabled)
         }
-        .padding(EmberTokens.Spacing.space24)
+        .padding(.horizontal, EmberTokens.Focus.gutter)
+        .padding(.vertical, EmberTokens.Spacing.space24)
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)

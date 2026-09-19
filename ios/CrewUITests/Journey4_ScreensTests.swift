@@ -45,12 +45,12 @@ final class Journey4_ScreensTests: XCTestCase {
         shoot(app, "S16 Journal")
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
-        XCTAssertTrue(app.staticTexts["Units"].waitForExistence(timeout: 5), "W6: the Units section is missing")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Units'")).firstMatch.waitForExistence(timeout: 5), "W6 · R-089: the Units row is missing")
         // A23 — a whisper shows ONCE, under the element it explains, and the first tap anywhere on the screen clears it for good
         let pauseWhisper = app.staticTexts["Away a while? Pause the plan. The streak stays whole."]
         XCTAssertTrue(pauseWhisper.waitForExistence(timeout: 15), "A23: the pause whisper never showed under Pause my plan — the screen says: \(screenSays())")
         shoot(app, "S17 Settings — the pause whisper, once")
-        app.staticTexts["Units"].tap()
+        app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Version'")).firstMatch.tap() // a tap on a line that opens nothing
         XCTAssertFalse(pauseWhisper.waitForExistence(timeout: 2), "A23 rule 4: the first tap anywhere did not clear the whisper")
         shoot(app, "S17 Settings")
         // A23 · S19 — the page behind the whispers, a row above Version; the note from Max is the owner's, ratified (R-081)

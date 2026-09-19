@@ -11,17 +11,18 @@ struct BlockedPeopleScreen: View {
     var body: some View {
         List {
             if model.isLoaded && model.people.isEmpty {
-                Text("No one blocked.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("No one blocked.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.card)
             }
             ForEach(model.people, id: \.userId) { person in
                 HStack {
-                    Text(person.displayName).font(.body).foregroundStyle(EmberColors.inkText)
+                    Text(person.displayName).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
                     Spacer()
-                    Button("Unblock") { pendingUnblock = person }.font(.subheadline).foregroundStyle(EmberColors.inkText).buttonStyle(.borderless)
+                    TextActionButton(title: "Unblock", horizontalPadding: 0, accessibilityLabel: "Unblock \(person.displayName)", role: EmberTokens.Typography.textButton) { pendingUnblock = person }.buttonStyle(.borderless)
                 }
-                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                .frame(minHeight: EmberTokens.Focus.rowButton)
+                .listRowBackground(EmberColors.card)
             }
-            if let error = model.errorLine { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
+            if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.canvas) } // A28 (a): red only in a destructive confirm
         }
         .scrollContentBackground(.hidden)
         .background(EmberColors.canvas.ignoresSafeArea())

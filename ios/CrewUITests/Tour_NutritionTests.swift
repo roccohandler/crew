@@ -68,9 +68,9 @@ final class Tour_NutritionTests: XCTestCase {
 
     private func tourSettingsRows() {
         guard tourTap(app.tabBars.buttons["Settings"]) else { return }
-        _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
-        tourScroll(app, until: app.buttons["Nutrition targets"])
-        tourShot(app, "settings_settings_nutrition", "scrolled Settings to the Nutrition rows")
+        guard tourTap(app.buttons["Nutrition"], timeout: 15) else { return } // R-089: Nutrition is a group of its own
+        _ = app.buttons["Nutrition targets"].waitForExistence(timeout: 10)
+        tourShot(app, "settings_settings_nutrition", "tapped Settings → Nutrition")
         if tourTap(app.buttons["Nutrition targets"], timeout: 5) {
             tourShot(app, "settings_nutritiontargets_filled", "tapped Nutrition targets")
             tourBack(app)

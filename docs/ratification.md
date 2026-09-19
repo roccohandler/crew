@@ -1840,3 +1840,36 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (7) **The offline line** is an ink glyph and an `inkSecondary` sentence with no surface. The system has no banner (R-083 (13)),
       so all three readers moved together.
 - Look at: the Crew shots (the stream, the invite sheet, Manage crew as the Captain, solo, create, join) against DESIGN.md, and (1).
+
+### R-089 · 2026-09-19 · A28 R6 — Settings grouped into destinations; the checks, the units, the off-season pause · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. GAP 7 (How Crew works: no tone section; its Mobility sentence states a duration;
+  ratified imperatives meet the tone) was R6's precondition.
+- What changed:
+  - Settings is one short page of cards: the profile; Pause my plan (its state as the value, A23's whisper under it); Units ·
+    Notifications · Nutrition; Privacy & safety · Account; How Crew works; then the version as a quiet line.
+  - Each row opens its screen. The Notifications, Account and Nutrition rows sit on `card` in a canvas list.
+  - On/off settings are the system's check (`CheckToggleStyle`).
+  - Units are two groups of check rows.
+  - Delete account is an ink row, and step two is the red confirm with the "can't be undone" sentence (E18).
+  - Pause speaks off-season.
+  - Profile and Blocked people are on the system's type and colours.
+- The builder's readings:
+  (1) **Grouping.** It follows the rows' own old section names (Plan, Units, Notifications, Nutrition, Privacy & safety, Account,
+      About), with two changes. Pause stays on the first page, because it is the one plan action and A23's whisper belongs under
+      it. About's two rows become How Crew works plus the version line.
+  (2) **A check, not a switch.** The platform's switch is not on A28 (f)'s list, and tinted ink it failed in dark (docs/debt.md,
+      theme). The check is on the list and reads the same in both modes. VoiceOver still hears a switch
+      (`accessibilityRepresentation`).
+  (3) **Units are check rows**, one per choice: the kit's radio. §11 bans segmented unit pickers, and a menu picker hides the choice
+      behind a tap. A28 (d): lb/kg lives here only.
+  (4) **Delete account.** E18's two steps are the row, then the confirm, and the confirm carries the red and the "can't be undone"
+      sentence. Before, the red sat on the list row itself (ui-reviewer, run 35440565004).
+  (5) **Pause in the off-season language** (A28 (e)). While paused the page reads "Off-season" and "Off-season until {date}.
+      Reminders are off.", with "End the pause" as its one filled button, exactly as Home says it (mockup 06). The 🧊 goes
+      (R-083 (12)).
+  (6) **GAP 7.** How Crew works is UNTOUCHED. Its words are A23's, ratified by the owner (R-081), and R-083 (9) keeps ratified copy
+      until the owner re-cuts it. So there is no tone section, and the Mobility sentence keeps its duration until the owner rules
+      (docs/debt.md).
+  (7) **Blocked people's empty state** keeps its settled words, "No one blocked.", on the system's surface. It has no CTA, because
+      there is nothing to do there. It is an invitation only in the sense 6.1 allows: a fact, never an apology.
+- Look at: the Settings shots (the page, Units, Notifications, Account, Blocked people, Profile, Pause) against DESIGN.md, and (1).

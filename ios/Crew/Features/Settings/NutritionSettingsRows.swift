@@ -14,21 +14,21 @@ struct NutritionSettingsRows: View {
     @State private var line: String?
 
     var body: some View {
-        Section("Nutrition") {
+        Section {
             if availability == .askBirthYear {
-                NavigationLink("Nutrition targets") { NutritionTodayScreen() } // §6: the birth year is asked where Nutrition opens
+                NavigationLink("Nutrition targets") { NutritionTodayScreen() }.listRowBackground(EmberColors.card) // §6: the birth year is asked where Nutrition opens
             } else {
-                NavigationLink("Nutrition targets") { NutritionTargetsScreen() }
+                NavigationLink("Nutrition targets") { NutritionTargetsScreen() }.listRowBackground(EmberColors.card)
             }
-            NavigationLink("How targets are estimated") { NutritionMethodScreen() }
+            NavigationLink("How targets are estimated") { NutritionMethodScreen() }.listRowBackground(EmberColors.card)
             if confirming {
-                Text("This deletes your targets, your bodyweight, your saved meals, your template and every logged meal. It can't be undone.").font(.footnote).foregroundStyle(EmberColors.inkText)
-                Button("Delete my nutrition data") { Task { await erase() } }.foregroundStyle(EmberColors.inkText)
-                Button("Keep it") { confirming = false }.foregroundStyle(EmberColors.inkText)
+                Text("This deletes your targets, your bodyweight, your saved meals, your template and every logged meal. It can't be undone.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
+                Button("Delete my nutrition data") { Task { await erase() } }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
+                Button("Keep it") { confirming = false }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
             } else {
-                Button("Delete my nutrition data") { confirming = true; line = nil }.foregroundStyle(EmberColors.inkText)
+                Button("Delete my nutrition data") { confirming = true; line = nil }.foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
             }
-            if let line { Text(line).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
+            if let line { Text(line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.card) }
         }
     }
 

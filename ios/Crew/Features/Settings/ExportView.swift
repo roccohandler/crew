@@ -8,11 +8,15 @@ struct ExportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
-            Button("Export my data (JSON)") { Task { await model.exportJSON() } }.foregroundStyle(EmberColors.inkText).buttonStyle(.borderless)
-            if let url = model.exportedFileURL {
-                ShareLink(item: url) { Text("Share crew-export.json").font(.body).foregroundStyle(EmberColors.inkText) }.buttonStyle(.borderless)
+            Button { Task { await model.exportJSON() } } label: {
+                Text("Export my data (JSON)").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                    .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton, alignment: .leading).contentShape(Rectangle())
             }
-            if let error = model.errorLine { Text(error).font(.footnote).foregroundStyle(EmberColors.danger) }
+            .buttonStyle(.borderless)
+            if let url = model.exportedFileURL {
+                ShareLink(item: url) { Text("Share crew-export.json").typeRole(EmberTokens.Typography.textButton).foregroundStyle(EmberColors.ink) }.buttonStyle(.borderless)
+            }
+            if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) } // A28 (a): red only in a destructive confirm
         }
     }
 }

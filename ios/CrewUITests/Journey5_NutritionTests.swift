@@ -147,7 +147,7 @@ final class Journey5_NutritionTests: XCTestCase {
         shoot(app, "S07 Home — under 18, no macros row")
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 15))
-        XCTAssertFalse(app.staticTexts["Nutrition"].exists, "A16.c: an under-18 Settings shows the Nutrition section")
+        XCTAssertFalse(app.buttons["Nutrition"].exists, "A16.c: an under-18 Settings shows the Nutrition row")
         XCTAssertFalse(app.buttons["Nutrition targets"].exists)
     }
 }

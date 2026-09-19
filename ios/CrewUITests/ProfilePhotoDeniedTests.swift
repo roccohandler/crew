@@ -27,7 +27,7 @@ final class ProfilePhotoDeniedTests: XCTestCase {
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         // E1 — the profile row is the member's own name and picture; it opens the Profile screen
-        let profileRow = app.staticTexts["No Camera"].firstMatch
+        let profileRow = app.buttons["No Camera"].firstMatch // R-089: the profile row is a button named for its member
         XCTAssertTrue(profileRow.waitForExistence(timeout: 10), "Settings shows no profile row")
         profileRow.tap()
         XCTAssertTrue(app.navigationBars["Profile"].waitForExistence(timeout: 10), "the Profile screen did not open")

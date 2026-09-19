@@ -18,14 +18,26 @@ final class Tour_SettingsTests: XCTestCase {
         tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Settings"])
-        _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
-        tourShot(app, "settings_settings_top", "tapped the Settings tab")
-        tourScroll(app, until: app.staticTexts["Version"]) // three pages since W8: one swipe stops at Account
-        tourShot(app, "settings_settings_bottom", "scrolled to the account rows")
-        tourScroll(app, until: app.buttons["Blocked people"], down: true) // a no-op while the row is still on screen
-        if tourTap(app.buttons["Blocked people"], timeout: 5) {
-            _ = app.staticTexts["No one blocked."].waitForExistence(timeout: 10) // the baseline was a blank page: shot before the list had loaded
-            tourShot(app, "settings_blocked_empty", "tapped Blocked people")
+        _ = tourButton(app, startingWith: "Units").waitForExistence(timeout: 15)
+        tourShot(app, "settings_settings_top", "tapped the Settings tab — one short page of groups (R-089)")
+        if tourTap(tourButton(app, startingWith: "Units"), timeout: 5) {
+            tourShot(app, "settings_units", "tapped Units — lb/kg lives here only")
+            tourBack(app)
+        }
+        if tourTap(app.buttons["Notifications"], timeout: 5) {
+            tourShot(app, "settings_notifications", "tapped Notifications — the checks")
+            tourBack(app)
+        }
+        if tourTap(app.buttons["Account"], timeout: 5) {
+            tourShot(app, "settings_account", "tapped Account")
+            tourBack(app)
+        }
+        if tourTap(app.buttons["Privacy & safety"], timeout: 5) {
+            if tourTap(app.buttons["Blocked people"], timeout: 5) {
+                _ = app.staticTexts["No one blocked."].waitForExistence(timeout: 10) // the baseline was a blank page: shot before the list had loaded
+                tourShot(app, "settings_blocked_empty", "tapped Blocked people")
+                tourBack(app)
+            }
             tourBack(app)
         }
         tourScroll(app, until: tourButton(app, startingWith: "Maya Tour"), down: true) // back to the top, however long the list is
@@ -58,7 +70,7 @@ final class Tour_SettingsTests: XCTestCase {
         tourLaunch(app, as: try await tourFilledMember(seed))
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Settings"])
-        _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
+        _ = tourButton(app, startingWith: "Units").waitForExistence(timeout: 15)
         let row = app.buttons["How Crew works"]
         tourScrollClearOfBottomBar(app, until: row, pages: 8) // About is the list's last section; a row under the tab bar reports hittable
         guard tourTap(row, timeout: 5) else { return }
