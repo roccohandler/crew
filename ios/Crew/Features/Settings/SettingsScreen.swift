@@ -26,6 +26,8 @@ struct SettingsScreen: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+                    // R-092: the title is the page's own on the 20 pt gutter (the bar's large title sat on a 16 pt margin)
+                    Text("Settings").typeRole(EmberTokens.Typography.screenTitle).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
                     FocusCard(padding: 0) { profileRow }
                     VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
                         FocusCard(padding: 0) { RowButton(title: "Pause my plan", value: model.pauseDetail) { path = [.pause] } }
@@ -38,10 +40,12 @@ struct SettingsScreen: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .padding(.horizontal, EmberTokens.Focus.gutter)
-                .padding(.vertical, EmberTokens.Spacing.space16)
+                .padding(.top, EmberTokens.Spacing.space32)
+                .padding(.bottom, EmberTokens.Spacing.space16)
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Settings")
+            .toolbar(.hidden, for: .navigationBar) // the destinations keep their bars
             .navigationDestination(for: SettingsDestination.self) { destination(for: $0) }
             .task { await model.refresh() }
         }

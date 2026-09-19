@@ -18,7 +18,7 @@ struct CrewSoloView: View {
                     Spacer(minLength: EmberTokens.Focus.gutter)
                     FocusCard {
                         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                            LoopLine(symbol: "dumbbell", text: "Finish a workout and post it.")
+                            LoopLine(symbol: "dumbbell", text: "You finish a workout and post it.") // A28 (e): a statement, like the two lines under it (R-092)
                             LoopLine(symbol: "arrow.down.to.line", text: "It lands here for your crew.")
                             LoopLine(symbol: "hand.thumbsup", text: "They react 🔥💪👏😂❤️.") // A21.2: no chat; the five are user content (R-083 (12))
                             Text("Two to ten friends. A link, a name, an emoji.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)

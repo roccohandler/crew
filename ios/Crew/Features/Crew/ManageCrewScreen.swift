@@ -2,7 +2,9 @@
 // the crew, replace the link, remove a member, or leave." E2's powers are unchanged: rename, replace the link and remove are the
 // Captain's; anyone may leave (captaincy passes on, server-side). The Captain's name and emoji sit in one card with the screen's
 // one filled button, Save name; the link, the members and Leave are row buttons, each destructive one behind its confirm — the
-// only place red appears (A28 (a)). The fields are the platform's, without field chrome (R-083 (11)). WRITTEN — UNVERIFIED. R5
+// only place red appears (A28 (a)). The fields are the platform's, without field chrome (R-083 (11)). R-092: no uppercase label
+// stacked over a field (system §11) — the emoji and the name sit in one row, the name at card-sub-heading size with an inkSecondary
+// prompt; Save name is bottom-anchored in the thumb zone; Replace the link and Leave share one card. WRITTEN — UNVERIFIED. R5
 
 import SwiftUI
 
@@ -28,18 +30,30 @@ struct ManageCrewScreen: View {
         ScrollView {
             if let crew = model.crew {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                    if actions.contains(.rename) { renameCard(crew) }
-                    if actions.contains(.replaceLink) {
-                        FocusCard(padding: 0) { RowButton(title: "Replace the invite link") { replacing = true } }
-                    }
+                    if actions.contains(.rename) { renameCard }
                     if actions.contains(.removeMember), !model.members.filter({ $0.id != crew.captainId }).isEmpty { membersCard(crew) }
-                    FocusCard(padding: 0) { RowButton(title: "Leave the crew") { leaving = true } }
+                    FocusCard(padding: 0) {
+                        VStack(spacing: 0) {
+                            if actions.contains(.replaceLink) {
+                                RowButton(title: "Replace the invite link") { replacing = true }
+                                cardSeam()
+                            }
+                            RowButton(title: "Leave the crew") { leaving = true }
+                        }
+                    }
                     if let notice = model.noticeLine {
                         Text(notice).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).accessibilityAddTraits(.updatesFrequently)
                     }
                 }
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.vertical, EmberTokens.Spacing.space16)
+            }
+        }
+        // SPEC: 6.3 · 6.7 — the screen's one filled button, bottom-anchored (the Captain's alone: rename is E2's Captain power)
+        .crewBottomBar {
+            if actions.contains(.rename), let crew = model.crew {
+                PrimaryButton(title: "Save name") { Task { await model.rename(name: name, emoji: emoji) } }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || emoji.isEmpty || (name == crew.name && emoji == crew.emoji))
             }
         }
         .background(EmberColors.canvas.ignoresSafeArea())
@@ -58,29 +72,24 @@ struct ManageCrewScreen: View {
     }
 
     // SPEC: E2 · W3 — the name (≤ crewNameMaxChars) and the emoji (≤ crewEmojiMaxChars), the limits the server enforces
-    private func renameCard(_ crew: CrewDTO) -> some View {
+    private var renameCard: some View {
         FocusCard {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                field("Crew name", text: $name, limit: SpecConstants.crewNameMaxChars)
-                Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline)
+            HStack(spacing: EmberTokens.Spacing.space12) {
                 field("Emoji", text: $emoji, limit: SpecConstants.crewEmojiMaxChars)
-                PrimaryButton(title: "Save name") { Task { await model.rename(name: name, emoji: emoji) } }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || emoji.isEmpty || (name == crew.name && emoji == crew.emoji))
-                    .padding(.top, EmberTokens.Spacing.space8)
+                    .frame(width: CGFloat(SpecConstants.minTouchTargetPt))
+                field("Crew name", text: $name, limit: SpecConstants.crewNameMaxChars)
             }
         }
     }
 
+    // the label is VoiceOver's and the prompt's, never a caption stacked over the value
     private func field(_ label: String, text: Binding<String>, limit: Int) -> some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-            Text(label).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
-            TextField(label, text: text)
-                .typeRole(EmberTokens.Typography.bodySemibold)
-                .foregroundStyle(EmberColors.ink)
-                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                .onChange(of: text.wrappedValue) { _, next in if next.count > limit { text.wrappedValue = String(next.prefix(limit)) } }
-                .accessibilityLabel(label)
-        }
+        TextField(label, text: text, prompt: Text(label).foregroundStyle(EmberColors.inkSecondary))
+            .typeRole(EmberTokens.Typography.cardSubheading)
+            .foregroundStyle(EmberColors.ink)
+            .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+            .onChange(of: text.wrappedValue) { _, next in if next.count > limit { text.wrappedValue = String(next.prefix(limit)) } }
+            .accessibilityLabel(label)
     }
 
     // SPEC: E2 — the Captain removes a member; the Captain's own row is not offered (leaving is the row below)
@@ -88,7 +97,7 @@ struct ManageCrewScreen: View {
         FocusCard(padding: 0) {
             VStack(spacing: 0) {
                 ForEach(Array(model.members.filter { $0.id != crew.captainId }.enumerated()), id: \.element.id) { index, member in
-                    if index > 0 { Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset) }
+                    if index > 0 { cardSeam() }
                     RowButton(title: member.displayName, value: "Remove") { removing = member }
                 }
             }

@@ -42,7 +42,6 @@ struct CardioLogScreen: View {
         .crewBottomBar {
             PrimaryButton(title: model.activity.map { "Log \($0.name)" } ?? "Log cardio") { model.submit() }
                 .disabled(!model.canSubmit)
-                .opacity(model.canSubmit ? 1 : EmberTokens.Opacity.disabled)
         }
         .alert(typing?.title(units: model.unitSuffix, distanceUnit: model.unitSuffix) ?? "", isPresented: Binding(get: { typing != nil }, set: { if !$0 { typing = nil } })) {
             TextField(typing?.title(units: model.unitSuffix, distanceUnit: model.unitSuffix) ?? "", text: $typed).keyboardType(typing == .minutes ? .numberPad : .decimalPad)

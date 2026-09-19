@@ -31,7 +31,6 @@ struct QuickAddScreen: View {
                 onAdded()
             }
             .disabled(isEmpty)
-            .opacity(isEmpty ? EmberTokens.Opacity.disabled : 1)
         }
         .navigationTitle("Quick add")
         .navigationBarTitleDisplayMode(.inline)

@@ -41,7 +41,6 @@ struct DaysSheet: View {
             if let line = model.errorLine { Text(line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) }
             PrimaryButton(title: "Save days") { if model.setTrainingWeekdays(days) { onSaved() } }
                 .disabled(!model.canSaveDays(days))
-                .opacity(model.canSaveDays(days) ? 1 : EmberTokens.Opacity.disabled)
             TextActionButton(title: "Cancel", role: EmberTokens.Typography.textButton) { dismiss() } // 6.3: the pull has a visible twin
                 .frame(maxWidth: .infinity)
         }

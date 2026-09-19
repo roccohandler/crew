@@ -12,11 +12,16 @@ import SwiftUI
 // A28 (f) (2026-09-19) — the system's primary button: a filled ink CAPSULE, the onInk label at 17 pt Bold, 58 pt tall (56 on Home),
 // at most one per screen. App-wide, because the shape is the component's and every screen already calls this one view; the height
 // is a MINIMUM (R-083 (20)): at accessibility sizes the label wraps and the capsule grows, it never truncates (6.7).
+//
+// Disabled (R-092 (1)): the fill goes and the capsule keeps its shape as a `controlOutline` ring (3.32:1, the non-text gate) around
+// an `inkSecondary` label (5.84:1, the text gate). Half-opacity ink put a 1.5:1 label on a colour the table does not hold
+// (ui-reviewer, run 35445082374). Its own style, because the plain style dims a disabled label on top of this.
 struct PrimaryButton: View {
     let title: String
     var isLoading = false
     var height: CGFloat = EmberTokens.Focus.primaryHeight
     let action: () -> Void
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Button(action: action) {
@@ -29,13 +34,20 @@ struct PrimaryButton: View {
                 if isLoading { ProgressView().tint(EmberColors.onInk) }
             }
             .frame(maxWidth: .infinity, minHeight: height)
-            .foregroundStyle(EmberColors.onInk)
-            .background(EmberColors.ink, in: Capsule())
+            .foregroundStyle(isEnabled ? EmberColors.onInk : EmberColors.inkSecondary)
+            .background(isEnabled ? EmberColors.ink : Color.clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(EmberColors.controlOutline, lineWidth: isEnabled ? 0 : EmberTokens.Focus.checkRing))
+            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PrimaryCapsuleStyle())
         .disabled(isLoading)
         .accessibilityLabel(title)
     }
+}
+
+// The capsule draws its own states; the style adds nothing (no platform dimming of a disabled label)
+private struct PrimaryCapsuleStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label }
 }
 
 struct SecondaryButton: View {

@@ -33,7 +33,7 @@ final class Journey4_ScreensTests: XCTestCase {
         XCTAssertTrue(app.buttons["Change days"].waitForExistence(timeout: 10), "Plan did not open, or lost its Change days row") // R-087: the title is the page's own
         shoot(app, "S14 Plan")
         app.tabBars.buttons["Crew"].tap()
-        XCTAssertTrue(app.navigationBars["Crew"].waitForExistence(timeout: 10), "Crew did not open")
+        XCTAssertTrue(app.staticTexts["Crew"].waitForExistence(timeout: 10), "Crew did not open") // R-092: the title is the page's own, no bar
         shoot(app, "S12 Crew")
         app.tabBars.buttons["Progress"].tap()
         // A28 (d) · R-086: Progress is the data screen (its own title, no bar); Charts and the Journal are its two row buttons
@@ -44,7 +44,7 @@ final class Journey4_ScreensTests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Your journal keeps everything'")).firstMatch.waitForExistence(timeout: 10), "the Journal row did not open the journal — the screen says: \(screenSays())")
         shoot(app, "S16 Journal")
         app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
+        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Units'")).firstMatch.waitForExistence(timeout: 5), "W6 · R-089: the Units row is missing")
         // A23 — a whisper shows ONCE, under the element it explains, and the first tap anywhere on the screen clears it for good
         let pauseWhisper = app.staticTexts["Away a while? Pause the plan. The streak stays whole."]

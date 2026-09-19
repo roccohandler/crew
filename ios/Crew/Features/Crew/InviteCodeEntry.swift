@@ -2,7 +2,8 @@
 // (InviteCodeScreen, pre-auth) and by the empty Crew tab (JoinByCodeSheet, signed in). States explicit (S13): looking up · a live
 // crew ("Dawn Patrol 🌅 · 3 of 10 in the crew") · dead code · crew full. Screens hold ZERO logic (5.6.6): the models look the code
 // up (GET crews/join?token=, public). A18.11: the field is a control, so its boundary is controlOutline. Ink acts (Part III law ①).
-// WRITTEN — UNVERIFIED (needs Mac).
+// R-092: the line states (A28 (e)), the prompt is inkSecondary (4.5:1 — the platform's placeholder grey was ~1.6:1), Paste is the
+// kit's text button. WRITTEN — UNVERIFIED (needs Mac).
 
 import SwiftUI
 
@@ -17,9 +18,9 @@ struct InviteCodeEntry: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Text("Paste the code or the whole link your friend sent.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
+            Text("Your friend's code or their whole link works here.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             HStack(spacing: EmberTokens.Spacing.space8) {
-                TextField("Invite code", text: $code)
+                TextField("Invite code", text: $code, prompt: Text("Invite code").foregroundStyle(EmberColors.inkSecondary))
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.asciiCapable)
@@ -29,7 +30,7 @@ struct InviteCodeEntry: View {
                     .foregroundStyle(EmberColors.ink)
                     .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt)) // R-083 (11): the platform's field, without field chrome
                     .accessibilityLabel("Invite code")
-                TextActionButton(title: "Paste", accessibilityLabel: "Paste the invite code") { if let pasted = UIPasteboard.general.string { code = pasted } }
+                TextActionButton(title: "Paste", horizontalPadding: 0, accessibilityLabel: "Paste the invite code", role: EmberTokens.Typography.textButton) { if let pasted = UIPasteboard.general.string { code = pasted } }
             }
             if let preview {
                 Text(numerals: "\(preview.name) \(preview.emoji) · \(preview.memberCount) of \(SpecConstants.crewMaxMembers) in the crew")

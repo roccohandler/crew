@@ -2,7 +2,8 @@
 // the code (A21.3 / W4: the same inviteToken, for a friend who will paste it). Renaming, replacing the link, removing a member and
 // leaving moved to Manage crew. The system's sheet (on `card`, 28 pt top corners, the grabber): the crew's name at sheet-title
 // weight, its size, one filled "Send invite link" (the system share sheet), then the code and "Copy code" as text. "Crew full"
-// and the link that is the Captain's to send (S13) stay explicit. WRITTEN — UNVERIFIED (needs Mac). T031 · R5
+// and the link that is the Captain's to send (S13) stay explicit. R-092: the code is SF Pro like every word (§4: a monospace is the
+// owner's to ask for), its label states instead of instructing (A28 (e)). WRITTEN — UNVERIFIED (needs Mac). T031 · R5
 
 import SwiftUI
 
@@ -31,8 +32,8 @@ struct InviteScreen: View {
                             }
                             if let code = model.inviteCodeText {
                                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-                                    Text("Or share the code").typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
-                                    Text(code).typeRole(EmberTokens.Typography.cardSubheading).monospaced().foregroundStyle(EmberColors.ink).textSelection(.enabled).accessibilityIdentifier("inviteCode")
+                                    Text("The code works too").typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
+                                    Text(numerals: code).typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink).textSelection(.enabled).accessibilityIdentifier("inviteCode")
                                     TextActionButton(title: "Copy code", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { model.copyInviteCode() }
                                 }
                             }

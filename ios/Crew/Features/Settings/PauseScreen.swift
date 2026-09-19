@@ -1,5 +1,6 @@
 // SPEC: Flow 7 planned absence — Settings → "Pause my plan" → pick return date (max 3 weeks) → streak freezes 🧊 · reminders stop ·
-// crew dot shows ⏸ · no XP · one active pause · never retroactive · resumes automatically. S17. WRITTEN — UNVERIFIED. T041
+// crew dot shows ⏸ · no XP · one active pause · never retroactive · resumes automatically. S17. R-092: one title (the heading), and
+// the line under it states instead of instructing (A28 (e)); Flow 7's own sentence stays. WRITTEN — UNVERIFIED. T041
 
 import SwiftUI
 
@@ -24,7 +25,7 @@ struct PauseScreen: View {
                 PrimaryButton(title: "End the pause") { Task { await model.endPause(); dismiss() } } // the one filled button, as on Home
             } else {
                 Text("Pause my plan").typeRole(EmberTokens.Typography.screenTitle).foregroundStyle(EmberColors.ink)
-                Text(numerals: "Vacations and injuries are life, not failure. Pick the day you're back — up to \(SpecConstants.pauseMaxDays) days out.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
+                Text(numerals: "Vacations and injuries are life, not failure. Your plan picks up again on the day you choose, up to \(SpecConstants.pauseMaxDays) days out.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
                 DatePicker("Return date", selection: $returnDate, in: range, displayedComponents: .date).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink).tint(EmberColors.ink)
                 if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink) } // A28 (a): red only in a destructive confirm
                 Spacer(minLength: 0)
@@ -36,7 +37,7 @@ struct PauseScreen: View {
         .padding(.horizontal, EmberTokens.Focus.gutter)
         .padding(.vertical, EmberTokens.Spacing.space24)
         .background(EmberColors.canvas.ignoresSafeArea())
-        .navigationTitle("Pause")
+        .navigationBarTitleDisplayMode(.inline) // R-092: the page's heading is its title — a bar title over it named the page twice
         .task { await model.refresh() }
     }
 }

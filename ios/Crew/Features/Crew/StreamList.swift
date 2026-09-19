@@ -17,6 +17,7 @@ struct StreamList: View {
     var body: some View {
         LazyVStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
             ForEach(items, id: \.itemId) { item in
+                Group {
                 switch item.kind {
                 case "post":
                     PostCard(item: item, authorName: name(item.userId), myUserId: myUserId,
@@ -28,6 +29,8 @@ struct StreamList: View {
                 default:
                     EmptyView()
                 }
+                }
+                .id(item.itemId) // the Crew screen scrolls to the newest item by this id (ScrollViewReader, R-092)
             }
         }
     }

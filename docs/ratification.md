@@ -1937,3 +1937,42 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       system's cards or its sheet: the gutter, the 28 pt radius, the title in the content. The seam between rows is one plain
       function, `cardSeam()` (C5, extracted at its nineteenth copy). The held-sends sheet's Delete was a bordered red button on
       the row. It is now an ink text button behind a confirm, so the red lives only in the confirm (A28 (a)).
+
+### R-092 · 2026-09-19 · A28 review rounds — Crew (round 2) and Settings (round 2) fixed forward from ui-reviewer on run 35445082374 (Crew 0 PASS · 8 FAIL, Settings 5 PASS · 7 FAIL) · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084.
+- What changed (iOS):
+  - **Two app-wide pieces.**
+    - The primary button's DISABLED state is a `controlOutline` ring around an `inkSecondary` label. Half-opacity ink put a
+      1.5:1 label on a colour the table does not hold.
+    - The bottom bar sits on the 20 pt gutter, with no rule above it. A18.11's controlOutline edge divided the canvas from
+      itself.
+  - **Crew.**
+    - The title is the page's own, with Manage and Invite beside it as the kit's text buttons.
+    - The stream opens scrolled to its newest post instead of anchored to the bottom, so a short stream starts under the header
+      and ~175 pt of empty canvas is gone. A5's "newest nearest the thumb" holds for a long stream.
+    - The solo card's first line is a statement.
+    - Create crew and I have an invite are the system's sheet: title and Cancel in the content, an inkSecondary prompt, the
+      emoji choices wrapping (eight in a row ran off the screen), the medium detent. Create's title is "Your new crew".
+    - The invite code is SF Pro. Its label reads "The code works too".
+    - The code-entry line states instead of instructing.
+    - Manage crew: no uppercase labels over its fields (the emoji and the name share one row), Save name is bottom-anchored,
+      and Replace the link and Leave share one card.
+    - The tour long-presses a post to photograph the reactions. The card is one accessibility element, so a tap never reached
+      React.
+  - **Settings.**
+    - The title is the page's own on the gutter.
+    - Pause has one title. Its line reads "Your plan picks up again on the day you choose, up to 21 days out." Flow 7's
+      sentence stays. The web's twin takes the same words.
+    - The destinations are cards (R-091 (9)).
+- The builder's readings:
+  (1) **Disabled is an outline, not a fade.** The kit draws no disabled state. The ring keeps the capsule's shape at the
+      non-text gate, and the label clears the text gate. Removing the fill says "not yet" without a colour off the table.
+  (2) **The bottom bar has no top rule.** Mockups 07 and 08 draw none. A18.11's reason (a control region over scrolling content)
+      is carried by the bar's canvas floor.
+  (3) **Blocked people's empty state keeps no CTA** (R-089 (7)). The reviewer failed it under 6.3's "exactly one CTA". There is
+      nothing to do on an empty block list, and inventing an action would widen scope. This is the owner's call; see
+      docs/debt.md.
+  (4) **Copy that instructed now states:** the solo card's first line, the invite code's label, the code-entry line, Create
+      crew's title and Pause's line. None was ratified copy.
+  (5) **GAP: the crew pulse and the today-dots.** System §11 bans a count over a row of dots. Flow 6 names both the pulse
+      ("4/5 today") and the strip's today-dots, so both stay (tagged `// GAP:` in MemberStrip). This is the owner's pick.

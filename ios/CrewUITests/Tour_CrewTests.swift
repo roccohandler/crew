@@ -19,8 +19,13 @@ final class Tour_CrewTests: XCTestCase {
         tourTap(app.tabBars.buttons["Crew"])
         _ = tourButton(app, startingWith: "React").waitForExistence(timeout: 20)
         tourShot(app, "crew_stream_filled", "tapped the Crew tab — two crew-mates trained today")
-        if tourTap(tourButton(app, startingWith: "React"), timeout: 5) {
-            tourShot(app, "crew_react_dialog", "tapped React on the first post")
+        // the card reads as ONE accessibility element (6.5), so a tap lands on the card, not on its React button (run 35445082374 shot
+        // the stream); the long-press is the card's own way to the reactions (Flow 6)
+        let firstPost = tourButton(app, startingWith: "React")
+        if firstPost.waitForExistence(timeout: 5) {
+            firstPost.press(forDuration: 1.0)
+            _ = app.buttons["💪"].waitForExistence(timeout: 5)
+            tourShot(app, "crew_react_dialog", "long-pressed the first post — the five reactions")
             tourDismissDialog(app)
         }
         // A27 (b): the Invite sheet does only invite; the Captain's tools are Manage crew's

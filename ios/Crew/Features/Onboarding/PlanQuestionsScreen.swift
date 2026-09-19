@@ -41,7 +41,6 @@ struct DaysQuestionScreen: View {
                     Spacer()
                     PrimaryButton(title: "Continue") { model.continueFromDays(); onContinue() }
                         .disabled(!model.canContinueFromDays)
-                        .opacity(model.canContinueFromDays ? 1 : EmberTokens.Opacity.disabled)
                 }
                 .padding(EmberTokens.Spacing.space24)
                 .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)

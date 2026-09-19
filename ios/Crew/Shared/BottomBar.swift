@@ -46,17 +46,11 @@ struct CrewBottomBar<Bar: View>: ViewModifier {
 
     func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 0) {
-                // A18.11 — `controlOutline` (3.32:1 on a card, 3.13:1 on the canvas), never the 1.26:1 hairline family.
-                // The bar's top edge separates a control region from scrolling content, which makes it part of the
-                // component rather than a seam between two surfaces.
-                Rectangle()
-                    .fill(EmberColors.controlOutline)
-                    .frame(height: EmberTokens.Size.hairline)
-                bar
-                    .padding(.horizontal, EmberTokens.Spacing.space16)
-                    .padding(.vertical, verticalPadding)
-            }
+            // A28 (d), (f) — the bottom group as mockups 07 and 08 draw it: on the 20 pt gutter, with no rule above it (A18.11's
+            // controlOutline edge divided the canvas from itself — ui-reviewer, run 35445082374 · R-092)
+            bar
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .padding(.vertical, verticalPadding)
             // The canvas, not a card: the bar is the page's own floor, and a second surface colour here would read as
             // a panel floating over the content rather than as the bottom of it.
             .background(EmberColors.canvas)

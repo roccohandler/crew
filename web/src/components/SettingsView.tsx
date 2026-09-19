@@ -30,7 +30,7 @@ function PauseSection({ pause, todayKey, timezone, onChanged }: { pause: Props["
     <div className="stack stack--tight">
       <h3>Pause my plan</h3>
       <Whisper id="how.pause" />
-      <p className="muted">{"Vacations and injuries are life, not failure. Pick the day you're back — up to"} {SpecConstants.pauseMaxDays} days out.</p>
+      <p className="muted">{"Vacations and injuries are life, not failure. Your plan picks up again on the day you choose, up to"} {SpecConstants.pauseMaxDays} days out.</p>
       <label className="field"><span>Return date</span><input type="date" min={addDays(todayKey, 1)} max={addDays(todayKey, SpecConstants.pauseMaxDays)} value={returnDay} onChange={(event) => setReturnDay(event.target.value)} /></label>
       {error ? <p className="danger" role="alert">{error}</p> : null}
       <button type="button" className="button button--secondary" onClick={async () => { try { await createPause(todayKey, returnDay, timezone); onChanged(); } catch (caught) { setError((caught as { message?: string }).message ?? "Couldn't pause."); } }}>Pause until then</button>

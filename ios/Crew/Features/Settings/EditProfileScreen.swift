@@ -40,7 +40,6 @@ struct EditProfileScreen: View {
             Spacer(minLength: 0)
             PrimaryButton(title: "Save", isLoading: model.isSaving) { Task { await model.save(); if model.saved { dismiss() } } }
                 .disabled(!model.canSave)
-                .opacity(model.canSave ? 1 : EmberTokens.Opacity.disabled)
         }
         .padding(.horizontal, EmberTokens.Focus.gutter)
         .padding(.vertical, EmberTokens.Spacing.space24)

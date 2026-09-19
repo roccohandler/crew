@@ -11,6 +11,8 @@ struct MemberStrip: View {
     let members: [MemberDot]
 
     // SPEC: A8 — {n}/{m} today when n ≥ 1; No posts yet today when n = 0 (secondary ink, never red)
+    // GAP: A28's system §11 bans a count over a row of dots (one fact, one rendering), and Flow 6 names BOTH the pulse and the strip's
+    // today-dots. The conservative in-spec reading keeps both until the owner picks one (R-092 (5); ui-reviewer, run 35445082374).
     private var pulseLine: String { pulse.posted == 0 ? "No posts yet today" : "\(pulse.posted)/\(pulse.total) today" }
     private var fullPulse: Bool { pulse.posted == pulse.total && pulse.total > 0 }
 

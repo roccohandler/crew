@@ -6,7 +6,10 @@
 // 1C: the profile-photo prompt shows once after the first join or create, after any invite sheet is down. W7 (owner order 2026-09-18,
 // item 3): a tapped invite link opens the same join sheet with the code filled and looked up (InviteInbox). Screens hold ZERO logic
 // (5.6.6). A27 (b) · A28 (f) · R5: Manage crew is pushed from the tab (its own screen); Invite does only invite; the stream's cards,
-// strip and lines are the system's (ink marks, no accent). WRITTEN — UNVERIFIED (needs Mac). T031
+// strip and lines are the system's (ink marks, no accent). R-092: the title is the page's own on the 20 pt gutter, with Manage and
+// Invite beside it as the kit's text buttons (the navigation bar's large title sat on a 16 pt margin, and its items were 17 pt
+// Regular); the stream opens scrolled to its newest post instead of pinning a short stream to the bottom, which left ~175 pt of
+// empty canvas under the header. WRITTEN — UNVERIFIED (needs Mac). T031
 
 import SwiftUI
 
@@ -45,23 +48,19 @@ struct CrewScreen: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(alignment: .leading, spacing: 0) {
+                header
                 switch loadState {
-                case .loading: LoadingLine(line: "Loading your crew…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
+                case .loading: LoadingLine(line: "Loading your crew…").padding(EmberTokens.Focus.gutter) // 6.1 (2026-09-18): a line, not a skeleton
                 case .solo: CrewSoloView(onStart: { showsCreate = true }, onHaveInvite: { showsJoinByCode = true })
                 case .failed(let line): ErrorState(line: line) { Task { await model.refresh() } }
                 case .ready, .offline: content
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Crew")
-            // A27 (b): Invite does only invite; Manage crew holds rename, the link, removal and leaving (text buttons in ink, A28 (f))
-            .toolbar {
-                if model.crew != nil {
-                    ToolbarItem(placement: .topBarLeading) { Button("Manage") { managing = true }.accessibilityLabel("Manage crew") }
-                    ToolbarItem(placement: .topBarTrailing) { Button("Invite") { showsInvite = true } }
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar) // the title is the page's own; Manage crew keeps its bar
             .navigationDestination(isPresented: $managing) { ManageCrewScreen(model: model) }
             .sheet(isPresented: $showsInvite) { InviteScreen(model: model) }
             .sheet(isPresented: $showsCreate) { CreateCrewScreen(model: model) }
@@ -79,7 +78,23 @@ struct CrewScreen: View {
         }
     }
 
-    // A5: strip and banner pinned above the scroll view; the stream keeps its bottom anchor (the newest post is nearest the thumb)
+    // A27 (b): Invite does only invite; Manage crew holds rename, the link, removal and leaving (text buttons in ink, A28 (f))
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space16) {
+            Text("Crew").typeRole(EmberTokens.Typography.screenTitle).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
+            Spacer(minLength: EmberTokens.Spacing.space8)
+            if model.crew != nil {
+                TextActionButton(title: "Manage", horizontalPadding: 0, accessibilityLabel: "Manage crew", role: EmberTokens.Typography.textButton) { managing = true }
+                TextActionButton(title: "Invite", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { showsInvite = true }
+            }
+        }
+        .padding(.horizontal, EmberTokens.Focus.gutter)
+        .padding(.top, EmberTokens.Spacing.space32)
+        .padding(.bottom, EmberTokens.Spacing.space8)
+    }
+
+    // A5: strip and banner pinned above the scroll view; the stream opens at its newest post (nearest the thumb) — scrolled there, not
+    // anchored, so a stream shorter than the screen starts under the header
     private var content: some View {
         VStack(spacing: 0) {
             if loadState == .offline, let synced = model.lastSyncedAt { OfflineBanner(lastSyncedLine: "Last synced \(synced.formatted(date: .omitted, time: .shortened)).").padding(.horizontal, EmberTokens.Focus.gutter) }
@@ -91,6 +106,7 @@ struct CrewScreen: View {
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
             .padding(.top, EmberTokens.Spacing.space8)
+            ScrollViewReader { reader in
             ScrollView {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                     if model.stream.isEmpty && model.hasCrewmates {
@@ -104,7 +120,9 @@ struct CrewScreen: View {
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.vertical, EmberTokens.Spacing.space16)
             }
-            .defaultScrollAnchor(.bottom)
+            .onAppear { if let last = model.stream.last?.itemId { reader.scrollTo(last, anchor: .bottom) } }
+            .onChange(of: model.stream.last?.itemId) { _, last in if let last { withAnimation { reader.scrollTo(last, anchor: .bottom) } } }
+            }
         }
     }
 }

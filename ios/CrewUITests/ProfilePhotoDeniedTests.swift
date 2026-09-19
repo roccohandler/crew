@@ -25,7 +25,7 @@ final class ProfilePhotoDeniedTests: XCTestCase {
     func testNoCameraStillOffersTheLibraryForTheProfilePicture() {
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
+        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         // E1 — the profile row is the member's own name and picture; it opens the Profile screen
         let profileRow = app.buttons["No Camera"].firstMatch // R-089: the profile row is a button named for its member
         XCTAssertTrue(profileRow.waitForExistence(timeout: 10), "Settings shows no profile row")
