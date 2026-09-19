@@ -100,7 +100,7 @@ final class SessionModelTests: XCTestCase {
         try SessionActions.post(outcome, shareToCrew: false, store: store) // A21.9: the tap posts and counts the day
         XCTAssertEqual(try store.gamificationState(for: userId).totalXP, SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout) // never extra XP for cardio
         let planned = SpecConstants.templatePushExerciseCount * SpecConstants.beginnerTargetSets + SpecConstants.mobilityHoldsMax + 1
-        XCTAssertEqual(JournalFacts.summaryLine(session, distanceUnit: "km"), "\(session.workoutName) · 1/\(planned) sets · \(JournalFacts.wallClockMinutes(session)) min") // A6
+        XCTAssertEqual(JournalFacts.summaryLine(session, distanceUnit: "km"), "\(session.workoutName) · 1 of \(planned) sets") // A6 · A28 (c): no minutes
     }
 
     // SPEC: A2 — the bounds hold: minutes clamp to cardioMinutesMin…Max, a distance never exceeds cardioDistanceMaxMeters

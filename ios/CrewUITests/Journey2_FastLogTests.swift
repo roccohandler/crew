@@ -30,15 +30,11 @@ final class Journey2_FastLogTests: XCTestCase {
 
     func testReturningUserFastLogsInThreeTapsAndSeesAReaction() async throws {
         // Warm start lands on Home — no splash, no bridge (the first post exists, 1D), today's card ready (S01, S07).
-        // A17.4 made the title NAME THE STATE ("Push", "Rest day", "Done for today"); only the bridge still says "Today".
-        // This member has posted and trains every day, so waiting for a navigation bar called "Today" waited for a screen
-        // this state can never show — run 34540455856, and the ONE thing red in it. What marks a warm start on a
-        // non-bridge Home is the "Log workout" row (A18.5), which the bridge never shows (§1D); the title is then
-        // asserted for what it must NOT be, so a regression back to the constant is still caught here.
-        let logWorkout = app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch
-        XCTAssertTrue(logWorkout.waitForExistence(timeout: 10), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
-        XCTAssertFalse(app.navigationBars["Today"].exists, "Home's title is the constant 'Today' again — A17.4 makes it name the state on every non-bridge day")
-        XCTAssertFalse(app.staticTexts["Your first flame lights today."].exists)
+        // A28 (d) — the Focus Card Home draws no nav title (the card's title names the state) and every state carries the "+";
+        // this member has posted and trains every day, so the card offers today's workout and the bridge's line is gone for good.
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        XCTAssertTrue(app.buttons["Start workout"].waitForExistence(timeout: 10), "the training day's card has lost its one primary")
+        XCTAssertFalse(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Your season starts today'")).firstMatch.exists)
         shoot(app, "S07 Home — a returning member")
         // Tap 1: Quick complete (visible only while today does not count yet)
         let quick = app.buttons["Quick complete"]

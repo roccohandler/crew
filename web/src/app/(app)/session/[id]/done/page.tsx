@@ -39,7 +39,7 @@ function summaryLine(doc: SessionDoc, setsDone: number, setsPlanned: number, dis
   const blocks = cardioDone(doc);
   if (doc.workoutKind === "cardio") {
     const block = blocks[0];
-    return sessionSummaryLine(doc.workoutName, true, setsDone, setsPlanned, minutes, block?.minutes ?? null, block?.distanceMeters ?? null, distanceUnit);
+    return sessionSummaryLine(doc.workoutName, true, setsDone, setsPlanned, block?.minutes ?? null, block?.distanceMeters ?? null, distanceUnit);
   }
   return `${setsDone}/${setsPlanned} sets · ${minutes} min${blocks.map((block) => ` + ${block.name} ${block.minutes} min`).join("")}`;
 }

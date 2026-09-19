@@ -19,6 +19,7 @@ struct RootView: View {
                 OnboardingFlow()
             }
         }
+        .foregroundStyle(EmberColors.ink) // A28 (a): text a screen does not colour (a list's label, a typed field) is ink, not the platform's black
         .onOpenURL { InviteInbox.shared.receive($0) } // 1A · W7: https://<host>/join/<token> — the token takes the A21.3 code path
         // A23 · §A rule 4 — the ONE listener behind every whisper: the first tap anywhere on a screen clears the whispers showing on it.
         // A passive window recogniser (AnyTapWatcher), NOT a SwiftUI gesture: the root `.simultaneousGesture` this replaces stopped every
@@ -48,6 +49,7 @@ enum LandingFlags {
 
 struct MainTabs: View {
     @State private var selection: MainTab
+    @State private var journalRequested = false // A28 (d): Home's "Edit today's log" opens Progress on its Journal
 
     init() {
         _selection = State(initialValue: LandingFlags.consumeCrewTab() ? .crew : .home)
@@ -55,13 +57,14 @@ struct MainTabs: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            HomeScreen().tabItem { Label("Home", systemImage: "house") }.tag(MainTab.home)
+            HomeScreen(onOpenJournal: { journalRequested = true; selection = .progress }).tabItem { Label("Home", systemImage: "house") }.tag(MainTab.home)
             PlanScreen().tabItem { Label("Plan", systemImage: "calendar") }.tag(MainTab.plan)
             CrewScreen().tabItem { Label("Crew", systemImage: "person.2") }.tag(MainTab.crew)
-            ProgressScreen(onGoHome: { selection = .home }).tabItem { Label("Progress", systemImage: "chart.bar") }.tag(MainTab.progress) // W6: the empty state's CTA is today
+            ProgressScreen(onGoHome: { selection = .home }, journalRequested: $journalRequested).tabItem { Label("Progress", systemImage: "chart.bar") }.tag(MainTab.progress) // W6: the empty state's CTA is today
             SettingsScreen().tabItem { Label("Settings", systemImage: "gearshape") }.tag(MainTab.settings)
         }
         .tint(EmberColors.inkText) // Part III law ① — chrome is monochrome forever
+        .toolbarBackground(EmberColors.tabBar, for: .tabBar) // A28 (a): the tab bar's own surface, where the platform honours it
         // E6: the queue runs from the first signed-in frame — launch, foreground, network back. 2026-09-18: the reinstall pull runs
         // here too, in the background — Home is already on screen saying "syncing" and fills as each piece lands (ServerHydrate.state)
         // W7 / A21.3 — a tapped invite link opens the Crew tab, where the join sheet takes the code (CrewScreen)

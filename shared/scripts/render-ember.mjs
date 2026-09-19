@@ -68,18 +68,29 @@ export function renderEmberTokensSwift(tokens) {
   lines.push(`    /// ${tokens.typography.spec}`, "    enum Typography {");
   for (const [name, role] of Object.entries(tokens.typography.roles)) {
     lines.push(`        /// ${role.role} — ${role.size} pt ${role.weight}${role.tracking === 0 ? "" : `, tracking ${role.tracking}`}${role.rounded ? ", rounded" : ""}${role.uppercase ? ", uppercase" : ""}`);
-    lines.push(`        static let ${name} = TypeRole(size: ${role.size}, weight: .${role.weight}, tracking: ${role.tracking}, rounded: ${role.rounded}, uppercase: ${role.uppercase})`);
+    lines.push(`        static let ${name} = TypeRole(size: ${role.size}, weight: .${role.weight}, tracking: ${role.tracking}, rounded: ${role.rounded}, uppercase: ${role.uppercase}, relativeTo: .${role.relativeTo})`);
   }
   lines.push("    }", "",
     "    /// One row of the type scale. `tracking` is a fraction of the size: SwiftUI's .tracking takes points, so a view passes",
-    "    /// size × tracking. `rounded` = SF Pro Rounded (every numeral); `uppercase` = the string renders uppercase.",
+    "    /// size × tracking. `rounded` = SF Pro Rounded (every numeral); `uppercase` = the string renders uppercase; `relativeTo` =",
+    "    /// the text style whose Dynamic Type curve the size follows (Shared/TypeRoleStyle.swift applies all five).",
     "    struct TypeRole {",
     "        let size: CGFloat",
     "        let weight: Font.Weight",
     "        let tracking: CGFloat",
     "        let rounded: Bool",
     "        let uppercase: Bool",
+    "        let relativeTo: Font.TextStyle",
     "    }", "");
+  lines.push(`    /// ${tokens.focus.spec}`, "    enum Focus {");
+  for (const [name, value] of Object.entries(tokens.focus.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
+  lines.push("    }", "", `    /// ${tokens.elevation.spec}`, "    enum Elevation {");
+  for (const name of ["nearY", "nearBlur", "farY", "farBlur"]) lines.push(`        static let ${name}: CGFloat = ${tokens.elevation[name]}`);
+  for (const name of ["nearOpacity", "farOpacity"]) lines.push(`        static let ${name}: Double = ${tokens.elevation[name]}`);
+  // SwiftUI's shadow radius is a Gaussian's deviation, half the CSS blur length the system states
+  lines.push("        /// SwiftUI's `radius` — half the CSS blur (a blur length is twice the Gaussian's deviation)");
+  lines.push(`        static let nearRadius: CGFloat = ${tokens.elevation.nearBlur / 2}`, `        static let farRadius: CGFloat = ${tokens.elevation.farBlur / 2}`);
+  lines.push("    }", "");
   lines.push(`    /// ${tokens.spacing.spec}`, "    enum Spacing {");
   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`        static let ${name}: CGFloat = ${value}`);
   lines.push("    }", "", `    /// ${tokens.sizes.spec}`, "    enum Size {");
@@ -116,6 +127,12 @@ export function renderEmberCss(tokens, sections) {
     lines.push(`  ${base}-family: var(${role.rounded ? "--ember-font-rounded" : "--ember-font-text"});`);
     lines.push(`  ${base}-transform: ${role.uppercase ? "uppercase" : "none"};`);
   }
+  lines.push(`  /* ${tokens.focus.spec} */`);
+  for (const [name, value] of Object.entries(tokens.focus.scale)) lines.push(`  --ember-focus-${kebab(name)}: ${value}px;`);
+  lines.push(`  /* ${tokens.elevation.spec} */`);
+  // the shadow is the light ink at two opacities (system §6)
+  const shadow = (opacity) => cssColor({ light: tokens.colors.ink.light, lightOpacity: opacity }, "light");
+  lines.push(`  --ember-elevation-light: 0 ${tokens.elevation.nearY}px ${tokens.elevation.nearBlur}px ${shadow(tokens.elevation.nearOpacity)}, 0 ${tokens.elevation.farY}px ${tokens.elevation.farBlur}px ${shadow(tokens.elevation.farOpacity)};`);
   lines.push(`  /* ${tokens.spacing.spec} */`);
   for (const [name, value] of Object.entries(tokens.spacing.scale)) lines.push(`  ${cssName(name)}: ${value}px;`);
   lines.push(`  /* ${tokens.sizes.spec} */`);

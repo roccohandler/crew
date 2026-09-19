@@ -22,7 +22,7 @@ export interface PostDoc {
   isPlannedDay: boolean; // stamped at creation so recompute equals apply (V36 note)
   workoutCompleted: boolean;
   earlierToday: boolean; // LEGACY (A22): the same-day backfill left with the plate journal; always false since 2026-09-18
-  summary?: string; // A6: one readable line set by the server at workout completion ("Push day · 12/12 sets · 44 min", "Walk · 25 min · 2.1 km")
+  summary?: string; // A6: one readable line set by the server at workout completion ("Push day · 12 of 12 sets" since A28 (c); older posts keep "12/12 sets · 44 min"; "Walk · 25 min · 2.1 km")
   createdAt: Date;
   deletedAt: Date | null; // post ≠ log (E3)
 }

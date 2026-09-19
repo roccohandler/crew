@@ -221,8 +221,10 @@ describe("the accent is one orange, and stays one (A17.4's repayment, carried by
 // KNOWN FAILING — asserted as failing, never skipped, so it turns red the day it is repaired and this block must be rewritten
 // as a plain gate. A16's dark carbs fill (#3D7392) measured against the OLD dark card; on A28's Midnight card (#1B2A42) it is
 // 2.79:1. A28 does not re-pick a macro colour (the system is silent on nutrition — docs/debt.md 2026-09-19, A28), and dark is
-// unreachable while the light lock of A21.10 (as amended 2026-09-18) stands. The lock may not lift while this fails.
-describe("KNOWN FAILING — A16's dark carbs fill on A28's dark card (owed to the Nutrition ruling before the light lock lifts)", () => {
+// R1 lifted the iOS light lock on R-084's reading of GAP 6: no shipped screen draws a carbs bar ON A CARD — MacroLines sits on the
+// canvas (NutritionTodayScreen.swift), and that pair is gated above in both modes (3.5:1 dark). This pair stays owed to the owner's
+// GAP 6 ruling (R7); until then a macro bar moved onto a card is a defect, not a design.
+describe("KNOWN FAILING — A16's dark carbs fill on A28's dark card (owed to GAP 6; no shipped screen draws it)", () => {
   it.fails("dark: macro bar · carbs fill on a card clears 3:1", () => {
     expect(contrast(color("macroCarbs", "dark"), color("card", "dark"))).toBeGreaterThanOrEqual(GRAPHICAL_GATE);
   });

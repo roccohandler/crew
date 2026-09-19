@@ -41,7 +41,6 @@ final class HomeModelTests: XCTestCase {
         model.refresh(now: friday)
         XCTAssertEqual(model.today, .bridge(.workout))
         XCTAssertNil(model.nextUpLine) // a workout-day bridge carries nothing but its CTA (1D)
-        XCTAssertNil(model.crewStrip)
         XCTAssertEqual(model.streak, 0)
         try post(store, id: "p1", dayKey: "2026-09-03")
         model.refresh(now: friday)

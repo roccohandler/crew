@@ -19,6 +19,11 @@ struct Rotation: Equatable {
 struct NextUpFacts: Equatable {
     let heading: String  // "Tomorrow" · "Next workout"
     let detail: String   // "Leg day · 5 exercises" · "Sun · Leg day"
+    // A28 (d) — the Focus Card carries tomorrow INSIDE the card as an eyebrow over the workout and its size (mockups 04, 05):
+    // the same facts in three pieces, so the card and the one-line form can never say different things
+    var when: String? = nil  // "Tomorrow" · "Sunday"
+    var name: String? = nil  // "Leg day"
+    var size: String? = nil  // "5 exercises"
 }
 
 @MainActor
@@ -59,10 +64,24 @@ enum NextUp {
         guard let nextDay = PlanRotation.nextTrainingDayKey(afterDayKey: todayKey, trainingWeekdays: plan.trainingWeekdays),
               let workout = plan.workouts.first(where: { $0.kind == kindOn(nextDay, rotation: rotation) }) else { return nil }
         let weekday = DayLabel.weekdayNames[DayKey.isoWeekday(nextDay) - 1]
-        guard nextDay == DayKey.addDays(todayKey, 1) else { return NextUpFacts(heading: "Next workout", detail: "\(weekday) · \(workout.name)") }
-        if bridge { return NextUpFacts(heading: "Tomorrow", detail: "\(workout.name) — your first workout.") }
         let count = strengthCount(workout)
-        return NextUpFacts(heading: "Tomorrow", detail: "\(workout.name) · \(count) \(count == 1 ? "exercise" : "exercises")")
+        let size = "\(count) \(count == 1 ? "exercise" : "exercises")"
+        guard nextDay == DayKey.addDays(todayKey, 1) else {
+            return NextUpFacts(heading: "Next workout", detail: "\(weekday) · \(workout.name)", when: weekdayLongNames[DayKey.isoWeekday(nextDay) - 1], name: workout.name, size: size)
+        }
+        if bridge { return NextUpFacts(heading: "Tomorrow", detail: "\(workout.name) — your first workout.", when: "Tomorrow", name: workout.name, size: size) }
+        return NextUpFacts(heading: "Tomorrow", detail: "\(workout.name) · \(size)", when: "Tomorrow", name: workout.name, size: size)
+    }
+
+    // A28 (d) · (e) — the card's eyebrows name a day in full ("FRIDAY", "SUNDAY"), ISO order, Monday first
+    static let weekdayLongNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    static let monthLongNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+    // SPEC: A28 (e) — "Off-season until Friday 25 September": the system's long form of a dayKey, weekday · day · month
+    static func longDate(_ dayKey: String) -> String {
+        let parts = dayKey.split(separator: "-").compactMap { Int($0) } // "2026-09-25" → [2026, 9, 25]
+        guard let day = parts.last, let month = parts.dropLast().last, month >= 1, month <= monthLongNames.count else { return dayKey }
+        return "\(weekdayLongNames[DayKey.isoWeekday(dayKey) - 1]) \(day) \(monthLongNames[month - 1])"
     }
 
     // SPEC: A3 — the one-sentence form, unchanged byte for byte: "Tomorrow: Pull day · 5 exercises" / "Next workout:
@@ -89,43 +108,5 @@ enum NextUp {
     // SPEC: Flow 2 ("5 exercises + mobility") · A2 (" + cardio" when the workout carries a cardio block)
     static func sizeLine(exerciseCount: Int, hasCardio: Bool) -> String {
         "\(exerciseCount) \(exerciseCount == 1 ? "exercise" : "exercises") + mobility\(hasCardio ? " + cardio" : "")"
-    }
-}
-
-// The one ink line: no chrome, no orange, never a control (Part III law ①). Still used by the BRIDGE card, where
-// §1D allows exactly one CTA plus this line and nothing else.
-struct NextUpLine: View {
-    let line: String
-
-    var body: some View {
-        Text(line)
-            .font(.subheadline)
-            .foregroundStyle(EmberColors.inkText)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(line)
-    }
-}
-
-// SPEC: A18.3 — the what's-next fact as a titled block, in the space that used to be empty. It renders ONLY on the
-// idle states (rest · all-done · paused): on a workout day the card already IS what is next, and that state is the
-// tallest one on the smallest phone (H009). Ink detail under a secondaryText caption; never a control (law ①),
-// never orange (law ③) — tapping it would give Home a second destination, which is the Plan tab's job.
-struct NextUpBlock: View {
-    let facts: NextUpFacts
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-            Text(facts.heading.uppercased())
-                .font(.caption)
-                .foregroundStyle(EmberColors.secondaryText)
-            Text(facts.detail)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(EmberColors.inkText)
-                .fixedSize(horizontal: false, vertical: true) // 6.7: a long workout name wraps, it never widens the column
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        // E20 — one stop, one sentence: "Next workout, Sun · Leg day" rather than a caption and a fragment
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(facts.heading), \(facts.detail)")
     }
 }

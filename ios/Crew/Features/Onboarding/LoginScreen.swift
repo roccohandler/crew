@@ -7,6 +7,7 @@ import AuthenticationServices
 import SwiftUI
 
 struct LoginScreen: View {
+    @Environment(\.colorScheme) private var colorScheme // A28 (a): Apple's mandated button style follows the mode (R-083 (11))
     @Bindable var model: OnboardingModel
     @State private var email = ""
     @State private var password = ""
@@ -33,7 +34,7 @@ struct LoginScreen: View {
                         model.appleAuthFailed(error)
                     }
                 }
-                .signInWithAppleButtonStyle(.black)
+                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                 .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
                 AuthField(title: "Email", text: $email, error: nil, contentType: .username, focus: $focused, key: "email", keyboard: .emailAddress, onSubmit: { focused = "password" }) {}
                 AuthField(title: "Password", text: $password, error: nil, contentType: .password, focus: $focused, key: "password", secure: true, onSubmit: { logIn() }) {}

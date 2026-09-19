@@ -1,8 +1,8 @@
-// SPEC: A21.10 as amended 2026-09-18 (owner-approved: LIGHT ALWAYS, whatever the phone is set to) · W6. No machine here can look
-// at a screen, so this journey PHOTOGRAPHS every tab for the owner's review in the xcresult (CrewUITests/Screenshots.swift) and
-// asserts only what a screenshot cannot: each tab opens, the A19.4 Charts | Journal segment is there and switches, the W6 Units
-// section exists. The dark half of this journey was retired with the 2026-09-18 ruling — the app renders light regardless, so a
-// dark launch would photograph the same screens. Seeded like journey ② (a member with a plan, a post and a crew).
+// SPEC: A28 (a) (owner-approved 2026-09-19: light is the default, dark is supported and reviewed like light — amending A21.10's
+// "light always") · W6. No machine here can look at a screen, so this journey PHOTOGRAPHS every tab for the owner's review in the
+// xcresult (CrewUITests/Screenshots.swift) and asserts only what a screenshot cannot: each tab opens, the A19.4 Charts | Journal
+// segment is there and switches, the W6 Units section exists. Its dark half is back: the phone is put in Midnight (-uiDark, Debug
+// builds only) and every tab is photographed there. Seeded like journey ② (a member with a plan, a post and a crew).
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
 
 import XCTest
@@ -19,7 +19,7 @@ final class Journey4_ScreensTests: XCTestCase {
         try await seed.putPlanForEveryDay(as: member)
         try await seed.logCardio(as: member) // A22: the first post is a workout post
         _ = try await seed.createCrew(as: member)
-        app.launchArguments = ["-uiTest", "-seededReturningUser", "-AppleInterfaceStyle", "Dark"] // the phone says dark; Crew stays light (A21.10 amended)
+        app.launchArguments = ["-uiTest", "-seededReturningUser", "-uiDark"] // A28 (a): dark is supported again — every tab photographed in Midnight
         app.launchEnvironment["CREW_SEED_SESSION"] = member.json
         app.launch()
     }
@@ -27,7 +27,7 @@ final class Journey4_ScreensTests: XCTestCase {
     private func screenSays() -> String { app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | ") }
 
     func testEveryTabOpensAndIsPhotographed() {
-        XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch.waitForExistence(timeout: 20), "never landed on Home — the screen says: \(screenSays())")
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home — the screen says: \(screenSays())")
         shoot(app, "S07 Home")
         app.tabBars.buttons["Plan"].tap()
         XCTAssertTrue(app.navigationBars["Plan"].waitForExistence(timeout: 10), "Plan did not open")

@@ -73,9 +73,10 @@ extension XCTestCase {
     }
 
     // The signed-in launch the journeys use (CrewApp.seedReturningUser, Debug builds only)
-    func tourLaunch(_ app: XCUIApplication, as session: SeedSession) {
+    // A28 (a) — `dark` relaunches the same account with the phone in Midnight (-uiDark: CrewApp forces the scheme, Debug builds only)
+    func tourLaunch(_ app: XCUIApplication, as session: SeedSession, dark: Bool = false) {
         dismissSystemPrompts()
-        app.launchArguments = ["-uiTest", "-seededReturningUser"]
+        app.launchArguments = ["-uiTest", "-seededReturningUser"] + (dark ? ["-uiDark"] : [])
         app.launchEnvironment["CREW_SEED_SESSION"] = session.json
         app.launch()
     }
@@ -90,9 +91,10 @@ extension XCTestCase {
         do { return try await seed.register(name: name) } catch { throw XCTSkip("the tour seed failed: \(error)") }
     }
 
-    // Home has landed once the Log workout row is up (every non-bridge state carries it, A18.5)
+    // Home has landed once its "+" is up (A28 (d): every Home state carries it) and the card has left the syncing line
     func tourWaitForHome(_ app: XCUIApplication) {
-        _ = tourButton(app, startingWith: "Log workout").waitForExistence(timeout: 25)
+        _ = app.buttons["home.add"].waitForExistence(timeout: 25)
+        _ = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start' OR label BEGINSWITH 'Resume' OR label BEGINSWITH 'End the pause' OR label BEGINSWITH 'Build'")).firstMatch.waitForExistence(timeout: 5)
     }
 
     func tourButton(_ app: XCUIApplication, containing text: String) -> XCUIElement {

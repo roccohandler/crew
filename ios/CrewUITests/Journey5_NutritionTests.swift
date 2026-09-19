@@ -60,10 +60,10 @@ final class Journey5_NutritionTests: XCTestCase {
         try await seed.seedNutrition(as: member)
         launch(member)
 
-        // A22 G4 — Home's third row, the way in (Q3); nothing logged yet, so it reports nothing (A8)
-        let row = app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log macros'")).firstMatch
-        XCTAssertTrue(row.waitForExistence(timeout: 20), "Home never showed the Log macros row — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
-        XCTAssertEqual(row.label, "Log macros, nothing logged today")
+        // A22 G4 as amended by A28 (d) — the quiet Macros fact row is the way in (Q3); nothing logged yet, so it reports nothing (A8)
+        let row = app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Macros'")).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "Home never showed the Macros row — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+        XCTAssertEqual(row.label, "Macros, nothing logged yet")
         row.tap()
 
         // The pull: this phone wrote none of this — another device did (V58: 176 lb derives 145 · 385 · 60)
@@ -142,8 +142,8 @@ final class Journey5_NutritionTests: XCTestCase {
         try await seed.putPlanForEveryDay(as: minor)
         try await seed.logCardio(as: minor)
         launch(minor)
-        XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch.waitForExistence(timeout: 20), "never landed on Home")
-        XCTAssertFalse(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log macros'")).firstMatch.exists, "A16.c: an under-18 Home shows the macros row")
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home")
+        XCTAssertFalse(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Macros'")).firstMatch.exists, "A16.c: an under-18 Home shows the macros row")
         shoot(app, "S07 Home — under 18, no macros row")
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 15))

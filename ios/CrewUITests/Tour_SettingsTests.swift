@@ -14,7 +14,8 @@ final class Tour_SettingsTests: XCTestCase {
     override func setUp() async throws { continueAfterFailure = true }
 
     func testSettings() async throws {
-        tourLaunch(app, as: try await tourFilledMember(seed))
+        let member = try await tourFilledMember(seed)
+        tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Settings"])
         _ = app.staticTexts["Units"].waitForExistence(timeout: 15)
@@ -43,8 +44,11 @@ final class Tour_SettingsTests: XCTestCase {
         tourShot(app, "settings_pause_active", "tapped Pause until then")
         tourBack(app)
         tourTap(app.tabBars.buttons["Home"])
-        _ = app.buttons["End the pause now"].waitForExistence(timeout: 15)
+        _ = app.buttons["End the pause"].waitForExistence(timeout: 15)
         tourShot(app, "home_home_paused", "went Home with the plan paused")
+        tourLaunch(app, as: member, dark: true) // A28 (a): off-season in Midnight
+        _ = app.buttons["End the pause"].waitForExistence(timeout: 25)
+        tourShot(app, "home_home_paused_dark", "the same off-season Home in dark mode")
     }
 
     // A23 RATIFIED 2026-09-19 (R-081): S19 had no tour shot, so the owner's amended page could not be reviewed. Three shots — the note

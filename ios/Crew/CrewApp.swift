@@ -11,6 +11,7 @@ struct CrewApp: App {
 
     init() {
         Signposts.beginLaunch() // 8.8: the launch → Home interval starts here
+        Chrome.apply() // A28 (a): titles, tab items and bars in the table's colours, never the platform's black
         // A24 (2026-09-18): the test bundle's launch arguments are read in a Debug build ONLY — no Release build (TestFlight, the
         // App Store) can be reset or handed a session from its command line
         #if DEBUG
@@ -45,6 +46,13 @@ struct CrewApp: App {
     // 8.4 journey ②: the test bundle (CrewUITests/SeedClient) registers the member, their plan, first post and crew through the
     // real API, then hands the signed-in session over in CREW_SEED_SESSION. The phone wakes signed in with an empty Store and
     // hydrates from the server exactly as a reinstalled phone does (RootView → ServerHydrate) — no test-only path in the app.
+    // A28 (a) — a UI test photographs Midnight with -uiDark (Debug only); every other launch follows the phone (nil)
+    #if DEBUG
+    private static var forcedScheme: ColorScheme? { ProcessInfo.processInfo.arguments.contains("-uiDark") ? .dark : nil }
+    #else
+    private static var forcedScheme: ColorScheme? { nil }
+    #endif
+
     #if DEBUG
     private static func seedReturningUser() {
         guard let raw = ProcessInfo.processInfo.environment["CREW_SEED_SESSION"], let session = try? JSONDecoder.crew.decode(AuthSessionDTO.self, from: Data(raw.utf8)) else { return }
@@ -56,7 +64,8 @@ struct CrewApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .preferredColorScheme(.light) // A21.10 as amended 2026-09-18 (owner): LIGHT ALWAYS — the SwiftUI half; Info.plist's UIUserInterfaceStyle is the UIKit half (alerts, keyboards, share sheets)
+                // GAP: A28 GAP 6, R-084 (4) — lifted while dark carbs fails only on a card no shipped screen draws
+                .preferredColorScheme(Self.forcedScheme) // A28 (a) (2026-09-19): light is the default and dark follows the phone — the lock of A21.10 as amended is lifted (R1)
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { SyncDriver.foreground() } } // E6: what was logged goes out
     }

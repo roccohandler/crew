@@ -1,13 +1,16 @@
-// SPEC: S07 Home — all five states; the BRIDGE until the first post (1D); today-state < 500 ms warm; ≤3 taps launch→fast-logged;
-// Quick Complete hidden once today counts; Resume banner when a session is open; crew strip absent for solo. A3 (owner-directed
-// 2026-09-08): Log cardio under the workout card, the Bonus workout sheet, the what's-next line; A22 (owner-approved 2026-09-18):
-// the camera toolbar button and every meal CTA are gone with the plate journal. Part III law ④: the flame is the first ember the user sees. Screens hold ZERO logic
-// (5.6.6). A21.9 (owner-approved 2026-09-17): the celebration's two buttons are the only way out and the post follows the tap;
-// A21.4: the reminder opt-in follows the FIRST completed workout's celebration, once. WRITTEN — UNVERIFIED (needs Mac). T024
+// SPEC: S07 Home as amended by A28 (d), (e) (owner-approved 2026-09-19; design/targets 01–06) — the Focus Card: the reward block
+// (ring + flame; none on the first day or with no plan) over ONE card with at most one filled primary, then the quiet rows — "Quick
+// complete" as text on a training day, "Edit today's log" as text on a done day, and the "Macros · N logged" fact row (training,
+// rest and done days; absent under 18, A22 G4). Cardio and a bonus workout live behind the "+" in the nav bar. No nav title (the
+// card's names the state), no week strip, no verb rows, no crew strip (A28 (d) removes it; A20.6 never landed). Kept: the BRIDGE
+// until the first post (1D); today-state < 500 ms warm; Quick Complete hidden once today counts; A21.9's two celebration buttons
+// and the post that follows the tap; A21.4's reminder opt-in after the first workout, once. Screens hold ZERO logic (5.6.6).
+// WRITTEN — UNVERIFIED (needs Mac). T024 · R1
 
 import SwiftUI
 
 struct HomeScreen: View {
+    var onOpenJournal: () -> Void = {} // A28 (d) · R-083 (18): "Edit today's log" opens today in the Journal, with the powers it already has
     @State private var model = HomeModel(welcomeBackAckDay: AuthStore.shared.currentUser?.welcomeBackAckDay) // E4: the account remembers the answer (as ProgressScreen and SettingsScreen read units)
     @State private var loaded = false
     @State private var activeSession: LocalSession?
@@ -15,7 +18,9 @@ struct HomeScreen: View {
     @State private var rebuilding = false
     @State private var choosingBonus = false
     @State private var loggingCardio = false
-    @State private var loggingMacros = false // A22 G4: Home's "Log macros" row opens nutrition Today
+    @State private var loggingMacros = false // A22 G4: the Macros fact row opens nutrition Today
+    @State private var adding = false        // A28 (d): the "+" sheet
+    @State private var addChoice: HomeAddChoice?
     @State private var offerReminder = false // A21.4: decided when a celebration is answered, presented once the sheet is down
     @State private var showsReminder = false
     @Environment(\.scenePhase) private var scenePhase
@@ -26,12 +31,14 @@ struct HomeScreen: View {
                 switch loadState {
                 case .loading: syncing
                 case .ready, .offline: content
-                case .empty: EmptyState(title: "Build your week", line: "Three questions and your plan is ready.", ctaTitle: "Build my week") { rebuilding = true }
+                case .empty: centred { NoPlanCard(weekday: model.weekdayName) { rebuilding = true } }
                 case .failed(let line): ErrorState(line: line) { Task { await ServerHydrate.pullIfEmpty(userId: model.userId, store: model.store) }; load() } // an unreached plan pulls again
                 }
             }
             .background(EmberColors.canvas.ignoresSafeArea())
-            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(EmberColors.canvas, for: .navigationBar)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { addButton } }
             .navigationDestination(item: $activeSession) { session in SessionScreen(session: session) { outcome in activeSession = nil; celebration = outcome; model.refresh() } }
             .navigationDestination(isPresented: $loggingCardio) { CardioLogScreen { outcome in loggingCardio = false; celebration = outcome; model.refresh() } } // A2: then the normal celebration
             .navigationDestination(isPresented: $loggingMacros) { NutritionTodayScreen() } // nutrition addendum Q3: the Home row is the way in
@@ -45,6 +52,8 @@ struct HomeScreen: View {
             .sheet(isPresented: $showsReminder) { ReminderOptInSheet(userId: model.userId, storedReminderTime: AuthStore.shared.currentUser?.reminderTime) { showsReminder = false } }
             .sheet(isPresented: $rebuilding) { OnboardingFlow(mode: .rebuild) { rebuilding = false; load() } }
             .sheet(isPresented: $choosingBonus) { BonusWorkoutSheet(workouts: model.bonusWorkouts) { workout in choosingBonus = false; activeSession = model.startBonus(workout) } }
+            // the choice is carried out once the "+" sheet is down, so a push or a second sheet never races the first one's dismissal
+            .sheet(isPresented: $adding, onDismiss: runAddChoice) { HomeAddSheet(offersBonus: offersBonus) { choice in addChoice = choice; adding = false } }
             .task { model.postUnanswered(); load() } // A21.9: a celebration the app died under posts privately first
             .onChange(of: scenePhase) { _, phase in if phase == .active, loaded { load() } } // E8/V04: elapsed days are judged on every foreground
             .onChange(of: ServerHydrate.state.revision) { _, _ in load() } // 2026-09-18: each piece of the reinstall pull lands → the real screen fills
@@ -52,117 +61,116 @@ struct HomeScreen: View {
         }
     }
 
-    // SPEC: A14 — three groups with real rhythm (sectionGap between, rowGap within) instead of a uniform 16 pt between every
-    // element. F09 measured Home at 24–66% dead canvas with its whole interactive surface ending ~385 pt from the top: the
-    // emptiness read as absence rather than confidence precisely BECAUSE nothing was grouped. The fix is content and rhythm,
-    // not less whitespace. 6.7 already requires the controls to bottom-anchor into the thumb zone at Pro Max — the
-    // minHeight + Spacer does that here without stealing the scroll when the day is a long one.
+    // SPEC: A28 (d) — the reward block and the card, optically centred, with the quiet rows beneath (6.7 as amended: Home's primary
+    // sits in the card; the screen still scrolls when Dynamic Type makes the day taller than the phone).
     private var content: some View {
+        centred {
+            // A20.9 — the banner states the two facts the queue publishes (a legacy surface until the states are redrawn, debt.md)
+            if loadState == .offline {
+                OfflineBanner(lastSyncedLine: "Showing what you had — syncing when you're back.", pending: model.pendingToSend, lastSyncedAt: model.lastSyncedAt)
+                    .padding(.bottom, EmberTokens.Spacing.space16)
+            }
+            if !isBridge {
+                HomeRewardBlock(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, isPaused: isPaused)
+                    .padding(.bottom, EmberTokens.Focus.rewardToCard)
+            }
+            TodayCard(state: model.today,
+                      weekday: model.weekdayName,
+                      work: model.cardWork,
+                      nextUp: model.nextUp,
+                      todaySummaryLines: model.todaySummaryLines,
+                      pausedUntil: model.pausedUntilLong,
+                      resuming: model.resumeSession != nil,
+                      onStart: { activeSession = model.startWorkout() },
+                      onBonus: { choosingBonus = true }, // A22 / R-070: the rest-day bridge's one control is the bonus workout
+                      onEndPause: { Task { await model.endPause() } })
+            quietRows.padding(.top, EmberTokens.Spacing.space16)
+        }
+    }
+
+    @ViewBuilder
+    private var quietRows: some View {
+        VStack(spacing: EmberTokens.Spacing.space8) {
+            if model.quickCompleteAvailable, !isBridge {
+                TextActionButton(title: "Quick complete", role: EmberTokens.Typography.textButton) { celebration = model.quickComplete() }
+                Whisper(.howQuickComplete) // A23
+            }
+            if case .allDone = model.today { TextActionButton(title: "Edit today's log", role: EmberTokens.Typography.textButton, action: onOpenJournal) }
+            if isPaused, let session = model.resumeSession { TextActionButton(title: "Resume workout", role: EmberTokens.Typography.textButton) { activeSession = session } }
+            if showsMacros, let macros = model.vectors.macros { macrosRow(macros) }
+        }
+    }
+
+    // SPEC: A28 (d) — "Macros · 2 logged" / "Macros · nothing logged yet"; the count alone is rounded (§4). A22 G4: absent under 18
+    private func macrosRow(_ macros: MacrosSlot) -> some View {
+        let text: Text = macros.logged.map { Text("Macros · ") + Text("\($0)").fontDesign(.rounded) + Text(" logged") } ?? Text("Macros · nothing logged yet")
+        let label = macros.logged.map { "Macros, \($0) logged today" } ?? "Macros, nothing logged yet"
+        return QuietFactRow(text: text, accessibilityLabel: label) { loggingMacros = true }
+    }
+
+    // SPEC: A28 (d) — the "+" icon button: 44 × 44, an ink glyph, always an accessibility label (system §8)
+    private var addButton: some View {
+        Button { adding = true } label: {
+            Image(systemName: "plus").foregroundStyle(EmberColors.ink)
+                .frame(minWidth: CGFloat(SpecConstants.minTouchTargetPt), minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        }
+        .accessibilityLabel(offersBonus ? "Log cardio or a bonus workout" : "Log cardio")
+        .accessibilityIdentifier("home.add")
+    }
+
+    // SPEC: 6.1 as amended 2026-09-18 ("launch: real UI first") — the reinstall wait is Home's OWN chrome: the reward block as it stands
+    // and one card saying what is arriving, never a skeleton; each landed pull re-reads the Store and the card gives way to the day.
+    private var syncing: some View {
+        centred {
+            HomeRewardBlock(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, isPaused: false)
+                .padding(.bottom, EmberTokens.Focus.rewardToCard)
+            FocusCard { LoadingLine(line: "Syncing your week from your account…") }
+        }
+    }
+
+    // One column in the 20 pt gutter, centred in the height the phone has, scrolling when the content is taller (6.7)
+    private func centred<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         GeometryReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
-                    // A20.9 — the banner states the two facts the queue publishes instead of one constant sentence.
-                    if loadState == .offline {
-                        OfflineBanner(lastSyncedLine: "Showing what you had — syncing when you're back.", pending: model.pendingToSend, lastSyncedAt: model.lastSyncedAt)
-                    }
-                    // A18.8 — NOT on the bridge. The bridge lasts until the first POST and starting a workout is not a
-                    // post, so an abandoned first workout put this banner beside the bridge's own CTA: two prompts on
-                    // the one screen §1D says carries none. The bridge's single button resumes instead (TodayCard).
-                    if let session = model.resumeSession, !isBridge { SecondaryButton(title: "Resume workout · \(session.workoutName)") { activeSession = session } }
-                    HomeHeader(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, week: model.weeklyRing, isBridge: isBridge, isPaused: isPaused)
-                    // A17.2 / H019 — the flexible space moved from BELOW the card to ABOVE it. Under A14 it sat after
-                    // the card, so on every short state (rest, all-done, paused) the day's ink-filled primary was
-                    // stranded in the upper half and the slack became one contiguous hole — ~29% of the screen on
-                    // `.paused`, where the card renders no controls at all. Here the slack is a section break under
-                    // the header group, and the card, its primary and the vector row all sit in the thumb zone.
-                    // A18.3 — THE SPACE GETS CONTENT. Idle states only (rest · all-done): on a workout day the card
-                    // IS what is next, and that state is the tallest on the smallest phone (H009).
-                    if let nextUp = model.nextUp, !isBridge { NextUpBlock(facts: nextUp) }
-                    Spacer(minLength: 0)
-                    TodayCard(state: model.today,
-                              nextUpLine: model.nextUpLine,
-                              todaySummaryLines: model.todaySummaryLines,
-                              resuming: model.resumeSession != nil,
-                              onStart: { activeSession = model.startWorkout() },
-                              onBonus: { choosingBonus = true }, // A22 / R-070: the rest-day bridge's one control is the bonus workout
-                              onEndPause: { Task { await model.endPause() } })
-                    if model.quickCompleteAvailable, !isBridge {
-                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                            SecondaryButton(title: "Quick complete") { celebration = model.quickComplete() }
-                            Whisper(.howQuickComplete) // A23
-                        }
-                    }
-                    if !isBridge { // §1D: the bridge carries one CTA and nothing else, ever
-                        // A17.1 / H034 — sectionGap, not rowGap. These were bound at 8 pt, the gap design-tokens.json
-                        // documents as "within one group", while every real boundary on this screen is 24 — so the
-                        // layout asserted the crew avatar was a fourth vector slot.
-                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
-                            // A14 — the vectors as peers. Every standalone duplicate that used to sit here or in the
-                            // card (Log cardio, Bonus workout) is gone: these ARE those affordances now, at a position
-                            // that no longer moves between states (F10, A17.3). A22 G4: "Log macros" is the third row wherever nutrition exists.
-                            VectorRow(slots: model.vectors,
-                                      onWorkout: { if let session = model.startWorkout() { activeSession = session } else { choosingBonus = true } },
-                                      onCardio: { loggingCardio = true },
-                                      onMacros: { loggingMacros = true })
-                            // absent (not empty) for solo AND below crewMinMembers (A17.1)
-                            if let members = model.crewStrip {
-                                VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                                    // A17.1 — the strip was a bare avatar with an unexplained dot and numeral. Ink,
-                                    // never tappable (law ①): the Crew tab is where a member opens.
-                                    Text("Your crew").font(.caption).foregroundStyle(EmberColors.secondaryText)
-                                    CrewStrip(members: members)
-                                }
-                            }
-                        }
-                    }
-                    // A22 / R-073 — a rest day's card carries no control, so bottom-anchored the slack became one hole above it (the
-                    // defect A17.2 removed). On a rest day the group floats: this second flexible space splits the slack in two.
-                    if case .rest = model.today { Spacer(minLength: 0) }
+                VStack(spacing: 0) {
+                    Spacer(minLength: EmberTokens.Focus.gutter)
+                    content()
+                    Spacer(minLength: EmberTokens.Focus.gutter)
                 }
-                .padding(EmberTokens.Spacing.space16)
-                .frame(minHeight: proxy.size.height, alignment: .top)
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .frame(minHeight: proxy.size.height)
             }
         }
     }
 
-    // SPEC: 6.1 as amended 2026-09-18 (owner-directed, "launch: real UI first") — the reinstall wait is Home's OWN chrome: the header as
-    // it stands and one card saying what is arriving, never a skeleton; each landed pull re-reads the Store and the card gives way to the day.
-    private var syncing: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
-                HomeHeader(streak: model.streak, shields: model.shields, ringDone: model.ringDone, ringPlanned: model.ringPlanned, week: model.weeklyRing, isBridge: false, isPaused: false)
-                Card { LoadingLine(line: "Syncing your week from your account…") }
-            }
-            .padding(EmberTokens.Spacing.space16)
+    private func runAddChoice() {
+        guard let choice = addChoice else { return }
+        addChoice = nil
+        switch choice {
+        case .cardio: loggingCardio = true
+        case .bonus: choosingBonus = true
         }
     }
 
-    // SPEC: A17.4 / S07 — the title NAMES THE STATE, so the screen says what today is before anything else is read.
-    // The BRIDGE keeps "Today": §1D says that screen carries one CTA and nothing else, and a state name there would be
-    // the first thing a brand-new user reads about a day they have not started.
-    private var title: String {
+    // A3 / Flow 5 — a bonus workout on a rest day or a done day (and off-season, where it is reachable and pays nothing, V79)
+    private var offersBonus: Bool {
         switch model.today {
-        case .bridge: return "Today"
-        case .workout(let name, _, _, _, _): return name
-        case .rest: return "Rest day"
-        case .paused: return "Plan paused"
-        case .allDone: return "Done for today"
+        case .rest, .allDone, .paused: return model.hasPlan
+        case .bridge, .workout: return false
+        }
+    }
+
+    private var showsMacros: Bool {
+        switch model.today {
+        case .workout, .rest, .allDone: return true
+        case .bridge, .paused: return false
         }
     }
 
     private var isPaused: Bool { if case .paused = model.today { return true } else { return false } }
-    private var isBridge: Bool { if case .bridge = model.today { return true } else { return false } } // 1D: nothing else competes
+    private var isBridge: Bool { if case .bridge = model.today { return true } else { return false } } // 1D: no reward block on the first day
 
-    // A18.12 — the branch lives in HomeLoadState.of (5.6.6: a screen holds zero logic), which is also what makes
-    // `.offline` — declared since T013 and assigned nowhere — testable as REACHABLE rather than merely declared.
-    //
-    // A20.9 — IT IS COMPUTED, NOT `@State`. As stored state it was assigned in exactly ONE place, inside `load()`,
-    // which runs on `.task` and on `scenePhase → .active` and nowhere else — while EIGHT paths call `model.refresh()`
-    // directly (the session and cardio completions, the celebration dismissal, `endPause`,
-    // `startBonus`, `quickComplete`, and the edge prompts). So after logging anything, the banner and the error layer
-    // were whatever they had been at the last foreground: `loadError` could be set inside `refresh()` and the screen
-    // would not become `.failed` until the app was backgrounded and reopened. Computing it over the `@Observable`
-    // model is the pattern CrewScreen.swift:21-26 already uses, and it deletes the whole class of bug.
+    // A18.12 / A20.9 — computed over the @Observable model, never stored (the class of bug A20.9 removed)
     private var loadState: HomeLoadState {
         guard loaded else { return .loading }
         return HomeLoadState.of(loadError: model.loadError, hasPlan: model.hasPlan, offline: model.offline, syncing: ServerHydrate.state.isPulling, unreachable: ServerHydrate.state.failedOffline)

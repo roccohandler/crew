@@ -9,22 +9,28 @@
 
 import SwiftUI
 
+// A28 (f) (2026-09-19) — the system's primary button: a filled ink CAPSULE, the onInk label at 17 pt Bold, 58 pt tall (56 on Home),
+// at most one per screen. App-wide, because the shape is the component's and every screen already calls this one view; the height
+// is a MINIMUM (R-083 (20)): at accessibility sizes the label wraps and the capsule grows, it never truncates (6.7).
 struct PrimaryButton: View {
     let title: String
     var isLoading = false
+    var height: CGFloat = EmberTokens.Focus.primaryHeight
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack {
                 Text(title)
-                    .font(.headline)
+                    .typeRole(EmberTokens.Typography.primaryLabel)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, EmberTokens.Focus.cardPadding)
                     .opacity(isLoading ? 0 : 1)
-                if isLoading { ProgressView().tint(EmberColors.primaryButtonLabel) }
+                if isLoading { ProgressView().tint(EmberColors.onInk) }
             }
-            .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt))
-            .foregroundStyle(EmberColors.primaryButtonLabel)
-            .background(EmberColors.primaryButtonFill, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space16, style: .continuous))
+            .frame(maxWidth: .infinity, minHeight: height)
+            .foregroundStyle(EmberColors.onInk)
+            .background(EmberColors.ink, in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(isLoading)

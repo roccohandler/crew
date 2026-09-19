@@ -22,6 +22,7 @@ enum ProgressSegment: Hashable {
 
 struct ProgressScreen: View {
     var onGoHome: () -> Void = {}
+    var journalRequested: Binding<Bool> = .constant(false) // A28 (d) · R-083 (18): Home's "Edit today's log" lands on the Journal
     @State private var model = ProgressModel()
     @State private var loadState: ProgressLoadState = .loading
     @State private var selected: DayDetail?
@@ -49,6 +50,8 @@ struct ProgressScreen: View {
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Progress")
+            .onAppear { if journalRequested.wrappedValue { segment = .journal; journalRequested.wrappedValue = false } }
+            .onChange(of: journalRequested.wrappedValue) { _, asked in if asked { segment = .journal; journalRequested.wrappedValue = false } }
             .task { load() }
         }
     }

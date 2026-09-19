@@ -23,13 +23,13 @@ struct TextActionButton: View {
     var color: Color = EmberColors.inkText
     var horizontalPadding: CGFloat = EmberTokens.Spacing.space12
     var accessibilityLabel: String? = nil
+    var role: EmberTokens.TypeRole? = nil // A28 (f): a redesigned screen's text button is the system's — 15 pt Semibold ink
     let action: () -> Void
     @ScaledMetric private var minTarget: CGFloat = CGFloat(SpecConstants.minTouchTargetPt) // 6.5: the target grows with Dynamic Type
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(font)
+            label
                 .foregroundStyle(color)
                 .padding(.horizontal, horizontalPadding)
                 .frame(minWidth: minTarget, minHeight: minTarget)
@@ -37,5 +37,9 @@ struct TextActionButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel ?? title)
+    }
+
+    @ViewBuilder private var label: some View {
+        if let role { Text(title).typeRole(role) } else { Text(title).font(font) }
     }
 }

@@ -1598,3 +1598,57 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   heat map's cardio outline never drew (a colour inside `calc()`); the tour step "the rest timer is running"; 01's missing light frame.
 - Look at: the A28 entry and its markers (`docs/crew-mvp-spec.md`), `design/DESIGN.md`, `design/targets/README.md`, the token diff
   (`shared/design-tokens.json`), and the recolored tour (every screen changes; no baseline is approved).
+
+### R-084 · 2026-09-19 · A28 R1 — Home redesigned (six states, light and dark) under the owner's standing order for gaps · checkpoint — the builder's readings, each open to the owner
+- The order (owner, queued 2026-09-19, the redesign build order): "a gap takes the most conservative in-spec reading, tagged
+  `// GAP:`, logged in ratification.md; never widen scope; the Not Building list stands; no new dependencies; vectors
+  append-only." GAPs 3, 4, 5 and 6 of R-083 were R1's preconditions. Each is read below as the reading that changes the least of
+  what the spec already rules. Each carries a `// GAP:` tag where it is coded, and each gives way to the owner's answer.
+- What changed (iOS; the web twin is noted, not built):
+  - Home is the Focus Card: the reward block (`HomeRewardBlock`: `FocusRing` + the flame + its numeral), then ONE `FocusCard`
+    holding the day, then the quiet rows. The nav bar carries only the "+" (`HomeAddSheet`).
+  - The week strip, the vector rows, the header group and the crew strip are gone (`WeekStrip`, `VectorRow`, `HomeHeader` deleted).
+    `CrewStrip` stays: it is the Crew tab's member strip.
+  - The shared kit: `TypeRoleStyle` (`.typeRole`, Dynamic Type through UIFontMetrics), `FocusCard`, `FocusRing`, `QuietFactRow`,
+    and `Chrome` (the nav and tab bar appearance). `PrimaryButton` is the ink capsule, with its height a token.
+  - The tokens gained `focus` (the system's sizes that Home draws with) and `elevation` (the two light shadows), plus `relativeTo`
+    on each type role (C7).
+  - The `SessionSummaryLine` twins drop the workout's minutes (A28 (c)): "Push day · 12 of 12 sets". Cardio keeps its entered
+    minutes and distance. There is no wall-clock fallback.
+  - Unchanged: the light lock's removal (`UIUserInterfaceStyle` absent, no forced scheme in Release), Sign in with Apple
+    following the mode, and "End the pause".
+- The builder's readings:
+  (1) **GAP 3, the reward block.** The ring keeps A18.1's count: completed planned workouts OF the week's planned count, so a
+      four-day plan reads "OF 4". Mockup 03's "4 OF 7" is read as seeded content (targets README: content is illustrative).
+      A18.2's gate stands: the ring appears once the week holds a completed planned workout, and never on the first day or with
+      no plan. The shield fact (A17.1 / H020) stays as one quiet caption under the flame. Off-season keeps the ring in accent,
+      because those workouts happened (mockup 06), and turns the flame into an inkSecondary snowflake.
+  (2) **GAP 4, cardio minutes.** A cardio block's minutes are a target the user set, or minutes they entered. That makes them an
+      answer, not time spent training measured by the app, so they stay. The card reads "Cardio · 25 min", the cardio log keeps
+      its stepper, and the summary line keeps "Walk · 25 min · 2.1 km". What (c) removes here is the session's wall clock.
+  (3) **GAP 5, "Your season starts today".** The line appears on first-day Home's card only (mockup 01). The plan reveal is
+      onboarding, and no redesign session names it, so it is untouched.
+  (4) **GAP 6, the light lock.** It lifts on iOS. The one dark pair that fails its gate is A16's carbs fill on the Midnight
+      CARD (2.79:1). No shipped screen draws it: `MacroLines` sits on the canvas, where dark carbs measures 3.5:1 and is gated in
+      both modes (`web/tests/contrast.test.ts`). A macro bar moved onto a card before the owner rules is a defect. A16's colours
+      are unchanged. The web keeps `color-scheme: light` until its parity session. R-083 (8) said both platforms; the build order
+      notes web parity and does not build it.
+  (5) **The "+"** (R-083 (22)). It shows in every state with a plan. "Log cardio" is always offered. "Bonus workout" is offered
+      on rest, done and off-season days — the days that had it before R1 (A3, Flow 5; the workout vector's fallback). It is a
+      route to two existing screens, not a new job. On a training day the day's workout is the card's primary, so the sheet
+      offers cardio alone.
+  (6) **"Edit today's log"** (R-083 (18)) opens the Progress tab on its Journal. The segment switches and today's row is at the
+      top. No new edit power is added.
+  (7) **Quick complete** stays: text under a training day's card (A28 (d)), hidden once today counts. A21.9's celebration choice
+      follows it as before.
+  (8) **The Macros row** is a `QuietFactRow`: "Macros · N logged", or "Macros · nothing logged yet". It shows on training, rest and
+      done days, and is absent under 18 (A22 G4). It is a count and never grams (A22 G4, law ⑥: no macro fill on Home). It is
+      absent on the first day, with no plan and off-season, which each keep one job.
+  (9) **The chrome.** The nav bar is transparent at rest and canvas when scrolled, with ink titles. The tab bar is the table's
+      `tabBar` row, selected in ink and normal in inkSecondary (Part III law ①). Text a screen does not colour is ink, not the
+      platform's black. The chrome is a `UIAppearance`, so every tab changes with it, including screens not yet redesigned. Their
+      lists, sheets and fields keep their R0 recolor until their own session (`docs/debt.md`).
+- Tour: every Home state is photographed in both modes (`-uiDark`, DEBUG only), and the "+" sheet is photographed on a training day
+  and a rest day. The map is in `design/targets/README.md`.
+- Look at: the Home shots in both modes against `design/targets/01`–`06`, the "+" sheet against DESIGN.md, and whether the ring's
+  count (1) and the Macros row's states (8) are what the owner wants.

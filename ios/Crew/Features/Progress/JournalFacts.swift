@@ -39,7 +39,7 @@ enum JournalFacts {
     // SPEC: A6 — the local twin of the server's post summary; a session of kind cardio reads its logged minutes and distance
     static func summaryLine(_ session: LocalSession, distanceUnit: String) -> String { // A9: the line carries a distance, never a weight
         let facts = Completion.completionFacts(SessionActions.setFacts(session))
-        return SessionSummaryLine.sessionSummaryLine(workoutName: session.workoutName, isCardio: session.workoutKind == "cardio", setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, minutes: wallClockMinutes(session), cardioMinutes: cardioMinutes(session), distanceMeters: distanceMeters(session), distanceUnit: distanceUnit)
+        return SessionSummaryLine.sessionSummaryLine(workoutName: session.workoutName, isCardio: session.workoutKind == "cardio", setsDone: facts.setsDone, setsPlanned: facts.setsPlanned, cardioMinutes: cardioMinutes(session), distanceMeters: distanceMeters(session), distanceUnit: distanceUnit)
     }
 
     // SPEC: A2 · S10 — " + Walk 25 min" for every cardio block with a done set; a skipped block shows nothing (skips are private)
@@ -63,7 +63,7 @@ enum JournalFacts {
         abs((session.completedAt ?? session.startedAt).timeIntervalSince(post.createdAt))
     }
 
-    // SPEC: A6 — the one line under a journal row: "Push day · 12/12 sets · 44 min" · "Walk · 25 min · 2.1 km"
+    // SPEC: A6 — the one line under a journal row: "Push day · 12 of 12 sets" (A28 (c): no minutes) · "Walk · 25 min · 2.1 km"
     static func line(for post: LocalPost, store: Store = .shared, distanceUnit: String) -> String {
         // A14: workout and cardio are two row types; both read the summary completion wrote, so the WORDS are unchanged
         if post.type == "workout" || post.type == "cardio" {

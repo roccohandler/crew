@@ -59,10 +59,17 @@ function readDesignTokens() {
     if (typeof alias.why !== "string") throw new Error(`design-tokens.json: colorAliases.aliases.${name} needs a why`);
   }
   const weights = new Set(["medium", "semibold", "bold", "heavy"]);
+  const textStyles = new Set(["largeTitle", "title", "title2", "title3", "headline", "body", "callout", "subheadline", "footnote", "caption", "caption2"]);
   for (const [name, role] of Object.entries(tokens.typography.roles)) {
-    if (!Number.isInteger(role.size) || !weights.has(role.weight) || typeof role.tracking !== "number" || typeof role.rounded !== "boolean" || typeof role.uppercase !== "boolean" || typeof role.role !== "string") {
-      throw new Error(`design-tokens.json: typography.roles.${name} needs an integer size, a weight (${[...weights].join(" / ")}), a numeric tracking, rounded and uppercase booleans, and a role`);
+    if (!Number.isInteger(role.size) || !weights.has(role.weight) || typeof role.tracking !== "number" || typeof role.rounded !== "boolean" || typeof role.uppercase !== "boolean" || !textStyles.has(role.relativeTo) || typeof role.role !== "string") {
+      throw new Error(`design-tokens.json: typography.roles.${name} needs an integer size, a weight (${[...weights].join(" / ")}), a numeric tracking, rounded and uppercase booleans, a relativeTo text style, and a role`);
     }
+  }
+  for (const [name, value] of Object.entries(tokens.focus.scale)) {
+    if (!Number.isInteger(value)) throw new Error(`design-tokens.json: focus.scale.${name} must be an integer`);
+  }
+  for (const name of ["nearY", "nearBlur", "farY", "farBlur", "nearOpacity", "farOpacity"]) {
+    if (typeof tokens.elevation[name] !== "number") throw new Error(`design-tokens.json: elevation.${name} must be a number`);
   }
   for (const [name, value] of Object.entries(tokens.spacing.scale)) {
     if (!Number.isInteger(value)) throw new Error(`design-tokens.json: spacing.scale.${name} must be an integer`);

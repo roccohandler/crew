@@ -98,7 +98,7 @@ describe("today-state — the five states (S07)", () => {
     const facts = await homeFacts(oid(user), TZ, today);
     expect(facts.today.kind).toBe("allDone");
     expect(facts.todaySummaryLines).toHaveLength(1);
-    expect(facts.todaySummaryLines[0]).toMatch(/^Push day · \d+\/\d+ sets · \d+ min$/);
+    expect(facts.todaySummaryLines[0]).toMatch(/^Push day · \d+ of \d+ sets$/); // A28 (c): no minutes
     expect(facts.weekMarks[todayIso - 1]).toBe("done");
     expect(facts.ringDone).toBe(1);
     expect(facts.ringPlanned).toBe(1);

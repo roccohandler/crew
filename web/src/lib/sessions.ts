@@ -67,17 +67,16 @@ export async function createSession(userId: ObjectId, input: CreateSessionInput,
   return { session: doc, created: true };
 }
 
-// SPEC: A6 — the post's one readable line, from the session's own facts at completion: strength "Push day · 12/12 sets · 44 min",
+// SPEC: A6 · A28 (c) — the post's one readable line, from the session's own facts at completion: strength "Push day · 12 of 12 sets",
 // cardio "Walk · 25 min · 2.1 km" in the poster's units (the twin SessionSummaryLine.swift formats the same inputs)
-async function summaryFor(userId: ObjectId, doc: SessionDoc, completedAt: Date): Promise<string> {
+async function summaryFor(userId: ObjectId, doc: SessionDoc): Promise<string> {
   const user = await (await users()).findOne({ _id: userId }, { projection: { units: 1 } });
   const facts = factsOf(doc);
   const cardioSets = doc.exercises.filter((exercise) => exercise.type === "cardio").flatMap((exercise) => exercise.sets).filter((set) => set.done && !set.isWarmup);
   const cardioSeconds = cardioSets.reduce((sum, set) => sum + (set.holdSeconds ?? 0), 0);
   const distance = cardioSets.some((set) => typeof set.distanceMeters === "number") ? cardioSets.reduce((sum, set) => sum + (set.distanceMeters ?? 0), 0) : null;
-  const minutes = Math.round((completedAt.getTime() - doc.startedAt.getTime()) / TimeUnits.msPerMinute);
   const cardioMinutes = cardioSets.length > 0 ? Math.round(cardioSeconds / TimeUnits.secondsPerMinute) : null;
-  return sessionSummaryLine(doc.workoutName, doc.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, cardioMinutes, distance, user === null || user === undefined ? "mi" : distanceUnitOf(user));
+  return sessionSummaryLine(doc.workoutName, doc.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, cardioMinutes, distance, user === null || user === undefined ? "mi" : distanceUnitOf(user));
 }
 
 // SPEC: S10 · A21.9 — the workout post, from the completed session's own facts (A14: a standalone cardio log is its own type);
@@ -87,7 +86,7 @@ async function createSessionPost(userId: ObjectId, doc: SessionDoc, post: NonNul
   await createPost(userId, {
     clientId: post.clientId, type: doc.workoutKind === "cardio" ? "cardio" : "workout", sessionId: doc._id, caption: post.caption,
     shareToCrew: post.shareToCrew, timezone, isPlannedDay: doc.isPlannedDay, workoutCompleted: true, createdAt: completedAt, dayKey: doc.dayKey,
-    summary: await summaryFor(userId, doc, completedAt),
+    summary: await summaryFor(userId, doc),
   }, now);
 }
 

@@ -36,7 +36,7 @@ final class OfflineSessionTests: XCTestCase {
         typeInto(app.textFields["Birth year"], "1994", in: app)
         saveThePlan(in: app) // A20.11: Done first — the save must not read Birth year mid-keystroke (JourneySteps)
 
-        XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Your season starts today'")).firstMatch.waitForExistence(timeout: 20)) // A28 (e): the first-day card's line
         let startFirst = app.buttons["Start your first workout"]
         XCTAssertTrue(startFirst.waitForExistence(timeout: 5), "every day is a training day, so the bridge CTA is the workout")
         startFirst.tap()
@@ -56,11 +56,11 @@ final class OfflineSessionTests: XCTestCase {
         // 1C / S01: the session outlives the kill because the Keychain holds it, not memory. An UNSIGNED simulator build cannot write
         // the Keychain at all (errSecMissingEntitlement, -34018) and wakes on the hero — run 34367618719 landed exactly there, so
         // the CI job signs simulator builds ad hoc. This assertion names that state instead of a missing banner.
-        // "Today" is deliberate and is the BRIDGE, not a stale constant: this member finished onboarding and checked one set
-        // but never POSTED, and 1D holds the bridge until the first post exists — so this is the one state where A17.4 still
-        // titles Home "Today". Journey ② asserts the opposite for the same reason, and both are right. Do not "align" them:
-        // if this ever starts failing, the member reached Home in some OTHER state, which is itself the bug worth seeing.
-        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 20), "signed out after a kill, or Home is no longer the bridge — the Keychain may not have kept the session; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        // The season line is deliberate and is the BRIDGE, not a stale constant: this member finished onboarding and checked one
+        // set but never POSTED, and 1D holds the bridge until the first post exists — so this is the one state whose card says
+        // "Your season starts today" (A28 (e)). Journey ② asserts the opposite for the same reason, and both are right. Do not
+        // "align" them: if this ever starts failing, the member reached Home in some OTHER state, which is itself the bug worth seeing.
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Your season starts today'")).firstMatch.waitForExistence(timeout: 20), "signed out after a kill, or Home is no longer the bridge — the Keychain may not have kept the session; the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         // A18.8 / A20.11 — THE BRIDGE ABSORBS AN OPEN SESSION (TodayCard.swift:24-26). Because this member never
         // posted, Home is the bridge, and §1D lets it carry ONE CTA: HomeScreen.swift:65 suppresses the Resume
         // BANNER with `!isBridge` and TodayCard.swift:110 turns the bridge's own button into "Resume your first

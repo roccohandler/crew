@@ -56,7 +56,7 @@ One table, both modes. Nothing in the UI uses a colour that is not on it.
   fill + navy label in dark. The two accents are one hue (27.0° / 26.9°) — the dark one is the light one lifted, never re-picked.
 - **1.5 No third hue.** No green for done, no blue for links; **red only inside a destructive confirm sheet**, in both modes
   (A28 (a)). Missed is never red — a miss is a fact, not a verdict. One bounded exception stands until the owner answers GAP 6 in
-  A28 (before the light lock lifts in R1, and before R7): A16's three macro identity colours, nutrition surfaces only, and no
+  A28 (R7; R-084 reads the dark carbs fill as legal where it draws — on the canvas, never a card): A16's three macro identity colours, nutrition surfaces only, and no
   surface renders an accent element and a macro fill together (Part III law ⑥, A16).
 - **1.6 A control's mark clears 3:1.** A hairline is a seam between surfaces, never a control's boundary. The stepper's
   `controlBorder` ring is ~1.6:1 by design; the ink glyph inside it is what says "control" (R-083 (2); 6.5, A18.11); a quiet fact
@@ -74,10 +74,10 @@ so the app recolors without a screen edit; a redesigned screen uses the table's 
 
 Crew renders light by default and dark when the phone is dark — Varsity and Midnight are one system, and a screen is not done
 until BOTH pass review against their mockups (`NN-…-light.png` / `NN-…-dark.png`). Dark lifts, never inverts (Ember law ⑤).
-Until the Home session lifts the light lock (A21.10 as amended 2026-09-18 — Info.plist, the root view, the web's
-`color-scheme`) — and it lifts only while no dark pair fails its gate (A28 (a)) — the app still renders light everywhere and
-the tour photographs light only; from that session on the tour photographs both, and a dark screenshot is judged against the
-dark mockup exactly as light is against light.
+The Home session (R1) lifted the iOS light lock (A21.10 as amended 2026-09-18 — Info.plist and the root view): the phone follows
+the system setting, and no dark pair a shipped screen draws fails its gate (R-084, GAP 6). The tour photographs each Home state in
+both modes; a screen not yet redesigned keeps its light-only shots until its session adds the dark one. A dark screenshot is
+judged against the dark mockup exactly as light is against light. The web keeps `color-scheme: light` until its parity session.
 
 ## 3. Density — screens stay simple (6.9, A25)
 

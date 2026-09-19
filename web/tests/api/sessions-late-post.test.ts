@@ -49,7 +49,7 @@ describe("A21.9 — the post follows the tap, never the completion", () => {
     expect(post).not.toBeNull();
     expect(post?.crewId).not.toBeNull(); // shared: the crew it was shared to at creation (PostDoc.crewId)
     expect(post?.type).toBe("workout");
-    expect(post?.summary).toMatch(/^Push day · 1\//);
+    expect(post?.summary).toMatch(/^Push day · 1 of /); // A28 (c): "N of M sets", no minutes
     expect(shared.gamification).toMatchObject({ currentStreak: 1, totalXP: SpecConstants.xpFirstPostOfDay + SpecConstants.xpPlannedWorkout });
 
     // A replay, or a second tap with another id and the other visibility: nothing changes — the choice was made once

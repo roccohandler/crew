@@ -52,8 +52,9 @@ final class Journey1_NewUserTests: XCTestCase {
         typeInto(app.textFields["Birth year"], "1994", in: app)
         saveThePlan(in: app) // A20.11: Done first — the save must not read Birth year mid-keystroke (JourneySteps)
 
-        // S07 bridge state on Home: unlit flame, one oversized CTA (the wait covers a cold dev server hashing the first password)
-        XCTAssertTrue(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 20), "Home never showed the bridge — the save screen says: \(app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))")
+        // S07 bridge state on Home as A28 (d) draws it: no reward block, one card, one CTA (the wait covers a cold dev server hashing
+        // the first password)
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Your season starts today'")).firstMatch.waitForExistence(timeout: 20), "Home never showed the bridge — the save screen says: \(app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))")
         shoot(app, "S07 Home — the bridge")
         let startFirst = app.buttons["Start your first workout"]
         let bonus = app.buttons["Start a bonus workout"] // A22 / R-070: the rest-day bridge's one control
@@ -89,8 +90,8 @@ final class Journey1_NewUserTests: XCTestCase {
             shoot(app, "1D reminder opt-in")
             notNow.tap()
         }
-        // Back on Home the bridge is gone forever; the flame is lit
-        XCTAssertFalse(app.staticTexts["Your first flame lights today."].waitForExistence(timeout: 2))
+        // Back on Home the bridge is gone forever; the reward block (the lit flame) takes its place
+        XCTAssertFalse(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Your season starts today'")).firstMatch.waitForExistence(timeout: 2))
         shoot(app, "S07 Home — the flame lit")
     }
 }

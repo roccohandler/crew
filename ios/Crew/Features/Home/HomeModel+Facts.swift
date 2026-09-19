@@ -36,7 +36,30 @@ struct WeekMarks: Equatable {
     let planned: Int
 }
 
+// SPEC: A28 (d) — what the Focus Card lists for a day that has work (mockups 01, 03): the strength rows, then "Mobility · 4 holds"
+// (A28 (c): a count, never a duration) and, when the workout carries one, the cardio block's target (GAP 4 in A28: a cardio log's
+// entered minutes stand until the owner rules).
+struct HomeCardWork: Equatable {
+    let name: String
+    let size: String            // "5 exercises + mobility"
+    let lines: [HomeLine]       // the HomeLines twin's rows, word for word the web card's
+    let holds: Int
+    let cardioMinutes: Int?
+}
+
 extension HomeModel {
+    static func workOf(_ workout: LocalWorkoutTemplate) -> HomeCardWork {
+        let rows = homeExercises(workout)
+        let cardioSeconds = rows.filter { $0.type == "cardio" }.reduce(0) { $0 + ($1.holdSeconds ?? 0) }
+        return HomeCardWork(
+            name: workout.name,
+            size: NextUp.sizeLine(exerciseCount: NextUp.strengthCount(workout), hasCardio: NextUp.hasCardio(workout)),
+            lines: HomeLines.strengthLines(rows),
+            holds: rows.filter { $0.type == "mobility" }.count,
+            cardioMinutes: cardioSeconds > 0 ? JournalFacts.minutes(ofSeconds: cardioSeconds) : nil
+        )
+    }
+
     // SPEC: A14 — the plan rows Home's card renders, in the shape the HomeLines twin takes
     static func homeExercises(_ workout: LocalWorkoutTemplate) -> [HomeExercise] {
         workout.exercises.map {
@@ -86,7 +109,7 @@ extension HomeModel {
     // SPEC: A18.9 · A6 — what today actually held, in the sentence the journal already prints. The all-done card was
     // the one state with no filled control and nothing to report, so the day you did everything right was the day the
     // screen looked least finished. Built by the SessionSummaryLine twin, so this adds no copy and no engine rule:
-    // one line per completed session, in completion order ("Push day · 12/12 sets · 44 min", "Walk · 25 min · 2.1 km").
+    // one line per completed session, in completion order ("Push day · 12 of 12 sets", "Walk · 25 min · 2.1 km").
     static func todaySummary(userId: String, dayKey: String, distanceUnit: String, store: Store) throws -> [String] {
         try store.sessions(for: userId, dayKey: dayKey)
             .filter { $0.status == "completed" }

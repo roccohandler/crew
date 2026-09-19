@@ -38,10 +38,8 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true
-        # A21.10 as amended 2026-09-18 (owner): Crew is LIGHT ALWAYS. This is the key that does it — it lands in the Info.plist
-        # xcodegen writes from these properties. (An INFOPLIST_KEY_UIUserInterfaceStyle build setting only applies when Xcode
-        # GENERATES the plist, which this target never does; build 147 shipped with that setting and still followed the phone.)
-        UIUserInterfaceStyle: Light
+        # A28 (a) (2026-09-19): light is the default and dark is supported, so UIUserInterfaceStyle is ABSENT and the app follows the
+        # phone (the key A21.10 as amended 2026-09-18 set to Light is lifted in R1, with the root view's preferredColorScheme).
         # A22 G2 (2026-09-18): the profile picture is the one photo left — the usage strings say exactly that
         NSCameraUsageDescription: "Take your profile picture, so your crew knows it's you."
         NSPhotoLibraryUsageDescription: "Pick your profile picture from your library."

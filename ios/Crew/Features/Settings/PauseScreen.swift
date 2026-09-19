@@ -19,7 +19,7 @@ struct PauseScreen: View {
             if let pause = model.pause {
                 Text("Plan paused 🧊").font(.title2.weight(.bold)).foregroundStyle(EmberColors.inkText)
                 Text("Streak frozen, reminders off, until \(model.pauseUntilLabel ?? pause.endDay).").font(.body).foregroundStyle(EmberColors.secondaryText) // A3/A6: a day label, never raw ISO
-                SecondaryButton(title: "End the pause now") { Task { await model.endPause(); dismiss() } }
+                SecondaryButton(title: "End the pause") { Task { await model.endPause(); dismiss() } }
             } else {
                 Text("Pause my plan").font(.title2.weight(.bold)).foregroundStyle(EmberColors.inkText)
                 Text("Vacations and injuries are life, not failure. Pick the day you're back — up to \(SpecConstants.pauseMaxDays) days out.").font(.body).foregroundStyle(EmberColors.secondaryText)

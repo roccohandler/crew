@@ -24,11 +24,11 @@ final class Tour_NutritionTests: XCTestCase {
         do { try await seed.seedNutrition(as: member) } catch { throw XCTSkip("the nutrition seed failed: \(error)") }
         tourLaunch(app, as: member)
         tourWaitForHome(app)
-        app.swipeUp() // the log rows sit under the card
-        tourShot(app, "home_home_macrosrow", "scrolled Home to the log rows — Log macros is the third")
-        guard tourTap(tourButton(app, startingWith: "Log macros"), timeout: 10) else { return }
+        tourScroll(app, until: tourButton(app, startingWith: "Macros")) // A28 (d): the quiet Macros row under the card
+        tourShot(app, "home_home_macrosrow", "Home with the Macros fact row under the card")
+        guard tourTap(tourButton(app, startingWith: "Macros"), timeout: 10) else { return }
         _ = labelled("Protein: ").waitForExistence(timeout: 20)
-        tourShot(app, "nutrition_today_filled", "tapped Log macros")
+        tourShot(app, "nutrition_today_filled", "tapped the Macros row")
         if tourTap(tourButton(app, startingWith: "Breakfast"), timeout: 10) {
             tourShot(app, "nutrition_today_logged", "tapped the Breakfast slot")
         }
@@ -86,9 +86,9 @@ final class Tour_NutritionTests: XCTestCase {
         let member = try await tourFilledMember(seed)
         tourLaunch(app, as: member)
         tourWaitForHome(app)
-        tourScroll(app, until: tourButton(app, startingWith: "Log macros")) // under the fold while Home's first-visit whispers show
-        guard tourTap(tourButton(app, startingWith: "Log macros"), timeout: 10) else { return }
+        tourScroll(app, until: tourButton(app, startingWith: "Macros")) // under the fold while Home's first-visit whispers show
+        guard tourTap(tourButton(app, startingWith: "Macros"), timeout: 10) else { return }
         _ = app.buttons["Estimate my targets"].waitForExistence(timeout: 20)
-        tourShot(app, "nutrition_today_firstrun", "tapped Log macros on an account with no targets yet")
+        tourShot(app, "nutrition_today_firstrun", "tapped the Macros row on an account with no targets yet")
     }
 }

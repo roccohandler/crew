@@ -14,7 +14,8 @@ final class Tour_SessionTests: XCTestCase {
     override func setUp() async throws { continueAfterFailure = true }
 
     func testLoggerStartMidSetComplete() async throws {
-        tourLaunch(app, as: try await tourFilledMember(seed))
+        let member = try await tourFilledMember(seed)
+        tourLaunch(app, as: member)
         tourWaitForHome(app)
         guard tourTap(app.buttons["Start workout"]) else { return }
         let firstSet = app.buttons.matching(NSPredicate(format: "label CONTAINS 'set 1 of'")).firstMatch
@@ -54,5 +55,8 @@ final class Tour_SessionTests: XCTestCase {
             tourTap(app.buttons["Not now"])
         }
         tourShot(app, "home_home_done", "back on Home with today's workout done")
+        tourLaunch(app, as: member, dark: true) // A28 (a): the done Home in Midnight
+        tourWaitForHome(app)
+        tourShot(app, "home_home_done_dark", "the same done Home in dark mode")
     }
 }

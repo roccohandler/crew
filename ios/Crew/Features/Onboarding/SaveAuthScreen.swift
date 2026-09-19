@@ -10,6 +10,7 @@ import AuthenticationServices
 import SwiftUI
 
 struct SaveAuthScreen: View {
+    @Environment(\.colorScheme) private var colorScheme // A28 (a): Apple's mandated button style follows the mode (R-083 (11))
     @Bindable var model: OnboardingModel
     var onLogIn: () -> Void = {}
     @State private var displayName = ""
@@ -42,7 +43,7 @@ struct SaveAuthScreen: View {
                             model.appleAuthFailed(error)
                         }
                     }
-                    .signInWithAppleButtonStyle(.black)
+                    .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                     .frame(height: CGFloat(SpecConstants.dayToggleMinPt))
                     Text("or with email").font(.footnote).foregroundStyle(EmberColors.secondaryText)
                     AuthField(title: "Name", text: $displayName, error: fieldErrors["name"], contentType: .name, focus: $focused, key: "name", onSubmit: { focused = "email" }) { validateName() }

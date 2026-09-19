@@ -6,13 +6,14 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 type Color = { light: string; dark: string; lightOpacity?: number; darkOpacity?: number };
-type TypeRole = { size: number; weight: string; tracking: number; rounded: boolean; uppercase: boolean };
+type TypeRole = { size: number; weight: string; tracking: number; rounded: boolean; uppercase: boolean; relativeTo: string };
 const root = join(process.cwd(), "..");
 const tokens = JSON.parse(readFileSync(join(root, "shared", "design-tokens.json"), "utf8")) as {
   colors: Record<string, Color>;
   macroColors: { colors: Record<string, Color> };
   colorAliases: { aliases: Record<string, { token: string }> };
   typography: { roles: Record<string, TypeRole> };
+  focus: { scale: Record<string, number> };
   spacing: { scale: Record<string, number> };
   sizes: { scale: Record<string, number> };
 };
@@ -58,7 +59,13 @@ describe("token parity — web CSS and Swift carry the same Ember values", () =>
       expect(css).toContain(`${base}-tracking: ${role.tracking}em;`);
       expect(css).toContain(`${base}-family: var(${role.rounded ? "--ember-font-rounded" : "--ember-font-text"});`);
       expect(css).toContain(`${base}-transform: ${role.uppercase ? "uppercase" : "none"};`);
-      expect(swiftTokens).toContain(`static let ${name} = TypeRole(size: ${role.size}, weight: .${role.weight}, tracking: ${role.tracking}, rounded: ${role.rounded}, uppercase: ${role.uppercase})`);
+      expect(swiftTokens).toContain(`static let ${name} = TypeRole(size: ${role.size}, weight: .${role.weight}, tracking: ${role.tracking}, rounded: ${role.rounded}, uppercase: ${role.uppercase}, relativeTo: .${role.relativeTo})`);
+    }
+  });
+  it("every Focus Card size is in both (A28 (d), (f))", () => {
+    for (const [name, value] of Object.entries(tokens.focus.scale)) {
+      expect(css).toContain(`--ember-focus-${kebab(name)}: ${value}px;`);
+      expect(swiftTokens).toContain(`static let ${name}: CGFloat = ${value}`);
     }
   });
   it("every spacing and size value is in both", () => {

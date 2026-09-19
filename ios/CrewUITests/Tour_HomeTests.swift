@@ -1,6 +1,8 @@
-// SPEC: Appendix A 2026-09-18 A24 (1) — the screenshot tour, HOME (filled · cardio log · rest day + bonus sheet · the bridge ·
-// empty + rebuild sheet). Seeded through the real API (TourSeed.swift); asserts nothing and never fails CI (TourSteps.swift says
-// why); every step is a shot named NN_<tab>_<screen>_<state> for design/baselines/. The paused Home is in Tour_SettingsTests.
+// SPEC: Appendix A 2026-09-18 A24 (1) — the screenshot tour, HOME, redrawn for A28 (d) (the Focus Card, design/targets 01–06):
+// filled · the "+" sheet · cardio log · rest day + bonus sheet · the bridge · empty + rebuild sheet, each Home state photographed a
+// second time in Midnight (A28 (a): dark is supported and reviewed like light — a "_dark" shot is judged against the "-dark"
+// mockup). Seeded through the real API (TourSeed.swift); asserts nothing and never fails CI (TourSteps.swift says why); every step
+// is a shot named NN_<tab>_<screen>_<state>. The done Home is in Tour_SessionTests, the off-season Home in Tour_SettingsTests.
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
 
 import XCTest
@@ -13,14 +15,21 @@ final class Tour_HomeTests: XCTestCase {
     override func setUp() async throws { continueAfterFailure = true }
 
     func testFilled() async throws {
-        tourLaunch(app, as: try await tourFilledMember(seed))
+        let member = try await tourFilledMember(seed)
+        tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourShot(app, "home_home_filled", "launched as a member with a six-day streak, a crew and today's workout open")
-        tourScroll(app, until: tourButton(app, startingWith: "Log cardio")) // A23: two first-visit whispers push the log rows under the tab bar
-        if tourTap(tourButton(app, startingWith: "Log cardio")) {
-            tourShot(app, "home_cardiolog_empty", "tapped Log cardio")
-            tourBack(app)
+        if tourTap(app.buttons["home.add"]) {
+            tourShot(app, "home_add_sheet", "tapped + on a training day")
+            if tourTap(app.buttons["Log cardio"], timeout: 5) {
+                _ = app.navigationBars["Log cardio"].waitForExistence(timeout: 10)
+                tourShot(app, "home_cardiolog_empty", "tapped Log cardio in the + sheet")
+                tourBack(app)
+            }
         }
+        tourLaunch(app, as: member, dark: true)
+        tourWaitForHome(app)
+        tourShot(app, "home_home_filled_dark", "the same Home with the phone in dark mode")
     }
 
     func testRestDay() async throws {
@@ -29,10 +38,17 @@ final class Tour_HomeTests: XCTestCase {
         tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourShot(app, "home_home_restday", "launched on a rest day")
-        if tourTap(tourButton(app, startingWith: "Log workout")) {
-            tourShot(app, "home_bonus_sheet", "tapped Log workout on a rest day")
-            tourDismissSheet(app)
+        if tourTap(app.buttons["home.add"]) {
+            tourShot(app, "home_add_sheet_rest", "tapped + on a rest day — cardio and a bonus workout")
+            if tourTap(app.buttons["Bonus workout"], timeout: 5) {
+                _ = app.navigationBars["Bonus workout"].waitForExistence(timeout: 10)
+                tourShot(app, "home_bonus_sheet", "tapped Bonus workout in the + sheet")
+                tourDismissSheet(app)
+            }
         }
+        tourLaunch(app, as: member, dark: true)
+        tourWaitForHome(app)
+        tourShot(app, "home_home_restday_dark", "the same rest day in dark mode")
     }
 
     func testBridge() async throws {
@@ -41,15 +57,22 @@ final class Tour_HomeTests: XCTestCase {
         tourLaunch(app, as: member)
         _ = app.buttons["Start your first workout"].waitForExistence(timeout: 25)
         tourShot(app, "home_home_bridge", "launched with a plan and no post yet")
+        tourLaunch(app, as: member, dark: true)
+        _ = app.buttons["Start your first workout"].waitForExistence(timeout: 25)
+        tourShot(app, "home_home_bridge_dark", "the same first day in dark mode")
     }
 
     func testEmpty() async throws {
-        tourLaunch(app, as: try await tourEmptyMember(seed, "Empty Tour"))
+        let member = try await tourEmptyMember(seed, "Empty Tour")
+        tourLaunch(app, as: member)
         _ = app.buttons["Build my week"].waitForExistence(timeout: 25)
         tourShot(app, "home_home_empty", "launched with no plan")
         if tourTap(app.buttons["Build my week"]) {
             tourShot(app, "home_rebuild_sheet", "tapped Build my week")
             tourDismissSheet(app)
         }
+        tourLaunch(app, as: member, dark: true)
+        _ = app.buttons["Build my week"].waitForExistence(timeout: 25)
+        tourShot(app, "home_home_empty_dark", "the same empty Home in dark mode")
     }
 }

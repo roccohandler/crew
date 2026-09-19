@@ -1,5 +1,5 @@
-// SPEC: 5.6.2 HomeModel — state: today: TodayState (TodayState.swift), streak, shields, weeklyRing: [DayRingState],
-// crewStrip: [MemberDot]?; actions: refresh() (Store-only, < 500 ms) · startWorkout ·
+// SPEC: 5.6.2 HomeModel — state: today: TodayState (TodayState.swift), streak, shields, weeklyRing: [DayRingState] (A28 (d): the
+// crew strip left Home, so crewStrip is gone); actions: refresh() (Store-only, < 500 ms) · startWorkout ·
 // quickComplete · startBonus · answerCelebration / postUnanswered / shouldOfferReminder (A21.9 · A21.4, HomeModel+Celebration.swift).
 // S07: bridge until the first post (1D); Quick Complete hidden once today counts; Resume banner;
 // crew strip ABSENT (nil) for solo (Flow 10). A1: today's workout comes from the rotation projection (the training-day check
@@ -18,7 +18,6 @@ final class HomeModel {
     var weeklyRing: [DayRingState] = []
     var ringDone = 0
     var ringPlanned = 0
-    var crewStrip: [MemberDot]?
     var resumeSession: LocalSession?
     var quickCompleteAvailable = false
     var loadError: String?
@@ -31,6 +30,9 @@ final class HomeModel {
     var vectors = VectorSlots(workoutDone: false, cardioMinutes: nil) // A14: today's Workout · Cardio rows (A22 G4: the macros row arrives with W8)
     var nextUp: NextUpFacts?                       // A3 / A18.3: nil on an undone training day, when paused, and on a workout-day bridge
     var todaySummaryLines: [String] = []           // A18.9: what today actually held, in the journal's own sentence
+    var weekdayName = ""                           // A28 (d): the card's eyebrow names today in full ("FRIDAY")
+    var pausedUntilLong: String?                   // A28 (e): "Friday 25 September" for the off-season sub-line
+    var cardWork: HomeCardWork?                    // A28 (d): the day's rows the card lists — a workout day and the first-day bridge
     // A20.9 — copied in `refresh()`, `offline` was a snapshot taken BEFORE the drain that finds the network gone, and
     // sticky after; read off the queue, Observation tracks it, and 6.1's "last-synced" and the queued count come too.
     var offline: Bool { (syncQueue ?? .shared).offline }
@@ -101,7 +103,9 @@ final class HomeModel {
             weeklyRing = marks.days
             ringDone = marks.done
             ringPlanned = marks.planned
-            crewStrip = try crewStripFromSnapshot()
+            weekdayName = NextUp.weekdayLongNames[DayKey.isoWeekday(todayKey) - 1]
+            pausedUntilLong = pause.map { NextUp.longDate($0.endDay) }
+            cardWork = todayWorkout.map { HomeModel.workOf($0) } // after the pause check: a paused day lists no work
             // A20.9 — `offline` is no longer copied here; it is read live off the queue (see the property above).
             try refreshEdges(lastPostDay: lastPostDay, todayKey: todayKey, now: now)
             loadError = nil
@@ -142,17 +146,6 @@ final class HomeModel {
         welcomeBack = LapsedUser.shouldShowWelcomeBack(lastActivityDay: lastPostDay, ackDay: welcomeBackAckDay, today: todayKey)
         staleSession = resumeSession.flatMap { LapsedUser.isStaleSession(startedAt: $0.startedAt, now: now) ? $0 : nil }
         heldUploads = try (syncQueue ?? SyncQueue.shared).heldOver24h(now: now)
-    }
-
-    // Flow 10: nil (absent) when solo — Home never shows an empty social panel.
-    // A17.1 / H033: nil below crewMinMembers too. A crew of ONE has a snapshot whose members are `[you]`, so Home was
-    // showing the user their own face back to them, unlabelled, and calling it a crew. The Crew tab has always known
-    // better (CrewModel.isCrewOfOne, the same predicate) — Home was the last surface that did not. True solo was
-    // already correct (no snapshot → nil), so S07 and Flow 10 were satisfied; this is the crew-of-one state A5 governs.
-    private func crewStripFromSnapshot() throws -> [MemberDot]? {
-        guard let snapshot = try store.crewSnapshot() else { return nil }
-        let members = try JSONDecoder.crew.decode([MemberDot].self, from: snapshot.membersJSON)
-        return members.count < SpecConstants.crewMinMembers ? nil : members
     }
 
     // The rotation workout due today — the planned workout, isPlannedDay true (V25: +100 on completion)

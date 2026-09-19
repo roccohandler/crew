@@ -1,4 +1,5 @@
-// SPEC: A6 (owner-directed 2026-09-08) — one summary line per post: strength "Push day · 12/12 sets · 44 min"; cardio
+// SPEC: A6 (owner-directed 2026-09-08) as amended by A28 (c) (2026-09-19) — one summary line per post: strength "Push day · 12 of
+// 12 sets" (no minutes: nothing shows the time a workout took; "N of M" as mockups 05 and 11 print it); cardio
 // "Walk · 25 min" + " · 2.1 km" when a distance exists (the poster's distanceUnit; one decimal). A2 — a distance is stored
 // in meters. A9 — the unit is the poster's own distanceUnit, no longer inferred from their weight unit. Twin: ios/Crew/Engine/SessionSummaryLine.swift — identical names. Pure.
 import { SpecConstants } from "@/generated/spec-constants";
@@ -14,11 +15,13 @@ export function distanceText(distanceMeters: number, distanceUnit: string): stri
   return `${whole}.${fraction} ${metric ? "km" : "mi"}`;
 }
 
-// SPEC: A6 — sessionSummaryLine(workoutName, isCardio, setsDone, setsPlanned, minutes, cardioMinutes, distanceMeters, distanceUnit):
-// a strength session reads sets and wall-clock minutes; a cardio log reads its logged minutes (the session's own minutes
-// when none were logged) and, when known, the distance
-export function sessionSummaryLine(workoutName: string, isCardio: boolean, setsDone: number, setsPlanned: number, minutes: number, cardioMinutes: number | null, distanceMeters: number | null, distanceUnit: string): string {
-  if (!isCardio) return `${workoutName} · ${setsDone}/${setsPlanned} sets · ${minutes} min`;
-  const line = `${workoutName} · ${cardioMinutes ?? minutes} min`;
-  return distanceMeters === null ? line : `${line} · ${distanceText(distanceMeters, distanceUnit)}`;
+// SPEC: A6 · A28 (c) — sessionSummaryLine(workoutName, isCardio, setsDone, setsPlanned, cardioMinutes, distanceMeters, distanceUnit):
+// a strength session reads its sets and nothing of the clock; a cardio log reads its ENTERED minutes (GAP 4 in A28: they stand
+// until the owner rules) and, when known, the distance — the wall-clock fallback is gone with every session clock
+export function sessionSummaryLine(workoutName: string, isCardio: boolean, setsDone: number, setsPlanned: number, cardioMinutes: number | null, distanceMeters: number | null, distanceUnit: string): string {
+  if (!isCardio) return `${workoutName} · ${setsDone} of ${setsPlanned} sets`;
+  const parts = [workoutName];
+  if (cardioMinutes !== null) parts.push(`${cardioMinutes} min`);
+  if (distanceMeters !== null) parts.push(distanceText(distanceMeters, distanceUnit));
+  return parts.join(" · ");
 }

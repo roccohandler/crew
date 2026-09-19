@@ -8,18 +8,16 @@ import { completionFacts } from "@/lib/engine/completion";
 import { weekKeyFor } from "@/lib/engine/day-key";
 import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
 import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
-import { TimeUnits } from "@/lib/time-units";
 
 // SPEC: A6 — a workout post without a server summary (pre-A6) reads the same line computed from its session: sets from the
-// completion facts (V32: warm-ups excluded), wall-clock minutes rounded like the server's
+// completion facts (V32: warm-ups excluded); no minutes (A28 (c))
 export function summaryFromSession(session: SessionDoc, distanceUnit: string): string {
   const facts = completionFacts(session.exercises.flatMap((exercise) => exercise.sets));
-  const minutes = session.completedAt ? Math.round((session.completedAt.getTime() - session.startedAt.getTime()) / TimeUnits.msPerMinute) : 0;
-  return sessionSummaryLine(session.workoutName, session.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, minutes, null, null, distanceUnit);
+  return sessionSummaryLine(session.workoutName, session.workoutKind === "cardio", facts.setsDone, facts.setsPlanned, null, null, distanceUnit);
 }
 
-// SPEC: A6 · A14 — workout and cardio are two row types; both read the server summary the completion wrote ("Push day · 12/12
-// sets · 44 min" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into. A22: a legacy row
+// SPEC: A6 · A14 — workout and cardio are two row types; both read the server summary the completion wrote ("Push day · 12 of 12
+// sets" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into. A22: a legacy row
 // of a retired kind reads its caption.
 export function postLine(post: PostDoc, sessionLine: string | null): string {
   if (post.type === "workout") return post.summary ?? sessionLine ?? "Workout ✓";

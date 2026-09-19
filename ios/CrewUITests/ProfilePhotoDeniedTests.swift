@@ -23,7 +23,7 @@ final class ProfilePhotoDeniedTests: XCTestCase {
     }
 
     func testNoCameraStillOffersTheLibraryForTheProfilePicture() {
-        XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch.waitForExistence(timeout: 20), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home — the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(3).map(\.label).joined(separator: " | "))")
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         // E1 — the profile row is the member's own name and picture; it opens the Profile screen

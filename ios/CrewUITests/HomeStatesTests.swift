@@ -1,17 +1,16 @@
-// SPEC: S07 (all five states) · 8.4 (the journeys are the record) · 8.9 (the snapshot matrix these shots are the first
-// step toward) · A18 (J029 / J034) · A22 G1 (a) (owner-approved 2026-09-18: a rest day asks nothing).
+// SPEC: S07 as amended by A28 (d), (e) (owner-approved 2026-09-19; design/targets 03–06) · 8.4 (the journeys are the record) ·
+// 8.9 (the snapshot matrix these shots are the first step toward) · A22 G1 (a) (a rest day asks nothing).
 //
-// WHY THIS FILE EXISTS. The owner sent a photograph of Home's REST DAY and asked four questions about it, and nothing
-// in CI had ever rendered that screen with an assertion on it. Journey ② seeds a member who trains every day, so its
-// Home is always a workout day; OfflineSessionTests asserts the bridge. The paused state — the one that contradicted its
-// own copy for a whole release — had never been on screen in any test, on either engine.
+// WHY THIS FILE EXISTS. The owner sent a photograph of Home's REST DAY and asked four questions about it, and nothing in CI had
+// ever rendered that screen with an assertion on it. So this walks Home's four non-bridge states, asserts what the Focus Card
+// promises each of them, and PHOTOGRAPHS each one into the run's xcresult. The assertions are what makes a regression go red
+// rather than merely look wrong to whoever opens the bundle.
 //
-// So this walks Home's four non-bridge states, asserts what A17.4, A18 and A22 promise each of them, and PHOTOGRAPHS each
-// one into the run's xcresult. From a machine with no Mac, those artifacts are the only way to look at the app; the
-// assertions are what makes a regression go red rather than merely look wrong to whoever opens the bundle.
+// A28 (d) moved the state's name from the nav bar into the card (the card's header is one VoiceOver passage, so it is read with
+// CONTAINS), put cardio and the bonus workout behind the "+", and left one filled primary on a card that has one.
 //
-// Each state gets its own account, seeded through the real API against the local harness (SeedClient), with a plan
-// whose single training day is positioned RELATIVE TO TODAY — so a state is deterministic on whatever day CI runs.
+// Each state gets its own account, seeded through the real API against the local harness (SeedClient), with a plan whose single
+// training day is positioned RELATIVE TO TODAY — so a state is deterministic on whatever day CI runs.
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
 
 import XCTest
@@ -22,8 +21,8 @@ final class HomeStatesTests: XCTestCase {
     private let seed = SeedClient()
 
     // Every state below needs the bridge gone (§1D: it survives until the first POST exists), so every seed posts once. A22: the
-    // post is a WORKOUT post — a standalone cardio log (A2), which never fills the planned slot, so today's state is judged as it
-    // would be with no seed at all.
+    // post is a standalone cardio log (A2), which never fills the planned slot, so today's state is judged as it would be with no
+    // seed at all.
     private func launchHome(trainingDayOffset: Int, name: String, paused: Bool = false) async throws {
         continueAfterFailure = false
         dismissSystemPrompts()
@@ -34,57 +33,53 @@ final class HomeStatesTests: XCTestCase {
         app.launchArguments = ["-uiTest", "-seededReturningUser"]
         app.launchEnvironment["CREW_SEED_SESSION"] = member.json
         app.launch()
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 20), "never landed on Home")
     }
 
-    // A17.4 — the nav title NAMES THE STATE. This is the assertion that tells the four tests apart, and the one that
-    // would catch a regression to the constant "Today" that A17.4 removed.
-    private func expectTitle(_ title: String) {
-        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 20), "expected Home's title to name the state (\(title)); the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
-        XCTAssertFalse(app.staticTexts["Your first flame lights today."].exists, "the bridge is still on screen — the seeded post did not land")
+    private func element(containing text: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
-    // A18.5 — the logging vectors, verb-first, on every non-bridge state. The owner called their predecessors "three strange
-    // divs"; a noun title over a value is a stat readout, and 6.6 requires a verb. A22 G4: two rows until W8 ships "Log macros".
-    private func expectLogRows() {
-        for verb in ["Log workout", "Log cardio"] {
-            XCTAssertTrue(app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", verb)).firstMatch.exists, "the \(verb) row is missing — A18.5 puts every row on every non-bridge state")
-        }
+    // A28 (d) — the card's title NAMES THE STATE (the nav bar carries only the "+"), and the bridge's line is gone for good
+    private func expectCard(_ title: String) {
+        XCTAssertTrue(element(containing: title).waitForExistence(timeout: 20), "expected Home's card to name the state (\(title)); the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
+        XCTAssertFalse(element(containing: "Your season starts today").exists, "the bridge is still on screen — the seeded post did not land")
+    }
+
+    // A28 (d) — no verb rows on Home any more: cardio and the bonus workout live behind the "+", and no meal control survived A22
+    private func expectNoVerbRows() {
+        XCTAssertFalse(app.buttons.containing(NSPredicate(format: "label BEGINSWITH 'Log workout'")).firstMatch.exists, "A28 (d) — a verb row is back on Home")
         XCTAssertFalse(app.buttons.containing(NSPredicate(format: "label CONTAINS 'meal'")).firstMatch.exists, "A22 — a meal control survived the plate journal's removal")
     }
 
     // THE SCREEN THE OWNER PHOTOGRAPHED.
     func testRestDayAsksNothing() async throws {
         try await launchHome(trainingDayOffset: 1, name: "Home Rest") // today trains nothing; tomorrow does
-        expectTitle("Rest day")
-
-        // A8 · A22 G1 (a) — this member has logged a walk on a rest day: it pays XP and counts no day, so the streak is 0 and the
-        // flame carries NO caption (never a zero as a verdict). The caption itself (A18.1) is asserted where a day has counted: all-done.
-        XCTAssertFalse(app.staticTexts["day streak"].exists, "A8 — a streak of 0 is captioned as a verdict again")
-        // A17.1 — the sentence that names the strip's colours in place
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'This week:'")).firstMatch.exists)
-        // A22 G1 (a) — the card asks nothing: no control, no stake, no premise (A18.4's line is gone with the daily requirement)
-        XCTAssertTrue(app.staticTexts["Nothing to do here. A rest day asks nothing of your streak."].exists, "Flow 5 / A22 — the rest card no longer says that a rest day asks nothing")
-        XCTAssertFalse(app.buttons["Post a meal"].exists || app.buttons["Post another"].exists, "A22 — the rest card offers a post again")
-        // A18.3 — the what's-next fact is its own block above the card, not the card's quietest caption
-        XCTAssertTrue(app.staticTexts["TOMORROW"].exists || app.staticTexts["NEXT WORKOUT"].exists, "A18.3 — the next-up block is missing from the space it was added to fill")
-        expectLogRows()
+        expectCard("Rest day")
+        // A28 (e) — the settled rest-day line; A22 G1 (a) — no control, no stake
+        XCTAssertTrue(element(containing: "Rest is part of the season. Nothing to do today.").exists, "A28 (e) — the rest card lost its settled line")
+        XCTAssertFalse(app.buttons["Start workout"].exists, "a rest day's card carries no filled button")
+        // A28 (d) — tomorrow sits INSIDE the card now (was A18.3's block above it)
+        XCTAssertTrue(element(containing: "Tomorrow").exists, "the card no longer carries tomorrow")
+        expectNoVerbRows()
+        XCTAssertTrue(app.buttons["home.add"].label.contains("bonus"), "A28 (d) — a rest day's + offers the bonus workout")
         shoot(app, "S07 Home — rest day (the screen the owner photographed)")
     }
 
     func testWorkoutDayShowsTheDaysWorkAndItsSinglePrimary() async throws {
         try await launchHome(trainingDayOffset: 0, name: "Home Workout")
-        expectTitle("Push day")
+        expectCard("Push day")
         XCTAssertTrue(app.buttons["Start workout"].exists, "the day's single ink-filled primary")
-        XCTAssertTrue(app.staticTexts["Push-Up"].exists, "A14 — the card lists the day's actual work, not a count of it")
-        // A18.3 — no next-up block on a training day: the card already IS what is next, and this is the tallest state
-        XCTAssertFalse(app.staticTexts["TOMORROW"].exists)
-        expectLogRows()
+        XCTAssertTrue(element(containing: "Push-Up").exists, "A14 — the card lists the day's actual work, not a count of it")
+        XCTAssertTrue(app.buttons["Quick complete"].exists, "A28 (d) — Quick complete, as text, under a training day's card")
+        XCTAssertFalse(element(containing: "Tomorrow").exists, "a training day's card IS what is next")
+        expectNoVerbRows()
         shoot(app, "S07 Home — workout day")
     }
 
     func testAllDoneReportsTheDayAndAsksForNothing() async throws {
         try await launchHome(trainingDayOffset: 0, name: "Home Done")
-        expectTitle("Push day")
+        expectCard("Push day")
         app.buttons["Quick complete"].tap()
         // the celebration, then back to Home (S10)
         let done = app.buttons["Done"]
@@ -94,27 +89,28 @@ final class HomeStatesTests: XCTestCase {
         let notNow = app.buttons["Not now"] // A21.4: the first completed workout's reminder opt-in follows the celebration, once
         if notNow.waitForExistence(timeout: 5) { notNow.tap() }
 
-        expectTitle("Done for today")
+        expectCard("Done for today")
         // A18.1 — the planned workout counted the day (V67), so the flame's numeral is named where it sits
-        XCTAssertTrue(app.staticTexts["day streak"].waitForExistence(timeout: 10), "A18.1 — the flame's numeral is unnamed again")
-        // A18.9 — the day, reported in the journal's own sentence, and no control: the day is closed
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Push day · '")).firstMatch.waitForExistence(timeout: 10), "A18.9 — the all-done card reports nothing about the day it just closed")
-        expectLogRows()
+        XCTAssertTrue(element(containing: "Streak ").waitForExistence(timeout: 10), "A18.1 — the reward block lost the flame")
+        // A18.9 · A28 (c) — the day, reported in the journal's own sentence and without the clock
+        XCTAssertTrue(element(containing: "Push day · ").waitForExistence(timeout: 10), "A18.9 — the done card reports nothing about the day it just closed")
+        XCTAssertTrue(app.buttons["Edit today's log"].exists, "A28 (d) — the done card's text button")
+        XCTAssertFalse(app.buttons["Start workout"].exists, "a done day's card carries no filled button")
+        expectNoVerbRows()
         shoot(app, "S07 Home — all done")
     }
 
-    // The state that contradicted its own copy for a whole release, and that no test had ever rendered. It is also the
-    // state that proves A20.10: the pause is seeded through the REAL API, so it can only reach this screen if
-    // ServerHydrate pulls it — which it did not until 2026-09-12, and this assertion is what said so.
-    func testPausedFreezesTheReportAndOffersTheWayOut() async throws {
+    // The state that contradicted its own copy for a whole release. It is also the state that proves A20.10: the pause is seeded
+    // through the REAL API, so it can only reach this screen if ServerHydrate pulls it.
+    func testPausedIsOffSeasonAndOffersTheWayOut() async throws {
         try await launchHome(trainingDayOffset: 0, name: "Home Paused", paused: true)
-        expectTitle("Plan paused")
-        // A18.6c — the one control the paused card was missing, in the wording Settings already uses
-        XCTAssertTrue(app.buttons["End the pause now"].exists, "A18.6c — a paused user still has no route off the pause that any word on this screen names")
+        expectCard("Plan paused")
+        // A28 (e) — off-season, in the settled words, with the one filled way out (mockup 06)
+        XCTAssertTrue(element(containing: "Off-season until ").exists, "A28 (e) — the off-season line is missing")
+        XCTAssertTrue(app.buttons["End the pause"].exists, "A18.6c / A28 (e) — a paused user has no route off the pause")
         // A18.6d / J021 — nothing on a frozen plan offers planned work
         XCTAssertFalse(app.buttons["Quick complete"].exists, "A18.6d — a frozen plan is offering planned-day credit again")
-        // A18.6a — and the header no longer states a penalty the card denies
-        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'missed'")).firstMatch.exists, "A18.6a — the week strip is reporting misses inside a pause window again")
-        shoot(app, "S07 Home — plan paused")
+        XCTAssertFalse(element(containing: "missed").exists, "A18.6a — Home reports a miss inside a pause window again")
+        shoot(app, "S07 Home — off-season")
     }
 }

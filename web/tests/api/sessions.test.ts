@@ -58,7 +58,7 @@ describe("sessions", () => {
     expect(reply.session.setsDone).toBe(1);
     expect(reply.gamification).toMatchObject({ currentStreak: 1, totalXP: 125 }); // V25 day-one total
     expect(await (await posts()).countDocuments({ sessionId: { $ne: null } })).toBe(1);
-    expect(await summaryOf(created.session.id)).toBe("Push day · 1/4 sets · 44 min"); // A6
+    expect(await summaryOf(created.session.id)).toBe("Push day · 1 of 4 sets"); // A6 · A28 (c): no minutes
     await putPlan(request("PUT", "/plans", { token: me.accessToken, body: samplePlanBody([2, 4]) })); // later plan edit
     const after = await readJson<SessionReply>(await getSession(request("GET", `/sessions/${created.session.id}`, { token: me.accessToken }), params(created.session.id)));
     expect(after.session.workoutName).toBe("Push day");
