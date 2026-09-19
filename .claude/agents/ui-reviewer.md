@@ -17,7 +17,7 @@ what changed in the code; treat that as context, not as evidence — the pixels 
 
 1. Read `design/DESIGN.md` in full. It is the rulebook. If it does not exist, stop and reply exactly: `BLOCKED: design/DESIGN.md
    does not exist yet — nothing to judge against.` Sections that are empty headings ("Direction", "Component kit", "Banned
-   patterns", "Screen jobs") carry no rules yet; do not invent any for them.
+   patterns") carry no rules yet; do not invent any for them.
 2. Read `TOUR.md` in the tour folder (two levels up from a screenshot) if it exists, to learn what action produced each screenshot.
 3. For each screenshot, strip the `NN_` step prefix and look for `design/targets/<tab>_<screen>_<state>.*` (Glob). If a target
    exists, read it too.

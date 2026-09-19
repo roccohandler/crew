@@ -92,3 +92,79 @@ carry no rules, and `ui-reviewer` invents none.
 ## Banned patterns
 
 ## Screen jobs
+
+Ratified by the owner 2026-09-18 (Appendix A, A27) as the test `ui-reviewer` applies: the one job each screen exists to do.
+
+**Onboarding**
+
+- Intro: Say what Crew is and let me start, join, or log back in.
+- Invite code: Take my friend's code and show me the crew it belongs to.
+- Log in: Get me back into my account.
+- Days question: Ask which days I train.
+- Experience question: Ask how experienced I am.
+- Plan reveal: Show me the week you built and let me change exercises I don't want.
+- Save / sign up: Keep this plan by making me an account.
+
+**Home**
+
+- First day (bridge): Get me into my first workout.
+- No plan: Get me to build a plan.
+- Training day: Tell me what I'm training today and start it.
+- Rest day: Tell me today is rest and keep my streak safe.
+- Done: Confirm today is finished and show what I did.
+- Paused: Remind me the plan is paused and let me end it.
+- Rebuild sheet: Ask which days I train now.
+- Bonus sheet: Let me pick a workout that isn't today's.
+- Cardio log: Log the cardio I just did in a few taps.
+- Reminder opt-in: Ask whether I want a nudge on workout days, and when.
+
+**Plan**
+
+- Week map: Show my week at a glance and let me change it.
+- Change days: Ask which days I train from now on.
+- Workout editor: Let me change one day's exercises, sets and order.
+- Exercise sheet: Let me adjust, swap, move or remove this one exercise.
+- Swap / Add exercise sheet: Let me pick a different exercise for this slot.
+
+**Crew**
+
+- Crew, solo: Explain what a crew does and get me to start or join one.
+- Create crew: Name my crew and start it.
+- Join by code: Take my friend's code and put me in their crew.
+- Crew stream: Show me who showed up today and let me react.
+- Invite sheet: Get the invite to my friends.
+- Manage crew (new, per ruling b): Let me rename the crew, replace the link, remove a member, or leave.
+
+**Progress**
+
+- Charts: Show me whether I've been showing up, and whether I'm getting stronger.
+- Journal: Let me look back at what I actually did, day by day.
+
+**Session**
+
+- Logger: Log each set as I do it, with as few taps as possible.
+- Weight alert: Let me type an exact weight.
+- Discard dialog: Confirm I'm throwing this workout away.
+- Celebration: Show me what I just did and let me choose whether the crew sees it.
+
+**Settings**
+
+- Settings list: Let me find and change anything about my account, plan or privacy.
+- Blocked people: Show who I've blocked and let me unblock them.
+- Profile: Let me set my name and photo.
+- Pause: Pause my plan until a date I pick.
+
+**Nutrition (18+)**
+
+- Today, first run: Turn my bodyweight into daily macro targets.
+- Today: Show what's left to eat today and log a meal in one tap.
+- Quick add: Log grams for something not in my saved meals.
+- Logged today: Show everything I logged today and let me remove a mistake.
+- Saved meals: Keep the meals I eat over and over.
+- Template: Set the meals I eat on a normal day.
+- Meal form: Enter or edit one meal's macros.
+- Chain picker: Find a fast-food item and save it as a meal.
+- Nutrition targets: Show and adjust my daily targets.
+- How targets are estimated / How Crew works: Explain the reasoning and show the sources.
+
+A control that does not serve its screen's job is a candidate for removal. A job with two homes has one too many.

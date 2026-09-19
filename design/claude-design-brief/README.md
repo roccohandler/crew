@@ -37,6 +37,33 @@ they showed up for; rest days ask nothing, and adults can privately log protein,
 Screenshots are from ci run 35351054305 (iPhone 17 simulator). Two were captured mid-animation (`06`, `08_home_home_done`), and
 `03` does not show the rest timer it should. The full per-screen inventory is `design/INVENTORY.md`.
 
+### Their jobs — ratified by the owner 2026-09-18 (spec Appendix A, A27; the full list is in `design/DESIGN.md`)
+
+A control that does not serve its screen's job is a candidate for removal. A job with two homes has one too many.
+
+**Home**
+
+- First day (bridge): Get me into my first workout.
+- No plan: Get me to build a plan.
+- Training day: Tell me what I'm training today and start it.
+- Rest day: Tell me today is rest and keep my streak safe.
+- Done: Confirm today is finished and show what I did.
+- Paused: Remind me the plan is paused and let me end it.
+- Rebuild sheet: Ask which days I train now.
+- Bonus sheet: Let me pick a workout that isn't today's.
+- Cardio log: Log the cardio I just did in a few taps.
+- Reminder opt-in: Ask whether I want a nudge on workout days, and when.
+
+The last four (Rebuild, Bonus, Cardio log, Reminder opt-in) are sheets with no shot in `screens/home/`; their tour shots are listed in
+`design/INVENTORY.md` §2.
+
+**The workout logger**
+
+- Logger: Log each set as I do it, with as few taps as possible.
+- Weight alert: Let me type an exact weight.
+- Discard dialog: Confirm I'm throwing this workout away.
+- Celebration: Show me what I just did and let me choose whether the crew sees it.
+
 ## Top 10 inconsistencies, ranked by how much they hurt a first-time user
 
 1. **Buttons drawn as plain words, indistinguishable from labels.** "Barbell  Swap  Skip" are three identical gray words — one is a
@@ -59,5 +86,12 @@ Screenshots are from ci run 35351054305 (iPhone 17 simulator). Two were captured
    nothing ("Leave crew" and "Log out" act at once).
 10. **No rule for where the main button sits or how a sheet closes.** Bottom bar with a rule, bottom without, or mid-screen;
     sheets close by Cancel, Done-left, Done-right, a grabber, or nothing at all.
+
+## Three more, added with the screen jobs (2026-09-18) — for this session to resolve
+
+- **Three reorder idioms.** One exercise can be reordered in three places — the exercise sheet's Move up / Move down, the
+  editor's Reorder, the nutrition template's Up / Down — and one idiom should win.
+- **Settings is one long list.** About 20 rows across 2.5 screens; it needs grouped destinations rather than one list.
+- **Blocked people's empty state is a gray sentence, not an invitation.**
 
 The visual direction is the owner's decision in this session. Nothing here proposes one.
