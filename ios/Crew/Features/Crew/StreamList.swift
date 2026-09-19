@@ -24,7 +24,7 @@ struct StreamList: View {
                              onReport: { if let id = item.post?.id { onReport(id) } },
                              onBlock: { onBlock(item.userId) })
                 case "system":
-                    Text(item.body ?? "").font(.footnote).foregroundStyle(EmberColors.secondaryText).frame(maxWidth: .infinity)
+                    Text(numerals: item.body ?? "").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary).multilineTextAlignment(.center).frame(maxWidth: .infinity) // A28 (f): a quiet line
                 default:
                     EmptyView()
                 }

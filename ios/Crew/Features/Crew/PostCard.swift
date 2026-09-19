@@ -1,7 +1,8 @@
-// SPEC: Flow 6 — posts are the stream's cards ("SAM · PULL DAY ✓ · 15/15 sets · 🔥 day 4"; A21.2: there is no chat); long-press → the five
-// reactions; the COMEBACK 🎉 banner (V39); Part III law ④ (ember only where progress is the message) · A6 (the summary line
-// under the author) · A5 + E9 (Report post · Block {name} one long-press away, never on your own post).
-// WRITTEN — UNVERIFIED. T031
+// SPEC: Flow 6 — posts are the stream's cards (A21.2: there is no chat); long-press → the five reactions; the comeback (V39) · A6
+// (the summary line under the author) · A5 + E9 (Report post · Block {name} one long-press away, never on your own post). A28 (b),
+// (c), (f) · R5: the system's card; the comeback is stated in ink and in words (no 🎉 — every PR and comeback accent went); the
+// summary reads without a stored line's old minutes (R-086); the reaction counts are words, not chips (the five emoji are user
+// content, R-083 (12)); React is an ink text button. WRITTEN — UNVERIFIED. T031 · R5
 
 import SwiftUI
 
@@ -17,29 +18,32 @@ struct PostCard: View {
     private var isMine: Bool { item.userId == myUserId }
 
     var body: some View {
-        Card {
+        FocusCard {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
-                if item.comeback == true {
-                    Text("Comeback 🎉").font(.caption.weight(.semibold)).foregroundStyle(EmberColors.emberText)
-                }
-                HStack {
-                    Text(authorName.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(EmberColors.secondaryText)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(authorName).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary) // uppercase by its role
                     Spacer()
-                    Text(item.post?.type == "workout" ? "Workout ✓" : "").font(.caption).foregroundStyle(EmberColors.secondaryText)
+                    if item.comeback == true { Text("Comeback").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
                 }
-                if let summary = item.post?.summary, !summary.isEmpty { Text(summary).font(.subheadline).foregroundStyle(EmberColors.inkText) }
-                if let caption = item.post?.caption, !caption.isEmpty { Text(caption).font(.body).foregroundStyle(EmberColors.inkText) }
-                if let reactions = item.reactions, !reactions.isEmpty {
-                    HStack(spacing: EmberTokens.Spacing.space8) {
+                if let summary = item.post?.summary, !summary.isEmpty {
+                    Text(numerals: SessionSummaryLine.withoutWorkoutMinutes(summary)).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let caption = item.post?.caption, !caption.isEmpty {
+                    Text(caption).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink).fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space12) {
+                    if let reactions = item.reactions, !reactions.isEmpty {
                         ForEach(Dictionary(grouping: reactions, by: \.emoji).sorted { $0.key < $1.key }, id: \.key) { emoji, who in
-                            Text("\(emoji) \(who.count)").font(.caption)
-                                .padding(.horizontal, EmberTokens.Spacing.space8).padding(.vertical, EmberTokens.Spacing.space4)
-                                .background(who.contains { $0.userId == myUserId } ? EmberColors.hairline : EmberColors.canvas, in: Capsule())
+                            // the reader's own reaction reads in ink, the others' in inkSecondary: weight, not a chip, says "yours"
+                            Text(numerals: "\(emoji) \(who.count)").typeRole(EmberTokens.Typography.caption)
+                                .foregroundStyle(who.contains { $0.userId == myUserId } ? EmberColors.ink : EmberColors.inkSecondary)
                         }
                     }
+                    Spacer(minLength: 0)
+                    // 6.7: every gesture has a visible button · 6.3: its target is 44 pt
+                    TextActionButton(title: "React", horizontalPadding: 0, accessibilityLabel: "React to \(authorName)'s post", role: EmberTokens.Typography.textButton) { showsReactions = true }
                 }
-                // 6.7: every gesture has a visible button · 6.3: at caption size that button was ~40×16 pt
-                TextActionButton(title: "React", font: .caption, color: EmberColors.secondaryText, horizontalPadding: 0, accessibilityLabel: "React to \(authorName)'s post") { showsReactions = true }
             }
         }
         .onLongPressGesture { showsReactions = true }
@@ -47,15 +51,10 @@ struct PostCard: View {
             ForEach(SpecConstants.reactionEmojis, id: \.self) { emoji in Button(emoji) { onReact(emoji) } }
             if !isMine {
                 Button("Report post") { onReport() }
-                Button("Block \(authorName)", role: .destructive) { onBlock() }
+                Button("Block \(authorName)", role: .destructive) { onBlock() } // the confirm surface: the one place red appears
             }
         }
-        // SPEC: 6.5 — "session, posting, reacting fully completable non-visually" (A21.2 dropped chat) is a RELEASE-BLOCKING gate, and
-        // reacting was not completable. `children: .combine` merges the card into one element, which is right for reading a
-        // post as a single passage — but it also swallows the inner `React` button, so the only non-visual route to a
-        // reaction was a long-press gesture VoiceOver never delivers. The reactions become accessibility ACTIONS on the
-        // merged element: reachable from the rotor in one gesture, no extra stop while reading the stream, and the
-        // gesture/button pair above is untouched for sighted users (6.3).
+        // SPEC: 6.5 — reacting is completable non-visually: the card reads as one passage and the reactions are its actions
         .accessibilityElement(children: .combine)
         .accessibilityActions {
             ForEach(SpecConstants.reactionEmojis, id: \.self) { emoji in
@@ -69,4 +68,3 @@ struct PostCard: View {
         .accessibilityHint("Actions available for reactions")
     }
 }
-

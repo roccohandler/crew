@@ -21,11 +21,11 @@ struct CrewStrip: View {
                             // it, and an ink-gray ring IS the empty state. A paused member reads as not-posted here —
                             // the ⏸ in the numeral below carries that distinction, and it is the honest reading.
                             Circle()
-                                .fill(member.postedToday ? EmberColors.ember : EmberColors.card)
+                                .fill(member.postedToday ? EmberColors.ink : EmberColors.card) // A28 (b) · R5: an ink mark, never accent
                                 .frame(width: EmberTokens.Spacing.space12, height: EmberTokens.Spacing.space12)
-                                .overlay(Circle().strokeBorder(member.postedToday ? EmberColors.canvas : EmberColors.secondaryText, lineWidth: EmberTokens.Size.hairline))
+                                .overlay(Circle().strokeBorder(member.postedToday ? EmberColors.canvas : EmberColors.inkSecondary, lineWidth: EmberTokens.Size.hairline))
                         }
-                        Text(member.paused ? "⏸" : "\(member.streak)").font(.caption.monospacedDigit()).foregroundStyle(EmberColors.secondaryText)
+                        Text(numerals: member.paused ? "⏸" : "\(member.streak)").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                     }
                     // 6.3 — the strip is a STATUS display, not a control: a 40 pt avatar that looks tappable and does
                     // nothing is a false affordance. Marking it as an image tells VoiceOver the same truth the eye gets,

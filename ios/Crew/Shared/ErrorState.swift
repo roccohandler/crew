@@ -26,10 +26,10 @@ struct ErrorState: View {
 // when it was seen it could not answer "behind by how much". The owner's second complaint — "things don't look like
 // they're syncing" — is about exactly this surface, and the mockup that prompted this pass deleted it altogether.
 //
-// What it does now: draws on `emberTint` behind a `controlOutline` edge (3.13:1) with an SF Symbol, and states the two
-// facts SyncQueue now publishes — when the server last took something, and how much is still waiting. `lastSyncedLine`
-// stays the caller's sentence so nothing else that renders this has to change. Ember TINT, not ember: law ④ keeps the
-// ember SHAPES for the reward layer, and a tint is a surface (the same distinction A18.11 drew for hairline vs control).
+// What it does now: states the two facts SyncQueue publishes — when the server last took something, and how much is still
+// waiting — beside an SF Symbol. `lastSyncedLine` stays the caller's sentence. A28 (f) · R5 (2026-09-19): the system has no
+// banner, and offline is "a quiet line" (R-083 (13)), so the tinted, outlined surface is gone: an ink glyph and an inkSecondary
+// line, on whatever the screen draws. Home, Plan and Crew read it, so all three moved together (docs/debt.md).
 struct OfflineBanner: View {
     let lastSyncedLine: String
     var pending: Int = 0
@@ -38,19 +38,14 @@ struct OfflineBanner: View {
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space8) {
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.footnote)
-                .foregroundStyle(EmberColors.secondaryText)
-            Text(line)
-                .font(.footnote)
-                .foregroundStyle(EmberColors.inkText)
+                .foregroundStyle(EmberColors.ink)
+            Text(numerals: line)
+                .typeRole(EmberTokens.Typography.secondary)
+                .foregroundStyle(EmberColors.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true) // 6.7: it wraps, it never widens the column
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, EmberTokens.Spacing.space12)
-        .padding(.vertical, EmberTokens.Spacing.space8)
         .frame(maxWidth: .infinity, minHeight: EmberTokens.Spacing.space32, alignment: .leading)
-        .background(EmberColors.emberTint, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
         // E20 — one stop, the whole sentence, with the word "Offline" leading so a screen reader states the condition first
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Offline. \(line)")

@@ -179,7 +179,7 @@ final class CrewModel {
         if let reply = try? await Api.shared.regenerateInvite(crewId: crew.id) { self.crew = CrewDTO(id: crew.id, name: crew.name, emoji: crew.emoji, captainId: crew.captainId, inviteLink: reply.inviteLink, muted: crew.muted) }
     }
 
-    // SPEC: E2 (Captain: rename) · S13 · W3 — rename the crew or change its emoji from the Invite screen; the refresh re-reads the
+    // SPEC: E2 (Captain: rename) · S13 · W3 · A27 (b) — rename the crew or change its emoji from Manage crew; the refresh re-reads the
     // name everywhere (header, snapshot) and the notice says what happened
     func rename(name: String, emoji: String) async {
         guard let crew, isCaptain else { return }

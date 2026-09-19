@@ -5,7 +5,8 @@
 // the invite sheet follows a create. A21.3 / W4 (owner-approved 2026-09-17): the solo tab offers "I have an invite" (JoinByCodeSheet);
 // 1C: the profile-photo prompt shows once after the first join or create, after any invite sheet is down. W7 (owner order 2026-09-18,
 // item 3): a tapped invite link opens the same join sheet with the code filled and looked up (InviteInbox). Screens hold ZERO logic
-// (5.6.6). WRITTEN — UNVERIFIED (needs Mac). T031
+// (5.6.6). A27 (b) · A28 (f) · R5: Manage crew is pushed from the tab (its own screen); Invite does only invite; the stream's cards,
+// strip and lines are the system's (ink marks, no accent). WRITTEN — UNVERIFIED (needs Mac). T031
 
 import SwiftUI
 
@@ -20,6 +21,7 @@ enum CrewLoadState: Equatable {
 struct CrewScreen: View {
     @State private var model = CrewModel()
     @State private var showsInvite = false
+    @State private var managing = false // A27 (b): Manage crew, pushed from the tab
     @State private var showsCreate = false
     @State private var showsJoinByCode = false // A21.3
     @State private var showsPhotoPrompt = false // 1C
@@ -53,7 +55,14 @@ struct CrewScreen: View {
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Crew")
-            .toolbar { if model.crew != nil { ToolbarItem(placement: .primaryAction) { Button("Invite") { showsInvite = true } } } }
+            // A27 (b): Invite does only invite; Manage crew holds rename, the link, removal and leaving (text buttons in ink, A28 (f))
+            .toolbar {
+                if model.crew != nil {
+                    ToolbarItem(placement: .topBarLeading) { Button("Manage") { managing = true }.accessibilityLabel("Manage crew") }
+                    ToolbarItem(placement: .topBarTrailing) { Button("Invite") { showsInvite = true } }
+                }
+            }
+            .navigationDestination(isPresented: $managing) { ManageCrewScreen(model: model) }
             .sheet(isPresented: $showsInvite) { InviteScreen(model: model) }
             .sheet(isPresented: $showsCreate) { CreateCrewScreen(model: model) }
             .sheet(isPresented: $showsJoinByCode) { JoinByCodeSheet(model: model) }
@@ -73,26 +82,27 @@ struct CrewScreen: View {
     // A5: strip and banner pinned above the scroll view; the stream keeps its bottom anchor (the newest post is nearest the thumb)
     private var content: some View {
         VStack(spacing: 0) {
-            if loadState == .offline, let synced = model.lastSyncedAt { OfflineBanner(lastSyncedLine: "Last synced \(synced.formatted(date: .omitted, time: .shortened)).") }
+            if loadState == .offline, let synced = model.lastSyncedAt { OfflineBanner(lastSyncedLine: "Last synced \(synced.formatted(date: .omitted, time: .shortened)).").padding(.horizontal, EmberTokens.Focus.gutter) }
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
                 if let crew = model.crew { MemberStrip(crewName: crew.name, emoji: crew.emoji, pulse: model.pulse, members: model.members) }
                 if model.hasCrewmates { Whisper(.whyCrews) } // A23: a crew, not a crew of one
                 if model.isCrewOfOne, let crew = model.crew { CrewOfOneCard(crew: crew, isCaptain: model.isCaptain) { model.copyInviteLink() }; Whisper(.howInvite) } // A23 · R-076
-                if let notice = model.noticeLine { Text(notice).font(.footnote).foregroundStyle(EmberColors.secondaryText).accessibilityAddTraits(.updatesFrequently) }
+                if let notice = model.noticeLine { Text(notice).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).accessibilityAddTraits(.updatesFrequently) }
             }
-            .padding(.horizontal, EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
             .padding(.top, EmberTokens.Spacing.space8)
             ScrollView {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                     if model.stream.isEmpty && model.hasCrewmates {
-                        Text("Quiet in here. Post a workout and it lands right here.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                        Text("Quiet in here. Post a workout and it lands right here.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
                     }
                     StreamList(items: model.stream, members: model.members, myUserId: myUserId,
                                onReact: { postId, emoji in model.react(postId: postId, emoji: emoji) },
                                onReport: { postId in Task { await model.report(postId: postId) } },
                                onBlock: { userId in Task { await model.block(userId: userId) } })
                 }
-                .padding(EmberTokens.Spacing.space16)
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .padding(.vertical, EmberTokens.Spacing.space16)
             }
             .defaultScrollAnchor(.bottom)
         }

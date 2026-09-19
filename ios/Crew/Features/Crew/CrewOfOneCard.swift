@@ -1,7 +1,7 @@
-// SPEC: A5 (owner-directed 2026-09-08) — a crew of one: under the strip an ink card with the privacy promise, Invite friends
-// (the system share sheet, Flow 6) and Copy link for the Captain; members read "Ask your Captain for the link." · Part III
-// law ① (ink acts, never orange) · E3 (only your crew sees this). Screens hold ZERO logic (5.6.6).
-// WRITTEN — UNVERIFIED (needs Mac).
+// SPEC: A5 (owner-directed 2026-09-08) as drawn by A28 (f) — a crew of one: under the strip the system's card with the privacy
+// promise, the one filled "Invite friends" (the system share sheet, Flow 6) and "Copy link" as text for the Captain; members read
+// "Ask your Captain for the link." · Part III law ① (ink acts, never orange) · E3 (only your crew sees this). Screens hold ZERO
+// logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac). R5
 
 import SwiftUI
 
@@ -11,21 +11,21 @@ struct CrewOfOneCard: View {
     let onCopyLink: () -> Void
 
     var body: some View {
-        Card {
+        FocusCard {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                Label("Only your crew sees this.", systemImage: "lock").font(.headline).foregroundStyle(EmberColors.inkText)
-                Text("Send the link and your first post lands here for them.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Label("Only your crew sees this.", systemImage: "lock").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                Text("Send the link and your first post lands here for them.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if isCaptain, let link = crew.inviteLink, let url = URL(string: link) {
                     ShareLink(item: url, message: Text("Join my crew on Crew: \(crew.name) \(crew.emoji)")) {
-                        Text("Invite friends").font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.dayToggleMinPt))
-                            .foregroundStyle(EmberColors.primaryButtonLabel)
-                            .background(EmberColors.primaryButtonFill, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
+                        Text("Invite friends").typeRole(EmberTokens.Typography.primaryLabel)
+                            .foregroundStyle(EmberColors.onInk)
+                            .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.primaryHeight)
+                            .background(EmberColors.ink, in: Capsule()) // the system's primary capsule
                     }
-                    Button("Copy link", action: onCopyLink).font(.subheadline).foregroundStyle(EmberColors.inkText)
-                        .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                    TextActionButton(title: "Copy link", role: EmberTokens.Typography.textButton, action: onCopyLink).frame(maxWidth: .infinity)
                 } else if !isCaptain {
-                    Text("Ask your Captain for the link.").font(.body).foregroundStyle(EmberColors.inkText)
+                    Text("Ask your Captain for the link.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink)
                 }
             }
         }

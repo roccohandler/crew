@@ -1809,3 +1809,34 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       text, because a removal is undone, not confirmed (A4).
   (9) **The days sheet** gains Cancel as the visible twin of the pull (6.3).
 - Look at: the Plan shots (light and dark) against DESIGN.md, and whether (4)'s wording is the owner's.
+
+### R-088 · 2026-09-19 · A28 R5 — Crew and the new Manage crew screen (A27 (b)) on the system · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. R5 had no GAP precondition and no mockup; its screens are judged against
+  DESIGN.md alone.
+- What changed:
+  - Solo, the Crew tab is one centred card: the three loop lines, the size of a crew, one filled "Start a crew", and
+    "I have an invite" as text.
+  - With a crew, the nav bar carries "Manage" (labelled "Manage crew") and "Invite".
+  - The strip's marks and the pulse are ink. The post cards are the system's card, with the comeback in words, the reaction
+    counts as words, and React as a text button. The stream's lines are quiet.
+  - The Invite sheet does only invite: the link (the one filled button) and the code with "Copy code".
+  - `ManageCrewScreen` is new. The Captain gets the name and emoji with "Save name", "Replace the invite link", the members with
+    Remove, and "Leave the crew". A member gets Leave alone (`ManageCrewAction.actions`, tested; the server's E2 tests stand).
+    Every destructive action sits behind its confirm.
+  - The create and join sheets are the system's sheets, with platform fields without field chrome.
+  - The offline banner is a quiet line, on Home, Plan and Crew at once.
+- The builder's readings:
+  (1) **Manage crew is pushed from the tab**, through a text button in the nav bar ("Manage", which VoiceOver reads as "Manage
+      crew"), across from Invite. A27 (b) says "reached from the Crew tab" and names no control.
+  (2) **Replace, remove and leave are destructive, so each asks.** The confirm carries the red (A28 (a)). The old flow removed and
+      left on one tap, from the Invite screen.
+  (3) **The Captain's own row is not in the member list**, because leaving is its own row. Captaincy passes on server-side, as
+      before.
+  (4) **Reactions are counts in words**, the reader's own in ink and the others in `inkSecondary`. Chips are not on A28 (f)'s list,
+      and the five emoji are user content (R-083 (12)).
+  (5) **The crew stream reads a stored summary without its old minutes**, completing R-086 (7).
+  (6) **The solo tab has no heading.** Its old heading repeated the button (ui-reviewer, run 35440565004). The third loop line's
+      glyph is a thumbs-up, not a flame: the flame is the streak's, in accent, and only there.
+  (7) **The offline line** is an ink glyph and an `inkSecondary` sentence with no surface. The system has no banner (R-083 (13)),
+      so all three readers moved together.
+- Look at: the Crew shots (the stream, the invite sheet, Manage crew as the Captain, solo, create, join) against DESIGN.md, and (1).

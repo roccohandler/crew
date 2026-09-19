@@ -13,7 +13,8 @@ final class Tour_CrewTests: XCTestCase {
     override func setUp() async throws { continueAfterFailure = true }
 
     func testFilled() async throws {
-        tourLaunch(app, as: try await tourFilledMember(seed))
+        let member = try await tourFilledMember(seed)
+        tourLaunch(app, as: member)
         tourWaitForHome(app)
         tourTap(app.tabBars.buttons["Crew"])
         _ = tourButton(app, startingWith: "React").waitForExistence(timeout: 20)
@@ -22,13 +23,22 @@ final class Tour_CrewTests: XCTestCase {
             tourShot(app, "crew_react_dialog", "tapped React on the first post")
             tourDismissDialog(app)
         }
+        // A27 (b): the Invite sheet does only invite; the Captain's tools are Manage crew's
         if tourTap(app.buttons["Invite"], timeout: 5) {
             _ = app.buttons["Copy code"].waitForExistence(timeout: 10)
-            tourShot(app, "crew_invite_sheet", "tapped Invite")
-            app.swipeUp()
-            tourShot(app, "crew_invite_sheet_lower", "scrolled the invite sheet to the captain's controls")
+            tourShot(app, "crew_invite_sheet", "tapped Invite — the link and the code, nothing else")
             tourDismissSheet(app, button: "Done")
         }
+        if tourTap(app.buttons["Manage crew"], timeout: 5) {
+            _ = app.buttons["Leave the crew"].waitForExistence(timeout: 10)
+            tourShot(app, "crew_manage_captain", "tapped Manage crew as the Captain")
+            tourBack(app)
+        }
+        tourLaunch(app, as: member, dark: true) // A28 (a): the Crew tab in Midnight
+        tourWaitForHome(app)
+        tourTap(app.tabBars.buttons["Crew"])
+        _ = tourButton(app, startingWith: "React").waitForExistence(timeout: 20)
+        tourShot(app, "crew_stream_filled_dark", "the same stream in dark mode")
     }
 
     func testEmpty() async throws {

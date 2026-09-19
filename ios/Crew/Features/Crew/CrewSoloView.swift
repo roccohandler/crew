@@ -1,7 +1,9 @@
-// SPEC: A5 (owner-directed 2026-09-08) — the solo tab explains the loop in three lines then one CTA · Flow 10 (solo is a full
-// experience; the Crew tab is one warm invitation) · 6.1 Empty (an invitation, never an apology) · A8 (sentence case, verb-first
-// CTA, no orange: nothing here is a reward) · A21.3 / W4 (owner-approved 2026-09-17): the SAME entry as the hero — "I have an
-// invite" — for a signed-in user with a code in hand (JoinByCodeSheet). Screens hold ZERO logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac).
+// SPEC: A5 (owner-directed 2026-09-08) as drawn by A28 (f) — the solo tab explains the loop in three lines, then one CTA · Flow 10
+// (solo is a full experience; the Crew tab is one warm invitation) · 6.1 Empty (an invitation, never an apology) · A21.3 / W4: the
+// SAME entry as the hero — "I have an invite" — for a signed-in user with a code in hand (JoinByCodeSheet). One card, optically
+// centred like Home's: the three lines and the size of a crew, the one filled "Start a crew", and "I have an invite" as text (the
+// kit's text button, not an outline). No heading that repeats the button (ui-reviewer, run 35440565004). Screens hold ZERO logic
+// (5.6.6). WRITTEN — UNVERIFIED (needs Mac). R5
 
 import SwiftUI
 
@@ -10,19 +12,28 @@ struct CrewSoloView: View {
     var onHaveInvite: () -> Void = {}
 
     var body: some View {
-        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Spacer()
-            Text("Start a crew").font(.title2.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-            LoopLine(symbol: "dumbbell", text: "Finish a workout and post it.")
-            LoopLine(symbol: "arrow.down.to.line", text: "It lands here for your crew.")
-            LoopLine(symbol: "flame", text: "They react 🔥💪👏😂❤️.") // A21.2: no chat
-            Text("Two to ten friends. A link, a name, an emoji.").font(.body).foregroundStyle(EmberColors.secondaryText)
-            PrimaryButton(title: "Start a crew", action: onStart)
-            SecondaryButton(title: "I have an invite", action: onHaveInvite) // A21.3: paste the code a friend sent
-            Spacer()
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer(minLength: EmberTokens.Focus.gutter)
+                    FocusCard {
+                        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+                            LoopLine(symbol: "dumbbell", text: "Finish a workout and post it.")
+                            LoopLine(symbol: "arrow.down.to.line", text: "It lands here for your crew.")
+                            LoopLine(symbol: "hand.thumbsup", text: "They react 🔥💪👏😂❤️.") // A21.2: no chat; the five are user content (R-083 (12))
+                            Text("Two to ten friends. A link, a name, an emoji.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            PrimaryButton(title: "Start a crew", action: onStart).padding(.top, EmberTokens.Spacing.space8)
+                        }
+                    }
+                    TextActionButton(title: "I have an invite", role: EmberTokens.Typography.textButton, action: onHaveInvite) // A21.3: paste the code a friend sent
+                        .padding(.top, EmberTokens.Spacing.space8)
+                    Spacer(minLength: EmberTokens.Focus.gutter)
+                }
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .frame(minHeight: proxy.size.height)
+            }
         }
-        .padding(EmberTokens.Spacing.space24)
-        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
     }
 }
@@ -34,8 +45,8 @@ private struct LoopLine: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space12) {
-            Image(systemName: symbol).font(.body).foregroundStyle(EmberColors.inkText).frame(width: EmberTokens.Spacing.space24)
-            Text(text).font(.body).foregroundStyle(EmberColors.inkText)
+            Image(systemName: symbol).foregroundStyle(EmberColors.ink).frame(width: EmberTokens.Spacing.space24)
+            Text(text).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink).fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
     }

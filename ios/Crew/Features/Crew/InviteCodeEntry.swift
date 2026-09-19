@@ -17,7 +17,7 @@ struct InviteCodeEntry: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Text("Paste the code or the whole link your friend sent.").font(.body).foregroundStyle(EmberColors.secondaryText)
+            Text("Paste the code or the whole link your friend sent.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             HStack(spacing: EmberTokens.Spacing.space8) {
                 TextField("Invite code", text: $code)
                     .textInputAutocapitalization(.never)
@@ -25,23 +25,22 @@ struct InviteCodeEntry: View {
                     .keyboardType(.asciiCapable)
                     .submitLabel(.search)
                     .onSubmit(onLookUp)
-                    .padding(EmberTokens.Spacing.space12)
-                    .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                    .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
+                    .typeRole(EmberTokens.Typography.cardSubheading)
+                    .foregroundStyle(EmberColors.ink)
+                    .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt)) // R-083 (11): the platform's field, without field chrome
                     .accessibilityLabel("Invite code")
                 TextActionButton(title: "Paste", accessibilityLabel: "Paste the invite code") { if let pasted = UIPasteboard.general.string { code = pasted } }
             }
             if let preview {
-                Text("\(preview.name) \(preview.emoji) · \(preview.memberCount) of \(SpecConstants.crewMaxMembers) in the crew")
-                    .font(.headline).foregroundStyle(EmberColors.inkText)
+                Text(numerals: "\(preview.name) \(preview.emoji) · \(preview.memberCount) of \(SpecConstants.crewMaxMembers) in the crew")
+                    .typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
                     .accessibilityIdentifier("invitePreview")
             }
-            if let errorLine { Text(errorLine).font(.footnote).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.updatesFrequently) }
+            if let errorLine { Text(errorLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.updatesFrequently) }
             if let preview, !preview.full {
                 PrimaryButton(title: continueTitle, action: onContinue)
             } else {
-                SecondaryButton(title: isLookingUp ? "Looking…" : "Find my crew", action: onLookUp)
+                PrimaryButton(title: isLookingUp ? "Looking…" : "Find my crew", action: onLookUp) // A28 (f): the one filled button until a crew is found
                     .disabled(isLookingUp || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }

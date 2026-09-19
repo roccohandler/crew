@@ -14,12 +14,16 @@ struct JoinByCodeSheet: View {
                 InviteCodeEntry(code: $model.inviteCode, preview: model.invitePreview, errorLine: model.inviteCodeError, isLookingUp: model.isLookingUpInvite, continueTitle: "Join the crew",
                                 onLookUp: { Task { await model.lookUpInvite() } },
                                 onContinue: { Task { await model.joinByCode(); if model.crew != nil { dismiss() } } })
-                    .padding(EmberTokens.Spacing.space24)
+                    .padding(.horizontal, EmberTokens.Focus.gutter)
+                    .padding(.vertical, EmberTokens.Spacing.space16)
             }
-            .background(EmberColors.canvas.ignoresSafeArea())
+            .background(EmberColors.card.ignoresSafeArea()) // A28 (f): the sheet surface
             .navigationTitle("I have an invite")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
+        .tint(EmberColors.ink)
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(EmberTokens.Focus.cardRadius)
     }
 }
