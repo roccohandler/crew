@@ -13,19 +13,19 @@ struct TemplateRows: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-            Text("Your template").font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.isHeader)
+            Text("Your template").typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
             if slots.isEmpty {
-                Text("Build your usual day once. After that, one tap logs a meal.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("Build your usual day once. After that, one tap logs a meal.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             } else {
-                VStack(spacing: 0) {
-                    ForEach(slots) { slot in
-                        if slot.id > 0 { Rectangle().fill(EmberColors.hairline).frame(height: EmberTokens.Size.hairline) }
-                        TemplateSlotRow(slot: slot) { onTap(slot) }
+                // A28 (f) · R7: the group is the system's card, its slots row buttons with the seam between them
+                FocusCard(padding: 0) {
+                    VStack(spacing: 0) {
+                        ForEach(slots) { slot in
+                            if slot.id > 0 { Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset) }
+                            TemplateSlotRow(slot: slot) { onTap(slot) }
+                        }
                     }
                 }
-                // One boundary around the group (A18.11: controlOutline on a control, the hairline only between two surfaces)
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline))
-                .clipShape(RoundedRectangle(cornerRadius: EmberTokens.Size.cornerRadius, style: .continuous))
                 Whisper(.howShake) // A23: the first template slot
             }
         }
@@ -41,13 +41,13 @@ struct TemplateSlotRow: View {
         Button(action: action) {
             HStack(spacing: EmberTokens.Spacing.space8) {
                 // The tick is a SHAPE in ink — state is never colour (§7.4 encoder ⑤)
-                Image(systemName: slot.tickedLogId == nil ? "circle" : "checkmark.circle.fill").foregroundStyle(EmberColors.inkText)
-                Text(slot.title).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                Image(systemName: slot.tickedLogId == nil ? "circle" : "checkmark.circle.fill").foregroundStyle(EmberColors.ink)
+                Text(slot.title).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: EmberTokens.Spacing.space8)
-                Text(MacroDay.gramsText(slot.meal.grams)).font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.inkText).lineLimit(1)
+                Text(numerals: MacroDay.gramsText(slot.meal.grams)).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).lineLimit(1)
             }
             .frame(maxWidth: .infinity, minHeight: minTarget, alignment: .leading)
-            .padding(.horizontal, EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.setCardInset)
             .padding(.vertical, EmberTokens.Spacing.space12)
             .contentShape(Rectangle())
         }
@@ -73,8 +73,8 @@ struct MealLineRow: View {
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space4) {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-                Text(title ?? line.name).font(.body).foregroundStyle(EmberColors.inkText).fixedSize(horizontal: false, vertical: true)
-                Text(MacroDay.gramsText(line.grams)).font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.secondaryText).lineLimit(1)
+                Text(title ?? line.name).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink).fixedSize(horizontal: false, vertical: true)
+                Text(numerals: MacroDay.gramsText(line.grams)).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).lineLimit(1)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(title ?? line.name), \(MacroDay.gramsSpoken(line.grams))")

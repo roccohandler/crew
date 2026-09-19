@@ -17,7 +17,7 @@ struct MealFormSheet: View {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                     NutritionTextField(title: "Name", text: $draft.name, focus: $focused, key: "name")
                     GramFields(grams: $draft.grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: $focused, prefix: "meal")
-                    if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
+                    if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
                 }
                 .padding(EmberTokens.Spacing.space24)
             }

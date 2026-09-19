@@ -18,20 +18,19 @@ struct GramField: View {
 
     var body: some View {
         HStack(spacing: EmberTokens.Spacing.space8) {
-            Text(label).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+            Text(label).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
             Spacer(minLength: EmberTokens.Spacing.space8)
-            StepButton(symbol: "minus", noun: label) { grams = GramField.clamp(grams - SpecConstants.macroGramsRoundTo, limit) }
+            StepButton(symbol: "minus", noun: label, focus: true) { grams = GramField.clamp(grams - SpecConstants.macroGramsRoundTo, limit) } // A28 (f): the system's stepper
             TextField("0", text: text)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.center)
-                .font(.body.monospacedDigit())
-                .foregroundStyle(EmberColors.inkText)
+                .typeRole(EmberTokens.Typography.cardSubheading)
+                .fontDesign(.rounded) // §4: a number is Rounded Bold
+                .foregroundStyle(EmberColors.ink)
                 .focused(focus, equals: key)
-                .frame(width: minTarget + EmberTokens.Spacing.space16, height: minTarget)
-                .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline)) // A18.11: a field's boundary is a control boundary
+                .frame(width: minTarget + EmberTokens.Spacing.space16, height: minTarget) // R-083 (11): the platform's field, without field chrome
                 .accessibilityLabel("\(label) grams")
-            StepButton(symbol: "plus", noun: label) { grams = GramField.clamp(grams + SpecConstants.macroGramsRoundTo, limit) }
+            StepButton(symbol: "plus", noun: label, focus: true) { grams = GramField.clamp(grams + SpecConstants.macroGramsRoundTo, limit) }
         }
     }
 

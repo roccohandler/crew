@@ -1873,3 +1873,24 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (7) **Blocked people's empty state** keeps its settled words, "No one blocked.", on the system's surface. It has no CTA, because
       there is nothing to do there. It is an invitation only in the sense 6.1 allows: a fact, never an apology.
 - Look at: the Settings shots (the page, Units, Notifications, Account, Blocked people, Profile, Pause) against DESIGN.md, and (1).
+
+### R-090 · 2026-09-19 · A28 R7 — the Nutrition screens on the system (Today, Quick add, Logged today, Saved meals, Template, the meal form, the chain picker, targets, the methodology page) · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. GAP 6 (A16's macro identity palette under "no third hue") was R7's precondition.
+- What changed (iOS):
+  - Every nutrition view reads the type roles and the table's names: headings are card sub-headings, body and secondary text
+    are ink and `inkSecondary`, and every numeral is Rounded Bold (`Text(numerals:)`).
+  - Today's three destinations (Quick add, Logged today with its count, Saved meals & template) are row buttons in one card.
+  - The template's slots sit in the system's card.
+  - The fields have no chrome, and the gram steppers are the 52 pt kind.
+  - The outline buttons are text buttons: Add a meal, Add from a chain, Add to template, Recalculate from bodyweight.
+- The builder's readings:
+  (1) **GAP 6.** A16's three macro identity colours stand, as the bounded exception DESIGN.md 1.5 already carries: nutrition
+      surfaces only, never with an accent element. The bars stay ON THE CANVAS, not in a card. That keeps dark carbs at 3.5:1
+      (the pair the lock lift relied on, R-084 (4)); on the Midnight card it would be 2.79:1.
+  (2) **No filled button on Today** (its A25 reading stands). Its three ways out are row buttons with chevrons. "Logged today"
+      carries its count as the row's value, and appears once there is something behind it (A8).
+  (3) **The template's tick** stays the ink SF circle and check. It already clears 3:1 and carries state by shape
+      (§7.4 encoder ⑤).
+  (4) **Copy is untouched.** The words are the ratified addendum's (A16.a, Q1–Q3) and A23's; R7 is a redraw.
+- Look at: the Nutrition shots (Today, first run, Quick add, Logged today, Saved meals, Template, the forms, targets, the
+  methodology page) against DESIGN.md.

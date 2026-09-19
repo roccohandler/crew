@@ -27,7 +27,7 @@ struct SavedMealsScreen: View {
                     ForEach(SavedMealsSegment.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
-                if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
+                if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
                 switch segment {
                 case .meals: mealsList
                 case .template: DayTemplateView(model: model)
@@ -48,7 +48,7 @@ struct SavedMealsScreen: View {
     private var mealsList: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
             if model.meals.isEmpty {
-                Text("No saved meals yet. Add the ones you eat most, once.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("No saved meals yet. Add the ones you eat most, once.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             }
             ForEach(model.meals) { meal in
                 MealLineRow(line: meal, actions: [
@@ -56,8 +56,9 @@ struct SavedMealsScreen: View {
                     MealLineAction(title: "Delete", spoken: "Delete \(meal.name)") { model.delete(meal) },
                 ])
             }
-            SecondaryButton(title: "Add a meal") { draft = MealDraft.new() }
-            SecondaryButton(title: "Add from a chain") { pickingChain = true }
+            // A28 (f): the two ways in are text buttons (the outline button is not on the list)
+            TextActionButton(title: "Add a meal", role: EmberTokens.Typography.textButton) { draft = MealDraft.new() }
+            TextActionButton(title: "Add from a chain", role: EmberTokens.Typography.textButton) { pickingChain = true }
         }
     }
 }

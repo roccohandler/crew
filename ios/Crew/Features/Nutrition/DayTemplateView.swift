@@ -15,9 +15,9 @@ struct DayTemplateView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
             if model.meals.isEmpty {
-                Text("A template is built from saved meals. Add one first.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("A template is built from saved meals. Add one first.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             } else if model.slots.isEmpty {
-                Text("Your usual day, in order. One tap on Today logs each slot.").font(.body).foregroundStyle(EmberColors.secondaryText)
+                Text("Your usual day, in order. One tap on Today logs each slot.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             }
             ForEach(model.slots) { slot in
                 MealLineRow(line: slot.meal, title: slot.title, actions: [
@@ -34,15 +34,15 @@ struct DayTemplateView: View {
     private var chosenMeal: MealLine? { model.meals.first(where: { $0.id == mealId }) ?? model.meals.first }
 
     private var addSlot: some View {
-        Card {
+        FocusCard {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                Text("Add a slot").font(.headline).foregroundStyle(EmberColors.inkText)
+                Text("Add a slot").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
                 Picker("Saved meal", selection: $mealId) {
                     ForEach(model.meals) { Text($0.name).tag($0.id) }
                 }
-                .tint(EmberColors.inkText)
+                .tint(EmberColors.ink)
                 NutritionTextField(title: "Label (optional)", text: $label, focus: $focused, key: "slotLabel")
-                SecondaryButton(title: "Add to template") {
+                TextActionButton(title: "Add to template", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { // A28 (f): a text button
                     focused = nil
                     if let meal = chosenMeal { model.addSlot(meal: meal, label: label); label = "" }
                 }

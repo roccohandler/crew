@@ -14,16 +14,16 @@ struct NutritionTargetsScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 NutritionTextField(title: "Bodyweight (\(model.weightUnit))", text: $model.bodyweightText, keyboard: .decimalPad, focus: $focused, key: "bodyweight")
-                Text("Used for the estimate and nothing else. Only you can see it.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                Text("Used for the estimate and nothing else. Only you can see it.").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                 if model.hasTargets { GramFields(grams: $model.grams, limit: SpecConstants.macroTargetGramsMax, focus: $focused, prefix: "target"); Whisper(.whyProtein) } // A23
-                if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
-                if let saved = model.savedLine { Text(saved).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                if model.hasTargets { SecondaryButton(title: "Recalculate from bodyweight") { focused = nil; model.save(manual: false) } }
+                if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
+                if let saved = model.savedLine { Text(saved).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
+                if model.hasTargets { TextActionButton(title: "Recalculate from bodyweight", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { focused = nil; model.save(manual: false) } } // A28 (f): a text button
                 if let source = model.sourceLine, let estimate = model.estimateLine {
-                    Text("\(source) \(estimate)").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                    Text("\(source) \(estimate)").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                 }
-                if let overage = model.overageLine { Text(overage).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.inkText)
+                if let overage = model.overageLine { Text(overage).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
+                NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.ink)
             }
             .padding(EmberTokens.Spacing.space16)
         }

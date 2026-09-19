@@ -43,21 +43,21 @@ struct NutritionMethodScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.sectionGap) {
-                Text(copy.lead).font(.body).foregroundStyle(EmberColors.inkText)
+                Text(copy.lead).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink)
                 ForEach(copy.steps) { step in
                     VStack(alignment: .leading, spacing: EmberTokens.Spacing.rowGap) {
-                        Text(step.heading).font(.title3.weight(.semibold)).foregroundStyle(EmberColors.inkText).accessibilityAddTraits(.isHeader)
-                        Text(step.body).font(.body).foregroundStyle(EmberColors.inkText)
+                        Text(step.heading).typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
+                        Text(step.body).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink)
                         ForEach(copy.sources.filter { step.sourceIds.contains($0.id) }) { source in
                             Button { opened = URL(string: source.url).map { SourceLink(id: source.id, url: $0) } } label: {
-                                Text(source.label).font(.footnote).underline().foregroundStyle(EmberColors.secondaryText).multilineTextAlignment(.leading)
+                                Text(source.label).typeRole(EmberTokens.Typography.caption).underline().foregroundStyle(EmberColors.inkSecondary).multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt), alignment: .leading)
                             }
                             .accessibilityAddTraits(.isLink)
                         }
                     }
                 }
-                Text(copy.clinician).font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                Text(copy.clinician).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
             }
             .padding(EmberTokens.Spacing.space16)
         }

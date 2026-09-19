@@ -59,10 +59,10 @@ struct MacroLineHeader: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space8) {
-            if let letter { Text(letter).font(.body.weight(.bold)).foregroundStyle(EmberColors.inkText) }
-            Text(name).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
+            if let letter { Text(letter).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink) }
+            Text(name).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
             Spacer(minLength: EmberTokens.Spacing.space8)
-            Text(amount).font(.body.monospacedDigit()).foregroundStyle(EmberColors.inkText)
+            Text(numerals: amount).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink)
         }
     }
 }
@@ -71,7 +71,7 @@ struct MacroRestLine: View {
     let text: String
 
     var body: some View {
-        Text(text).font(.body.monospacedDigit()).foregroundStyle(EmberColors.inkText) // clause ②: ordinary ink, on its own line
+        Text(numerals: text).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink) // clause ②: ordinary ink, on its own line
     }
 }
 
@@ -88,7 +88,7 @@ struct MacroBar: View {
             ZStack(alignment: .leading) {
                 Rectangle().fill(track)
                 if percent > 0 { filled.frame(width: unit * CGFloat(percent)) }
-                Rectangle().fill(EmberColors.inkText).frame(width: EmberTokens.Size.hairline).offset(x: unit * CGFloat(SpecConstants.macroBarTargetPercent))
+                Rectangle().fill(EmberColors.ink).frame(width: EmberTokens.Size.hairline).offset(x: unit * CGFloat(SpecConstants.macroBarTargetPercent))
             }
         }
         .frame(height: height)
@@ -102,10 +102,10 @@ struct MacroBar: View {
         case .solid:
             Rectangle().fill(fill)
         case .solidWithHairline:
-            Rectangle().fill(fill).overlay(Rectangle().strokeBorder(EmberColors.inkText, lineWidth: EmberTokens.Size.hairline))
+            Rectangle().fill(fill).overlay(Rectangle().strokeBorder(EmberColors.ink, lineWidth: EmberTokens.Size.hairline))
         case .outlineWithHairline:
             Rectangle().strokeBorder(fill, lineWidth: EmberTokens.Spacing.space4)
-                .overlay(Rectangle().inset(by: EmberTokens.Spacing.space4).strokeBorder(EmberColors.inkText, lineWidth: EmberTokens.Size.hairline))
+                .overlay(Rectangle().inset(by: EmberTokens.Spacing.space4).strokeBorder(EmberColors.ink, lineWidth: EmberTokens.Size.hairline))
         }
     }
 }

@@ -90,7 +90,7 @@ final class Journey5_NutritionTests: XCTestCase {
         app.buttons["Add"].tap()
         expectLine("Protein: 40 / 145 g, 105 to go", "the quick add did not count")
         // …and the day's log is the other destination, each entry with its visible Delete (6.3: never a swipe alone)
-        let logged = app.buttons["Logged today · 2"]
+        let logged = app.buttons["Logged today, 2"] // R-090: a row button reads its name, then its value
         XCTAssertTrue(logged.waitForExistence(timeout: 15), "Today never offered the day's log")
         logged.tap()
         XCTAssertTrue(labelled("Delete Quick add").waitForExistence(timeout: 15), "the day's log never opened")

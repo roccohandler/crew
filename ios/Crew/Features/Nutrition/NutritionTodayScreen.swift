@@ -39,9 +39,10 @@ struct NutritionTodayScreen: View {
                 case .askBirthYear: birthYearAsk
                 case .available: if let remaining = model.remaining { today(remaining) } else { firstRun }
                 }
-                if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
+                if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
             }
-            .padding(EmberTokens.Spacing.space16)
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle(model.availability == .askBirthYear ? "Your birth year" : "Today")
@@ -66,13 +67,28 @@ struct NutritionTodayScreen: View {
             Haptics.selection()
             model.tapSlot(slot)
         }
-        VStack(spacing: EmberTokens.Spacing.rowGap) {
-            SecondaryButton(title: "Quick add") { showsQuickAdd = true }
-            // A8 — an empty day reports nothing: the button exists once there is something behind it
-            if !model.logs.isEmpty { SecondaryButton(title: "Logged today · \(model.logs.count)") { showsLog = true } }
-            NavigationLink { SavedMealsScreen() } label: {
-                Text("Saved meals & template").font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                    .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+        // A28 (f) · R7: the three destinations are row buttons in one card (the outline button is not on the list); A8 — an empty day
+        // reports nothing: "Logged today" exists once there is something behind it
+        FocusCard(padding: 0) {
+            VStack(spacing: 0) {
+                RowButton(title: "Quick add") { showsQuickAdd = true }
+                if !model.logs.isEmpty {
+                    Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
+                    RowButton(title: "Logged today", value: "\(model.logs.count)") { showsLog = true }
+                }
+                Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
+                NavigationLink { SavedMealsScreen() } label: {
+                    HStack(spacing: EmberTokens.Spacing.space12) {
+                        Text("Saved meals & template").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                        Spacer(minLength: EmberTokens.Spacing.space8)
+                        Image(systemName: "chevron.right").foregroundStyle(EmberColors.chevron)
+                    }
+                    .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                    .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Saved meals & template")
             }
         }
     }
@@ -80,17 +96,17 @@ struct NutritionTodayScreen: View {
     // SPEC: §3 — one number, one button, and the estimate does the rest; every number is the user's to overwrite afterwards
     private var firstRun: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Text("Start with your bodyweight. It sets a first estimate of your protein, carbs and fat, and you can change any of it.").font(.body).foregroundStyle(EmberColors.secondaryText)
+            Text("Start with your bodyweight. It sets a first estimate of your protein, carbs and fat, and you can change any of it.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             NutritionTextField(title: "Bodyweight (\(model.weightUnit))", text: $bodyweightText, keyboard: .decimalPad, focus: $focused, key: "bodyweight")
-            Text("Used for the estimate and nothing else. Only you can see it.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-            NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.inkText)
+            Text("Used for the estimate and nothing else. Only you can see it.").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
+            NavigationLink("How targets are estimated") { NutritionMethodScreen() }.foregroundStyle(EmberColors.ink)
         }
     }
 
     // SPEC: A16.c · §6 — asked once, with signup's own bounds; the year is stored on the server and never shown again
     private var birthYearAsk: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-            Text("Nutrition needs it once. It's never shown to anyone.").font(.body).foregroundStyle(EmberColors.secondaryText)
+            Text("Nutrition needs it once. It's never shown to anyone.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary)
             NutritionTextField(title: "Birth year", text: $birthYearText, keyboard: .numberPad, focus: $focused, key: "birthYear")
         }
     }
@@ -106,15 +122,14 @@ struct NutritionTextField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-            Text(title).font(.subheadline).foregroundStyle(EmberColors.inkText)
+            Text(title).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink)
             TextField(title, text: $text)
                 .keyboardType(keyboard)
                 .autocorrectionDisabled()
                 .focused(focus, equals: key)
-                .padding(EmberTokens.Spacing.space12)
-                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
-                .background(EmberColors.card, in: RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: EmberTokens.Spacing.space12, style: .continuous).stroke(EmberColors.controlOutline, lineWidth: EmberTokens.Size.hairline)) // A18.11
+                .typeRole(EmberTokens.Typography.cardSubheading)
+                .foregroundStyle(EmberColors.ink)
+                .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt)) // R-083 (11): the platform's field, without field chrome
                 .accessibilityLabel(title)
         }
     }

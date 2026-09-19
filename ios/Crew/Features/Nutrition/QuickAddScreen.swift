@@ -18,7 +18,7 @@ struct QuickAddScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
                 GramFields(grams: $grams, limit: SpecConstants.macroGramsMaxPerEntry, focus: $focused, prefix: "quick")
-                if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
+                if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
             }
             .padding(EmberTokens.Spacing.space16)
         }
@@ -53,8 +53,8 @@ struct NutritionLogScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                if model.logs.isEmpty { Text("Nothing logged yet today.").font(.body).foregroundStyle(EmberColors.secondaryText) }
-                if let error = model.errorLine { Text(error).font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.inkText) }
+                if model.logs.isEmpty { Text("Nothing logged yet today.").typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.inkSecondary) }
+                if let error = model.errorLine { Text(error).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.ink) }
                 ForEach(model.logs) { log in
                     MealLineRow(line: log, actions: [MealLineAction(title: "Delete", spoken: "Delete \(log.name)") { model.deleteLog(log.id) }])
                 }

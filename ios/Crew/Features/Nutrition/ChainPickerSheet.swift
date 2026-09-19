@@ -16,7 +16,7 @@ struct ChainPickerSheet: View {
                 NavigationLink {
                     ChainItemsList(chain: chain, items: model.items(of: chain), onPick: onPick)
                 } label: {
-                    Label { Text(chain.name).foregroundStyle(EmberColors.inkText) } icon: { Image(systemName: chain.icon).foregroundStyle(EmberColors.inkText) }
+                    Label { Text(chain.name).foregroundStyle(EmberColors.ink) } icon: { Image(systemName: chain.icon).foregroundStyle(EmberColors.ink) }
                 }
                 .listRowBackground(EmberColors.card)
             }
@@ -41,18 +41,18 @@ struct ChainItemsList: View {
                     Button { onPick(item) } label: {
                         HStack(spacing: EmberTokens.Spacing.space8) {
                             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-                                Text(item.name).font(.body.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                                Text(item.servingLabel).font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                                Text(item.name).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                                Text(item.servingLabel).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                             }
                             Spacer(minLength: EmberTokens.Spacing.space8)
-                            Text(MacroDay.gramsText(MacroGrams(proteinG: item.proteinG, carbsG: item.carbsG, fatG: item.fatG))).font(.subheadline.monospacedDigit()).foregroundStyle(EmberColors.inkText).lineLimit(1)
+                            Text(numerals: MacroDay.gramsText(MacroGrams(proteinG: item.proteinG, carbsG: item.carbsG, fatG: item.fatG))).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).lineLimit(1)
                         }
                     }
                     .accessibilityLabel("\(item.name), \(item.servingLabel), \(MacroDay.gramsSpoken(MacroGrams(proteinG: item.proteinG, carbsG: item.carbsG, fatG: item.fatG)))")
                     .listRowBackground(EmberColors.card)
                 }
             } footer: {
-                Text("Numbers are \(chain.name)'s own published nutrition facts.").font(.footnote).foregroundStyle(EmberColors.secondaryText)
+                Text("Numbers are \(chain.name)'s own published nutrition facts.").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
             }
         }
         .scrollContentBackground(.hidden)
