@@ -28,4 +28,14 @@ enum SessionSummaryLine {
         if let distanceMeters { parts.append(distanceText(distanceMeters: distanceMeters, distanceUnit: distanceUnit)) }
         return parts.joined(separator: " · ")
     }
+
+    // SPEC: A28 (c) · R-086 — a summary STORED before A28 carries the workout's minutes ("Push day · 12/12 sets · 44 min"); it reads at
+    // render as "Push day · 12 of 12 sets". A cardio line's entered minutes stand (GAP 4), and nothing stored is rewritten.
+    static func withoutWorkoutMinutes(_ stored: String) -> String {
+        let parts = stored.components(separatedBy: " · ")
+        guard let minutes = parts.last, minutes.hasSuffix(" min"), let sets = parts.dropLast().last, sets.hasSuffix(" sets") else { return stored }
+        let counts = sets.dropLast(" sets".count).split(separator: "/", omittingEmptySubsequences: false)
+        guard let done = counts.first, let planned = counts.last, counts.dropFirst().count == 1, Int(done) != nil, Int(planned) != nil else { return stored }
+        return (parts.dropLast().dropLast() + ["\(done) of \(planned) sets"]).joined(separator: " · ")
+    }
 }

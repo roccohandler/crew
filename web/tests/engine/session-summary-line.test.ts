@@ -2,7 +2,7 @@
 // time a workout took) · "Walk · 25 min · 2.1 km" (a cardio log's ENTERED minutes stand, GAP 4 in A28); A2 distance in meters, shown
 // at one decimal in the poster's units. Twin of ios/CrewTests/SessionSummaryLineTests.swift: identical cases.
 import { describe, expect, it } from "vitest";
-import { distanceText, sessionSummaryLine } from "@/lib/engine/session-summary-line";
+import { distanceText, sessionSummaryLine, withoutWorkoutMinutes } from "@/lib/engine/session-summary-line";
 
 describe("sessionSummaryLine", () => {
   it("a strength session reads its sets and nothing of the clock", () => {
@@ -28,5 +28,14 @@ describe("sessionSummaryLine", () => {
     expect(distanceText(1609, "mi")).toBe("1.0 mi");
     expect(distanceText(16093, "mi")).toBe("10.0 mi");
     expect(distanceText(100000, "mi")).toBe("62.1 mi");
+  });
+
+  // A28 (c) · R-086 — a summary stored before A28 reads without the workout's minutes; everything else reads as stored
+  it("a stored summary reads without the workout's minutes", () => {
+    expect(withoutWorkoutMinutes("Push day · 12/12 sets · 44 min")).toBe("Push day · 12 of 12 sets");
+    expect(withoutWorkoutMinutes("Push day · 12 of 12 sets")).toBe("Push day · 12 of 12 sets");
+    expect(withoutWorkoutMinutes("Walk · 25 min · 2.1 km")).toBe("Walk · 25 min · 2.1 km");
+    expect(withoutWorkoutMinutes("Walk · 25 min")).toBe("Walk · 25 min");
+    expect(withoutWorkoutMinutes("Leg day · 3/x sets · 9 min")).toBe("Leg day · 3/x sets · 9 min");
   });
 });

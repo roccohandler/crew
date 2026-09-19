@@ -3,9 +3,9 @@
 // A2/A6: sets = strength work sets; mobility and cardio are minutes per week (facts, never targets). A1 · A27 (a): planned = the
 // days the training days in effect on each of them plan.
 import type { ObjectId } from "mongodb";
-import { gamificationStates, posts, sessions } from "@/lib/db";
+import { gamificationStates, pauses, posts, sessions } from "@/lib/db";
 import type { ExerciseType, SessionDoc } from "@/lib/documents";
-import { addDays, dayKeyFor, weekKeyFor } from "@/lib/engine/day-key";
+import { addDays, dayKeyFor, daysBetween, weekKeyFor } from "@/lib/engine/day-key";
 import { workoutKindFromName } from "@/lib/engine/plan-rotation";
 import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 import { TimeUnits } from "@/lib/time-units";
@@ -86,4 +86,34 @@ function strengthTrends(completed: { dayKey: string; exercises: { exerciseId: st
     }
   }
   return [...trends.values()];
+}
+
+// SPEC: A28 (e) (owner-approved 2026-09-19) — "This season · N weeks · N workouts": a LABEL, no engine rule, no vector, no stored
+// field. GAP 10 read conservatively (R-086): a season starts at the plan's first training-days entry (its build, A27 (a)) or at the
+// end of the latest pause that has run its course, whichever is later; a days change never restarts it. Weeks are the calendar
+// weeks it touches, this one included; workouts are completed workouts (a standalone cardio log is not one, A14).
+// Twin of ios/Crew/Features/Progress/SeasonFacts.swift — identical cases in both suites.
+export interface SeasonFacts { startDayKey: string; weeks: number; workouts: number }
+
+export function seasonFacts(history: TrainingDaysEntry[], endedPauseDays: string[], workoutDayKeys: string[], todayKey: string): SeasonFacts | null {
+  const built = history[0]?.from;
+  if (built === undefined || built > todayKey) return null;
+  const pauseEnd = endedPauseDays.filter((day) => day <= todayKey).sort().pop();
+  const start = pauseEnd !== undefined && pauseEnd > built ? pauseEnd : built;
+  const weeks = daysBetween(weekKeyFor(start), weekKeyFor(todayKey)) / TimeUnits.daysPerWeek + 1;
+  return { startDayKey: start, weeks, workouts: workoutDayKeys.filter((day) => day >= start && day <= todayKey).length };
+}
+
+export function seasonLine(facts: SeasonFacts): string {
+  return `This season · ${facts.weeks} ${facts.weeks === 1 ? "week" : "weeks"} · ${facts.workouts} ${facts.workouts === 1 ? "workout" : "workouts"}`;
+}
+
+// SPEC: A28 (e) · GAP 10 (R-086) — the season from what the server holds: the plan's history, every pause that has run its course
+// (the server keeps an early end as endDay = that day, which the phone does not — docs/debt.md), and the completed workouts since
+export async function seasonOf(userId: ObjectId, trainingDays: TrainingDaysEntry[], todayKey: string): Promise<SeasonFacts | null> {
+  const ended = (await (await pauses()).find({ userId, endDay: { $lte: todayKey } }, { projection: { endDay: 1 } }).toArray()).map((doc) => doc.endDay);
+  const start = seasonFacts(trainingDays, ended, [], todayKey)?.startDayKey;
+  if (start === undefined) return null;
+  const workouts = await (await sessions()).find({ userId, status: "completed", workoutKind: { $ne: "cardio" }, dayKey: { $gte: start, $lte: todayKey } }, { projection: { dayKey: 1 } }).toArray();
+  return seasonFacts(trainingDays, ended, workouts.map((doc) => doc.dayKey), todayKey);
 }

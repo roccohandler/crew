@@ -13,7 +13,7 @@ import { posts, sessions } from "@/lib/db";
 import { weekKeyFor } from "@/lib/engine/day-key";
 import { dayLabel, weekHeader } from "@/lib/engine/day-label";
 import { findPlan } from "@/lib/plans";
-import { progressFacts, type WeekRecord } from "@/lib/progress-facts";
+import { progressFacts, seasonLine, seasonOf, type WeekRecord } from "@/lib/progress-facts";
 import { readSession } from "@/lib/session";
 
 // SPEC: A6 — the tapped day: its heading is the readable label; every line is the same summary the journal shows
@@ -28,10 +28,11 @@ async function DayDetail({ userId, dayKey, todayKey, distanceUnit }: { userId: O
   );
 }
 
-// SPEC: A2 — "Cardio {n} min · Mobility {m} min this week"; nothing when both are 0 (a zero is never a verdict, A8)
+// SPEC: A2 as amended by A28 (c) — "Cardio {n} min this week": the minutes the user entered (GAP 4, R-084 (2)); the mobility minutes
+// are gone with the hold timer; nothing at 0 (a zero is never a verdict, A8)
 function MinutesLine({ week }: { week: WeekRecord | undefined }) {
-  if (!week || (week.cardioMinutes === 0 && week.mobilityMinutes === 0)) return null;
-  return <p className="muted">Cardio {week.cardioMinutes} min · Mobility {week.mobilityMinutes} min this week</p>;
+  if (!week || week.cardioMinutes === 0) return null;
+  return <p className="muted">Cardio {week.cardioMinutes} min this week</p>;
 }
 
 export default async function ProgressPage({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
@@ -41,6 +42,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
   const plan = await findPlan(userId);
   const facts = await progressFacts(userId, session.user.timezone, plan?.trainingDaysHistory ?? []); // A27 (a): each week judged by the days in effect on it
   const { day } = await searchParams;
+  const season = await seasonOf(userId, plan?.trainingDaysHistory ?? [], facts.todayKey); // A28 (e) · R-086: the season line
   if (facts.totals.posts === 0) {
     return (
       <div className="stack app-column--progress">
@@ -54,6 +56,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
   return (
     <div className="stack app-column--progress">
       <h1>Progress</h1>
+      {season ? <p className="muted">{seasonLine(season)}</p> : null}
       <ProgressSegments active="charts" />
       <section className="stack stack--tight"><h2>Did I show up?</h2><HeatMap days={facts.days} selected={day ?? null} todayKey={facts.todayKey} /></section>
       {day ? <DayDetail userId={userId} dayKey={day} todayKey={facts.todayKey} distanceUnit={session.user.distanceUnit} /> : null}

@@ -31,4 +31,13 @@ final class SessionSummaryLineTests: XCTestCase {
         XCTAssertEqual(SessionSummaryLine.distanceText(distanceMeters: 16093, distanceUnit: "mi"), "10.0 mi")
         XCTAssertEqual(SessionSummaryLine.distanceText(distanceMeters: 100000, distanceUnit: "mi"), "62.1 mi")
     }
+
+    // SPEC: A28 (c) · R-086 — a summary stored before A28 reads without the workout's minutes; everything else reads as stored
+    func testAStoredSummaryReadsWithoutTheWorkoutsMinutes() {
+        XCTAssertEqual(SessionSummaryLine.withoutWorkoutMinutes("Push day · 12/12 sets · 44 min"), "Push day · 12 of 12 sets")
+        XCTAssertEqual(SessionSummaryLine.withoutWorkoutMinutes("Push day · 12 of 12 sets"), "Push day · 12 of 12 sets")
+        XCTAssertEqual(SessionSummaryLine.withoutWorkoutMinutes("Walk · 25 min · 2.1 km"), "Walk · 25 min · 2.1 km")
+        XCTAssertEqual(SessionSummaryLine.withoutWorkoutMinutes("Walk · 25 min"), "Walk · 25 min")
+        XCTAssertEqual(SessionSummaryLine.withoutWorkoutMinutes("Leg day · 3/x sets · 9 min"), "Leg day · 3/x sets · 9 min")
+    }
 }

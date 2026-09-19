@@ -11,6 +11,7 @@ struct JournalDaySection: View {
     let isRestDay: Bool
     let distanceUnit: String // A9: journal lines carry distances, never weights
     let onDelete: (LocalPost) -> Void
+    @State private var deleting: LocalPost?
 
     private var header: String {
         let label = DayLabel.dayLabel(dayKey, todayKey: todayKey)
@@ -21,11 +22,15 @@ struct JournalDaySection: View {
         Section {
             ForEach(posts, id: \.clientId) { post in
                 JournalRow(post: post, distanceUnit: distanceUnit)
-                    .swipeActions { Button("Delete", role: .destructive) { onDelete(post) } }
+                    // A28 (a): red lives only inside the destructive confirm, so the swipe is ink and the confirm asks (E3: delete yours anytime)
+                    .swipeActions { Button("Delete") { deleting = post }.tint(EmberColors.ink) }
                     .listRowBackground(EmberColors.card)
+                    .confirmationDialog("Delete this post?", isPresented: Binding(get: { deleting?.clientId == post.clientId }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
+                        Button("Delete", role: .destructive) { onDelete(post); deleting = nil }
+                    }
             }
         } header: {
-            Text(header).font(.subheadline.weight(.semibold)).foregroundStyle(EmberColors.inkText).textCase(nil)
+            Text(numerals: header).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary) // the role renders it uppercase
         }
     }
 }

@@ -1,8 +1,9 @@
 // SPEC: S16 History/Journal — every post forever; editing a past session never alters XP (copy says so); deleted posts absent,
 // logs present. E3 (delete yours anytime; captions editable, photos not). A6 (owner-directed 2026-09-08): grouped by day with
 // readable labels, one summary line per post, a Sending ↻ chip while undelivered. A19.4 / W6 (2026-09-17): the journal is the
-// second SEGMENT of Progress, not a pushed screen — no title of its own; its empty state's CTA goes to today (Home), where the
-// first workout starts. WRITTEN — UNVERIFIED (needs Mac). T040
+// second SEGMENT of Progress; A28 (f) · R-086 (2026-09-19): the segment is not on the component list, so the Journal is a row button
+// on Progress, one tap from the tab, pushed with its own title. Its empty state's CTA goes to today (Home). The system's colours and
+// type: rows on `card`, day labels as eyebrows, every numeral Rounded Bold. WRITTEN — UNVERIFIED (needs Mac). T040 · R3
 
 import SwiftUI
 
@@ -48,7 +49,7 @@ struct JournalScreen: View {
     private var list: some View {
         List {
             Section {
-                Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").font(.footnote).foregroundStyle(EmberColors.secondaryText).listRowBackground(EmberColors.canvas)
+                Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.canvas)
             }
             ForEach(days) { day in
                 JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)

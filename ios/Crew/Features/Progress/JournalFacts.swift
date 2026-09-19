@@ -67,7 +67,8 @@ enum JournalFacts {
     static func line(for post: LocalPost, store: Store = .shared, distanceUnit: String) -> String {
         // A14: workout and cardio are two row types; both read the summary completion wrote, so the WORDS are unchanged
         if post.type == "workout" || post.type == "cardio" {
-            if let summary = post.summary, !summary.isEmpty { return summary }
+            // A28 (c) · R-086: a summary stored before A28 still carries the workout's minutes; it reads without them
+            if let summary = post.summary, !summary.isEmpty { return SessionSummaryLine.withoutWorkoutMinutes(summary) }
             return session(for: post, store: store).map { summaryLine($0, distanceUnit: distanceUnit) } ?? (post.type == "cardio" ? "Cardio ✓" : "Workout ✓")
         }
         return post.caption.isEmpty ? "Post" : post.caption // A22: a legacy meal or text row — never created again, still readable

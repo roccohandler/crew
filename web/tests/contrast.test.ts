@@ -268,14 +268,13 @@ describe("A18.11 — outline controls draw their boundary with controlOutline, n
   });
 
   // The iOS half, swept across the WHOLE app rather than the two files A18 happened to touch (A19 adopted the token
-  // on seven more control surfaces). These five are the only places a hairline stroke is still correct, each because
-  // it outlines a SURFACE rather than a component — a card edge, a read-only status chip, a banner, a snackbar.
+  // on seven more control surfaces). These three are the only places a hairline stroke is still correct, each because
+  // it outlines a SURFACE rather than a component — a card edge, a read-only label, a snackbar (A28 R2 deleted the unit banner and
+  // R3 the journal's status chip).
   // Anything else that reaches for the 1.26:1 family fails here.
   const SURFACE_STROKES = new Set([
     "ios/Crew/Shared/Card.swift", // the card itself
     "ios/Crew/Shared/EquipmentChip.swift", // EquipmentChip — a read-only label, not a button (A26 moved it out of ExerciseSheet.swift with its SF Symbol)
-    "ios/Crew/Features/Progress/JournalRow.swift", // the "Sending ↻" status chip
-    "ios/Crew/Features/Session/UnitConfirmLine.swift", // the one-line unit banner
     "ios/Crew/Features/Plan/WorkoutEditorScreen.swift", // the Undo snackbar's own edge (its Undo is a control inside it)
   ]);
 

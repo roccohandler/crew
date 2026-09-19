@@ -25,3 +25,17 @@ export function sessionSummaryLine(workoutName: string, isCardio: boolean, setsD
   if (distanceMeters !== null) parts.push(distanceText(distanceMeters, distanceUnit));
   return parts.join(" · ");
 }
+
+// SPEC: A28 (c) · R-086 — a summary STORED before A28 carries the workout's minutes ("Push day · 12/12 sets · 44 min"); it reads at
+// render as "Push day · 12 of 12 sets". A cardio line's entered minutes stand (GAP 4), and nothing stored is rewritten.
+export function withoutWorkoutMinutes(stored: string): string {
+  const parts = stored.split(" · ");
+  const minutes = parts.at(-1);
+  const head = parts.slice(0, -1);
+  const sets = head.at(-1);
+  if (minutes === undefined || sets === undefined || !minutes.endsWith(" min") || !sets.endsWith(" sets")) return stored;
+  const counts = sets.slice(0, -" sets".length).split("/");
+  const [done, planned, ...extra] = counts;
+  if (done === undefined || planned === undefined || extra.length > 0 || !/^\d+$/.test(done) || !/^\d+$/.test(planned)) return stored;
+  return [...head.slice(0, -1), `${done} of ${planned} sets`].join(" · ");
+}

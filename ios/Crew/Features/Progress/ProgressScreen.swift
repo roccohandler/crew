@@ -1,10 +1,10 @@
-// SPEC: S15 Progress — LAYER 1 did I show up (heat map → day detail with the day's workouts; rings history; streaks; totals —
-// A22: the plates and meals/week left with the plate journal) · LAYER 2 how much work (sets/week, Push/Pull/Legs balance, cardio and mobility minutes — A2) · LAYER 3 am I
-// stronger (only where weights were logged) · empty (new user) invites. A6: week captions and the day card read the DayLabel twin.
-// 6.1: a Store error is the failed state with Try again. A19.4 (owner-ruled; built in W6, 2026-09-17): a two-way SEGMENT at the top
-// — Charts | Journal — so both halves of Flow 9 are one tap from the tab and neither hides in chrome (the toolbar "Journal" button is
-// gone). W6, the owner's walkthrough: the empty state's CTA goes to TODAY (Home, where the first workout starts) instead of opening
-// a composer. WRITTEN — UNVERIFIED (needs Mac). T040
+// SPEC: S15 Progress as amended by A28 (b), (d), (e), (f) (owner-approved 2026-09-19; design/targets 12) — the data screen (GAP 1
+// read by R-086: the type the approved mockup draws, for Progress alone): a large title, ONE fact line — "This season · N weeks · N
+// workouts" (A28 (e); GAP 10, SeasonFacts) — and one card carrying the figure, the heat map; no accent anywhere. Tap a day → that
+// day's workouts (Flow 9 layer 1). Under the card two row buttons keep A19.4's promise that both halves of Flow 9 sit one tap from
+// the tab (its segmented control is not on A28 (f)'s component list): Charts (layers 2–3) and the Journal (S16). W6: the empty
+// state's one CTA goes to today. 6.1: loading is a quiet line, a Store error is the failed state with Try again.
+// WRITTEN — UNVERIFIED (needs Mac). T040 · R3
 
 import SwiftUI
 
@@ -16,7 +16,7 @@ enum ProgressLoadState: Equatable {
     case offline
 }
 
-enum ProgressSegment: Hashable {
+enum ProgressDestination: Hashable {
     case charts, journal
 }
 
@@ -26,42 +26,72 @@ struct ProgressScreen: View {
     @State private var model = ProgressModel()
     @State private var loadState: ProgressLoadState = .loading
     @State private var selected: DayDetail?
-    @State private var segment: ProgressSegment = .charts
+    @State private var path: [ProgressDestination] = []
     private var units: String { AuthStore.shared.weightUnit } // A9
     private var userId: String { AuthStore.shared.currentUser?.id ?? "local" }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // SPEC: A19.4 — the segment is the screen's first row; the five-tab bar is unchanged
-                Picker("Progress view", selection: $segment) {
-                    Text("Charts").tag(ProgressSegment.charts)
-                    Text("Journal").tag(ProgressSegment.journal)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, EmberTokens.Spacing.space16)
-                .padding(.top, EmberTokens.Spacing.space8)
-                Group {
-                    switch segment {
-                    case .charts: charts
-                    case .journal: journal
+        NavigationStack(path: $path) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space24) {
+                    VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
+                        Text("Progress").typeRole(EmberTokens.Typography.screenTitle).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
+                        if loadState == .ready, let season = model.season {
+                            Text(numerals: season.line).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                        }
                     }
+                    content
                 }
+                .padding(.horizontal, EmberTokens.Focus.gutter)
+                .padding(.top, EmberTokens.Spacing.space32)
+                .padding(.bottom, EmberTokens.Spacing.space24)
             }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Progress")
-            .onAppear { if journalRequested.wrappedValue { segment = .journal; journalRequested.wrappedValue = false } }
-            .onChange(of: journalRequested.wrappedValue) { _, asked in if asked { segment = .journal; journalRequested.wrappedValue = false } }
+            .toolbar(.hidden, for: .navigationBar) // the title is the page's own (mockup 12); pushed screens keep their bar
+            .navigationDestination(for: ProgressDestination.self) { destination in
+                switch destination {
+                case .charts: ChartsScreen(model: model, units: units)
+                case .journal: journal
+                }
+            }
+            .onAppear { if journalRequested.wrappedValue { path = [.journal]; journalRequested.wrappedValue = false } }
+            .onChange(of: journalRequested.wrappedValue) { _, asked in if asked { path = [.journal]; journalRequested.wrappedValue = false } }
             .task { load() }
         }
     }
 
-    @ViewBuilder private var charts: some View {
+    @ViewBuilder private var content: some View {
         switch loadState {
-        case .loading: LoadingLine(line: "Adding up your weeks…").padding(EmberTokens.Spacing.space16) // 6.1 (2026-09-18): a line, not a skeleton
-        case .empty: EmptyState(title: "Your first post starts the story", line: "Every workout you complete lands here.", ctaTitle: "Go to today", action: onGoHome) // W6: the CTA is the day, not a composer
+        case .loading: FocusCard { LoadingLine(line: "Adding up your weeks…") } // 6.1 (2026-09-18): a line, not a skeleton
+        case .empty: empty
         case .failed(let line): ErrorState(line: line) { load() }
-        case .ready, .offline: content
+        case .ready, .offline: filled
+        }
+    }
+
+    private var filled: some View {
+        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
+            FocusCard { HeatMapView(days: model.heatMap, todayKey: model.todayKey, selected: selected?.dayKey) { selected = model.select($0) } }
+            if let selected { dayCard(selected) }
+            FocusCard(padding: 0) {
+                VStack(spacing: 0) {
+                    RowButton(title: "Charts") { path = [.charts] }
+                    Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
+                    RowButton(title: "Journal") { path = [.journal] }
+                }
+            }
+        }
+    }
+
+    // SPEC: 6.1 · W6 — empty is an invitation with exactly one CTA: today, where the first workout starts
+    private var empty: some View {
+        FocusCard {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+                Text("Your first post starts the story").typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink)
+                Text("Every workout you complete lands here.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                PrimaryButton(title: "Go to today", action: onGoHome).padding(.top, EmberTokens.Spacing.space8)
+            }
         }
     }
 
@@ -74,57 +104,17 @@ struct ProgressScreen: View {
             try? SyncQueue.shared.enqueue(.deletePost, payload: ["clientId": post.clientId])
             load()
         }, onGoHome: onGoHome)
+        .navigationTitle("Journal")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var content: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
-                Text("Did I show up?").font(.headline).foregroundStyle(EmberColors.inkText)
-                HeatMapView(days: model.heatMap, todayKey: model.todayKey, selected: selected?.dayKey) { selected = model.select($0) }
-                if let selected { dayCard(selected) }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: EmberTokens.Spacing.space12) {
-                        ForEach(model.weeks) { week in
-                            VStack {
-                                WeeklyRing(done: week.done, planned: week.planned)
-                                Text(DayLabel.weekHeader(week.weekKey, todayWeekKey: DayKey.weekKey(for: model.todayKey))).font(.caption).foregroundStyle(EmberColors.secondaryText)
-                            }
-                        }
-                    }
-                }
-                Text("Streak \(model.totals.currentStreak) · longest \(model.totals.longestStreak) · \(model.totals.workouts) workouts · \(model.totals.posts) posts").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                Text("How much work?").font(.headline).foregroundStyle(EmberColors.inkText)
-                Text("Sets per week: \(model.weeks.map { String($0.sets) }.joined(separator: " · "))").font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                Text(balanceLine).font(.footnote).foregroundStyle(EmberColors.secondaryText)
-                if let movementLine { Text(movementLine).font(.footnote).foregroundStyle(EmberColors.secondaryText) }
-                if !model.strength.isEmpty {
-                    Text("Am I stronger?").font(.headline).foregroundStyle(EmberColors.inkText)
-                    ForEach(model.strength) { ExerciseChartView(trend: $0, units: units) }
-                }
-            }
-            .padding(EmberTokens.Spacing.space16)
-        }
-    }
-
-    // SPEC: Flow 9 layer 2 — "Push N · Pull N · Legs N" (+ " · Full body N" when legacy full-body sessions exist)
-    private var balanceLine: String {
-        let base = "Push \(model.balance.push) · Pull \(model.balance.pull) · Legs \(model.balance.legs)"
-        return model.balance.fullBody > 0 ? "\(base) · Full body \(model.balance.fullBody)" : base
-    }
-
-    // SPEC: A2 — "Cardio N min · Mobility M min this week": facts, never targets; nothing at all when both are zero (A8)
-    private var movementLine: String? {
-        guard let week = model.weeks.last, week.cardioMinutes > 0 || week.mobilityMinutes > 0 else { return nil }
-        return "Cardio \(week.cardioMinutes) min · Mobility \(week.mobilityMinutes) min this week"
-    }
-
-    // SPEC: Flow 9 layer 1 — the day card: its DayLabel (A6), that day's workouts
+    // SPEC: Flow 9 layer 1 — the day card: its DayLabel (A6), that day's workouts in the journal's own sentence (no minutes, A28 (c))
     private func dayCard(_ detail: DayDetail) -> some View {
-        Card {
+        FocusCard {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
-                Text(DayLabel.dayLabel(detail.dayKey, todayKey: model.todayKey)).font(.subheadline.weight(.semibold)).foregroundStyle(EmberColors.inkText)
-                ForEach(detail.workouts, id: \.self) { Text($0).foregroundStyle(EmberColors.inkText) }
-                if detail.workouts.isEmpty { Text("Nothing that day. Tomorrow's a fresh one.").foregroundStyle(EmberColors.secondaryText) }
+                Text(DayLabel.dayLabel(detail.dayKey, todayKey: model.todayKey)).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
+                ForEach(detail.workouts, id: \.self) { Text(numerals: $0).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink) }
+                if detail.workouts.isEmpty { Text("Nothing that day. Tomorrow's a fresh one.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary) }
             }
         }
     }

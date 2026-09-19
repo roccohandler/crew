@@ -1736,3 +1736,44 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   the sheet and the checklist in dark, then Finish → celebration → Home done. The dark celebration is shot in Tour_HomeTests
   (Quick complete). The map is in `design/targets/README.md`.
 - Look at: the Logger shots against `design/targets/07`–`11`, the phrase and badges (2), and whether a stepper should tick (1).
+
+### R-086 · 2026-09-19 · A28 R3 — Progress redesigned (the data screen, the season line, the heat map), Charts and the Journal one tap below · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. GAP 1 (the data screen) and GAP 10 (the season label's inputs) were R3's
+  preconditions.
+- What changed:
+  - `ProgressScreen` is the data screen: title, the season line (`SeasonFacts`), and the heat map card (`HeatMapView`: two
+    states, ink and `heatEmpty`, weekday letters, the season's weeks).
+  - A tapped day's card appears below the heat map, then two row buttons, Charts (`ChartsScreen`) and Journal.
+  - The strength charts are ink. The weekly-ring view is deleted, and `DayRingState` stays.
+  - The journal reads a stored summary without its minutes (the `withoutWorkoutMinutes` twins). Its swipe Delete is ink,
+    before a red confirm, and "Sending" is a quiet word.
+  - The web: the season line on its Progress page, and the journal's minutes stripped.
+- The builder's readings:
+  (1) **GAP 1.** The data screen is the type mockup 12 draws, and approving the mockup admits it for Progress alone. No other
+      screen uses it until the owner answers GAP 1.
+  (2) **A19.4 without its segment.** The segmented control is not on A28 (f)'s component list. Its promise — both halves of Flow 9
+      one tap from the tab — is kept by two row buttons under the card: Charts and Journal. "Edit today's log" pushes the Journal.
+  (3) **GAP 10.** A season starts at the plan's FIRST training-days entry (its build), or at the end of the latest pause that has
+      run its course, whichever is later. A days change never restarts it (R-083 (14)). The phone cannot see a rebuild or a pause
+      ended early, so both are recorded as debt. The twins are `SeasonFacts.swift` and `seasonFacts`, with identical cases.
+  (4) **Weeks and workouts.** Weeks are the calendar weeks the season touches, this one included (mockup 12: six weeks, six rows).
+      Workouts are completed workouts; a standalone cardio log is not one (A14).
+  (5) **The heat map** runs from the season's first week, capped at `progressHeatMapWeeks`, to this Sunday. Days still to come draw
+      empty and answer no tap. "Done" is a completed workout. A cardio-only or posted-only day draws empty, and its VoiceOver
+      label and the day card say what it held. A tapped day wears an ink ring in the gap around the cell.
+  (6) **Charts, one tap below** (DESIGN.md 3.2–3.3). It holds:
+      - "Did I show up?": the streak, the longest streak, workouts and posts;
+      - "How much work?": sets per week, the Push / Pull / Legs balance, and this week's entered cardio minutes (GAP 4);
+      - "Am I stronger?": the charts, in ink, with "New best" in words.
+      The ring history leaves, because the heat map's rows are the weeks (§11). The mobility minutes leave, because there is no
+      hold timer (A28 (c)).
+  (7) **Stored summaries** read without the workout's minutes, on both clients, at render. Nothing stored is rewritten, and a
+      cardio line's entered minutes stand. The crew stream's cards are R5's.
+  (8) **The Journal** is pushed with its own title:
+      - the day labels are eyebrows;
+      - the rows sit on `card` with every numeral Rounded Bold;
+      - the swipe's Delete is ink and opens the destructive confirm (the only red);
+      - "Sending" is a word (chips are not on the list).
+  (9) **Empty Progress** is one card with S15's invitation and one filled "Go to today", and no rows: there is nothing to chart,
+      and nothing in the Journal.
+- Look at: the Progress shots against `design/targets/12` (light and dark), and (3), (5) and (6) above.

@@ -6,7 +6,7 @@ import type { SessionDoc } from "@/lib/documents";
 import type { PostDoc } from "@/lib/documents-social";
 import { completionFacts } from "@/lib/engine/completion";
 import { weekKeyFor } from "@/lib/engine/day-key";
-import { sessionSummaryLine } from "@/lib/engine/session-summary-line";
+import { sessionSummaryLine, withoutWorkoutMinutes } from "@/lib/engine/session-summary-line";
 import { isPlannedOn, type TrainingDaysEntry } from "@/lib/engine/training-days";
 
 // SPEC: A6 — a workout post without a server summary (pre-A6) reads the same line computed from its session: sets from the
@@ -19,9 +19,11 @@ export function summaryFromSession(session: SessionDoc, distanceUnit: string): s
 // SPEC: A6 · A14 — workout and cardio are two row types; both read the server summary the completion wrote ("Push day · 12 of 12
 // sets" / "Walk · 25 min · 2.1 km"), so the words do not change — only which count each falls into. A22: a legacy row
 // of a retired kind reads its caption.
+// A28 (c) · R-086: a summary stored before A28 still carries the workout's minutes; it reads without them (nothing stored changes)
 export function postLine(post: PostDoc, sessionLine: string | null): string {
-  if (post.type === "workout") return post.summary ?? sessionLine ?? "Workout ✓";
-  if (post.type === "cardio") return post.summary ?? sessionLine ?? "Cardio ✓";
+  const stored = post.summary === undefined ? undefined : withoutWorkoutMinutes(post.summary);
+  if (post.type === "workout") return stored ?? sessionLine ?? "Workout ✓";
+  if (post.type === "cardio") return stored ?? sessionLine ?? "Cardio ✓";
   return post.caption || "Post";
 }
 

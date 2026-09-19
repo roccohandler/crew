@@ -1,5 +1,6 @@
-// SPEC: A6 (owner-directed 2026-09-08) — one journal row: the summary line ("Push day · 12/12 sets · 44 min" · "Walk · 25 min ·
-// 2.1 km"), a "Sending ↻" chip while the post is counted but not yet delivered (E19), and the caption (A22 G2: the optional line a
+// SPEC: A6 (owner-directed 2026-09-08) as amended by A28 (c), (f) — one journal row: the summary line ("Push day · 12 of 12 sets" ·
+// "Walk · 25 min · 2.1 km"; a stored line's old minutes are dropped at render, R-086), a quiet "Sending" while the post is counted
+// but not yet delivered (E19), and the caption (A22 G2: the optional line a
 // workout post carries; no photo — photos left the journal with the plate journal). Ink and secondary only — no ember here.
 // WRITTEN — UNVERIFIED (needs Mac).
 
@@ -15,20 +16,14 @@ struct JournalRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space4) {
             HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space8) {
-                Text(JournalFacts.line(for: post, distanceUnit: distanceUnit)).font(.body).foregroundStyle(EmberColors.inkText)
-                Spacer()
-                if isSending {
-                    Text("Sending ↻")
-                        .font(.caption)
-                        .foregroundStyle(EmberColors.secondaryText)
-                        .padding(.horizontal, EmberTokens.Spacing.space8)
-                        .padding(.vertical, EmberTokens.Spacing.space4)
-                        .overlay(Capsule().stroke(EmberColors.hairline, lineWidth: EmberTokens.Size.hairline))
-                        .accessibilityLabel("Sending")
-                }
+                Text(numerals: JournalFacts.line(for: post, distanceUnit: distanceUnit)).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: EmberTokens.Spacing.space8)
+                // E19 — counted here, not yet delivered: a quiet word, not a chip (A28 (f): chips are not on the component list)
+                if isSending { Text("Sending").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
             }
-            if !post.caption.isEmpty { Text(post.caption).font(.subheadline).foregroundStyle(EmberColors.secondaryText) }
+            if !post.caption.isEmpty { Text(post.caption).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary) }
         }
-        .padding(.vertical, EmberTokens.Spacing.space4)
+        .padding(.vertical, EmberTokens.Spacing.space8)
     }
 }

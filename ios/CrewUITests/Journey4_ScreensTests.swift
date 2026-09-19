@@ -1,7 +1,7 @@
 // SPEC: A28 (a) (owner-approved 2026-09-19: light is the default, dark is supported and reviewed like light — amending A21.10's
 // "light always") · W6. No machine here can look at a screen, so this journey PHOTOGRAPHS every tab for the owner's review in the
-// xcresult (CrewUITests/Screenshots.swift) and asserts only what a screenshot cannot: each tab opens, the A19.4 Charts | Journal
-// segment is there and switches, the W6 Units section exists. Its dark half is back: the phone is put in Midnight (-uiDark, Debug
+// xcresult (CrewUITests/Screenshots.swift) and asserts only what a screenshot cannot: each tab opens, Progress's Charts and Journal rows
+// are there (A19.4 as A28 (f) redraws it) and the Journal opens, the W6 Units section exists. Its dark half is back: the phone is put in Midnight (-uiDark, Debug
 // builds only) and every tab is photographed there. Seeded like journey ② (a member with a plan, a post and a crew).
 // WRITTEN — UNVERIFIED (needs Mac + simulator).
 
@@ -36,12 +36,13 @@ final class Journey4_ScreensTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Crew"].waitForExistence(timeout: 10), "Crew did not open")
         shoot(app, "S12 Crew")
         app.tabBars.buttons["Progress"].tap()
-        XCTAssertTrue(app.navigationBars["Progress"].waitForExistence(timeout: 10), "Progress did not open")
-        XCTAssertTrue(app.buttons["Charts"].exists && app.buttons["Journal"].exists, "A19.4: the Charts | Journal segment is missing")
-        shoot(app, "S15 Progress charts")
+        // A28 (d) · R-086: Progress is the data screen (its own title, no bar); Charts and the Journal are its two row buttons
+        XCTAssertTrue(app.buttons["Charts"].waitForExistence(timeout: 10), "Progress did not open, or lost its Charts row")
+        XCTAssertTrue(app.buttons["Journal"].exists, "A19.4: the Journal is no longer one tap from the tab")
+        shoot(app, "S15 Progress")
         app.buttons["Journal"].tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Your journal keeps everything'")).firstMatch.waitForExistence(timeout: 10), "the Journal segment did not show the journal — the screen says: \(screenSays())")
-        shoot(app, "S16 Journal segment")
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Your journal keeps everything'")).firstMatch.waitForExistence(timeout: 10), "the Journal row did not open the journal — the screen says: \(screenSays())")
+        shoot(app, "S16 Journal")
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Settings did not open")
         XCTAssertTrue(app.staticTexts["Units"].waitForExistence(timeout: 5), "W6: the Units section is missing")

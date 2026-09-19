@@ -14,6 +14,7 @@ struct DayCell: Equatable, Identifiable {
     let workout: Bool
     let cardio: Bool
     let posted: Bool
+    var future = false // A28 (d): the grid runs to Sunday, so this week's days still to come draw empty and answer no tap
     var id: String { dayKey }
 }
 
@@ -44,6 +45,7 @@ struct DayDetail: Equatable {
 @MainActor
 final class ProgressModel {
     var heatMap: [DayCell] = []
+    var season: SeasonFacts?   // A28 (e) · GAP 10 (R-086): "This season · N weeks · N workouts"
     var weeks: [RingRecord] = []
     var totals = (workouts: 0, posts: 0, longestStreak: 0, currentStreak: 0)
     var strength: [ExerciseTrend] = []
@@ -76,9 +78,12 @@ final class ProgressModel {
         let completed = try store.context.fetch(FetchDescriptor<LocalSession>(predicate: #Predicate { $0.userId == userId && $0.status == "completed" }, sortBy: [SortDescriptor(\.dayKey)]))
         isEmpty = posts.isEmpty
         todayKey = DayKey.dayKey(for: now, tz: timeZone)
-        heatMap = heatMapCells(completed: completed, posts: posts)
         // SPEC: A1 · A27 (a) — a week's planned count is its days that the training days in effect ON each of them plan
         let history = try plan == nil ? [] : PlanLocal.trainingDays(for: userId, store: store)
+        let today = todayKey
+        let ended = try store.context.fetch(FetchDescriptor<LocalPause>(predicate: #Predicate { $0.userId == userId && $0.endDay <= today })).map(.endDay)
+        season = SeasonFacts.of(history: history, endedPauseDays: ended, workoutDayKeys: completed.filter { $0.workoutKind != "cardio" }.map(.dayKey), todayKey: todayKey)
+        heatMap = heatMapCells(completed: completed, posts: posts)
         weeks = (0..<ringWeeks).reversed().map { offset in
             let weekKey = DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek)
             let planned = (0..<TimeUnits.daysPerWeek).filter { TrainingDays.isPlannedOn(history, DayKey.addDays(weekKey, $0)) }.count
@@ -89,9 +94,12 @@ final class ProgressModel {
         strength = strengthTrends(completed)
     }
 
-    // LAYER 1 — one cell per day across progressHeatMapWeeks, Monday-aligned (E20)
+    // LAYER 1 · A28 (d) — one row per week of the season (mockup 12: six weeks, six rows), never more than progressHeatMapWeeks,
+    // Monday-aligned (E20) and run to Sunday; with no season, the last progressHeatMapWeeks
     private func heatMapCells(completed: [LocalSession], posts: [LocalPost]) -> [DayCell] {
-        let from = DayKey.addDays(DayKey.weekKey(for: todayKey), -(heatMapWeeks - 1) * TimeUnits.daysPerWeek)
+        let thisWeek = DayKey.weekKey(for: todayKey)
+        let earliest = DayKey.addDays(thisWeek, -(heatMapWeeks - 1) * TimeUnits.daysPerWeek)
+        let from = max(season.map { DayKey.weekKey(for: $0.startDayKey) } ?? earliest, earliest)
         // A14: a standalone cardio session is its own mark — it used to land in workoutDays, so a week of walks read as
         // a week of workouts on the one screen whose question is "did I show up?"
         let workoutDays = Set(completed.filter { $0.workoutKind != "cardio" }.map(\.dayKey))
@@ -99,7 +107,8 @@ final class ProgressModel {
         let postDays = Set(posts.map(\.dayKey))
         var cells: [DayCell] = []
         var day = from
-        while day <= todayKey { cells.append(DayCell(dayKey: day, workout: workoutDays.contains(day), cardio: cardioDays.contains(day), posted: postDays.contains(day))); day = DayKey.addDays(day, 1) }
+        let last = DayKey.addDays(thisWeek, TimeUnits.daysPerWeek - 1)
+        while day <= last { cells.append(DayCell(dayKey: day, workout: workoutDays.contains(day), cardio: cardioDays.contains(day), posted: postDays.contains(day), future: day > todayKey)); day = DayKey.addDays(day, 1) }
         return cells
     }
 

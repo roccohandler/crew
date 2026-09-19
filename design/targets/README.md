@@ -26,7 +26,7 @@ today" is where mockup 01 draws it — R-084 reads GAP 5 as that card, and only 
 | `09-logger-whole-workout-{light,dark}.png` | Logger — the whole-workout sheet: jump between exercises; **Finish lives here** | `tour_sessiontests/NN_session_whole_workout_sheet.png`, `…_sheet_dark.png` |
 | `10-logger-mobility-{light,dark}.png` | Logger — the mobility checklist: tick the holds, Mark all done, Finish | `tour_sessiontests/NN_session_logger_mobility.png`, `…_mobility_dark.png` |
 | `11-logger-after-finish-{light,dark}.png` | Logger — after Finish: the celebration (flame, streak, XP, share or keep private) | `tour_sessiontests/NN_session_celebration_complete.png`, `tour_hometests/NN_session_celebration_complete_dark.png` |
-| `12-progress-{light,dark}.png` | Progress — top: title, the season line, the heat map; no accent | `tour_progresstests/NN_progress_charts_filled.png` |
+| `12-progress-{light,dark}.png` | Progress — top: title, the season line, the heat map; no accent | `tour_progresstests/NN_progress_top_filled.png`, `…_top_filled_dark.png`, `…_top_empty.png` (Charts and the Journal, one tap below: DESIGN.md alone) |
 
 The Logger's other shots — the weight keypad (`session_weight_alert`), ⋯ (`session_more_menu`), the discard confirm and the swap sheet —
 have no mockup and are judged against DESIGN.md alone.
