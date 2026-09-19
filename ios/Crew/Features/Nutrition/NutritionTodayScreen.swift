@@ -115,16 +115,19 @@ struct NutritionTextField: View {
     @Binding var text: String
     var keyboard: UIKeyboardType = .default
     var unit: String? = nil
+    var role = EmberTokens.Typography.cardSubheading // a value's size; an optional label's field takes body (R-095)
     var focus: FocusState<String?>.Binding
     let key: String
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Focus.space6) {
-            TextField(title, text: $text, prompt: Text(title).foregroundStyle(EmberColors.inkSecondary))
+            // with a unit the field hugs what is typed, so "176 lb" stays one value: the prompt shows only while the field is empty
+            // (a fixed-size field kept the prompt's width and stranded the unit ~83 pt away — R-095)
+            TextField("", text: $text, prompt: text.isEmpty || unit == nil ? Text(title).foregroundStyle(EmberColors.inkSecondary) : nil)
                 .keyboardType(keyboard)
                 .autocorrectionDisabled()
                 .focused(focus, equals: key)
-                .typeRole(EmberTokens.Typography.cardSubheading)
+                .typeRole(role)
                 .fontDesign(keyboard == .default ? .default : .rounded) // §4: a number is Rounded
                 .foregroundStyle(EmberColors.ink)
                 .fixedSize(horizontal: unit != nil, vertical: false)

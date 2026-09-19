@@ -21,7 +21,7 @@ struct NutritionTargetsScreen: View {
                 if let saved = model.savedLine { Text(saved).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
                 if model.hasTargets { TextActionButton(title: "Recalculate from bodyweight", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { focused = nil; model.save(manual: false) } } // A28 (f): a text button
                 if let source = model.sourceLine, let estimate = model.estimateLine {
-                    Text("\(source) \(estimate)").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
+                    Text(numerals: "\(source) \(estimate)").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) // §4: targets are Rounded Bold
                 }
                 if let overage = model.overageLine { Text(overage).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
                 MethodLink()

@@ -27,8 +27,8 @@ struct DayTemplateView: View {
                         ForEach(Array(model.slots.enumerated()), id: \.element.id) { index, slot in
                             if index > 0 { cardSeam() }
                             MealLineRow(line: slot.meal, title: slot.title, actions: [
-                                MealLineAction(title: "Up", spoken: "Move \(slot.meal.name) up") { model.moveSlot(slot, by: -1) },
-                                MealLineAction(title: "Down", spoken: "Move \(slot.meal.name) down") { model.moveSlot(slot, by: 1) },
+                                MealLineAction(title: "Move up", spoken: "Move \(slot.meal.name) up") { model.moveSlot(slot, by: -1) },
+                                MealLineAction(title: "Move down", spoken: "Move \(slot.meal.name) down") { model.moveSlot(slot, by: 1) },
                                 MealLineAction(title: "Remove", spoken: "Remove \(slot.meal.name) from the template") { model.removeSlot(slot) },
                             ])
                         }
@@ -45,13 +45,21 @@ struct DayTemplateView: View {
     private var addSlot: some View {
         FocusCard {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space12) {
-                Text("Add a slot").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
-                Picker("Saved meal", selection: $mealId) {
-                    ForEach(model.meals) { Text($0.name).tag($0.id) }
+                // R-095: the card's heading outranks its fields — the card sub-heading, the chosen meal in body Semibold, the optional
+                // label's field in body — and the meal menu starts on the card's edge (the platform picker indented itself ~12 pt)
+                Text("Add a slot").typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.isHeader)
+                Menu {
+                    ForEach(model.meals) { meal in Button(meal.name) { mealId = meal.id } }
+                } label: {
+                    HStack(spacing: EmberTokens.Spacing.space8) {
+                        Text(chosenMeal?.name ?? "").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                        Image(systemName: "chevron.up.chevron.down").font(.footnote.weight(.semibold)).foregroundStyle(EmberColors.ink)
+                    }
+                    .frame(minHeight: CGFloat(SpecConstants.minTouchTargetPt))
+                    .contentShape(Rectangle())
                 }
-                .tint(EmberColors.ink)
-                .labelsHidden() // the menu's own value is its label; the platform's label column indented it past the card's edge
-                NutritionTextField(title: "A label, like Breakfast (optional)", text: $label, focus: $focused, key: "slotLabel")
+                .accessibilityLabel("Saved meal, \(chosenMeal?.name ?? "")")
+                NutritionTextField(title: "A label, like Breakfast (optional)", text: $label, role: EmberTokens.Typography.body, focus: $focused, key: "slotLabel")
                 TextActionButton(title: "Add to template", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { // A28 (f): a text button
                     focused = nil
                     if let meal = chosenMeal { model.addSlot(meal: meal, label: label); label = "" }

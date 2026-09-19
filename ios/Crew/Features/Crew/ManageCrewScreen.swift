@@ -98,7 +98,15 @@ struct ManageCrewScreen: View {
             VStack(spacing: 0) {
                 ForEach(Array(model.members.filter { $0.id != crew.captainId }.enumerated()), id: \.element.id) { index, member in
                     if index > 0 { cardSeam() }
-                    RowButton(title: member.displayName, value: "Remove") { removing = member }
+                    // R-095: the member's name, then Remove as the kit's ink text button — an action in a row button's quiet value slot,
+                    // with a chevron, read as a fact that led somewhere; the confirm still asks (the red lives there)
+                    HStack(spacing: EmberTokens.Spacing.space12) {
+                        Text(member.displayName).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
+                        Spacer(minLength: EmberTokens.Spacing.space8)
+                        TextActionButton(title: "Remove", horizontalPadding: 0, accessibilityLabel: "Remove \(member.displayName)", role: EmberTokens.Typography.textButton) { removing = member }
+                    }
+                    .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                    .frame(minHeight: EmberTokens.Focus.rowButton)
                 }
             }
         }

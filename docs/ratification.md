@@ -2031,3 +2031,35 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       fact about the plan rather than a tip.
   (4) **GAP: the Journal's XP sentence.** S16 requires it ("editing a past session never alters XP — copy says so"), and system
       §11 bans permanent coaching copy. It stays as the page's quiet foot, after the record. This is the owner's call.
+
+### R-095 · 2026-09-19 · A28 review rounds — Crew, Settings and Nutrition (round 3) fixed forward from ui-reviewer on run 35448570159 (Crew 5 PASS · 3 FAIL, Settings 8 PASS · 1 FAIL, Nutrition 6 PASS · 7 FAIL) · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084. These three screens have now had three reviewer rounds counting this commit's.
+  What stays after it is recorded in docs/debt.md.
+- What changed (iOS):
+  - **Crew.**
+    - The Invite sheet puts Done on its title row, and "Send invite link" sits at the sheet's foot.
+    - I have an invite anchors its primary at the foot too. The entry's primary is now its own view (InviteCodePrimary), so a
+      sheet can place it there.
+    - Manage crew's member rows read name, then an ink Remove text button. Remove had sat in the value slot, with a chevron.
+  - **Settings.** A destination's column fills the width, so Blocked people's single line sits on canvas from edge to edge.
+    The stack's white had shown on both sides.
+  - **Nutrition.**
+    - A gram amount reads "40 g": the number is right-aligned against its unit.
+    - The bodyweight field hugs what is typed. Its prompt shows only while it is empty, so "176 lb" stays one value.
+    - The chain names start on one edge, with the §5 glyph in a fixed column. The items page draws its own title row (a back
+      chevron, the chain, Cancel), and every item has a chevron.
+    - The sheets' Cancel sits on the gutter.
+    - The template's actions read "Move up · Move down · Remove", Plan's own reorder words (R-087). They clear 44 pt without
+      padding, so the gaps are even.
+    - Add a slot: the card's heading outranks its fields. The meal menu starts on the card's edge, and the optional label's
+      field is body size.
+    - The two-step delete in Settings → Nutrition is text buttons. Alone in a card, its row read as a capsule.
+    - The targets' estimate line draws its figures Rounded Bold.
+- The builder's readings:
+  (1) **The sheets' top radius.** The meal form and the chain picker measured ~38 pt against the 28 pt they set
+      (\`presentationCornerRadius\` on the root). This looks like the platform's full-height sheet radius, so it is recorded as
+      residue and not worked around.
+  (2) **"Move up" / "Move down" replace "Up" / "Down".** Plan's editor already uses those words (R-087), so the words follow the
+      established idiom rather than new copy.
+- Also in this commit: HomeStatesTests waits for the first-day bridge to leave rather than sampling it once. Run 35448570159 read
+  it a moment before the reinstall pull landed on a slow runner. It was the run's one red test; it passed on 6863e61.

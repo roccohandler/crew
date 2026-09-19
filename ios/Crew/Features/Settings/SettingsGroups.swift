@@ -12,7 +12,10 @@ struct SettingsGroupScreen<Rows: View>: View {
 
     var body: some View {
         ScrollView {
+            // full width, so a short page (Blocked people's one line) still fills the canvas edge to edge — a hugging column left
+            // the stack's white showing on both sides (ui-reviewer, run 35448570159 · R-095)
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) { rows() }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, EmberTokens.Focus.gutter)
                 .padding(.vertical, EmberTokens.Spacing.space16)
         }

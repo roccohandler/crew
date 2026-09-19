@@ -23,16 +23,19 @@ struct GramField: View {
             Text(label).typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
             Spacer(minLength: EmberTokens.Spacing.space8)
             StepButton(symbol: "minus", noun: label, focus: true) { grams = GramField.clamp(grams - SpecConstants.macroGramsRoundTo, limit) } // A28 (f): the system's stepper
-            TextField("0", text: text)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .typeRole(EmberTokens.Typography.cardSubheading)
-                .fontDesign(.rounded) // §4: a number is Rounded Bold
-                .foregroundStyle(EmberColors.ink)
-                .focused(focus, equals: key)
-                .frame(width: minTarget + EmberTokens.Spacing.space16, height: minTarget) // R-083 (11): the platform's field, without field chrome
-                .accessibilityLabel("\(label) grams")
-            Text("g").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).accessibilityHidden(true)
+            // the number right-aligned against its unit, so "40 g" reads as one value, not "g +" (R-095)
+            HStack(alignment: .firstTextBaseline, spacing: EmberTokens.Spacing.space4) {
+                TextField("0", text: text)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .typeRole(EmberTokens.Typography.cardSubheading)
+                    .fontDesign(.rounded) // §4: a number is Rounded Bold
+                    .foregroundStyle(EmberColors.ink)
+                    .focused(focus, equals: key)
+                    .frame(width: minTarget, height: minTarget) // R-083 (11): the platform's field, without field chrome
+                    .accessibilityLabel("\(label) grams")
+                Text("g").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).accessibilityHidden(true)
+            }
             StepButton(symbol: "plus", noun: label, focus: true) { grams = GramField.clamp(grams + SpecConstants.macroGramsRoundTo, limit) }
         }
     }

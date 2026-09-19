@@ -19,7 +19,7 @@ struct BonusWorkoutSheet: View {
                     Text("Bonus workout").typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: EmberTokens.Spacing.space8)
-                    TextActionButton(title: "Cancel", role: EmberTokens.Typography.textButton) { dismiss() } // 6.3: the pull has a visible twin
+                    TextActionButton(title: "Cancel", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { dismiss() } // 6.3: the pull has a visible twin
                 }
                 VStack(spacing: 0) {
                     ForEach(Array(workouts.enumerated()), id: \.element.kind) { index, workout in

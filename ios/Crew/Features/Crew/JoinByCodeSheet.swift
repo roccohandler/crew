@@ -20,13 +20,19 @@ struct JoinByCodeSheet: View {
                 }
                 InviteCodeEntry(code: $model.inviteCode, preview: model.invitePreview, errorLine: model.inviteCodeError, isLookingUp: model.isLookingUpInvite, continueTitle: "Join the crew",
                                 onLookUp: { Task { await model.lookUpInvite() } },
-                                onContinue: { Task { await model.joinByCode(); if model.crew != nil { dismiss() } } })
+                                onContinue: { Task { await model.joinByCode(); if model.crew != nil { dismiss() } } }, primaryInline: false)
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
             .padding(.top, EmberTokens.Spacing.space32)
             .padding(.bottom, EmberTokens.Spacing.space16)
         }
         .background(EmberColors.card.ignoresSafeArea()) // A28 (f): the sheet surface
+        // SPEC: 6.3 · 6.7 — the one filled button at the sheet's foot, in the thumb zone (R-095)
+        .crewBottomBar(surface: EmberColors.card) {
+            InviteCodePrimary(code: model.inviteCode, preview: model.invitePreview, isLookingUp: model.isLookingUpInvite, continueTitle: "Join the crew",
+                              onLookUp: { Task { await model.lookUpInvite() } },
+                              onContinue: { Task { await model.joinByCode(); if model.crew != nil { dismiss() } } })
+        }
         .tint(EmberColors.ink)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)

@@ -43,7 +43,9 @@ final class HomeStatesTests: XCTestCase {
     // A28 (d) — the card's title NAMES THE STATE (the nav bar carries only the "+"), and the bridge's line is gone for good
     private func expectCard(_ title: String) {
         XCTAssertTrue(element(containing: title).waitForExistence(timeout: 20), "expected Home's card to name the state (\(title)); the screen says: \(app.staticTexts.allElementsBoundByIndex.prefix(4).map(\.label).joined(separator: " | "))")
-        XCTAssertFalse(element(containing: "Your season starts today").exists, "the bridge is still on screen — the seeded post did not land")
+        // the seeded post reaches the phone through the reinstall pull, which can land after the card first draws (run 35448570159
+        // read the bridge a moment too early on a slow runner): wait for the bridge to go rather than sampling it once
+        XCTAssertTrue(element(containing: "Your season starts today").waitForNonExistence(timeout: 20), "the bridge is still on screen — the seeded post did not land")
     }
 
     // A28 (d) — no verb rows on Home any more: cardio and the bonus workout live behind the "+", and no meal control survived A22

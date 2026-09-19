@@ -20,7 +20,7 @@ struct SwapSheet: View {
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: EmberTokens.Spacing.space8)
                     // SPEC: 6.3 · 6.7 (DESIGN.md 4.2) — every swipe has a visible-button equivalent (ui-reviewer, run 35405384572)
-                    TextActionButton(title: "Cancel", role: EmberTokens.Typography.textButton) { dismiss() }
+                    TextActionButton(title: "Cancel", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { dismiss() }
                 }
                 VStack(spacing: 0) {
                     ForEach(Array(candidates.enumerated()), id: \.element.id) { index, candidate in

@@ -15,6 +15,7 @@ struct InviteCodeEntry: View {
     let continueTitle: String
     let onLookUp: () -> Void
     let onContinue: () -> Void
+    var primaryInline = true // a sheet anchors the primary at its foot instead (InviteCodePrimary, R-095)
 
     var body: some View {
         VStack(alignment: .leading, spacing: EmberTokens.Spacing.space16) {
@@ -38,12 +39,28 @@ struct InviteCodeEntry: View {
                     .accessibilityIdentifier("invitePreview")
             }
             if let errorLine { Text(errorLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.ink).accessibilityAddTraits(.updatesFrequently) }
-            if let preview, !preview.full {
-                PrimaryButton(title: continueTitle, action: onContinue)
-            } else {
-                PrimaryButton(title: isLookingUp ? "Looking…" : "Find my crew", action: onLookUp) // A28 (f): the one filled button until a crew is found
-                    .disabled(isLookingUp || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            if primaryInline {
+                InviteCodePrimary(code: code, preview: preview, isLookingUp: isLookingUp, continueTitle: continueTitle, onLookUp: onLookUp, onContinue: onContinue)
             }
+        }
+    }
+}
+
+// The entry's one filled button: Find my crew until a live crew is found, then the host's Continue (A28 (f))
+struct InviteCodePrimary: View {
+    let code: String
+    let preview: CrewPreviewDTO?
+    let isLookingUp: Bool
+    let continueTitle: String
+    let onLookUp: () -> Void
+    let onContinue: () -> Void
+
+    var body: some View {
+        if let preview, !preview.full {
+            PrimaryButton(title: continueTitle, action: onContinue)
+        } else {
+            PrimaryButton(title: isLookingUp ? "Looking…" : "Find my crew", action: onLookUp) // A28 (f): the one filled button until a crew is found
+                .disabled(isLookingUp || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
 }

@@ -63,8 +63,7 @@ final class Tour_NutritionTests: XCTestCase {
             if tourTap(tourButton(app, startingWith: "Chipotle"), timeout: 5) {
                 tourShot(app, "nutrition_chainitems_sheet", "tapped Chipotle")
             }
-            tourBack(app) // run 35347725730: the items list has no Cancel and the pull scrolled the list — back to the chains, whose Cancel closes the sheet
-            tourDismissSheet(app, button: "Cancel")
+            tourDismissSheet(app, button: "Cancel") // R-095: the items page carries Cancel on its title row, as the chains page does
         }
         tourBack(app)
     }
