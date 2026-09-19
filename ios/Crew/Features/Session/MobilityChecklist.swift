@@ -21,7 +21,7 @@ struct MobilityChecklist: View {
                         TextActionButton(title: "Mark all done", horizontalPadding: 0, role: EmberTokens.Typography.textButton) { model.markAllHolds() }
                     }
                 }
-                (Text("\(doneCount)").fontDesign(.rounded).bold() + Text(" of ") + Text("\(model.holds.count)").fontDesign(.rounded).bold() + Text(" holds done"))
+                Text(numerals: "\(doneCount) of \(model.holds.count) holds done")
                     .typeRole(EmberTokens.Typography.secondary)
                     .foregroundStyle(EmberColors.inkSecondary)
             }

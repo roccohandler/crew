@@ -3,7 +3,8 @@
 // readable labels, one summary line per post, a Sending ↻ chip while undelivered. A19.4 / W6 (2026-09-17): the journal is the
 // second SEGMENT of Progress; A28 (f) · R-086 (2026-09-19): the segment is not on the component list, so the Journal is a row button
 // on Progress, one tap from the tab, pushed with its own title. Its empty state's CTA goes to today (Home). The system's colours and
-// type: rows on `card`, day labels as eyebrows, every numeral Rounded Bold. WRITTEN — UNVERIFIED (needs Mac). T040 · R3
+// type: each day's rows in one card on the gutter (not the platform's inset-grouped list, ui-reviewer run 35444308817), day labels
+// as eyebrows, every numeral Rounded Bold. WRITTEN — UNVERIFIED (needs Mac). T040 · R3
 
 import SwiftUI
 
@@ -47,15 +48,16 @@ struct JournalScreen: View {
     }
 
     private var list: some View {
-        List {
-            Section {
-                Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.canvas)
+        ScrollView {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space24) {
+                Text("Your journal keeps everything. Editing a past workout changes your stats, never your XP or streak.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                ForEach(days) { day in
+                    JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)
+                }
             }
-            ForEach(days) { day in
-                JournalDaySection(dayKey: day.dayKey, todayKey: todayKey, posts: day.posts, isRestDay: isRestDay(day), distanceUnit: distanceUnit, onDelete: onDelete)
-            }
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
-        .scrollContentBackground(.hidden)
-        .background(EmberColors.canvas)
     }
 }

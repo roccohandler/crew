@@ -1894,3 +1894,41 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
   (4) **Copy is untouched.** The words are the ratified addendum's (A16.a, Q1–Q3) and A23's; R7 is a redraw.
 - Look at: the Nutrition shots (Today, first run, Quick add, Logged today, Saved meals, Template, the forms, targets, the
   methodology page) against DESIGN.md.
+
+### R-091 · 2026-09-19 · A28 review rounds — Home (round 3), the Logger (round 2), Progress and Plan (round 2) fixed forward from ui-reviewer on run 35444308817 · checkpoint — the builder's readings, each open to the owner
+- The order: the same standing order as R-084 ("run /ui-check, at most 3 reviewer rounds, then record the residue").
+- What changed (iOS):
+  - **Logger.** The back button is the bare chevron (`toolbarRole(.editor)`). The exercise, card and fact line are centred between
+    the count row and the bottom group. ⋯ opens an action sheet whose words take ink (a context menu's are the platform's black).
+    The sub-line and the checklist's count draw their digits through `Text(numerals:)`. The whole-workout sheet opens at its large
+    detent, so the Mobility row is on screen. The Swap sheet puts its title in the content at `sheetTitle`, with Cancel beside it.
+  - **Celebration.** A full-screen cover, as mockup 11 draws it, not a card sheet with Home behind it.
+  - **Chrome.** The keypad alert's caret and every alert's or confirm's plain buttons take ink.
+  - **Home's sheets.** Log cardio is drawn as the Logger draws a cardio block: one card, minutes with the 52 pt steppers,
+    distance as a value button, both typed through the keypad alert. The bonus sheet is the system's sheet (card, the title in
+    the content, Cancel, row buttons). The rebuild sheet gets Cancel.
+  - **Tour.** The Mobility row is reached at the sheet's large detent. The light relaunch logs a set before Finish, so the
+    celebration and the done Home are photographed (not the refusal).
+- The builder's readings:
+  (1) **The refusal names the Logger's verb:** "Log at least one set and this counts." (was "Check off …", from the checkbox era).
+      The web's twin takes the same words.
+  (2) **Log cardio's distance line** states instead of instructing. A28 (e) keeps imperatives to button labels, so A2's
+      parenthetical "Skip it if you don't know." becomes "Distance is optional."
+  (3) **The destructive confirm keeps the platform's red** for its one destructive button. UIKit gives no per-action colour
+      without private API, and A28 (a) puts red there and nowhere else. The plain buttons are ink.
+  (4) **The rebuild sheet stays on the canvas.** It is Flow 1's question screens, reused (Flow 8), and onboarding is ink on the
+      canvas (DESIGN.md 1.2). It gains the visible Cancel that 6.3 requires.
+  (5) **The heat map is the season.** Mockup 12 draws the line's weeks as its rows, so a day before the season's start now draws
+      empty and answers no tap, like a day still to come. The Progress shot drew five workouts under "This season · 1 week ·
+      0 workouts". The workouts are still in the Journal. The cells are 30 pt tall (system §8, the new `heatCell` token) and still
+      shrink in width to keep seven columns (§10).
+  (6) **Progress and Plan, round 2.** The empty states' one primary is bottom-anchored (6.3), not inside the card. The chart's
+      axis takes the table's colours (a `hairlineOnCard` gridline, `inkSecondary` numerals, Rounded Bold). The Journal and the
+      workout editor are cards on the gutter, not the platform's inset-grouped list. The exercise sheet opens at its large
+      detent, so Remove is on screen, and it names the equipment in words (`EquipmentLabel`), because a chip is not on A28 (f)'s
+      list.
+  (7) **The Journal's Delete is a visible text button on each row**, behind the same confirm. A card is not a List, so the
+      swipe is gone. A swipe with no visible twin broke 6.3.
+  (8) **Change days keeps its filled ink day discs.** The reviewer read them as the wrong component. The kit has no day-picker,
+      and the selected state is carried by fill and by VoiceOver's "selected" trait; the system's day marks are ink fills
+      (focus-card-system.md: "day-mark fills are ink"). Open to the owner.

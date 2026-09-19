@@ -228,6 +228,7 @@
       "setRowPadding": 16,
       "rowButton": 56,
       "flameCelebration": 40,
+      "heatCell": 30,
       "heatGap": 7,
       "heatRadius": 8
     }

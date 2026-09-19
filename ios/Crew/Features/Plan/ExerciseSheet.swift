@@ -1,5 +1,5 @@
 // SPEC: A4 (owner-directed 2026-09-08) · G3 as amended by A28 (f) — the exercise sheet (system §7's sheet on `card`, 28 pt top
-// corners): the name at sheet-title weight, the equipment chip and the cue line; `Sets` and `Reps` rows with the system's 52 pt
+// corners): the name at sheet-title weight, the equipment label and the cue line; `Sets` and `Reps` rows with the system's 52 pt
 // steppers (long-press repeats), bounds by construction (1…planMaxSetsPerExercise, 1…planTargetRepsMax — nothing invalid is
 // reachable); a cardio row shows `Minutes` instead (cardioMinutesStep, A2 — the minutes the user sets, GAP 4). Then text buttons:
 // `Swap exercise` (keeps the targets), `Move up` · `Move down` — THE reorder idiom (R-087; the sheet follows the row) — and
@@ -23,7 +23,7 @@ struct ExerciseSheet: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { order = nil } } }
         }
         .tint(EmberColors.ink)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large]) // Remove sat below a medium detent's fold (ui-reviewer, run 35444308817)
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(EmberTokens.Focus.cardRadius)
         .sheet(isPresented: $swapping) {
@@ -40,7 +40,7 @@ struct ExerciseSheet: View {
                 VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
                     Text(row.name).typeRole(EmberTokens.Typography.sheetTitle).foregroundStyle(EmberColors.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    EquipmentChip(equipment: row.equipment)
+                    EquipmentLabel(equipment: row.equipment) // A26 in words beside its symbol; a chip is not on A28 (f)'s list (ui-reviewer, run 35444308817)
                     if let cue = model.cueLine(for: row.exerciseId) {
                         Text(cue).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).fixedSize(horizontal: false, vertical: true)
                     }
@@ -107,4 +107,4 @@ struct StepperRow: View {
         }
     }
 }
-// A26: EquipmentChip lives in Shared/EquipmentChip.swift — the reveal, this sheet, the session and the swap lists share it
+// A26: EquipmentChip and EquipmentLabel live in Shared/EquipmentChip.swift — the reveal draws the chip; this sheet and the swap lists the label

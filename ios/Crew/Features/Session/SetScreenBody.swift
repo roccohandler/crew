@@ -40,15 +40,12 @@ struct SetScreenBody: View {
         }
     }
 
-    // "Set 1 of 3" · "Set 2 of 3 · last time 8 · 8 · 8 @ 150 lb" · "Warm-up" — numerals rounded and bold (§4)
+    // "Set 1 of 3" · "Set 2 of 3 · last time 8 · 8 · 8 @ 150 lb" · "Warm-up" — its digit runs Rounded Bold, its words not (§4)
     private var subline: Text {
-        let count = model.workSets(of: exercise).count
-        let head = setLog.isWarmup ? Text("Warm-up") : Text("Set ") + number(model.setNumber(setLog, in: exercise)) + Text(" of ") + number(count)
-        guard !logged.isEmpty, let lastTime else { return head }
-        return head + Text(" · last time ") + Text(lastTime).fontDesign(.rounded).bold()
+        let head = setLog.isWarmup ? "Warm-up" : "Set \(model.setNumber(setLog, in: exercise)) of \(model.workSets(of: exercise).count)"
+        guard !logged.isEmpty, let lastTime else { return Text(numerals: head) }
+        return Text(numerals: "\(head) · last time \(lastTime)")
     }
-
-    private func number(_ value: Int) -> Text { Text("\(value)").fontDesign(.rounded).bold() }
 
     @ViewBuilder
     private var card: some View {

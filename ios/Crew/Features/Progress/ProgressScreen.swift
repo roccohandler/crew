@@ -46,6 +46,15 @@ struct ProgressScreen: View {
                 .padding(.top, EmberTokens.Spacing.space32)
                 .padding(.bottom, EmberTokens.Spacing.space24)
             }
+            // SPEC: 6.3 (DESIGN.md 4.2) — the empty state's one primary is bottom-anchored in the thumb zone, not inside its card
+            // (ui-reviewer, run 35444308817)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if loadState == .empty {
+                    PrimaryButton(title: "Go to today", action: onGoHome)
+                        .padding(.horizontal, EmberTokens.Focus.gutter)
+                        .padding(.vertical, EmberTokens.Spacing.space12)
+                }
+            }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Progress")
             .toolbar(.hidden, for: .navigationBar) // the title is the page's own (mockup 12); pushed screens keep their bar
@@ -90,8 +99,8 @@ struct ProgressScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
                 Text("Your first post starts the story").typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink)
                 Text("Every workout you complete lands here.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
-                PrimaryButton(title: "Go to today", action: onGoHome).padding(.top, EmberTokens.Spacing.space8)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

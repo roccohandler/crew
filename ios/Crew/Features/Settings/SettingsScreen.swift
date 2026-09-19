@@ -34,7 +34,7 @@ struct SettingsScreen: View {
                     card(preferenceRows)
                     card([SettingsRow(title: "Privacy & safety", destination: .privacy), SettingsRow(title: "Account", destination: .account)])
                     card([SettingsRow(title: "How Crew works", destination: .howCrewWorks)]) // A23 · S19: the page behind the whispers
-                    Text(numerals: model.versionLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                    Text(numerals: "Version \(model.versionLine)").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .padding(.horizontal, EmberTokens.Focus.gutter)

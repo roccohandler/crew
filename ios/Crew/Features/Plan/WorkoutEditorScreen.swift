@@ -4,7 +4,8 @@
 // (one block, after the strength rows), the mobility block (read-only names, "Mobility · 3 holds · closes the workout"),
 // `Discard changes to {name}?` on a dirty Cancel. ONE reorder idiom (A27's hand-off, R-087): Move up / Move down in the exercise
 // sheet — visible buttons, so the drag handle and its Reorder mode are gone. The removed row's Undo is a quiet row at the top of the
-// list, not a snackbar (A28 (f)). Forward-only (Flow 8). Screens hold zero logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac). R4
+// page, not a snackbar (A28 (f)). The groups are the system's cards on the gutter, not the platform's inset-grouped list
+// (ui-reviewer, run 35444308817). Forward-only (Flow 8). Screens hold zero logic (5.6.6). WRITTEN — UNVERIFIED (needs Mac). R4
 
 import SwiftUI
 
@@ -20,7 +21,7 @@ struct WorkoutEditorScreen: View {
 
     var body: some View {
         Group {
-            if let draft = model.drafts[kind] { list(draft) } else { LoadingLine(line: "Opening the workout…").padding(EmberTokens.Focus.gutter) } // 6.1 (2026-09-18): a line, not a skeleton
+            if let draft = model.drafts[kind] { page(draft) } else { LoadingLine(line: "Opening the workout…").padding(EmberTokens.Focus.gutter) } // 6.1 (2026-09-18): a line, not a skeleton
         }
         .background(EmberColors.canvas.ignoresSafeArea())
         .navigationTitle(model.name(ofKind: kind))
@@ -49,57 +50,84 @@ struct WorkoutEditorScreen: View {
         .tint(EmberColors.ink)
     }
 
-    private func list(_ draft: WorkoutDraft) -> some View {
-        List {
-            Section {
-                Text(numerals: draft.headerLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.canvas)
-                // SPEC: A4 — `Removed {name} · Undo`: one step back inside the draft, until Undo or the next edit (no timer, A28 (c))
-                if let name = draft.removedName {
-                    HStack(spacing: EmberTokens.Spacing.space12) {
-                        Text("Removed \(name)").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
-                        Spacer(minLength: EmberTokens.Spacing.space8)
-                        TextActionButton(title: "Undo", horizontalPadding: 0, accessibilityLabel: "Undo. Removed \(name)", role: EmberTokens.Typography.textButton) { model.undoRemove(kind: kind) }
+    private func page(_ draft: WorkoutDraft) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: EmberTokens.Spacing.space24) {
+                VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+                    Text(numerals: draft.headerLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                    // SPEC: A4 — `Removed {name} · Undo`: one step back inside the draft, until Undo or the next edit (no timer, A28 (c))
+                    if let name = draft.removedName {
+                        HStack(spacing: EmberTokens.Spacing.space12) {
+                            Text("Removed \(name)").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+                            Spacer(minLength: EmberTokens.Spacing.space8)
+                            TextActionButton(title: "Undo", horizontalPadding: 0, accessibilityLabel: "Undo. Removed \(name)", role: EmberTokens.Typography.textButton) { model.undoRemove(kind: kind) }
+                        }
                     }
-                    .listRowBackground(EmberColors.canvas)
                 }
-            }
-            Section {
-                ForEach(draft.rows, id: \.order) { row in
-                    Button { editing = row.order } label: {
-                        ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), equipment: row.type == "cardio" ? nil : row.equipment)
+                group("Exercises", numerals: false) {
+                    ForEach(Array(draft.rows.enumerated()), id: \.element.order) { index, row in
+                        if index > 0 { seam }
+                        Button { editing = row.order } label: {
+                            ExerciseListRow(title: WorkoutDraft.title(of: row), detail: WorkoutDraft.detail(of: row), equipment: row.type == "cardio" ? nil : row.equipment)
+                                .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    .listRowBackground(EmberColors.card)
+                    if draft.isEmpty { seamless(Text(draft.emptyLine)) }
+                    if draft.isFull {
+                        seam
+                        seamless(Text(numerals: draft.fullLine))
+                    } else {
+                        if !draft.isEmpty { seam }
+                        addRow("Add exercise") { adding = true }
+                        if !draft.hasCardio {
+                            seam
+                            addRow("Add cardio") { addingCardio = true }
+                        }
+                    }
                 }
-                if draft.isEmpty { Text(draft.emptyLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.card) }
-                if draft.isFull {
-                    Text(numerals: draft.fullLine).typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary).listRowBackground(EmberColors.card)
-                } else {
-                    addRow("Add exercise") { adding = true }
-                    if !draft.hasCardio { addRow("Add cardio") { addingCardio = true } }
+                group(draft.mobilityLine, numerals: true) {
+                    ForEach(Array(draft.holds.enumerated()), id: \.element.order) { index, hold in
+                        if index > 0 { seam }
+                        Text(WorkoutDraft.holdLine(hold)).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink)
+                            .frame(maxWidth: .infinity, minHeight: CGFloat(SpecConstants.minTouchTargetPt), alignment: .leading)
+                            .padding(.horizontal, EmberTokens.Focus.setCardInset)
+                    }
                 }
-            } header: {
-                Text("Exercises").typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
             }
-            Section {
-                ForEach(draft.holds, id: \.order) { hold in
-                    Text(WorkoutDraft.holdLine(hold)).typeRole(EmberTokens.Typography.body).foregroundStyle(EmberColors.ink).listRowBackground(EmberColors.card)
-                }
-            } header: {
-                Text(numerals: draft.mobilityLine).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
-            }
+            .padding(.horizontal, EmberTokens.Focus.gutter)
+            .padding(.vertical, EmberTokens.Spacing.space16)
         }
-        .scrollContentBackground(.hidden)
+    }
+
+    // An eyebrow over one card of rows (A28 (f): cards on the gutter, seams inset like the rows they separate)
+    private func group<Rows: View>(_ title: String, numerals: Bool, @ViewBuilder rows: () -> Rows) -> some View {
+        VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
+            (numerals ? Text(numerals: title) : Text(title)).typeRole(EmberTokens.Typography.eyebrow).foregroundStyle(EmberColors.inkSecondary)
+                .accessibilityAddTraits(.isHeader)
+            FocusCard(padding: 0) { VStack(spacing: 0) { rows() } }
+        }
+    }
+
+    private func seamless(_ text: Text) -> some View {
+        text.typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, EmberTokens.Focus.setCardInset)
+            .padding(.vertical, EmberTokens.Spacing.space16)
+    }
+
+    private var seam: some View {
+        Rectangle().fill(EmberColors.hairlineOnCard).frame(height: EmberTokens.Size.hairline).padding(.leading, EmberTokens.Focus.setCardInset)
     }
 
     private func addRow(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: "plus").typeRole(EmberTokens.Typography.bodySemibold).foregroundStyle(EmberColors.ink)
                 .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton, alignment: .leading)
+                .padding(.horizontal, EmberTokens.Focus.setCardInset)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowBackground(EmberColors.card)
     }
 
     // A clean draft just pops; a dirty one asks (never silently discards, never silently saves)
@@ -134,6 +162,7 @@ struct ExerciseListRow: View {
             Spacer(minLength: EmberTokens.Spacing.space8)
             Image(systemName: "chevron.right").foregroundStyle(EmberColors.chevron)
         }
+        .padding(.vertical, EmberTokens.Spacing.space8)
         .frame(maxWidth: .infinity, minHeight: EmberTokens.Focus.rowButton, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)

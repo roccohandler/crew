@@ -50,7 +50,8 @@ final class Tour_SessionTests: XCTestCase {
             }
         }
         // A28 (c), (f) — the holds' checklist (mockup 10), through the sheet's Mobility row
-        if tourTap(app.buttons["Whole workout"], timeout: 5), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
+        // the Mobility row is the sheet's last, below the medium detent's fold with a full workout: pull the sheet up to its large detent first
+        if tourTap(app.buttons["Whole workout"], timeout: 5), app.buttons["Finish workout"].waitForExistence(timeout: 5), tourSwipeSheetUp(app), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
             _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
             tourShot(app, "session_logger_mobility", "jumped to the holds — the checklist")
         }
@@ -62,7 +63,7 @@ final class Tour_SessionTests: XCTestCase {
             if tourTap(app.buttons["Whole workout"], timeout: 5) {
                 _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
                 tourShot(app, "session_whole_workout_sheet_dark", "the whole-workout sheet in dark mode")
-                if tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
+                if tourSwipeSheetUp(app), tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mobility' AND NOT (label CONTAINS 'done')")).firstMatch, timeout: 3) {
                     _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
                     tourShot(app, "session_logger_mobility_dark", "the checklist in dark mode")
                 }
@@ -70,7 +71,11 @@ final class Tour_SessionTests: XCTestCase {
         }
         tourLaunch(app, as: member) // back to light for the celebration and the done Home (the dark celebration: Tour_HomeTests)
         tourWaitForHome(app)
-        guard tourTap(app.buttons["Resume workout"], timeout: 5), tourTap(app.buttons["Whole workout"], timeout: 10), tourTap(app.buttons["Finish workout"], timeout: 5) else { return }
+        guard tourTap(app.buttons["Resume workout"], timeout: 5) else { return }
+        // a relaunch re-reads the session the server holds, which may not have the set logged before it yet (run 35444308817): log one
+        // here, so Finish counts the workout and the celebration and the done Home are photographed (not the refusal)
+        tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Log set'")).firstMatch, timeout: 10)
+        guard tourTap(app.buttons["Whole workout"], timeout: 10), tourTap(app.buttons["Finish workout"], timeout: 5) else { return }
         _ = app.buttons["Share to crew"].waitForExistence(timeout: 15)
         tourShot(app, "session_celebration_complete", "tapped Finish workout in the whole-workout sheet")
         tourTap(app.buttons["Share to crew"], timeout: 5)
@@ -82,5 +87,11 @@ final class Tour_SessionTests: XCTestCase {
         tourLaunch(app, as: member, dark: true) // A28 (a): the done Home in Midnight
         tourWaitForHome(app)
         tourShot(app, "home_home_done_dark", "the same done Home in dark mode")
+    }
+
+    // A sheet at its medium detent grows to large under an upward drag that starts on its own surface; always true, so it chains in an if
+    private func tourSwipeSheetUp(_ app: XCUIApplication) -> Bool {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)))
+        return true
     }
 }

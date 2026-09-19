@@ -208,6 +208,7 @@
   --ember-focus-set-row-padding: 16px;
   --ember-focus-row-button: 56px;
   --ember-focus-flame-celebration: 40px;
+  --ember-focus-heat-cell: 30px;
   --ember-focus-heat-gap: 7px;
   --ember-focus-heat-radius: 8px;
   /* A28 (a) — design/focus-card-system.md §6: LIGHT lifts a card with a two-layer shadow in the ink colour (0 1 3 at 5%, 0 14 34 at 8%); DARK uses tone alone and no shadow — the view gates the shadow on colorScheme. */

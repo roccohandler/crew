@@ -44,8 +44,9 @@ struct HomeScreen: View {
             .navigationDestination(isPresented: $loggingMacros) { NutritionTodayScreen() } // nutrition addendum Q3: the Home row is the way in
             .onChange(of: loggingMacros) { _, open in if !open { model.refresh() } } // back from Today: the row's count may have moved
             // SPEC: A21.9 — no swipe-to-dismiss: a celebration is answered by one of its two buttons or not at all; the tapped
-            // button posts (answerCelebration), then the sheet comes down, then — after the first workout — the reminder opt-in (A21.4)
-            .sheet(item: $celebration, onDismiss: { if offerReminder { offerReminder = false; showsReminder = true } }) { outcome in
+            // button posts (answerCelebration), then the cover comes down, then — after the first workout — the reminder opt-in (A21.4).
+            // Full bleed, as mockup 11 draws it: a cover, not a card sheet with Home showing behind it (ui-reviewer, run 35444308817)
+            .fullScreenCover(item: $celebration, onDismiss: { if offerReminder { offerReminder = false; showsReminder = true } }) { outcome in
                 CelebrationScreen(outcome: outcome) { share in model.answerCelebration(outcome, shareToCrew: share); offerReminder = model.shouldOfferReminder(); celebration = nil }
                     .interactiveDismissDisabled()
             }

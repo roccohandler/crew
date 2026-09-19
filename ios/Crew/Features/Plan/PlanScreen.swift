@@ -33,6 +33,15 @@ struct PlanScreen: View {
                 .padding(.top, EmberTokens.Spacing.space32)
                 .padding(.bottom, EmberTokens.Spacing.space24)
             }
+            // SPEC: 6.3 (DESIGN.md 4.2) — the empty state's one primary is bottom-anchored in the thumb zone, not inside its card
+            // (ui-reviewer, run 35444308817)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if loadState == .empty {
+                    PrimaryButton(title: "Build my week") { rebuilding = true }
+                        .padding(.horizontal, EmberTokens.Focus.gutter)
+                        .padding(.vertical, EmberTokens.Spacing.space12)
+                }
+            }
             .background(EmberColors.canvas.ignoresSafeArea())
             .navigationTitle("Plan")
             .toolbar(.hidden, for: .navigationBar) // the title is the page's own; the editor keeps its bar
@@ -95,8 +104,8 @@ struct PlanScreen: View {
             VStack(alignment: .leading, spacing: EmberTokens.Spacing.space8) {
                 Text("No plan yet").typeRole(EmberTokens.Typography.cardSubheading).foregroundStyle(EmberColors.ink)
                 Text("Two questions and your plan is ready.").typeRole(EmberTokens.Typography.secondary).foregroundStyle(EmberColors.inkSecondary)
-                PrimaryButton(title: "Build my week") { rebuilding = true }.padding(.top, EmberTokens.Spacing.space8)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

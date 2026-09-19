@@ -44,5 +44,10 @@ enum Chrome {
         tabBar.scrollEdgeAppearance = tabs
         tabBar.tintColor = ink
         tabBar.unselectedItemTintColor = secondary
+
+        // the Logger's number alert and every confirm are UIKit's: their caret and their plain buttons take ink, never the system's
+        // blue (ui-reviewer, run 35444308817). A destructive button keeps the platform's red, the one place red appears (A28 (a)).
+        UITextField.appearance().tintColor = ink
+        UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = ink
     }
 }

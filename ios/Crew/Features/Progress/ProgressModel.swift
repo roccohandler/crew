@@ -14,7 +14,7 @@ struct DayCell: Equatable, Identifiable {
     let workout: Bool
     let cardio: Bool
     let posted: Bool
-    var future = false // A28 (d): the grid runs to Sunday, so this week's days still to come draw empty and answer no tap
+    var outside = false // A28 (d): the grid runs Monday to Sunday, so its days before the season or still to come draw empty and answer no tap
     var id: String { dayKey }
 }
 
@@ -108,7 +108,15 @@ final class ProgressModel {
         var cells: [DayCell] = []
         var day = from
         let last = DayKey.addDays(thisWeek, TimeUnits.daysPerWeek - 1)
-        while day <= last { cells.append(DayCell(dayKey: day, workout: workoutDays.contains(day), cardio: cardioDays.contains(day), posted: postDays.contains(day), future: day > todayKey)); day = DayKey.addDays(day, 1) }
+        // the map IS the season (mockup 12: its rows are the line's weeks), so a day before the season's start draws empty and answers
+        // no tap, like a day still to come — a workout drawn there contradicted "This season · 0 workouts" (ui-reviewer, run
+        // 35444308817). The Journal still holds it.
+        let start = season?.startDayKey ?? from
+        while day <= last {
+            let outside = day > todayKey || day < start
+            cells.append(DayCell(dayKey: day, workout: !outside && workoutDays.contains(day), cardio: !outside && cardioDays.contains(day), posted: !outside && postDays.contains(day), outside: outside))
+            day = DayKey.addDays(day, 1)
+        }
         return cells
     }
 

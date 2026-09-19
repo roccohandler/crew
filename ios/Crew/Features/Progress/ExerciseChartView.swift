@@ -28,6 +28,16 @@ struct ExerciseChartView: View {
                     PointMark(x: .value("Day", point.dayKey), y: .value("Best", point.best)).foregroundStyle(EmberColors.ink)
                 }
                 .chartXAxis(.hidden)
+                // the axis is the table's, not the platform's grey: seam-weight gridlines, secondary-ink numerals, Rounded Bold (§4;
+                // ui-reviewer, run 35444308817)
+                .chartYAxis {
+                    AxisMarks(position: .trailing) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: EmberTokens.Size.hairline)).foregroundStyle(EmberColors.hairlineOnCard)
+                        AxisValueLabel {
+                            if let weight = value.as(Double.self) { Text(numerals: "\(Int(weight))").typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary) }
+                        }
+                    }
+                }
                 .frame(height: EmberTokens.Size.skeletonHero)
                 .accessibilityLabel("\(trend.name): \(trend.points.map { "\(Int($0.best))" }.joined(separator: ", ")) \(units)")
                 if let last = trend.points.last, let previous = trend.points.dropLast().last {

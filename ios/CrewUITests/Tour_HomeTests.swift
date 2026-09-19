@@ -46,7 +46,7 @@ final class Tour_HomeTests: XCTestCase {
         if tourTap(app.buttons["home.add"]) {
             tourShot(app, "home_add_sheet_rest", "tapped + on a rest day — cardio and a bonus workout")
             if tourTap(app.buttons["home.add.bonus"], timeout: 5) {
-                _ = app.navigationBars["Bonus workout"].waitForExistence(timeout: 10)
+                _ = app.staticTexts["Bonus workout"].waitForExistence(timeout: 10)
                 tourShot(app, "home_bonus_sheet", "tapped Bonus workout in the + sheet")
                 tourDismissSheet(app)
             }

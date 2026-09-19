@@ -72,7 +72,14 @@ final class CardioLogModel {
 
     var unitSuffix: String { distanceUnit == "km" ? "km" : "mi" }
 
-    // SPEC: A2 · A9 — "2.1" in the user's distanceUnit → meters; empty or unreadable → nil ("Skip it if you don't know."); capped at
+    // SPEC: A2 — the minutes move in cardioMinutesStep steps, and a typed value is clamped: an invalid value is unreachable
+    func stepMinutes(by direction: Int) { setMinutes(minutes + direction * SpecConstants.cardioMinutesStep) }
+    func setMinutes(_ value: Int) { minutes = min(SpecConstants.cardioMinutesMax, max(SpecConstants.cardioMinutesMin, value)) }
+
+    // the distance as the card's numeral: what was typed, or a dash when there is none (A2: optional)
+    var distanceValue: String { distanceMeters == nil ? "—" : distanceText.trimmingCharacters(in: .whitespaces) }
+
+    // SPEC: A2 · A9 — "2.1" in the user's distanceUnit → meters; empty or unreadable → nil (the distance is optional); capped at
     // cardioDistanceMaxMeters so an invalid value is unreachable rather than rejected
     var distanceMeters: Int? {
         let text = distanceText.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)

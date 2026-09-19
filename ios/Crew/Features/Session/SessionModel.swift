@@ -144,7 +144,7 @@ final class SessionModel {
     func complete() {
         do {
             guard let outcome = try SessionActions.complete(session, store: store) else {
-                completeError = "Check off at least one set and this counts."
+                completeError = "Log at least one set and this counts."
                 return
             }
             Haptics.play(.thump)

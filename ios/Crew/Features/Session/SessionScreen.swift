@@ -13,6 +13,7 @@ struct SessionScreen: View {
     let onCompleted: (CelebrationOutcome) -> Void
     @State private var cue: String?
     @State private var showsDiscard = false
+    @State private var showsMore = false
     @State private var showsSheet = false
     @State private var finishingFromSheet = false
     @State private var swapping: LocalSessionExercise?
@@ -31,6 +32,9 @@ struct SessionScreen: View {
     private var displayed: LocalSetLog? { model.focused.flatMap { model.displayedSet(of: $0) } }
 
     var body: some View {
+        // Mockups 07 and 08 centre the exercise, the card and the fact line between the bar and the bottom group; the screen still
+        // scrolls when Dynamic Type makes the set taller than the phone (§10)
+        GeometryReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 WorkoutBar(model: model)
@@ -49,11 +53,15 @@ struct SessionScreen: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Whole workout")
                 }
-                content.padding(.top, EmberTokens.Spacing.space32)
+                Spacer(minLength: EmberTokens.Spacing.space32)
+                content
+                Spacer(minLength: EmberTokens.Spacing.space24)
             }
             .padding(.horizontal, EmberTokens.Focus.gutter)
-            .padding(.bottom, EmberTokens.Spacing.space24)
+            .frame(minHeight: proxy.size.height, alignment: .top)
         }
+        }
+        .toolbarRole(.editor) // the back button is the bare chevron the mockups draw, never "‹ Back"
         // A19.1 — the bottom group is a real inset: it rises above the keyboard and nothing scrolls under it (6.7: "Log set" and Finish
         // visible without scrolling at the SE at accessibility-XXL)
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
@@ -131,9 +139,15 @@ struct SessionScreen: View {
     }
 
     // SPEC: A28 (d) — "+ set", "+ warm-up", set removal (A11: absent on the last work set, V55) and its undo, plate math on demand, and
-    // Discard, under ⋯ so Swap and Skip stay visible (system §9)
+    // Discard, under ⋯ so Swap and Skip stay visible (system §9). An action sheet, not a context menu: its words take the app's ink,
+    // where a menu's are the platform's black (ui-reviewer, run 35444308817)
     private var menu: some View {
-        Menu {
+        Button { showsMore = true } label: {
+            Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(EmberColors.ink)
+                .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
+        }
+        .accessibilityLabel("More")
+        .confirmationDialog("More", isPresented: $showsMore, titleVisibility: .hidden) {
             if let exercise = model.focused, exercise.type == "strength", !exercise.skipped {
                 Button("+ set") { model.addSet(to: exercise) }.accessibilityLabel("Add a set")
                 Button("+ warm-up") { model.addWarmup(to: exercise) }.accessibilityLabel("Add a warm-up set")
@@ -146,11 +160,7 @@ struct SessionScreen: View {
             }
             if model.lastRemoved != nil { Button("Undo the removal") { model.undoRemove(in: model.exercises) } }
             Button("Discard workout") { showsDiscard = true }
-        } label: {
-            Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(EmberColors.ink)
-                .frame(width: CGFloat(SpecConstants.minTouchTargetPt), height: CGFloat(SpecConstants.minTouchTargetPt))
         }
-        .accessibilityLabel("More")
     }
 
     private func log(_ set: LocalSetLog, in exercise: LocalSessionExercise) {

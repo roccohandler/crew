@@ -43,7 +43,7 @@ struct WholeWorkoutSheet: View {
             .padding(.vertical, EmberTokens.Spacing.space12)
         }
         .background(EmberColors.card.ignoresSafeArea())
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large]) // the Mobility row is the list's last: a medium detent hid it below the fold (run 35444308817)
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(EmberTokens.Focus.cardRadius)
     }

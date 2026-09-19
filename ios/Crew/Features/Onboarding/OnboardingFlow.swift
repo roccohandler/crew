@@ -11,6 +11,7 @@ struct OnboardingFlow: View {
     @State private var path: [OnboardingStep] = []
     private let mode: OnboardingMode
     private let onRebuilt: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
     // rebuild (Flow 8 / E4): a signed-in user starts at the questions and the reveal saves the plan (T042)
     init(mode: OnboardingMode = .signup, onRebuilt: @escaping () -> Void = {}) {
@@ -51,6 +52,9 @@ struct OnboardingFlow: View {
     @ViewBuilder private var root: some View {
         if mode == .rebuild {
             DaysQuestionScreen(model: model) { path.append(.experience) }
+                // SPEC: 6.3 · 6.7 (DESIGN.md 4.2) — the rebuild is a sheet, and every swipe has a visible-button twin: the pull down
+                // had none (ui-reviewer, run 35444308817)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         } else {
             IntroScreen(
                 invitedCrewLine: model.invitedCrew.map { "\($0.name) \($0.emoji) is waiting for you" },

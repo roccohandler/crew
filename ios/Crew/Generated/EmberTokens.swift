@@ -95,6 +95,7 @@ enum EmberTokens {
         static let setRowPadding: CGFloat = 16
         static let rowButton: CGFloat = 56
         static let flameCelebration: CGFloat = 40
+        static let heatCell: CGFloat = 30
         static let heatGap: CGFloat = 7
         static let heatRadius: CGFloat = 8
     }

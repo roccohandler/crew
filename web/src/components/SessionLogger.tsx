@@ -87,7 +87,7 @@ export function SessionLogger({ initial, units, distanceUnit, timezone, lastTime
   };
   const swap = (replacement: SeedExercise, scope: SwapScope) => { if (swapping !== null) { setSwapping(null); void performSwap(exercises, swapping, replacement, scope, kind, save, () => setError("Swapped for today, but the plan didn't save. Try again from Plan.")); } };
   const complete = async () => {
-    if (!facts.complete) { setError("Check off at least one set and this counts."); return; }
+    if (!facts.complete) { setError("Log at least one set and this counts."); return; }
     await lastSave.current;
     const reply = await patchSession(initial.id, { timezone, exercises, status: "completed", post: { clientId: crypto.randomUUID(), shareToCrew: inCrew && share } });
     router.push(`/session/${initial.id}/done${earnedQuery(reply.gamification?.newAchievementIds)}`);
