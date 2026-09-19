@@ -59,7 +59,12 @@ final class Tour_SessionTests: XCTestCase {
         tourWaitForHome(app)
         if tourTap(app.buttons["Resume workout"], timeout: 5) {
             _ = app.buttons["Whole workout"].waitForExistence(timeout: 10)
-            tourShot(app, "session_logger_midset_dark", "the same Logger in dark mode")
+            // the relaunch re-reads the server's session, which may not hold set 1 yet: log one, so the dark shot is mockup 08's
+            // mid-set (the ledger under the card), not the start (run 35450242203 · R-096)
+            if tourTap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Log set'")).firstMatch, timeout: 10) {
+                _ = app.staticTexts.matching(NSPredicate(format: "label CONTAINS ' reps'")).firstMatch.waitForExistence(timeout: 5)
+            }
+            tourShot(app, "session_logger_midset_dark", "the same Logger in dark mode, a set logged")
             if tourTap(app.buttons["Whole workout"], timeout: 5) {
                 _ = app.buttons["Finish workout"].waitForExistence(timeout: 5)
                 tourShot(app, "session_whole_workout_sheet_dark", "the whole-workout sheet in dark mode")

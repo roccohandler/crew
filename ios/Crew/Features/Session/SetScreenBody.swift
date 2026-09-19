@@ -108,7 +108,8 @@ struct SetScreenBody: View {
                 Text(numerals: line).typeRole(EmberTokens.Typography.caption).foregroundStyle(EmberColors.inkSecondary)
                 Spacer(minLength: 0)
             }
-            .frame(minHeight: rowTarget)
+            // the 44 pt target grows downward from the line, so the ledger tucks under the card as mockup 08 draws it (R-096)
+            .frame(minHeight: rowTarget, alignment: .top)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

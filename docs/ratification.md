@@ -2063,3 +2063,20 @@ Entry format — `### <id> · <date> · <task> · <checkpoint | gap | substitute
       established idiom rather than new copy.
 - Also in this commit: HomeStatesTests waits for the first-day bridge to leave rather than sampling it once. Run 35448570159 read
   it a moment before the reinstall pull landed on a slow runner. It was the run's one red test; it passed on 6863e61.
+
+### R-096 · 2026-09-19 · A28 review rounds closed — the last round's verdicts, and the last FAILs fixed forward unreviewed · checkpoint — the builder's readings, each open to the owner
+- The order: "run /ui-check, at most 3 reviewer rounds, then record the residue in debt.md". Every screen in the build order has
+  now had its three rounds.
+- Round 3 verdicts:
+  - **The Logger** (run 35450242203, d71ff46): 7 PASS · 2 FAIL.
+  - **Progress and Plan** (run 35450242203): 6 PASS · 0 FAIL.
+  - **Crew, Settings and Nutrition** (run 35451884872, 169038d, TestFlight build 221): 10 PASS · 1 FAIL.
+  - **Home** closed at round 3 in R-094.
+- Fixed forward after the last round (unreviewed, by the rule):
+  (1) **The Logger's running ledger** tucks under the card, as mockup 08 draws it. A row's 44 pt target now grows downward from
+      its line instead of centring it.
+  (2) **The tour logs a set after the dark relaunch.** The dark Logger shot is then mockup 08's mid-set, not the start. The
+      relaunch re-reads the server's session, which may not hold the set logged before it.
+  (3) **The nutrition rows** (Template, Saved meals, Logged today) take the set card's row rhythm. The stacked Template row gets
+      16 pt over its words; a one-line row gets 12 and 12.
+- What stays is in docs/debt.md, under "A28 review / residue after three rounds".

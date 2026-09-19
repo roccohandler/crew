@@ -95,13 +95,18 @@ struct MealLineRow: View {
                 Spacer(minLength: EmberTokens.Spacing.space4)
                 buttons
             }
+            .padding(.vertical, EmberTokens.Spacing.space12)
+            // the set card's row rhythm (system §5): 16 pt over the words; under them the text buttons' own 44 pt frames already
+            // hold the slack, so the bottom takes 4 — the Template's rows sat 8 pt from the card's top and 23 under (run
+            // 35451884872 · R-096)
             VStack(alignment: .leading, spacing: 0) {
                 words(fixed: false)
                 HStack(spacing: EmberTokens.Spacing.space16) { buttons }
             }
+            .padding(.top, EmberTokens.Focus.setRowPadding)
+            .padding(.bottom, EmberTokens.Spacing.space4)
         }
         .padding(.horizontal, EmberTokens.Focus.setCardInset)
-        .padding(.vertical, EmberTokens.Spacing.space8)
     }
 
     // fixed: the one-line test ViewThatFits measures; otherwise the name wraps (6.7: nothing truncates)
