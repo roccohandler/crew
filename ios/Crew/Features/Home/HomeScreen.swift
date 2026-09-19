@@ -130,11 +130,12 @@ struct HomeScreen: View {
 
     // One column in the 20 pt gutter, centred in the height the phone has, scrolling when the content is taller (6.7)
     private func centred<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        GeometryReader { proxy in
+        let column = content() // built here: GeometryReader's closure escapes, and a non-escaping builder cannot go with it
+        return GeometryReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
                     Spacer(minLength: EmberTokens.Focus.gutter)
-                    content()
+                    column
                     Spacer(minLength: EmberTokens.Focus.gutter)
                 }
                 .padding(.horizontal, EmberTokens.Focus.gutter)
