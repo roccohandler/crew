@@ -81,8 +81,8 @@ final class ProgressModel {
         // SPEC: A1 · A27 (a) — a week's planned count is its days that the training days in effect ON each of them plan
         let history = try plan == nil ? [] : PlanLocal.trainingDays(for: userId, store: store)
         let today = todayKey
-        let ended = try store.context.fetch(FetchDescriptor<LocalPause>(predicate: #Predicate { $0.userId == userId && $0.endDay <= today })).map(.endDay)
-        season = SeasonFacts.of(history: history, endedPauseDays: ended, workoutDayKeys: completed.filter { $0.workoutKind != "cardio" }.map(.dayKey), todayKey: todayKey)
+        let ended = try store.context.fetch(FetchDescriptor<LocalPause>(predicate: #Predicate { $0.userId == userId && $0.endDay <= today })).map(\.endDay)
+        season = SeasonFacts.of(history: history, endedPauseDays: ended, workoutDayKeys: completed.filter { $0.workoutKind != "cardio" }.map(\.dayKey), todayKey: todayKey)
         heatMap = heatMapCells(completed: completed, posts: posts)
         weeks = (0..<ringWeeks).reversed().map { offset in
             let weekKey = DayKey.addDays(DayKey.weekKey(for: todayKey), -offset * TimeUnits.daysPerWeek)
